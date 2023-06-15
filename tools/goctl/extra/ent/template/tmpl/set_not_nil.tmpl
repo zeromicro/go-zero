@@ -1,0 +1,26 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+
+{{ define "set_not_nil" }}
+
+    {{/* Add the base header for the generated file */}}
+    {{ $pkg := base $.Config.Package }}
+    {{ template "header" $ }}
+
+    {{/* Loop over all updaters and implement the "SetNotNil" method for all optional fields */}}
+    {{ range $n := $.Nodes }}
+        {{ range $f := $n.MutableFields }}
+            {{ $set := print "Set" $f.StructField }}
+
+            {{ range $updater := list $n.UpdateName $n.UpdateOneName $n.CreateName}}
+                // set field if value's pointer is not nil.
+                func ({{ $n.Receiver }} *{{ $updater }}) SetNotNil{{ $f.StructField }}(value *{{ $f.Type }}) *{{ $updater }} {
+                if value != nil  {
+                return {{ $n.Receiver }}.{{ $set }}(*value)
+                }
+                return {{ $n.Receiver }}
+                }
+            {{ end }}
+        {{ end }}
+    {{ end }}
+{{ end }}

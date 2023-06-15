@@ -236,34 +236,34 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 			continue
 		} else if entx.IsOnlyEntType(v.Info.Type.String()) {
-			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", parser.CamelCase(v.Name),
+			setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(%s(*in.%s))).\n", parser.CamelCase(v.Name),
 				v.Info.Type.String(),
 				parser.CamelCase(v.Name)))
 		} else {
 			if entx.IsTimeProperty(v.Info.Type.String()) {
 				hasTime = true
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(in.%s, 0)).\n", parser.CamelCase(v.Name),
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(time.Unix(*in.%s, 0))).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			} else if entx.IsUpperProperty(v.Name) {
 				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
 					if v.Info.Type.String() == "[16]byte" {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(uuidx.ParseUUIDStringToPointer(*in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
 							parser.CamelCase(v.Name)))
 						hasUUID = true
 					} else {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(%s(*in.%s))).\n", entx.ConvertSpecificNounToUpper(v.Name),
 							v.Info.Type.String(), parser.CamelCase(v.Name)))
 					}
 				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(in.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			} else {
 				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", parser.CamelCase(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(%s(*in.%s))).\n", parser.CamelCase(v.Name),
 						v.Info.Type.String(), parser.CamelCase(v.Name)))
 				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", parser.CamelCase(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(in.%s).\n", parser.CamelCase(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			}
@@ -296,7 +296,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	_ = updateLogicTmpl.Execute(updateLogic, map[string]any{
 		"hasTime":      hasTime,
 		"hasUUID":      hasUUID,
-		"setLogic":     strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
+		"setLogic":     setLogic.String(),
 		"modelName":    schema.Name,
 		"projectName":  strings.ToLower(g.ProjectName),
 		"projectPath":  projectCtx.Path,
@@ -318,12 +318,12 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") &&
 			count < g.SearchKeyNum && !entx.IsBaseProperty(v.Name) {
 			camelName := parser.CamelCase(v.Name)
-			predicateData.WriteString(fmt.Sprintf("\tif in.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(in.%s))\n\t}\n",
+			predicateData.WriteString(fmt.Sprintf("\tif in.%s != nil {\n\t\tpredicates = append(predicates, %s.%sContains(*in.%s))\n\t}\n",
 				camelName, strings.ToLower(schema.Name), entx.ConvertSpecificNounToUpper(v.Name), camelName))
 			count++
 		}
 	}
-	predicateData.WriteString(fmt.Sprintf("\tresult, err := l.svcCtx.DB.%s.Query().Where(predicates...).Page(l.ctx, in.Page, in.PageSize)",
+	predicateData.WriteString(fmt.Sprintf("\tresult, err := l.svcCtx.DB.%s.Query().Where(predicates...).Page(l.ctx, *in.Page, *in.PageSize)",
 		schema.Name))
 
 	listData := strings.Builder{}
@@ -341,30 +341,30 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 
 			if entx.IsUUIDType(v.Info.Type.String()) {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(v.%s.String()),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if entx.IsOnlyEntType(v.Info.Type.String()) {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(%s(v.%s)),%s", nameCamelCase,
 					entx.ConvertOnlyEntTypeToGoType(v.Info.Type.String()),
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if entx.IsTimeProperty(v.Info.Type.String()) {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(v.%s.UnixMilli()),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else {
 				if entx.IsUpperProperty(v.Name) {
 					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(%s(v.%s)),%s", nameCamelCase,
 							entx.ConvertEntTypeToGotype(v.Info.Type.String()), entx.ConvertSpecificNounToUpper(v.Name), endString))
 					} else {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t&v.%s,%s", nameCamelCase,
 							entx.ConvertSpecificNounToUpper(v.Name), endString))
 					}
 				} else {
 					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(%s(v.%s)),%s", nameCamelCase,
 							entx.ConvertEntTypeToGotype(v.Info.Type.String()), nameCamelCase, endString))
 					} else {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t&v.%s,%s", nameCamelCase,
 							nameCamelCase, endString))
 					}
 				}
@@ -443,7 +443,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 	idString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "id")
 	createString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "created_at")
 	updateString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "updated_at")
-	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  %s %s = 1;\n  int64 %s = 2;\n  int64 %s = 3;\n",
+	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  optional %s %s = 1;\n  optional int64 %s = 2;\n  optional int64 %s = 3;\n",
 		schemaNameCamelCase, entx.ConvertIDType(g.UseUUID), idString, createString, updateString))
 	index := 4
 	for i, v := range schema.Fields {
@@ -451,7 +451,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 			continue
 		} else if v.Name == "status" {
 			statusString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
-			protoMessage.WriteString(fmt.Sprintf("  uint32 %s = %d;\n", statusString, index))
+			protoMessage.WriteString(fmt.Sprintf("  optional uint32 %s = %d;\n", statusString, index))
 			hasStatus = true
 			index++
 		} else {
@@ -463,9 +463,9 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 
 			formatedString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
 			if entx.IsTimeProperty(v.Info.Type.String()) {
-				protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;%s", formatedString, index, endString))
+				protoMessage.WriteString(fmt.Sprintf("  optional int64  %s = %d;%s", formatedString, index, endString))
 			} else {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;%s", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
+				protoMessage.WriteString(fmt.Sprintf("  optional %s %s = %d;%s", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
 					formatedString, index, endString))
 			}
 
@@ -486,7 +486,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 	// List Request message
 	pageString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "page")
 	pageSizeString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "page_size")
-	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 %s = 1;\n  uint64 %s = 2;\n",
+	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  optional uint64 %s = 1;\n  optional uint64 %s = 2;\n",
 		schemaNameCamelCase, pageString, pageSizeString))
 	count := 0
 	index = 3
@@ -495,7 +495,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < g.SearchKeyNum {
 			if i < len(schema.Fields) && count < g.SearchKeyNum {
 				formatedString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
+				protoMessage.WriteString(fmt.Sprintf("  optional %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
 					formatedString, index))
 				index++
 				count++

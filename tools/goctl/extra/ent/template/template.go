@@ -22,4 +22,7 @@ var (
 
 	//go:embed tmpl/pagination.tmpl
 	PaginationTmpl string
+
+	//go:embed tmpl/set_not_nil.tmpl
+	NotNilTmpl string
 )
