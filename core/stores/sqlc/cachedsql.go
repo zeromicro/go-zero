@@ -97,6 +97,9 @@ func (cc CachedConn) Exec(exec ExecFn, keys ...string) (sql.Result, error) {
 }
 
 // ExecCtx runs given exec on given keys, and returns execution result.
+// If DB operation succeeds, it will delete cache with given keys,
+// if DB operation fails, it will return nil result and non-nil error,
+// if DB operation succeeds but cache deletion fails, it will return result and non-nil error.
 func (cc CachedConn) ExecCtx(ctx context.Context, exec ExecCtxFn, keys ...string) (
 	sql.Result, error) {
 	res, err := exec(ctx, cc.db)
@@ -104,11 +107,7 @@ func (cc CachedConn) ExecCtx(ctx context.Context, exec ExecCtxFn, keys ...string
 		return nil, err
 	}
 
-	if err := cc.DelCacheCtx(ctx, keys...); err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return res, cc.DelCacheCtx(ctx, keys...)
 }
 
 // ExecNoCache runs exec with given sql statement, without affecting cache.

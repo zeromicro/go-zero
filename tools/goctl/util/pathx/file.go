@@ -145,15 +145,12 @@ func GetTemplateDir(category string) (string, error) {
 		// backward compatible, it will be removed in the feature
 		// backward compatible start.
 		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
-		entries, err := os.ReadDir(beforeTemplateDir)
-		if err != nil {
-			return "", err
-		}
+		entries, _ := os.ReadDir(beforeTemplateDir)
 		infos := make([]fs.FileInfo, 0, len(entries))
 		for _, entry := range entries {
 			info, err := entry.Info()
 			if err != nil {
-				return "", err
+				continue
 			}
 			infos = append(infos, info)
 		}
