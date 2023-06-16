@@ -199,19 +199,19 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		} else {
 			if entx.IsTimeProperty(v.Info.Type.String()) {
 				hasTime = true
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(req.%s, 0)).\n", parser.CamelCase(v.Name),
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(time.Unix(*req.%s, 0))).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			} else if entx.IsUpperProperty(v.Name) {
 				if entx.IsUUIDType(v.Info.Type.String()) {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(uuidx.ParseUUIDStringToPointer(*req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 					hasUUID = true
 				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(req.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			} else {
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", parser.CamelCase(v.Name),
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(req.%s).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			}
 		}
@@ -242,7 +242,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	_ = updateLogicTmpl.Execute(updateLogic, map[string]any{
 		"hasTime":      hasTime,
 		"hasUUID":      hasUUID,
-		"setLogic":     strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
+		"setLogic":     setLogic.String(),
 		"modelName":    schema.Name,
 		"projectPath":  projectCtx.Path,
 		"packageName":  packageName,
@@ -263,7 +263,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") &&
 			count < g.SearchKeyNum && !entx.IsBaseProperty(v.Name) {
 			camelName := parser.CamelCase(v.Name)
-			predicateData.WriteString(fmt.Sprintf("\tif req.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(req.%s))\n\t}\n",
+			predicateData.WriteString(fmt.Sprintf("\tif req.%s != nil {\n\t\tpredicates = append(predicates, %s.%sContains(*req.%s))\n\t}\n",
 				camelName, strings.ToLower(schema.Name), entx.ConvertSpecificNounToUpper(v.Name), camelName))
 			count++
 		}
@@ -286,17 +286,17 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 
 			if entx.IsUUIDType(v.Info.Type.String()) {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(v.%s.String()),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if entx.IsTimeProperty(v.Info.Type.String()) {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tpointy.GetPointer(v.%s.UnixMilli()),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else {
 				if entx.IsUpperProperty(v.Name) {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\t&v.%s,%s", nameCamelCase,
 						entx.ConvertSpecificNounToUpper(v.Name), endString))
 				} else {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\t&v.%s,%s", nameCamelCase,
 						nameCamelCase, endString))
 				}
 			}
@@ -378,11 +378,19 @@ func GenApiData(schema *load.Schema, ctx *GenEntLogicContext) (string, error) {
 			return "", err
 		}
 
-		structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
+		pointerStr := ""
+		optionalStr := ""
+		if !strings.Contains(strings.ToLower(v.Name), "page") {
+			pointerStr = "*"
+			optionalStr = "optional"
+		}
+
+		structData = fmt.Sprintf("\n\n        // %s\n        %s  %s%s `json:\"%s,%s\"`",
 			parser.CamelCase(v.Name),
 			parser.CamelCase(v.Name),
+			pointerStr,
 			entx.ConvertEntTypeToGotypeInSingleApi(v.Info.Type.String()),
-			jsonTag)
+			jsonTag, optionalStr)
 
 		infoData.WriteString(structData)
 

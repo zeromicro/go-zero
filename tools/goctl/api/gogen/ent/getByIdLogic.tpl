@@ -10,7 +10,9 @@ import (
 {{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
 {{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
 {{end}}{{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
-{{end}}	"github.com/zeromicro/go-zero/core/logx"
+{{end}}
+	"github.com/suyuan32/simple-admin-common/utils/pointy"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type Get{{.modelName}}ByIdLogic struct {
@@ -40,9 +42,9 @@ func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(req *types.{{if .useU
         },
         Data: types.{{.modelName}}Info{
             Base{{if .useUUID}}UU{{end}}IDInfo:    types.Base{{if .useUUID}}UU{{end}}IDInfo{
-                Id: data.ID{{if .useUUID}}.String(){{end}},
-                CreatedAt: data.CreatedAt.UnixMilli(),
-                UpdatedAt: data.UpdatedAt.UnixMilli(),
+				Id:          {{if .useUUID}}pointy.GetPointer(data.ID.String()){{else}}&data.ID{{end}},
+				CreatedAt:    pointy.GetPointer(data.CreatedAt.Unix()),
+				UpdatedAt:    pointy.GetPointer(data.UpdatedAt.Unix()),
             },
 {{.listData}}
         },

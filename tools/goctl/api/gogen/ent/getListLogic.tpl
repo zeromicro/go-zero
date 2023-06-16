@@ -11,7 +11,9 @@ import (
 
 {{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
 {{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
-{{end}}    "github.com/zeromicro/go-zero/core/logx"
+{{end}}
+	"github.com/suyuan32/simple-admin-common/utils/pointy"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type Get{{.modelName}}ListLogic struct {
@@ -43,9 +45,9 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(req *types.{{.modelNa
 		resp.Data.Data = append(resp.Data.Data,
 		types.{{.modelName}}Info{
             Base{{if .useUUID}}UU{{end}}IDInfo:    types.Base{{if .useUUID}}UU{{end}}IDInfo{
-                Id: v.ID{{if .useUUID}}.String(){{end}},
-                CreatedAt: v.CreatedAt.UnixMilli(),
-                UpdatedAt: v.UpdatedAt.UnixMilli(),
+				Id:          {{if .useUUID}}pointy.GetPointer(v.ID.String()){{else}}&v.ID{{end}},
+				CreatedAt:    pointy.GetPointer(v.CreatedAt.Unix()),
+				UpdatedAt:    pointy.GetPointer(v.UpdatedAt.Unix()),
             },
 {{.listData}}
 		})
