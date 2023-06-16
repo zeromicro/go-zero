@@ -199,11 +199,11 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		} else {
 			if entx.IsTimeProperty(v.Info.Type.String()) {
 				hasTime = true
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(time.Unix(*req.%s, 0))).\n", parser.CamelCase(v.Name),
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetTimePointer(req.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			} else if entx.IsUpperProperty(v.Name) {
 				if entx.IsUUIDType(v.Info.Type.String()) {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(uuidx.ParseUUIDStringToPointer(*req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(uuidx.ParseUUIDStringToPointer(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 					hasUUID = true
 				} else {

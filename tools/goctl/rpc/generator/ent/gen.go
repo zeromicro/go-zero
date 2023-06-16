@@ -218,7 +218,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 
 func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*RpcLogicData {
 	var data []*RpcLogicData
-	hasTime, hasUUID := false, false
+	hasTime, hasUUID, hasSingle := false, false, false
 	// end string means whether to use \n
 	endString := ""
 	var packageName string
@@ -228,6 +228,8 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		packageName = "logic"
 	}
 
+	singleSets := []string{}
+
 	setLogic := strings.Builder{}
 	for _, v := range schema.Fields {
 		if entx.IsBaseProperty(v.Name) {
@@ -236,23 +238,32 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 			continue
 		} else if entx.IsOnlyEntType(v.Info.Type.String()) {
-			setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(%s(*in.%s))).\n", parser.CamelCase(v.Name),
+			singleSets = append(singleSets, fmt.Sprintf("\t\t\tif in.%s != nil {\n\t\t\t\tquery.SetNotNil%s(pointy.GetPointer(%s(*in.%s)))\n\t\t\t}\n",
+				parser.CamelCase(v.Name),
+				parser.CamelCase(v.Name),
 				v.Info.Type.String(),
-				parser.CamelCase(v.Name)))
+				parser.CamelCase(v.Name)),
+			)
+			hasSingle = true
 		} else {
 			if entx.IsTimeProperty(v.Info.Type.String()) {
 				hasTime = true
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(time.Unix(*in.%s, 0))).\n", parser.CamelCase(v.Name),
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetTimePointer(in.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			} else if entx.IsUpperProperty(v.Name) {
 				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
 					if v.Info.Type.String() == "[16]byte" {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(uuidx.ParseUUIDStringToPointer(*in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(uuidx.ParseUUIDStringToPointer(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
 							parser.CamelCase(v.Name)))
 						hasUUID = true
 					} else {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(%s(*in.%s))).\n", entx.ConvertSpecificNounToUpper(v.Name),
-							v.Info.Type.String(), parser.CamelCase(v.Name)))
+						singleSets = append(singleSets, fmt.Sprintf("\t\t\tif in.%s != nil {\n\t\t\t\tquery.SetNotNil%s(pointy.GetPointer(%s(*in.%s)))\n\t\t\t}\n",
+							parser.CamelCase(v.Name),
+							entx.ConvertSpecificNounToUpper(v.Name),
+							v.Info.Type.String(),
+							parser.CamelCase(v.Name)),
+						)
+						hasSingle = true
 					}
 				} else {
 					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(in.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
@@ -260,8 +271,13 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 				}
 			} else {
 				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(pointy.GetPointer(%s(*in.%s))).\n", parser.CamelCase(v.Name),
-						v.Info.Type.String(), parser.CamelCase(v.Name)))
+					singleSets = append(singleSets, fmt.Sprintf("\t\t\tif in.%s != nil {\n\t\t\t\tquery.SetNotNil%s(pointy.GetPointer(%s(*in.%s)))\n\t\t\t}\n",
+						parser.CamelCase(v.Name),
+						parser.CamelCase(v.Name),
+						v.Info.Type.String(),
+						parser.CamelCase(v.Name)),
+					)
+					hasSingle = true
 				} else {
 					setLogic.WriteString(fmt.Sprintf("\t\t\tSetNotNil%s(in.%s).\n", parser.CamelCase(v.Name),
 						parser.CamelCase(v.Name)))
@@ -269,7 +285,22 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 		}
 	}
-	setLogic.WriteString("\t\t\tExec(l.ctx)")
+
+	if hasSingle {
+		tmp := setLogic.String()
+		tmp = strings.TrimSuffix(tmp, ".\n")
+		setLogic.Reset()
+		setLogic.WriteString(tmp)
+		setLogic.WriteString("\n\n")
+
+		for _, v := range singleSets {
+			setLogic.WriteString(v)
+		}
+
+		setLogic.WriteString("\n\t\tresult, err := query.Exec(l.ctx)")
+	} else {
+		setLogic.WriteString("\t\t\tExec(l.ctx)")
+	}
 
 	createLogic := bytes.NewBufferString("")
 	createLogicTmpl, _ := template.New("create").Parse(createTpl)
@@ -284,6 +315,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"useUUID":      g.UseUUID, // UUID primary key
 		"useI18n":      g.UseI18n,
 		"importPrefix": g.ImportPrefix,
+		"hasSingle":    hasSingle,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -296,7 +328,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	_ = updateLogicTmpl.Execute(updateLogic, map[string]any{
 		"hasTime":      hasTime,
 		"hasUUID":      hasUUID,
-		"setLogic":     setLogic.String(),
+		"setLogic":     strings.Replace(setLogic.String(), "result,", "", 1),
 		"modelName":    schema.Name,
 		"projectName":  strings.ToLower(g.ProjectName),
 		"projectPath":  projectCtx.Path,
@@ -304,6 +336,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"useUUID":      g.UseUUID, // UUID primary key
 		"useI18n":      g.UseI18n,
 		"importPrefix": g.ImportPrefix,
+		"hasSingle":    hasSingle,
 	})
 
 	data = append(data, &RpcLogicData{
