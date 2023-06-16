@@ -2,7 +2,6 @@ package {{.packageName}}
 
 import (
 	"context"
-{{if .hasTime}}     "time"{{end}}
 
 	"{{.projectPath}}{{.importPrefix}}/internal/svc"
 	"{{.projectPath}}{{.importPrefix}}/internal/utils/dberrorhandler"
@@ -30,7 +29,7 @@ func NewUpdate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 }
 
 func (l *Update{{.modelName}}Logic) Update{{.modelName}}(in *{{.projectName}}.{{.modelName}}Info) (*{{.projectName}}.BaseResp, error) {
-    err := l.svcCtx.DB.{{.modelName}}.UpdateOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}*in.Id){{if .useUUID}}){{end}}.
+	{{if not .hasSingle}}err{{else}}query{{end}}:= l.svcCtx.DB.{{.modelName}}.UpdateOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}*in.Id){{if .useUUID}}){{end}}.
 {{.setLogic}}
 
     if err != nil {
