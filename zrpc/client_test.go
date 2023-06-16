@@ -9,14 +9,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/discov"
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/internal/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
+
+	"github.com/zeromicro/go-zero/core/discov"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/internal/mock"
 )
 
 func init() {
@@ -213,5 +214,17 @@ func TestNewClientWithError(t *testing.T) {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}),
 	)
+	assert.NotNil(t, err)
+}
+
+func TestNewClientWithTarget(t *testing.T) {
+	_, err := NewClientWithTarget("",
+		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply any,
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}))
+
 	assert.NotNil(t, err)
 }
