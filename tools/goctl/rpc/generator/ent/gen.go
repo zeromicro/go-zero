@@ -323,7 +323,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			count++
 		}
 	}
-	predicateData.WriteString(fmt.Sprintf("\tresult, err := l.svcCtx.DB.%s.Query().Where(predicates...).Page(l.ctx, *in.Page, *in.PageSize)",
+	predicateData.WriteString(fmt.Sprintf("\tresult, err := l.svcCtx.DB.%s.Query().Where(predicates...).Page(l.ctx, in.Page, in.PageSize)",
 		schema.Name))
 
 	listData := strings.Builder{}
@@ -486,7 +486,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 	// List Request message
 	pageString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "page")
 	pageSizeString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "page_size")
-	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  optional uint64 %s = 1;\n  optional uint64 %s = 2;\n",
+	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 %s = 1;\n  uint64 %s = 2;\n",
 		schemaNameCamelCase, pageString, pageSizeString))
 	count := 0
 	index = 3
