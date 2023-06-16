@@ -240,14 +240,14 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 		}
 
 		paginationTplPath := filepath.Join(dir, "ent", "template", "pagination.tmpl")
-		notEmptyTplPath := filepath.Join(dir, "ent", "template", "not_empty_update.tmpl")
+		notNilTplPath := filepath.Join(dir, "ent", "template", "set_not_nil.tmpl")
 		if !pathx.FileExists(paginationTplPath) {
 			err = os.WriteFile(paginationTplPath, []byte(template.PaginationTmpl), os.ModePerm)
 			if err != nil {
 				return err
 			}
 
-			err = os.WriteFile(notEmptyTplPath, []byte(template.NotEmptyTmpl), os.ModePerm)
+			err = os.WriteFile(notNilTplPath, []byte(template.NotNilTmpl), os.ModePerm)
 			if err != nil {
 				return err
 			}

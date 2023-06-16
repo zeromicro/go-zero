@@ -12,6 +12,7 @@ import (
 {{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
 {{end}}{{if .hasUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}
+	"github.com/suyuan32/simple-admin-common/utils/pointy"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

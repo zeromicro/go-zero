@@ -21,7 +21,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"text/template"
 
@@ -30,14 +29,12 @@ import (
 
 	"github.com/iancoleman/strcase"
 
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/protox"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const regularPerm = 0o666
@@ -171,13 +168,6 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	err = os.WriteFile(allApiFile, []byte(allApiString), regularPerm)
 	if err != nil {
 		return err
-	}
-
-	if runtime.GOOS == vars.OsLinux {
-		_, err = execx.Run("make gen-api", workDir)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -344,7 +334,7 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 						return "", err
 					}
 
-					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
+					structData = fmt.Sprintf("\n\n        // %s\n        %s  *%s `json:\"%s,optional\"`",
 						parser.CamelCase(protox.ProtoField.Name),
 						parser.CamelCase(protox.ProtoField.Name),
 						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
@@ -363,11 +353,20 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 						return "", err
 					}
 
-					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
+					pointerStr := ""
+					optionalStr := ""
+					if protox.ProtoField.Optional {
+						pointerStr = "*"
+						optionalStr = "optional"
+					}
+
+					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s%s `json:\"%s,%s\"`",
 						parser.CamelCase(protox.ProtoField.Name),
 						parser.CamelCase(protox.ProtoField.Name),
+						pointerStr,
 						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
-						jsonTag)
+						jsonTag,
+						optionalStr)
 
 					if protox.ProtoField.Type == "string" {
 						listData.WriteString(structData)

@@ -30,13 +30,6 @@ type BaseMsgResp {
     Msg  string `json:"msg"`
 }
 
-// The simplest message | 最简单的信息
-// swagger:response SimpleMsg
-type SimpleMsg {
-    // Message | 信息
-    Msg string `json:"msg"`
-}
-
 // The page request parameters | 列表请求参数
 type PageInfo {
     // Page number | 第几页
@@ -84,25 +77,25 @@ type UUIDsReq {
 // The base ID response data | 基础ID信息
 type BaseIDInfo {
     // ID
-    Id        uint64    `json:"id,optional"`
+    Id        *uint64    `json:"id,optional"`
 
     // Create date | 创建日期
-    CreatedAt int64     `json:"createdAt,optional"`
+    CreatedAt *int64     `json:"createdAt,optional"`
 
     // Update date | 更新日期
-    UpdatedAt int64     `json:"updatedAt,optional"`
+    UpdatedAt *int64     `json:"updatedAt,optional"`
 }
 
 // The base UUID response data | 基础UUID信息
 type BaseUUIDInfo {
     // ID
-    Id        string    `json:"id,optional"`
+    Id        *string    `json:"id,optional"`
 
     // Create date | 创建日期
-    CreatedAt int64     `json:"createdAt,optional"`
+    CreatedAt *int64     `json:"createdAt,optional"`
 
     // Update date | 更新日期
-    UpdatedAt int64     `json:"updatedAt,optional"`
+    UpdatedAt *int64     `json:"updatedAt,optional"`
 }
 
 
