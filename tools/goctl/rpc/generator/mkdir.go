@@ -87,6 +87,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 		return filepath.ToSlash(pkg), nil
 	}
 
+	var callClientDir string
 	if !c.Multiple {
 		callDir := filepath.Join(ctx.WorkDir,
 			strings.ToLower(stringx.From(proto.Service[0].Name).ToCamel()))
@@ -98,23 +99,18 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 			}
 			callDir = filepath.Join(ctx.WorkDir, clientDir)
 		}
-		inner[call] = Dir{
-			Filename: callDir,
-			Package: filepath.ToSlash(filepath.Join(ctx.Path,
-				strings.TrimPrefix(callDir, ctx.Dir))),
-			Base: filepath.Base(callDir),
-			GetChildPackage: func(childPath string) (string, error) {
-				return getChildPackage(callDir, childPath)
-			},
-		}
+		callClientDir = callDir
 	} else {
+		callClientDir = clientDir
+	}
+	if c.IsGenClient {
 		inner[call] = Dir{
-			Filename: clientDir,
+			Filename: callClientDir,
 			Package: filepath.ToSlash(filepath.Join(ctx.Path,
-				strings.TrimPrefix(clientDir, ctx.Dir))),
-			Base: filepath.Base(clientDir),
+				strings.TrimPrefix(callClientDir, ctx.Dir))),
+			Base: filepath.Base(callClientDir),
 			GetChildPackage: func(childPath string) (string, error) {
-				return getChildPackage(clientDir, childPath)
+				return getChildPackage(callClientDir, childPath)
 			},
 		}
 	}
