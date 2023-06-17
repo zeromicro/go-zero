@@ -44,7 +44,7 @@ var (
 	VarBoolVerbose bool
 	// VarBoolMultiple describes whether support generating multiple rpc services or not.
 	VarBoolMultiple bool
-	// VarBoolClient describes whether to generate rpc clientt
+	// VarBoolClient describes whether to generate rpc client
 	VarBoolClient bool
 )
 
