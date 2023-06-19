@@ -37,6 +37,7 @@ func ShowEnv(_ *cobra.Command, _ []string) error {
 	case "core":
 		toolEnvInfo()
 		authEnvInfo()
+		crosEnvInfo()
 		apiEnvInfo()
 		rpcEnvInfo()
 		logEnvInfo()

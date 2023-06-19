@@ -223,3 +223,22 @@ func i18nEnvInfo() string {
 	}
 	return envInfo.Render()
 }
+
+// crosEnvInfo show the cros env variables usage by goctls
+func crosEnvInfo() string {
+	color.Green.Println("CROS")
+	envInfo = table.NewWriter()
+	envInfo.SetOutputMirror(os.Stdout)
+	if lang {
+		envInfo.AppendHeader(table.Row{"环境变量名称", "环境变量介绍"})
+		envInfo.AppendRows([]table.Row{
+			{"CROS_ADDRESS", "跨域允许的域名或 ip, 如 http://qq.com"},
+		})
+	} else {
+		envInfo.AppendHeader(table.Row{"Key", "Introduction"})
+		envInfo.AppendRows([]table.Row{
+			{"CROS_ADDRESS", "Domain name or ip allowed across domains, such as http://qq.com"},
+		})
+	}
+	return envInfo.Render()
+}
