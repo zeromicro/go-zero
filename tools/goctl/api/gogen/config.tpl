@@ -9,7 +9,8 @@ import (
 
 type Config struct {
 	rest.RestConf
-	Auth   rest.AuthConf
+	Auth         rest.AuthConf
+	CROSConf     config.CROSConf
 	{{if .useCasbin}}DatabaseConf config.DatabaseConf
     RedisConf    redis.RedisConf
 	CasbinConf   casbin.CasbinConf{{else}}{{if .useEnt}}DatabaseConf config.DatabaseConf{{end}}{{end}}

@@ -7,6 +7,9 @@ Auth:
   AccessSecret: # the same as core
   AccessExpire: 259200
 
+CROSConf:
+  Address: '*'
+
 Log:
   ServiceName: {{.serviceName}}ApiLogger
   Mode: file
