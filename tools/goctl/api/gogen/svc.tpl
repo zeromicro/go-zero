@@ -16,8 +16,8 @@ type ServiceContext struct {
 	Config {{.config}}
 	{{.middleware}}{{if .useCasbin}}Casbin    *casbin.Enforcer
 	Authority rest.Middleware{{end}}{{if .useEnt}}
-	DB         *ent.Client{{end}}
-	{{if .useI18n}}Trans     *i18n.Translator{{end}}
+	DB         *ent.Client{{end}}{{if .useI18n}}
+	Trans     *i18n.Translator{{end}}
 }
 
 func NewServiceContext(c {{.config}}) *ServiceContext {
@@ -38,8 +38,8 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 {{end}}
 	return &ServiceContext{
 		Config: c,
-		{{if .useCasbin}}Authority: middleware.NewAuthorityMiddleware(cbn, rds{{if .useTrans}}, trans{{end}}).Handle,{{end}}
-		{{if .useI18n}}Trans:     trans,{{end}}{{if .useEnt}}
+		{{if .useCasbin}}Authority: middleware.NewAuthorityMiddleware(cbn, rds{{if .useTrans}}, trans{{end}}).Handle,{{end}}{{if .useI18n}}
+		Trans:     trans,{{end}}{{if .useEnt}}
 		DB:     db,{{end}}
 	}
 }
