@@ -60,7 +60,7 @@ func findDefined(target string, data []string) string {
 		if strings.Contains(v, target) {
 			dataSplit := strings.Split(v, "=")
 			if len(dataSplit) == 2 {
-				return dataSplit[1]
+				return strings.TrimSpace(dataSplit[1])
 			} else {
 				return ""
 			}
