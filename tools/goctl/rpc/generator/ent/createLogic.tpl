@@ -30,7 +30,7 @@ func NewCreate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 }
 
 func (l *Create{{.modelName}}Logic) Create{{.modelName}}(in *{{.projectName}}.{{.modelName}}Info) (*{{.projectName}}.Base{{if .useUUID}}UU{{end}}IDResp, error) {
-    {{if not .hasSingle}}result, err{{else}}query{{end}} := l.svcCtx.DB.{{.modelName}}.Create().
+    {{if not .hasSingle}}result, err{{else}}query{{end}} := l.svcCtx.DB.{{.modelName}}.Create(){{if .noNormalField}}.{{end}}
 {{.setLogic}}
 
     if err != nil {

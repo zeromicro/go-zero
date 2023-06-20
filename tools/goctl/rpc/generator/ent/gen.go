@@ -218,7 +218,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 
 func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*RpcLogicData {
 	var data []*RpcLogicData
-	hasTime, hasUUID, hasSingle := false, false, false
+	hasTime, hasUUID, hasSingle, NoNormalField := false, false, false, true
 	// end string means whether to use \n
 	endString := ""
 	var packageName string
@@ -302,20 +302,25 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		setLogic.WriteString("\t\t\tExec(l.ctx)")
 	}
 
+	if strings.HasPrefix(setLogic.String(), "\t\t\tSet") {
+		NoNormalField = false
+	}
+
 	createLogic := bytes.NewBufferString("")
 	createLogicTmpl, _ := template.New("create").Parse(createTpl)
 	_ = createLogicTmpl.Execute(createLogic, map[string]any{
-		"hasTime":      hasTime,
-		"hasUUID":      hasUUID,
-		"setLogic":     strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
-		"modelName":    schema.Name,
-		"projectName":  strings.ToLower(g.ProjectName),
-		"projectPath":  projectCtx.Path,
-		"packageName":  packageName,
-		"useUUID":      g.UseUUID, // UUID primary key
-		"useI18n":      g.UseI18n,
-		"importPrefix": g.ImportPrefix,
-		"hasSingle":    hasSingle,
+		"hasTime":       hasTime,
+		"hasUUID":       hasUUID,
+		"setLogic":      strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
+		"modelName":     schema.Name,
+		"projectName":   strings.ToLower(g.ProjectName),
+		"projectPath":   projectCtx.Path,
+		"packageName":   packageName,
+		"useUUID":       g.UseUUID, // UUID primary key
+		"useI18n":       g.UseI18n,
+		"importPrefix":  g.ImportPrefix,
+		"hasSingle":     hasSingle,
+		"noNormalField": !NoNormalField,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -326,17 +331,18 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	updateLogic := bytes.NewBufferString("")
 	updateLogicTmpl, _ := template.New("update").Parse(updateTpl)
 	_ = updateLogicTmpl.Execute(updateLogic, map[string]any{
-		"hasTime":      hasTime,
-		"hasUUID":      hasUUID,
-		"setLogic":     strings.Replace(setLogic.String(), "result,", "", 1),
-		"modelName":    schema.Name,
-		"projectName":  strings.ToLower(g.ProjectName),
-		"projectPath":  projectCtx.Path,
-		"packageName":  packageName,
-		"useUUID":      g.UseUUID, // UUID primary key
-		"useI18n":      g.UseI18n,
-		"importPrefix": g.ImportPrefix,
-		"hasSingle":    hasSingle,
+		"hasTime":       hasTime,
+		"hasUUID":       hasUUID,
+		"setLogic":      strings.Replace(setLogic.String(), "result,", "", 1),
+		"modelName":     schema.Name,
+		"projectName":   strings.ToLower(g.ProjectName),
+		"projectPath":   projectCtx.Path,
+		"packageName":   packageName,
+		"useUUID":       g.UseUUID, // UUID primary key
+		"useI18n":       g.UseI18n,
+		"importPrefix":  g.ImportPrefix,
+		"hasSingle":     hasSingle,
+		"noNormalField": !NoNormalField,
 	})
 
 	data = append(data, &RpcLogicData{
