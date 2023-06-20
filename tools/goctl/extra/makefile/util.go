@@ -46,6 +46,12 @@ func extractInfo(g *GenContext) error {
 		g.ServiceName = findDefined("SERVICE", dataSplit)
 	}
 
+	g.EntFeature = findDefined("ENT_FEATURE", dataSplit)
+
+	if g.EntFeature == "" {
+		g.EntFeature = "sql/execquery"
+	}
+
 	return err
 }
 
