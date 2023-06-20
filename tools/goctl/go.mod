@@ -17,7 +17,7 @@ require (
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/go-zero v1.5.3
-	golang.org/x/text v0.9.0
+	golang.org/x/text v0.10.0
 )
 
 require (
