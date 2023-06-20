@@ -50,6 +50,7 @@ type GenContext struct {
 	UseI18n     bool
 	UseEnt      bool
 	TargetPath  string
+	EntFeature  string
 }
 
 func Gen(_ *cobra.Command, _ []string) (err error) {
@@ -118,6 +119,7 @@ func DoGen(g *GenContext) error {
 		"isApi":            g.IsApi,
 		"isSingle":         g.IsSingle,
 		"isRpc":            g.IsRpc,
+		"entFeature":       g.EntFeature,
 	})
 
 	err = filex.RemoveIfExist(g.TargetPath)
