@@ -42,6 +42,12 @@ func extractInfo(g *GenContext) error {
 		g.Style = style
 	}
 
+	if val := findDefined("PROJECT_I18N", dataSplit); val != "" {
+		if val == "true" {
+			g.UseI18n = true
+		}
+	}
+
 	if g.ServiceName == "" {
 		g.ServiceName = findDefined("SERVICE", dataSplit)
 	}
