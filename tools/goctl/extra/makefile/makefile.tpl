@@ -23,10 +23,10 @@ PROJECT_I18N={{if .useI18n}}true{{else}}false{{end}}
 PROJECT_BUILD_SUFFIX={{if .isRpc}}rpc{{else}}api{{end}}
 {{if or .isApi .isSingle}}
 # Swagger type, support yml,json | Swagger 文件类型，支持yml,json
-SWAGGER_TYPE := json{{end}}
+SWAGGER_TYPE :=json{{end}}
 {{if .useEnt}}
 # Ent enabled features | Ent 启用的官方特性
-ENT_FEATURE := {{.entFeature}}{{end}}
+ENT_FEATURE :={{.entFeature}}{{end}}
 
 # ---- You may not need to modify the codes below | 下面的代码大概率不需要更改 ----
 

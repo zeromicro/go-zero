@@ -29,7 +29,7 @@ func init() {
 	dockerCmdFlags.StringVarP(&varStringRemote, "remote", "r")
 	dockerCmdFlags.StringVarP(&varStringBranch, "branch", "b")
 	dockerCmdFlags.BoolVarP(&varBoolChina, "china", "c")
-	dockerCmdFlags.StringVarPWithDefaultValue(&varStringImage, "image", "i", "golang:1.20.3-alpine3.17")
+	dockerCmdFlags.StringVarPWithDefaultValue(&varStringImage, "image", "i", "golang:1.20.5-alpine3.17")
 	dockerCmdFlags.StringVarP(&varStringTZ, "tz", "z")
 	dockerCmdFlags.StringVarPWithDefaultValue(&varStringAuthor, "author", "u", "example@example.com")
 }
