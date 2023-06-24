@@ -166,6 +166,24 @@ func TestDecodePackages(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "There are extra characters at the beginning",
+			data: strings.NewReader(`Active code page: 65001
+					{
+						"Path":"foo",
+						"Dir":"/home/foo",
+						"GoMod":"/home/foo/go.mod",
+						"GoVersion":"go1.18"
+					}`),
+			want: []Module{
+				{
+					Path:      "foo",
+					Dir:       "/home/foo",
+					GoMod:     "/home/foo/go.mod",
+					GoVersion: "go1.18",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
