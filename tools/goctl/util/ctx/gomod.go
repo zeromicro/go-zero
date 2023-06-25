@@ -97,17 +97,24 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 	return nil, errors.New("no matched module")
 }
 
-func decodePackages(rc io.Reader) ([]Module, error) {
-	r := bufio.NewReader(rc)
-	_, _ = r.ReadSlice('{')
-	_ = r.UnreadByte()
+func decodePackages(reader io.Reader) ([]Module, error) {
+	br := bufio.NewReader(reader)
+	if _, err := br.ReadSlice('{'); err != nil {
+		return nil, err
+	}
+
+	if err := br.UnreadByte(); err != nil {
+		return nil, err
+	}
+
 	var modules []Module
-	decoder := json.NewDecoder(r)
+	decoder := json.NewDecoder(br)
 	for decoder.More() {
 		var m Module
 		if err := decoder.Decode(&m); err != nil {
 			return nil, fmt.Errorf("invalid module: %v", err)
 		}
+
 		modules = append(modules, m)
 	}
 
