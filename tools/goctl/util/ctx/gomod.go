@@ -77,20 +77,23 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	modules, err := decodePackages(strings.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
+
 	for _, m := range modules {
-		mRealDir, err := pathx.ReadLink(m.Dir)
+		realDir, err := pathx.ReadLink(m.Dir)
 		if err != nil {
-			return nil, fmt.Errorf("mod dir [%s] error: %w", m.Dir, err)
+			return nil, fmt.Errorf("failed to read go.mod, dir: %s, error: %w", m.Dir, err)
 		}
 
-		if strings.HasPrefix(workDir, mRealDir) {
+		if strings.HasPrefix(workDir, realDir) {
 			return &m, nil
 		}
 	}
+
 	return nil, errors.New("no matched module")
 }
 
