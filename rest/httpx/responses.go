@@ -15,8 +15,8 @@ import (
 var (
 	errorHandler func(context.Context, error) (int, any)
 	errorLock    sync.RWMutex
-	respHandler  func(context.Context, any) any
-	respLock     sync.RWMutex
+	okHandler    func(context.Context, any) any
+	okLock       sync.RWMutex
 )
 
 // Error writes err into w.
@@ -40,9 +40,9 @@ func Ok(w http.ResponseWriter) {
 
 // OkJson writes v into w with 200 OK.
 func OkJson(w http.ResponseWriter, v any) {
-	respLock.RLock()
-	handler := respHandler
-	respLock.RUnlock()
+	okLock.RLock()
+	handler := okHandler
+	okLock.RUnlock()
 	if handler != nil {
 		v = handler(context.Background(), v)
 	}
@@ -51,9 +51,9 @@ func OkJson(w http.ResponseWriter, v any) {
 
 // OkJsonCtx writes v into w with 200 OK.
 func OkJsonCtx(ctx context.Context, w http.ResponseWriter, v any) {
-	respLock.RLock()
-	handlerCtx := respHandler
-	respLock.RUnlock()
+	okLock.RLock()
+	handlerCtx := okHandler
+	okLock.RUnlock()
 	if handlerCtx != nil {
 		v = handlerCtx(ctx, v)
 	}
@@ -80,11 +80,11 @@ func SetErrorHandlerCtx(handlerCtx func(context.Context, error) (int, any)) {
 	errorHandler = handlerCtx
 }
 
-// SetResponseHandler sets the response handler, which is called on calling OkJson and OkJsonCtx.
-func SetResponseHandler(handler func(context.Context, any) any) {
-	respLock.Lock()
-	defer respLock.Unlock()
-	respHandler = handler
+// SetOkHandler sets the response handler, which is called on calling OkJson and OkJsonCtx.
+func SetOkHandler(handler func(context.Context, any) any) {
+	okLock.Lock()
+	defer okLock.Unlock()
+	okHandler = handler
 }
 
 // WriteJson writes v as json string into w with code.
