@@ -1,6 +1,7 @@
 package ctx
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -94,8 +95,11 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 }
 
 func decodePackages(rc io.Reader) ([]Module, error) {
+	r := bufio.NewReader(rc)
+	_, _ = r.ReadSlice('{')
+	_ = r.UnreadByte()
 	var modules []Module
-	decoder := json.NewDecoder(rc)
+	decoder := json.NewDecoder(r)
 	for decoder.More() {
 		var m Module
 		if err := decoder.Decode(&m); err != nil {
