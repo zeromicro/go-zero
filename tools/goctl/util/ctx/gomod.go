@@ -81,7 +81,12 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 		return nil, err
 	}
 	for _, m := range modules {
-		if strings.HasPrefix(workDir, m.Dir) {
+		mRealDir, err := pathx.ReadLink(m.Dir)
+		if err != nil {
+			return nil, fmt.Errorf("mod dir [%s] error: %w", m.Dir, err)
+		}
+
+		if strings.HasPrefix(workDir, mRealDir) {
 			return &m, nil
 		}
 	}
