@@ -157,6 +157,12 @@ func (tw *TimingWheel) SetTimer(key, value any, delay time.Duration) error {
 	}
 }
 
+// Exist returns a boolean whether the key exists.
+func (tw *TimingWheel) Exist(key any) bool {
+	_, ok := tw.timers.Get(key)
+	return ok
+}
+
 // Stop stops tw. No more actions after stopping a TimingWheel.
 func (tw *TimingWheel) Stop() {
 	close(tw.stopChannel)
