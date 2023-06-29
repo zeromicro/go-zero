@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"io"
 	"net"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal"
 )
 
@@ -66,10 +66,13 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	r = r.WithContext(ctx)
 	done := make(chan struct{})
+	// ensure access w.Header() in current goroutine
+	flushChan := make(chan struct{}, 1)
 	tw := &timeoutWriter{
-		w:   w,
-		h:   make(http.Header),
-		req: r,
+		w:       w,
+		req:     r,
+		flushCh: flushChan,
+		h:       make(http.Header),
 	}
 	panicChan := make(chan any, 1)
 	go func() {
@@ -81,35 +84,43 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handler.ServeHTTP(tw, r)
 		close(done)
 	}()
-	select {
-	case p := <-panicChan:
-		panic(p)
-	case <-done:
-		tw.mu.Lock()
-		defer tw.mu.Unlock()
-		dst := w.Header()
-		for k, vv := range tw.h {
-			dst[k] = vv
-		}
-		if !tw.wroteHeader {
-			tw.code = http.StatusOK
-		}
-		w.WriteHeader(tw.code)
-		w.Write(tw.wbuf.Bytes())
-	case <-ctx.Done():
-		tw.mu.Lock()
-		defer tw.mu.Unlock()
-		// there isn't any user-defined middleware before TimoutHandler,
-		// so we can guarantee that cancelation in biz related code won't come here.
-		httpx.ErrorCtx(r.Context(), w, ctx.Err(), func(w http.ResponseWriter, err error) {
-			if errors.Is(err, context.Canceled) {
-				w.WriteHeader(statusClientClosedRequest)
-			} else {
-				w.WriteHeader(http.StatusServiceUnavailable)
+	for {
+		select {
+		case p := <-panicChan:
+			panic(p)
+		case <-flushChan:
+			tw.mu.Lock()
+			tw.mergeHeaderLocked()
+			tw.mu.Unlock()
+			if flusher, ok := tw.w.(http.Flusher); ok {
+				flusher.Flush()
 			}
-			io.WriteString(w, h.errorBody())
-		})
-		tw.timedOut = true
+		case <-done:
+			tw.mu.Lock()
+			tw.mergeHeaderLocked()
+			if !tw.wroteHeader {
+				tw.code = http.StatusOK
+			}
+			w.WriteHeader(tw.code)
+			w.Write(tw.wbuf.Bytes())
+			tw.mu.Unlock()
+			return
+		case <-ctx.Done():
+			tw.mu.Lock()
+			// there isn't any user-defined middleware before TimoutHandler,
+			// so we can guarantee that cancelation in biz related code won't come here.
+			httpx.ErrorCtx(r.Context(), w, ctx.Err(), func(w http.ResponseWriter, err error) {
+				if errors.Is(err, context.Canceled) {
+					w.WriteHeader(statusClientClosedRequest)
+				} else {
+					w.WriteHeader(http.StatusServiceUnavailable)
+				}
+				io.WriteString(w, h.errorBody())
+			})
+			tw.timedOut = true
+			tw.mu.Unlock()
+			return
+		}
 	}
 }
 
@@ -123,14 +134,14 @@ type timeoutWriter struct {
 	timedOut    bool
 	wroteHeader bool
 	code        int
+
+	flushCh chan struct{}
 }
 
 var _ http.Pusher = (*timeoutWriter)(nil)
 
 func (tw *timeoutWriter) Flush() {
-	if flusher, ok := tw.w.(http.Flusher); ok {
-		flusher.Flush()
-	}
+	tw.flushCh <- struct{}{}
 }
 
 func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
@@ -166,6 +177,13 @@ func (tw *timeoutWriter) Write(p []byte) (int, error) {
 		tw.writeHeaderLocked(http.StatusOK)
 	}
 	return tw.wbuf.Write(p)
+}
+
+func (tw *timeoutWriter) mergeHeaderLocked() {
+	dst := tw.w.Header()
+	for k, vv := range tw.h {
+		dst[k] = vv
+	}
 }
 
 func (tw *timeoutWriter) writeHeaderLocked(code int) {
