@@ -40,6 +40,7 @@
         "style": "{{.global.style}}",
         "trans_err": "Whether to translate the error",
         "casbin": "Whether to use the Casbin",
+        "extra_field": "Whether to generate extra fields for logic, such as userId",
         "i18n": "{{.global.i18n}}"
       },
       "new": {

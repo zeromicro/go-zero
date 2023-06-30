@@ -7,15 +7,17 @@ import (
 type {{.logic}} struct {
 	logx.Logger
 	ctx    context.Context
-	svcCtx *svc.ServiceContext
-}
+	svcCtx *svc.ServiceContext{{if .userIdField}}
+	userId string
+{{end}} }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
 	return &{{.logic}}{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
-		svcCtx: svcCtx,
-	}
+		svcCtx: svcCtx,{{if .userIdField}}
+		userId: ctx.Value("userId").(string),
+{{end}}	}
 }
 
 func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {

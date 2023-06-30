@@ -21,10 +21,10 @@ import (
 //go:embed logic.tpl
 var logicTemplate string
 
-func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, ctx *GenContext) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, g, r, ctx)
 			if err != nil {
 				return err
 			}
@@ -33,7 +33,7 @@ func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 	return nil
 }
 
-func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route, ctx *GenContext) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
@@ -56,6 +56,13 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		requestString = "req *" + requestGoTypeName(route, typesPacket)
 	}
 
+	// extra fields
+	var userIdField bool
+	switch ctx.ExtraField {
+	case "userId":
+		userIdField = true
+	}
+
 	subDir := getLogicFolderPath(group, route)
 	return genFile(fileGenConfig{
 		dir:             dir,
@@ -65,7 +72,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		category:        category,
 		templateFile:    logicTemplateFile,
 		builtinTemplate: logicTemplate,
-		data: map[string]string{
+		data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
 			"logic":        cases.Title(language.English, cases.NoLower).String(logic),
@@ -73,6 +80,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"responseType": responseString,
 			"returnString": returnString,
 			"request":      requestString,
+			"userIdField":  userIdField,
 		},
 	})
 }

@@ -64,6 +64,7 @@ func init() {
 	goCmdFlags.StringVarPWithDefaultValue(&gogen.VarStringStyle, "style", "s", config.DefaultFormat)
 	goCmdFlags.BoolVarP(&gogen.VarBoolErrorTranslate, "trans_err", "t")
 	goCmdFlags.BoolVarP(&gogen.VarBoolUseCasbin, "casbin", "c")
+	goCmdFlags.StringVarP(&gogen.VarStringExtraField, "extra_field", "e")
 	goCmdFlags.BoolVarP(&gogen.VarBoolUseI18n, "i18n", "i")
 
 	newCmdFlags.StringVar(&new.VarStringHome, "home")

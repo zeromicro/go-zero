@@ -81,6 +81,8 @@ var (
 	VarStringGroupName string
 	// VarStringImportPrefix describes the prefix in import
 	VarStringImportPrefix string
+	// VarStringExtraField describes the extra field for api logic code such as user id
+	VarStringExtraField string
 )
 
 // GoCommand gen go project files from command line
@@ -98,6 +100,7 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 		UseI18n:       VarBoolUseI18n,
 		TransErr:      VarBoolErrorTranslate,
 		ModuleName:    "",
+		ExtraField:    VarStringExtraField,
 	}
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
@@ -133,6 +136,7 @@ type GenContext struct {
 	UseDockerfile bool
 	ImportPrefix  string
 	UseEnt        bool
+	ExtraField    string
 }
 
 // DoGenProject gen go project files with api file
@@ -173,7 +177,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	logx.Must(genTypes(dir, cfg, api))
 	logx.Must(genRoutes(dir, rootPkg, cfg, api))
 	logx.Must(genHandlers(dir, rootPkg, cfg, api, g))
-	logx.Must(genLogic(dir, rootPkg, cfg, api))
+	logx.Must(genLogic(dir, rootPkg, cfg, api, g))
 	logx.Must(genMiddleware(dir, cfg, api))
 
 	if g.UseDockerfile {
