@@ -40,6 +40,7 @@
         "style": "{{.global.style}}",
         "trans_err": "是否翻译错误",
         "casbin": "是否使用 Casbin",
+        "extra_field": "是否生成额外变量，如 userId",
         "i18n": "{{.global.i18n}}"
       },
       "new": {
