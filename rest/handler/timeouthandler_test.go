@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +15,38 @@ import (
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
+
+func TestTimeoutWriteFlushOutput(t *testing.T) {
+	timeoutHandler := TimeoutHandler(1000 * time.Millisecond)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream;charset=utf-8")
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "Flushing not supported", http.StatusInternalServerError)
+			return
+		}
+		for i := 1; i <= 5; i++ {
+			fmt.Fprint(w, strconv.Itoa(i)+"只猫猫\n\n")
+			flusher.Flush()
+			time.Sleep(time.Millisecond)
+		}
+	}))
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	scanner := bufio.NewScanner(resp.Body)
+	mao := 0
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "猫猫") {
+			mao++
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		mao = 0
+	}
+	assert.Equal(t, "5只猫猫", strconv.Itoa(mao)+"只猫猫")
+}
 
 func TestTimeout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
