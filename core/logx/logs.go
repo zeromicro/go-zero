@@ -222,7 +222,7 @@ func Must(err error) {
 		return
 	}
 
-	msg := err.Error()
+	msg := fmt.Sprintf("%+v\n\n%s", err.Error(), debug.Stack())
 	log.Print(msg)
 	getWriter().Severe(msg)
 
