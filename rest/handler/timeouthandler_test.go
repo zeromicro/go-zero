@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -180,6 +182,57 @@ func TestTimeoutFlush(t *testing.T) {
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestTimeoutFlush_RetainsAnything(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Minute)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprint(w, "Chunk #1")
+		w.(http.Flusher).Flush()
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+
+	result := resp.Result()
+	assert.Equal(t, http.StatusOK, result.StatusCode)
+
+	contentType := result.Header.Get("Content-Type")
+	assert.NotEmpty(t, contentType)
+	assert.Equal(t, "text/plain", contentType)
+
+	content, err := io.ReadAll(result.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "Chunk #1", string(content))
+}
+
+func TestTimeoutFlushMoreThanOnce(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Minute)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.(http.Flusher).Flush()
+
+		fmt.Fprint(w, "Chunk #1")
+		w.(http.Flusher).Flush()
+		w.(http.Flusher).Flush()
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+
+	result := resp.Result()
+	assert.Equal(t, http.StatusOK, result.StatusCode)
+
+	contentType := result.Header.Get("Content-Type")
+	assert.NotEmpty(t, contentType)
+	assert.Equal(t, "text/plain", contentType)
+
+	content, err := io.ReadAll(result.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "Chunk #1", string(content))
 }
 
 func TestTimeoutPusher(t *testing.T) {
