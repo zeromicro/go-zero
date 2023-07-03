@@ -267,9 +267,9 @@
       },
       "init_code": {
         "short": "生成初始化代码",
-        "target": "目标类型，现在只支持 core",
+        "target": "目标类型，现在支持 core , other",
         "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
-        "output": "输出路径，只支持 core 生成，例如：./rpc/internal/logic/base/init_database_api_data.go"
+        "output": "输出路径，只支持 core 服务生成到文件, 例如：./rpc/internal/logic/base/init_database_api_data.go"
       },
       "ent": {
         "short": "生成额外的 ent 代码",

@@ -267,9 +267,9 @@
       },
       "init_code": {
         "short": "Generating initialize code",
-        "target": "The target type, now only support core",
+        "target": "The target type, now support core and other",
         "model_name": "The model name, it should be camelcase, such as StudentInfo",
-        "output": "The output path, only support core generating, such as ./rpc/internal/logic/base/init_database_api_data.go"
+        "output": "The output path, only support core generating to file, such as ./rpc/internal/logic/base/init_database_api_data.go"
       },
       "ent": {
         "short": "Generating extra ent codes",

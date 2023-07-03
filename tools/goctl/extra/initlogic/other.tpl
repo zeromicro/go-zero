@@ -1,8 +1,8 @@
         _, err = l.svcCtx.CoreRpc.CreateApi(l.ctx, &core.ApiInfo{
-		Path:        "/{{.modelNameSnake}}/create",
-		Description: "apiDesc.create{{.modelName}}",
-		ApiGroup:    "{{.modelNameSnake}}",
-		Method:      "POST",
+		Path:        pointy.GetPointer("/{{.modelNameSnake}}/create"),
+		Description: pointy.GetPointer("apiDesc.create{{.modelName}}"),
+		ApiGroup:    pointy.GetPointer("{{.modelNameSnake}}"),
+		Method:      pointy.GetPointer("POST"),
 	})
 
 	if err != nil {
@@ -10,10 +10,10 @@
 	}
 
 	_, err = l.svcCtx.CoreRpc.CreateApi(l.ctx, &core.ApiInfo{
-		Path:        "/{{.modelNameSnake}}/update",
-		Description: "apiDesc.update{{.modelName}}",
-		ApiGroup:    "{{.modelNameSnake}}",
-		Method:      "POST",
+		Path:        pointy.GetPointer("/{{.modelNameSnake}}/update"),
+		Description: pointy.GetPointer("apiDesc.update{{.modelName}}"),
+		ApiGroup:    pointy.GetPointer("{{.modelNameSnake}}"),
+		Method:      pointy.GetPointer("POST"),
 	})
 
 	if err != nil {
@@ -21,10 +21,10 @@
 	}
 
 	_, err = l.svcCtx.CoreRpc.CreateApi(l.ctx, &core.ApiInfo{
-		Path:        "/{{.modelNameSnake}}/delete",
-		Description: "apiDesc.delete{{.modelName}}",
-		ApiGroup:    "{{.modelNameSnake}}",
-		Method:      "POST",
+		Path:        pointy.GetPointer("/{{.modelNameSnake}}/delete"),
+		Description: pointy.GetPointer("apiDesc.delete{{.modelName}}"),
+		ApiGroup:    pointy.GetPointer("{{.modelNameSnake}}"),
+		Method:      pointy.GetPointer("POST"),
 	})
 
 	if err != nil {
@@ -32,10 +32,10 @@
 	}
 
 	_, err = l.svcCtx.CoreRpc.CreateApi(l.ctx, &core.ApiInfo{
-		Path:        "/{{.modelNameSnake}}/list",
-		Description: "apiDesc.get{{.modelName}}List",
-		ApiGroup:    "{{.modelNameSnake}}",
-		Method:      "POST",
+		Path:        pointy.GetPointer("/{{.modelNameSnake}}/list"),
+		Description: pointy.GetPointer("apiDesc.get{{.modelName}}List"),
+		ApiGroup:    pointy.GetPointer("{{.modelNameSnake}}"),
+		Method:      pointy.GetPointer("POST"),
 	})
 
 	if err != nil {
@@ -43,10 +43,10 @@
 	}
 
 	_, err = l.svcCtx.CoreRpc.CreateApi(l.ctx, &core.ApiInfo{
-		Path:        "/{{.modelNameSnake}}",
-		Description: "apiDesc.get{{.modelName}}ById",
-		ApiGroup:    "{{.modelNameSnake}}",
-		Method:      "Post",
+		Path:        pointy.GetPointer("/{{.modelNameSnake}}"),
+		Description: pointy.GetPointer("apiDesc.get{{.modelName}}ById"),
+		ApiGroup:    pointy.GetPointer("{{.modelNameSnake}}"),
+		Method:      pointy.GetPointer("Post"),
 	})
 
 	if err != nil {
