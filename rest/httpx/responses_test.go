@@ -142,16 +142,16 @@ func TestOkJson(t *testing.T) {
 	})
 
 	t.Run("with handler", func(t *testing.T) {
-		respLock.RLock()
-		prev := respHandler
-		respLock.RUnlock()
+		okLock.RLock()
+		prev := okHandler
+		okLock.RUnlock()
 		t.Cleanup(func() {
-			respLock.Lock()
-			respHandler = prev
-			respLock.Unlock()
+			okLock.Lock()
+			okHandler = prev
+			okLock.Unlock()
 		})
 
-		SetResponseHandler(func(_ context.Context, v interface{}) any {
+		SetOkHandler(func(_ context.Context, v interface{}) any {
 			return fmt.Sprintf("hello %s", v.(message).Name)
 		})
 		w := tracedResponseWriter{
@@ -176,16 +176,16 @@ func TestOkJsonCtx(t *testing.T) {
 	})
 
 	t.Run("with handler", func(t *testing.T) {
-		respLock.RLock()
-		prev := respHandler
-		respLock.RUnlock()
+		okLock.RLock()
+		prev := okHandler
+		okLock.RUnlock()
 		t.Cleanup(func() {
-			respLock.Lock()
-			respHandler = prev
-			respLock.Unlock()
+			okLock.Lock()
+			okHandler = prev
+			okLock.Unlock()
 		})
 
-		SetResponseHandler(func(_ context.Context, v interface{}) any {
+		SetOkHandler(func(_ context.Context, v interface{}) any {
 			return fmt.Sprintf("hello %s", v.(message).Name)
 		})
 		w := tracedResponseWriter{

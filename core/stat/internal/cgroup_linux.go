@@ -219,6 +219,7 @@ func parseUints(val string) ([]uint64, error) {
 		return nil, nil
 	}
 
+	var sets []uint64
 	ints := make(map[uint64]lang.PlaceholderType)
 	cols := strings.Split(val, ",")
 	for _, r := range cols {
@@ -239,7 +240,10 @@ func parseUints(val string) ([]uint64, error) {
 			}
 
 			for i := min; i <= max; i++ {
-				ints[i] = lang.Placeholder
+				if _, ok := ints[i]; !ok {
+					ints[i] = lang.Placeholder
+					sets = append(sets, i)
+				}
 			}
 		} else {
 			v, err := parseUint(r)
@@ -247,19 +251,17 @@ func parseUints(val string) ([]uint64, error) {
 				return nil, err
 			}
 
-			ints[v] = lang.Placeholder
+			if _, ok := ints[v]; !ok {
+				ints[v] = lang.Placeholder
+				sets = append(sets, v)
+			}
 		}
-	}
-
-	var sets []uint64
-	for k := range ints {
-		sets = append(sets, k)
 	}
 
 	return sets, nil
 }
 
-// runningInUserNS detects whether we are currently running in an user namespace.
+// runningInUserNS detects whether we are currently running in a user namespace.
 func runningInUserNS() bool {
 	nsOnce.Do(func() {
 		file, err := os.Open("/proc/self/uid_map")

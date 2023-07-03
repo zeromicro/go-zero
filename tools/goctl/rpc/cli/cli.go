@@ -83,6 +83,8 @@ var (
 	VarBoolOverwrite bool
 	// VarStringImportPrefix describes the prefix in import
 	VarStringImportPrefix string
+	// VarBoolClient describes whether to generate rpc client
+	VarBoolClient bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -145,6 +147,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.RpcName = rpcname
 	ctx.Ent = VarBoolEnt
 	ctx.I18n = VarBoolI18n
+	ctx.IsGenClient = VarBoolClient
 
 	if err := pathx.MkdirIfNotExist(ctx.GoOutput); err != nil {
 		return err

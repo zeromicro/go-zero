@@ -218,7 +218,8 @@
         "port": "服务公开的端口",
         "gitlab": "是否使用 gitlab-ci",
         "desc": "是否为拆分 proto 文件创建 desc 文件夹",
-        "i18n": "{{.global.i18n}}"
+        "i18n": "{{.global.i18n}}",
+        "client": "是否生成 client"
       },
       "template": {
         "short": "生成 proto 模板",
@@ -235,6 +236,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "client": "是否生成 client",
         "verbose": "启用日志输出"
       },
       "ent": {
@@ -267,9 +269,9 @@
       },
       "init_code": {
         "short": "生成初始化代码",
-        "target": "目标类型，现在只支持 core",
+        "target": "目标类型，现在支持 core , other",
         "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
-        "output": "输出路径，只支持 core 生成，例如：./rpc/internal/logic/base/init_database_api_data.go"
+        "output": "输出路径，只支持 core 服务生成到文件, 例如：./rpc/internal/logic/base/init_database_api_data.go"
       },
       "ent": {
         "short": "生成额外的 ent 代码",

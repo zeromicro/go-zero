@@ -68,22 +68,30 @@ func Close() error {
 
 // Debug writes v into access log.
 func Debug(v ...any) {
-	writeDebug(fmt.Sprint(v...))
+	if shallLog(DebugLevel) {
+		writeDebug(fmt.Sprint(v...))
+	}
 }
 
 // Debugf writes v with format into access log.
 func Debugf(format string, v ...any) {
-	writeDebug(fmt.Sprintf(format, v...))
+	if shallLog(DebugLevel) {
+		writeDebug(fmt.Sprintf(format, v...))
+	}
 }
 
 // Debugv writes v into access log with json content.
 func Debugv(v any) {
-	writeDebug(v)
+	if shallLog(DebugLevel) {
+		writeDebug(v)
+	}
 }
 
 // Debugw writes msg along with fields into access log.
 func Debugw(msg string, fields ...LogField) {
-	writeDebug(msg, fields...)
+	if shallLog(DebugLevel) {
+		writeDebug(msg, fields...)
+	}
 }
 
 // Disable disables the logging.
@@ -99,35 +107,47 @@ func DisableStat() {
 
 // Error writes v into error log.
 func Error(v ...any) {
-	writeError(fmt.Sprint(v...))
+	if shallLog(ErrorLevel) {
+		writeError(fmt.Sprint(v...))
+	}
 }
 
 // Errorf writes v with format into error log.
 func Errorf(format string, v ...any) {
-	writeError(fmt.Errorf(format, v...).Error())
+	if shallLog(ErrorLevel) {
+		writeError(fmt.Errorf(format, v...).Error())
+	}
 }
 
 // ErrorStack writes v along with call stack into error log.
 func ErrorStack(v ...any) {
-	// there is newline in stack string
-	writeStack(fmt.Sprint(v...))
+	if shallLog(ErrorLevel) {
+		// there is newline in stack string
+		writeStack(fmt.Sprint(v...))
+	}
 }
 
 // ErrorStackf writes v along with call stack in format into error log.
 func ErrorStackf(format string, v ...any) {
-	// there is newline in stack string
-	writeStack(fmt.Sprintf(format, v...))
+	if shallLog(ErrorLevel) {
+		// there is newline in stack string
+		writeStack(fmt.Sprintf(format, v...))
+	}
 }
 
 // Errorv writes v into error log with json content.
 // No call stack attached, because not elegant to pack the messages.
 func Errorv(v any) {
-	writeError(v)
+	if shallLog(ErrorLevel) {
+		writeError(v)
+	}
 }
 
 // Errorw writes msg along with fields into error log.
 func Errorw(msg string, fields ...LogField) {
-	writeError(msg, fields...)
+	if shallLog(ErrorLevel) {
+		writeError(msg, fields...)
+	}
 }
 
 // Field returns a LogField for the given key and value.
@@ -170,22 +190,30 @@ func Field(key string, value any) LogField {
 
 // Info writes v into access log.
 func Info(v ...any) {
-	writeInfo(fmt.Sprint(v...))
+	if shallLog(InfoLevel) {
+		writeInfo(fmt.Sprint(v...))
+	}
 }
 
 // Infof writes v with format into access log.
 func Infof(format string, v ...any) {
-	writeInfo(fmt.Sprintf(format, v...))
+	if shallLog(InfoLevel) {
+		writeInfo(fmt.Sprintf(format, v...))
+	}
 }
 
 // Infov writes v into access log with json content.
 func Infov(v any) {
-	writeInfo(v)
+	if shallLog(InfoLevel) {
+		writeInfo(v)
+	}
 }
 
 // Infow writes msg along with fields into access log.
 func Infow(msg string, fields ...LogField) {
-	writeInfo(msg, fields...)
+	if shallLog(InfoLevel) {
+		writeInfo(msg, fields...)
+	}
 }
 
 // Must checks if err is nil, otherwise logs the error and exits.
@@ -194,7 +222,7 @@ func Must(err error) {
 		return
 	}
 
-	msg := err.Error()
+	msg := fmt.Sprintf("%+v\n\n%s", err.Error(), debug.Stack())
 	log.Print(msg)
 	getWriter().Severe(msg)
 
@@ -269,42 +297,58 @@ func SetUp(c LogConf) (err error) {
 
 // Severe writes v into severe log.
 func Severe(v ...any) {
-	writeSevere(fmt.Sprint(v...))
+	if shallLog(SevereLevel) {
+		writeSevere(fmt.Sprint(v...))
+	}
 }
 
 // Severef writes v with format into severe log.
 func Severef(format string, v ...any) {
-	writeSevere(fmt.Sprintf(format, v...))
+	if shallLog(SevereLevel) {
+		writeSevere(fmt.Sprintf(format, v...))
+	}
 }
 
 // Slow writes v into slow log.
 func Slow(v ...any) {
-	writeSlow(fmt.Sprint(v...))
+	if shallLog(ErrorLevel) {
+		writeSlow(fmt.Sprint(v...))
+	}
 }
 
 // Slowf writes v with format into slow log.
 func Slowf(format string, v ...any) {
-	writeSlow(fmt.Sprintf(format, v...))
+	if shallLog(ErrorLevel) {
+		writeSlow(fmt.Sprintf(format, v...))
+	}
 }
 
 // Slowv writes v into slow log with json content.
 func Slowv(v any) {
-	writeSlow(v)
+	if shallLog(ErrorLevel) {
+		writeSlow(v)
+	}
 }
 
 // Sloww writes msg along with fields into slow log.
 func Sloww(msg string, fields ...LogField) {
-	writeSlow(msg, fields...)
+	if shallLog(ErrorLevel) {
+		writeSlow(msg, fields...)
+	}
 }
 
 // Stat writes v into stat log.
 func Stat(v ...any) {
-	writeStat(fmt.Sprint(v...))
+	if shallLogStat() && shallLog(InfoLevel) {
+		writeStat(fmt.Sprint(v...))
+	}
 }
 
 // Statf writes v with format into stat log.
 func Statf(format string, v ...any) {
-	writeStat(fmt.Sprintf(format, v...))
+	if shallLogStat() && shallLog(InfoLevel) {
+		writeStat(fmt.Sprintf(format, v...))
+	}
 }
 
 // WithCooldownMillis customizes logging on writing call stack interval.
@@ -429,44 +473,58 @@ func shallLogStat() bool {
 	return atomic.LoadUint32(&disableStat) == 0
 }
 
+// writeDebug writes v into debug log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeDebug(val any, fields ...LogField) {
-	if shallLog(DebugLevel) {
-		getWriter().Debug(val, addCaller(fields...)...)
-	}
+	getWriter().Debug(val, addCaller(fields...)...)
 }
 
+// writeError writes v into error log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeError(val any, fields ...LogField) {
-	if shallLog(ErrorLevel) {
-		getWriter().Error(val, addCaller(fields...)...)
-	}
+	getWriter().Error(val, addCaller(fields...)...)
 }
 
+// writeInfo writes v into info log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeInfo(val any, fields ...LogField) {
-	if shallLog(InfoLevel) {
-		getWriter().Info(val, addCaller(fields...)...)
-	}
+	getWriter().Info(val, addCaller(fields...)...)
 }
 
+// writeSevere writes v into severe log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeSevere(msg string) {
-	if shallLog(SevereLevel) {
-		getWriter().Severe(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
-	}
+	getWriter().Severe(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 }
 
+// writeSlow writes v into slow log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeSlow(val any, fields ...LogField) {
-	if shallLog(ErrorLevel) {
-		getWriter().Slow(val, addCaller(fields...)...)
-	}
+	getWriter().Slow(val, addCaller(fields...)...)
 }
 
+// writeStack writes v into stack log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeStack(msg string) {
-	if shallLog(ErrorLevel) {
-		getWriter().Stack(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
-	}
+	getWriter().Stack(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 }
 
+// writeStat writes v into stat log.
+// Not checking shallLog here is for performance consideration.
+// If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
+// The caller should check shallLog before calling this function.
 func writeStat(msg string) {
-	if shallLogStat() && shallLog(InfoLevel) {
-		getWriter().Stat(msg, addCaller()...)
-	}
+	getWriter().Stat(msg, addCaller()...)
 }

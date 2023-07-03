@@ -218,7 +218,8 @@
         "port" : "The service port exposed",
         "gitlab": "Whether to use gitlab-ci",
         "i18n": "{{.global.i18n}}",
-        "desc": "Whether to create desc folder for splitting proto files"
+        "desc": "Whether to create desc folder for splitting proto files",
+        "client": "Whether to generate client"
       },
       "template": {
         "short": "Generate proto template",
@@ -235,7 +236,8 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
-        "verbose": "Enable log output"
+        "verbose": "Enable log output",
+        "client": "Whether to generate client"
       },
       "ent": {
         "short": "Generate CRUD template codes by Ent",
@@ -267,9 +269,9 @@
       },
       "init_code": {
         "short": "Generating initialize code",
-        "target": "The target type, now only support core",
+        "target": "The target type, now support core and other",
         "model_name": "The model name, it should be camelcase, such as StudentInfo",
-        "output": "The output path, only support core generating, such as ./rpc/internal/logic/base/init_database_api_data.go"
+        "output": "The output path, only support core generating to file, such as ./rpc/internal/logic/base/init_database_api_data.go"
       },
       "ent": {
         "short": "Generating extra ent codes",
