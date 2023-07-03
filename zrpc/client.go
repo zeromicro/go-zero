@@ -3,13 +3,13 @@ package zrpc
 import (
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
-
+	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 var (
@@ -17,8 +17,12 @@ var (
 	WithDialOption = internal.WithDialOption
 	// WithNonBlock sets the dialing to be nonblock.
 	WithNonBlock = internal.WithNonBlock
+	// WithStreamClientInterceptor is an alias of internal.WithStreamClientInterceptor.
+	WithStreamClientInterceptor = internal.WithStreamClientInterceptor
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
+	// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.
+	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
@@ -96,15 +100,14 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 // NewClientWithTarget returns a Client with connecting to given target.
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
-	middlewares := ClientMiddlewaresConf{
-		Trace:      true,
-		Duration:   true,
-		Prometheus: true,
-		Breaker:    true,
-		Timeout:    true,
+	var config RpcClientConf
+	if err := conf.FillDefault(&config); err != nil {
+		return nil, err
 	}
 
-	return internal.NewClient(target, middlewares, opts...)
+	config.Target = target
+
+	return NewClient(config, opts...)
 }
 
 // Conn returns the underlying grpc.ClientConn.

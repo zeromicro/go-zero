@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"github.com/spf13/cobra"
-
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
@@ -55,6 +54,7 @@ func init() {
 	newCmdFlags.IntVarPWithDefaultValue(&cli.VarIntServicePort, "port", "p", 9110)
 	newCmdFlags.BoolVarP(&cli.VarBoolGitlab, "gitlab", "g")
 	newCmdFlags.BoolVarP(&cli.VarBoolDesc, "desc", "d")
+	newCmdFlags.BoolVarPWithDefaultValue(&cli.VarBoolClient, "client", "c", true)
 
 	protocCmdFlags.BoolVarP(&cli.VarBoolMultiple, "multiple", "m")
 	protocCmdFlags.StringSliceVar(&cli.VarStringSliceGoOut, "go_out")
@@ -75,6 +75,7 @@ func init() {
 	protocCmdFlags.MarkHidden("go-grpc_opt")
 	protocCmdFlags.MarkHidden("plugin")
 	protocCmdFlags.MarkHidden("proto_path")
+	protocCmdFlags.BoolVarPWithDefaultValue(&cli.VarBoolClient, "client", "c", true)
 
 	templateCmdFlags.StringVar(&cli.VarStringOutput, "o")
 	templateCmdFlags.StringVar(&cli.VarStringHome, "home")

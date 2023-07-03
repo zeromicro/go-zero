@@ -215,3 +215,15 @@ func TestNewClientWithError(t *testing.T) {
 	)
 	assert.NotNil(t, err)
 }
+
+func TestNewClientWithTarget(t *testing.T) {
+	_, err := NewClientWithTarget("",
+		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply any,
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}))
+
+	assert.NotNil(t, err)
+}
