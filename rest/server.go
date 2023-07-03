@@ -151,7 +151,7 @@ func WithChain(chn chain.Chain) RunOption {
 	}
 }
 
-// WithCors returns a func to enable CORS for given origin, or default to all origins (*).
+// WithCors returns a func to enable CORS for given origin, or default to the request origin.
 func WithCors(origin ...string) RunOption {
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(nil, origin...))
@@ -159,7 +159,7 @@ func WithCors(origin ...string) RunOption {
 	}
 }
 
-// WithCustomCors returns a func to enable CORS for given origin, or default to all origins (*),
+// WithCustomCors returns a func to enable CORS for given origin, or default to the request origin.
 // fn lets caller customizing the response.
 func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(http.ResponseWriter),
 	origin ...string) RunOption {
