@@ -218,7 +218,8 @@
         "port": "服务公开的端口",
         "gitlab": "是否使用 gitlab-ci",
         "desc": "是否为拆分 proto 文件创建 desc 文件夹",
-        "i18n": "{{.global.i18n}}"
+        "i18n": "{{.global.i18n}}",
+        "client": "是否生成 client"
       },
       "template": {
         "short": "生成 proto 模板",
@@ -235,6 +236,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "client": "是否生成 client",
         "verbose": "启用日志输出"
       },
       "ent": {

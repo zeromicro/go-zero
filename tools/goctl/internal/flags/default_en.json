@@ -218,7 +218,8 @@
         "port" : "The service port exposed",
         "gitlab": "Whether to use gitlab-ci",
         "i18n": "{{.global.i18n}}",
-        "desc": "Whether to create desc folder for splitting proto files"
+        "desc": "Whether to create desc folder for splitting proto files",
+        "client": "Whether to generate client"
       },
       "template": {
         "short": "Generate proto template",
@@ -235,7 +236,8 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
-        "verbose": "Enable log output"
+        "verbose": "Enable log output",
+        "client": "Whether to generate client"
       },
       "ent": {
         "short": "Generate CRUD template codes by Ent",
