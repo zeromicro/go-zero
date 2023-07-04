@@ -4982,6 +4982,7 @@ func TestUnmarshaler_Unmarshal(t *testing.T) {
 	})
 }
 
+// TestUnmarshalerProcessFieldPrimitiveWithJSONNumber test the number type check.
 func TestUnmarshalerProcessFieldPrimitiveWithJSONNumber(t *testing.T) {
 	t.Run("wrong type", func(t *testing.T) {
 		expectValue := "1"
