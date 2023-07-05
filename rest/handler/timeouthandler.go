@@ -128,15 +128,19 @@ type timeoutWriter struct {
 var _ http.Pusher = (*timeoutWriter)(nil)
 
 func (tw *timeoutWriter) Flush() {
-	dst := tw.w.Header()
-	for k, vv := range tw.h {
-		dst[k] = vv
+	flusher, ok := tw.w.(http.Flusher)
+	if !ok {
+		return
 	}
-	if flusher, ok := tw.w.(http.Flusher); ok {
-		tw.w.Write(tw.wbuf.Bytes())
-		tw.wbuf.Reset()
-		flusher.Flush()
+
+	header := tw.w.Header()
+	for k, v := range tw.h {
+		header[k] = v
 	}
+
+	tw.w.Write(tw.wbuf.Bytes())
+	tw.wbuf.Reset()
+	flusher.Flush()
 }
 
 func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
@@ -171,6 +175,7 @@ func (tw *timeoutWriter) Write(p []byte) (int, error) {
 	if !tw.wroteHeader {
 		tw.writeHeaderLocked(http.StatusOK)
 	}
+
 	return tw.wbuf.Write(p)
 }
 
