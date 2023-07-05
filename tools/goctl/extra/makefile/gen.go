@@ -87,6 +87,8 @@ func Gen(_ *cobra.Command, _ []string) (err error) {
 		ctx.IsRpc = true
 	}
 
+	ctx.EntFeature = "sql/execquery"
+
 	if err := filex.Exist(ctx.TargetPath); err == nil {
 		err = extractInfo(&ctx)
 		if err != nil {
