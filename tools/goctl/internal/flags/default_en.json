@@ -336,7 +336,7 @@
       "short": "View additional information, such as environment variables and project port usage.",
       "env": {
         "short": "View environment variables.",
-        "service_name": "Service name, support: core, fms"
+        "service_name": "Service name, support: core, fms, mcms"
       },
       "port": {
         "short": "View port usage."
