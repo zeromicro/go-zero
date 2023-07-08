@@ -11,7 +11,7 @@ type RestfulConf struct {
 	Verbose      bool          `json:",optional"`
 	MaxConns     int           `json:",default=10000"`
 	MaxBytes     int64         `json:",default=1048576"`
-	Timeout      time.Duration `json:",default=3s"`
+	Timeout      time.Duration `json:",default=3000"`
 	CpuThreshold int64         `json:",default=900,range=[0:1000]"`
 }
 ```

@@ -1,7 +1,7 @@
 Name: {{.serviceName}}.api
 Host: {{.host}}
 Port: {{.port}}
-Timeout: 30000
+Timeout: 2000
 
 Auth:
   AccessSecret: # the same as core
