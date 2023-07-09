@@ -13,6 +13,8 @@ type WithCodeResponseWriter struct {
 	Code   int
 }
 
+// NewWithCodeResponseWriter returns a WithCodeResponseWriter.
+// If writer is already a WithCodeResponseWriter, it returns writer directly.
 func NewWithCodeResponseWriter(writer http.ResponseWriter) *WithCodeResponseWriter {
 	switch w := writer.(type) {
 	case *WithCodeResponseWriter:
