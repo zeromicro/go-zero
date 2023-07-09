@@ -704,6 +704,69 @@ func TestWithKeepDays(t *testing.T) {
 	assert.Equal(t, 1, opt.keepDays)
 }
 
+func TestExternalInitialized(t *testing.T) {
+	type ExWriter struct {
+		concreteWriter
+	}
+	conf := LogConf{
+		Mode:                "console",
+		Encoding:            "json",
+		Path:                "logs",
+		Level:               "info",
+		Stat:                true,
+		StackCooldownMillis: 100,
+		MaxBackups:          0,
+		MaxSize:             0,
+		Rotation:            "daily",
+	}
+	tests := []struct {
+		name   string
+		writer Writer
+		want   string
+	}{
+		{
+			name:   "set default",
+			writer: &concreteWriter{},
+			want:   "default",
+		},
+		{
+			name:   "set null",
+			writer: nil,
+			want:   "default",
+		},
+		{
+			name:   "set external",
+			writer: &ExWriter{},
+			want:   "external",
+		},
+	}
+	structName := func(w Writer) string {
+		var str string
+		switch w.(type) {
+		case *concreteWriter:
+			str = "default"
+		case *ExWriter:
+			str = "external"
+		default:
+			str = "unknown"
+		}
+		return str
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setupOnce = sync.Once{}
+			SetWriter(tt.writer)
+			err := SetUp(conf)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			assert.Equal(t, structName(writer.writer), tt.want)
+		})
+	}
+}
+
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var buf []byte
