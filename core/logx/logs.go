@@ -235,17 +235,28 @@ func SetUp(c LogConf) (err error) {
 	// Because multiple services in one process might call SetUp respectively.
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
-		setupLogLevel(c)
-
 		if !c.Stat {
 			DisableStat()
 		}
 
+		atomic.StoreUint32(&maxContentLength, c.MaxContentLength)
+
+		// fix: If a user uses logx.SetWriter() in svc/service_context.go,
+		// zrpc.MustNewServer will set it back to default again
+		if writer != nil {
+			switch writer.writer.(type) {
+			case nil, *concreteWriter:
+				break
+			default:
+				return
+			}
+		}
+
+		setupLogLevel(c)
+
 		if len(c.TimeFormat) > 0 {
 			timeFormat = c.TimeFormat
 		}
-
-		atomic.StoreUint32(&maxContentLength, c.MaxContentLength)
 
 		switch c.Encoding {
 		case plainEncoding:
