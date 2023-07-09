@@ -127,6 +127,7 @@ type timeoutWriter struct {
 
 var _ http.Pusher = (*timeoutWriter)(nil)
 
+// Flush implements the Flusher interface.
 func (tw *timeoutWriter) Flush() {
 	flusher, ok := tw.w.(http.Flusher)
 	if !ok {
@@ -143,6 +144,12 @@ func (tw *timeoutWriter) Flush() {
 	flusher.Flush()
 }
 
+// Header returns the underline temporary http.Header.
+func (tw *timeoutWriter) Header() http.Header {
+	return tw.h
+}
+
+// Hijack implements the Hijacker interface.
 func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if hijacked, ok := tw.w.(http.Hijacker); ok {
 		return hijacked.Hijack()
@@ -151,14 +158,12 @@ func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
-// Header returns the underline temporary http.Header.
-func (tw *timeoutWriter) Header() http.Header { return tw.h }
-
 // Push implements the Pusher interface.
 func (tw *timeoutWriter) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := tw.w.(http.Pusher); ok {
 		return pusher.Push(target, opts)
 	}
+
 	return http.ErrNotSupported
 }
 
