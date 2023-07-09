@@ -128,7 +128,13 @@ type timeoutWriter struct {
 var _ http.Pusher = (*timeoutWriter)(nil)
 
 func (tw *timeoutWriter) Flush() {
+	dst := tw.w.Header()
+	for k, vv := range tw.h {
+		dst[k] = vv
+	}
 	if flusher, ok := tw.w.(http.Flusher); ok {
+		tw.w.Write(tw.wbuf.Bytes())
+		tw.wbuf.Reset()
 		flusher.Flush()
 	}
 }
