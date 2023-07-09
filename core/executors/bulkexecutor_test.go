@@ -78,7 +78,7 @@ func TestBulkExecutorFlush(t *testing.T) {
 	wait.Wait()
 }
 
-func TestBuldExecutorFlushSlowTasks(t *testing.T) {
+func TestBulkExecutorFlushSlowTasks(t *testing.T) {
 	const total = 1500
 	lock := new(sync.Mutex)
 	result := make([]any, 0, 10000)

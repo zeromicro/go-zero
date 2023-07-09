@@ -26,7 +26,7 @@ func init() {
 			v := <-signals
 			switch v {
 			case syscall.SIGUSR1:
-				dumpGoroutines()
+				dumpGoroutines(fileCreator{})
 			case syscall.SIGUSR2:
 				if profiler == nil {
 					profiler = StartProfile()

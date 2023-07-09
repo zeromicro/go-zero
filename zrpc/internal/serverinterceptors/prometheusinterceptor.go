@@ -3,7 +3,6 @@ package serverinterceptors
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/metric"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -37,7 +36,7 @@ func UnaryPrometheusInterceptor(ctx context.Context, req any,
 	info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	startTime := timex.Now()
 	resp, err := handler(ctx, req)
-	metricServerReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), info.FullMethod)
+	metricServerReqDur.Observe(timex.Since(startTime).Milliseconds(), info.FullMethod)
 	metricServerReqCodeTotal.Inc(info.FullMethod, strconv.Itoa(int(status.Code(err))))
 	return resp, err
 }

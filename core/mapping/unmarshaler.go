@@ -148,14 +148,17 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 		return errValueNotSettable
 	}
 
-	baseType := fieldType.Elem()
-	dereffedBaseType := Deref(baseType)
-	dereffedBaseKind := dereffedBaseType.Kind()
 	refValue := reflect.ValueOf(mapValue)
+	if refValue.Kind() != reflect.Slice {
+		return errTypeMismatch
+	}
 	if refValue.IsNil() {
 		return nil
 	}
 
+	baseType := fieldType.Elem()
+	dereffedBaseType := Deref(baseType)
+	dereffedBaseKind := dereffedBaseType.Kind()
 	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 	if refValue.Len() == 0 {
 		value.Set(conv)
@@ -173,7 +176,12 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 		switch dereffedBaseKind {
 		case reflect.Struct:
 			target := reflect.New(dereffedBaseType)
-			if err := u.Unmarshal(ithValue.(map[string]any), target.Interface()); err != nil {
+			val, ok := ithValue.(map[string]any)
+			if !ok {
+				return errTypeMismatch
+			}
+
+			if err := u.Unmarshal(val, target.Interface()); err != nil {
 				return err
 			}
 
@@ -347,7 +355,12 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any) 
 					return emptyValue, errTypeMismatch
 				}
 
-				targetValue.SetMapIndex(key, reflect.ValueOf(v))
+				val := reflect.ValueOf(v)
+				if !val.Type().AssignableTo(dereffedElemType) {
+					return emptyValue, errTypeMismatch
+				}
+
+				targetValue.SetMapIndex(key, val)
 			case json.Number:
 				target := reflect.New(dereffedElemType)
 				if err := setValueFromString(dereffedElemKind, target.Elem(), v.String()); err != nil {
@@ -513,8 +526,8 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	vp valueWithParent, opts *fieldOptionsWithContext, fullName string) error {
 	derefedFieldType := Deref(fieldType)
 	typeKind := derefedFieldType.Kind()
-	valueKind := reflect.TypeOf(vp.value).Kind()
 	mapValue := vp.value
+	valueKind := reflect.TypeOf(mapValue).Kind()
 
 	switch {
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
@@ -527,6 +540,8 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 			current: mapValuer(mv),
 			parent:  vp.parent,
 		}, fullName)
+	case typeKind == reflect.Slice && valueKind == reflect.Slice:
+		return u.fillSlice(fieldType, value, mapValue)
 	case valueKind == reflect.Map && typeKind == reflect.Map:
 		return u.fillMap(fieldType, value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Map:
@@ -545,23 +560,16 @@ func (u *Unmarshaler) processFieldPrimitive(fieldType reflect.Type, value reflec
 	typeKind := Deref(fieldType).Kind()
 	valueKind := reflect.TypeOf(mapValue).Kind()
 
-	switch {
-	case typeKind == reflect.Slice && valueKind == reflect.Slice:
-		return u.fillSlice(fieldType, value, mapValue)
-	case typeKind == reflect.Map && valueKind == reflect.Map:
-		return u.fillMap(fieldType, value, mapValue)
+	switch v := mapValue.(type) {
+	case json.Number:
+		return u.processFieldPrimitiveWithJSONNumber(fieldType, value, v, opts, fullName)
 	default:
-		switch v := mapValue.(type) {
-		case json.Number:
-			return u.processFieldPrimitiveWithJSONNumber(fieldType, value, v, opts, fullName)
-		default:
-			if typeKind == valueKind {
-				if err := validateValueInOptions(mapValue, opts.options()); err != nil {
-					return err
-				}
-
-				return fillWithSameType(fieldType, value, mapValue, opts)
+		if typeKind == valueKind {
+			if err := validateValueInOptions(mapValue, opts.options()); err != nil {
+				return err
 			}
+
+			return fillWithSameType(fieldType, value, mapValue, opts)
 		}
 	}
 

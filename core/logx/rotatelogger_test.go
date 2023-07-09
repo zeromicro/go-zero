@@ -1,8 +1,12 @@
 package logx
 
 import (
+	"errors"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -13,18 +17,58 @@ import (
 )
 
 func TestDailyRotateRuleMarkRotated(t *testing.T) {
-	var rule DailyRotateRule
-	rule.MarkRotated()
-	assert.Equal(t, getNowDate(), rule.rotatedTime)
+	t.Run("daily rule", func(t *testing.T) {
+		var rule DailyRotateRule
+		rule.MarkRotated()
+		assert.Equal(t, getNowDate(), rule.rotatedTime)
+	})
+
+	t.Run("daily rule", func(t *testing.T) {
+		rule := DefaultRotateRule("test", "-", 1, false)
+		_, ok := rule.(*DailyRotateRule)
+		assert.True(t, ok)
+	})
 }
 
 func TestDailyRotateRuleOutdatedFiles(t *testing.T) {
-	var rule DailyRotateRule
-	assert.Empty(t, rule.OutdatedFiles())
-	rule.days = 1
-	assert.Empty(t, rule.OutdatedFiles())
-	rule.gzip = true
-	assert.Empty(t, rule.OutdatedFiles())
+	t.Run("no files", func(t *testing.T) {
+		var rule DailyRotateRule
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.days = 1
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.gzip = true
+		assert.Empty(t, rule.OutdatedFiles())
+	})
+
+	t.Run("bad files", func(t *testing.T) {
+		rule := DailyRotateRule{
+			filename: "[a-z",
+		}
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.days = 1
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.gzip = true
+		assert.Empty(t, rule.OutdatedFiles())
+	})
+
+	t.Run("temp files", func(t *testing.T) {
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		f1, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
+		assert.NoError(t, err)
+		_ = f1.Close()
+		f2, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
+		assert.NoError(t, err)
+		_ = f2.Close()
+		t.Cleanup(func() {
+			_ = os.Remove(f1.Name())
+			_ = os.Remove(f2.Name())
+		})
+		rule := DailyRotateRule{
+			filename: path.Join(os.TempDir(), "go-zero-test-"),
+			days:     1,
+		}
+		assert.NotEmpty(t, rule.OutdatedFiles())
+	})
 }
 
 func TestDailyRotateRuleShallRotate(t *testing.T) {
@@ -34,20 +78,101 @@ func TestDailyRotateRuleShallRotate(t *testing.T) {
 }
 
 func TestSizeLimitRotateRuleMarkRotated(t *testing.T) {
-	var rule SizeLimitRotateRule
-	rule.MarkRotated()
-	assert.Equal(t, getNowDateInRFC3339Format(), rule.rotatedTime)
+	t.Run("size limit rule", func(t *testing.T) {
+		var rule SizeLimitRotateRule
+		rule.MarkRotated()
+		assert.Equal(t, getNowDateInRFC3339Format(), rule.rotatedTime)
+	})
+
+	t.Run("size limit rule", func(t *testing.T) {
+		rule := NewSizeLimitRotateRule("foo", "-", 1, 1, 1, false)
+		rule.MarkRotated()
+		assert.Equal(t, getNowDateInRFC3339Format(), rule.(*SizeLimitRotateRule).rotatedTime)
+	})
 }
 
 func TestSizeLimitRotateRuleOutdatedFiles(t *testing.T) {
-	var rule SizeLimitRotateRule
-	assert.Empty(t, rule.OutdatedFiles())
-	rule.days = 1
-	assert.Empty(t, rule.OutdatedFiles())
-	rule.gzip = true
-	assert.Empty(t, rule.OutdatedFiles())
-	rule.maxBackups = 0
-	assert.Empty(t, rule.OutdatedFiles())
+	t.Run("no files", func(t *testing.T) {
+		var rule SizeLimitRotateRule
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.days = 1
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.gzip = true
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.maxBackups = 0
+		assert.Empty(t, rule.OutdatedFiles())
+	})
+
+	t.Run("bad files", func(t *testing.T) {
+		rule := SizeLimitRotateRule{
+			DailyRotateRule: DailyRotateRule{
+				filename: "[a-z",
+			},
+		}
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.days = 1
+		assert.Empty(t, rule.OutdatedFiles())
+		rule.gzip = true
+		assert.Empty(t, rule.OutdatedFiles())
+	})
+
+	t.Run("temp files", func(t *testing.T) {
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		f1, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
+		assert.NoError(t, err)
+		f2, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
+		assert.NoError(t, err)
+		boundary1 := time.Now().Add(time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		f3, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary1)
+		assert.NoError(t, err)
+		t.Cleanup(func() {
+			_ = f1.Close()
+			_ = os.Remove(f1.Name())
+			_ = f2.Close()
+			_ = os.Remove(f2.Name())
+			_ = f3.Close()
+			_ = os.Remove(f3.Name())
+		})
+		rule := SizeLimitRotateRule{
+			DailyRotateRule: DailyRotateRule{
+				filename: path.Join(os.TempDir(), "go-zero-test-"),
+				days:     1,
+			},
+			maxBackups: 3,
+		}
+		assert.NotEmpty(t, rule.OutdatedFiles())
+	})
+
+	t.Run("no backups", func(t *testing.T) {
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		f1, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
+		assert.NoError(t, err)
+		f2, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
+		assert.NoError(t, err)
+		boundary1 := time.Now().Add(time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		f3, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary1)
+		assert.NoError(t, err)
+		t.Cleanup(func() {
+			_ = f1.Close()
+			_ = os.Remove(f1.Name())
+			_ = f2.Close()
+			_ = os.Remove(f2.Name())
+			_ = f3.Close()
+			_ = os.Remove(f3.Name())
+		})
+		rule := SizeLimitRotateRule{
+			DailyRotateRule: DailyRotateRule{
+				filename: path.Join(os.TempDir(), "go-zero-test-"),
+				days:     1,
+			},
+		}
+		assert.NotEmpty(t, rule.OutdatedFiles())
+
+		logger := new(RotateLogger)
+		logger.rule = &rule
+		logger.maybeDeleteOutdatedFiles()
+		assert.Empty(t, rule.OutdatedFiles())
+	})
 }
 
 func TestSizeLimitRotateRuleShallRotate(t *testing.T) {
@@ -61,14 +186,26 @@ func TestSizeLimitRotateRuleShallRotate(t *testing.T) {
 }
 
 func TestRotateLoggerClose(t *testing.T) {
-	filename, err := fs.TempFilenameWithText("foo")
-	assert.Nil(t, err)
-	if len(filename) > 0 {
-		defer os.Remove(filename)
-	}
-	logger, err := NewLogger(filename, new(DailyRotateRule), false)
-	assert.Nil(t, err)
-	assert.Nil(t, logger.Close())
+	t.Run("close", func(t *testing.T) {
+		filename, err := fs.TempFilenameWithText("foo")
+		assert.Nil(t, err)
+		if len(filename) > 0 {
+			defer os.Remove(filename)
+		}
+		logger, err := NewLogger(filename, new(DailyRotateRule), false)
+		assert.Nil(t, err)
+		_, err = logger.Write([]byte("foo"))
+		assert.Nil(t, err)
+		assert.Nil(t, logger.Close())
+	})
+
+	t.Run("close and write", func(t *testing.T) {
+		logger := new(RotateLogger)
+		logger.done = make(chan struct{})
+		close(logger.done)
+		_, err := logger.Write([]byte("foo"))
+		assert.ErrorIs(t, err, ErrLogFileClosed)
+	})
 }
 
 func TestRotateLoggerGetBackupFilename(t *testing.T) {
@@ -179,7 +316,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleClose(t *testing.T) {
 	}
 	logger, err := NewLogger(filename, new(SizeLimitRotateRule), false)
 	assert.Nil(t, err)
-	assert.Nil(t, logger.Close())
+	_ = logger.Close()
 }
 
 func TestRotateLoggerGetBackupWithSizeLimitRotateRuleFilename(t *testing.T) {
@@ -295,6 +432,70 @@ func TestRotateLoggerWithSizeLimitRotateRuleWrite(t *testing.T) {
 	logger.write([]byte(`baz`))
 }
 
+func TestGzipFile(t *testing.T) {
+	err := errors.New("any error")
+
+	t.Run("gzip file open failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			openFn: func(name string) (*os.File, error) {
+				return nil, err
+			},
+		}
+		assert.ErrorIs(t, err, gzipFile("any", fsys))
+		assert.False(t, fsys.Removed())
+	})
+
+	t.Run("gzip file create failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			createFn: func(name string) (*os.File, error) {
+				return nil, err
+			},
+		}
+		assert.ErrorIs(t, err, gzipFile("any", fsys))
+		assert.False(t, fsys.Removed())
+	})
+
+	t.Run("gzip file copy failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			copyFn: func(writer io.Writer, reader io.Reader) (int64, error) {
+				return 0, err
+			},
+		}
+		assert.ErrorIs(t, err, gzipFile("any", fsys))
+		assert.False(t, fsys.Removed())
+	})
+
+	t.Run("gzip file last close failed", func(t *testing.T) {
+		var called int32
+		fsys := &fakeFileSystem{
+			closeFn: func(closer io.Closer) error {
+				if atomic.AddInt32(&called, 1) > 2 {
+					return err
+				}
+				return nil
+			},
+		}
+		assert.NoError(t, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
+
+	t.Run("gzip file remove failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			removeFn: func(name string) error {
+				return err
+			},
+		}
+		assert.Error(t, err, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
+
+	t.Run("gzip file everything ok", func(t *testing.T) {
+		fsys := &fakeFileSystem{}
+		assert.NoError(t, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
+}
+
 func BenchmarkRotateLogger(b *testing.B) {
 	filename := "./test.log"
 	filename2 := "./test2.log"
@@ -345,4 +546,54 @@ func BenchmarkRotateLogger(b *testing.B) {
 			sizeLimitRotateRuleLogger.write([]byte("testing\ntesting\n"))
 		}
 	})
+}
+
+type fakeFileSystem struct {
+	removed  int32
+	closeFn  func(closer io.Closer) error
+	copyFn   func(writer io.Writer, reader io.Reader) (int64, error)
+	createFn func(name string) (*os.File, error)
+	openFn   func(name string) (*os.File, error)
+	removeFn func(name string) error
+}
+
+func (f *fakeFileSystem) Close(closer io.Closer) error {
+	if f.closeFn != nil {
+		return f.closeFn(closer)
+	}
+	return nil
+}
+
+func (f *fakeFileSystem) Copy(writer io.Writer, reader io.Reader) (int64, error) {
+	if f.copyFn != nil {
+		return f.copyFn(writer, reader)
+	}
+	return 0, nil
+}
+
+func (f *fakeFileSystem) Create(name string) (*os.File, error) {
+	if f.createFn != nil {
+		return f.createFn(name)
+	}
+	return nil, nil
+}
+
+func (f *fakeFileSystem) Open(name string) (*os.File, error) {
+	if f.openFn != nil {
+		return f.openFn(name)
+	}
+	return nil, nil
+}
+
+func (f *fakeFileSystem) Remove(name string) error {
+	atomic.AddInt32(&f.removed, 1)
+
+	if f.removeFn != nil {
+		return f.removeFn(name)
+	}
+	return nil
+}
+
+func (f *fakeFileSystem) Removed() bool {
+	return atomic.LoadInt32(&f.removed) > 0
 }

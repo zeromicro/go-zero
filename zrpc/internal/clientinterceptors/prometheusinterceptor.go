@@ -3,7 +3,6 @@ package clientinterceptors
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/metric"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -37,7 +36,7 @@ func PrometheusInterceptor(ctx context.Context, method string, req, reply any,
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	startTime := timex.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
-	metricClientReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), method)
+	metricClientReqDur.Observe(timex.Since(startTime).Milliseconds(), method)
 	metricClientReqCodeTotal.Inc(method, strconv.Itoa(int(status.Code(err))))
 	return err
 }
