@@ -11,8 +11,8 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
-// logContext is a context key.
-var logContext = contextKey{}
+// logContextKey is a context key.
+var logContextKey = contextKey("request_logs")
 
 type (
 	// LogCollector is used to collect logs.
@@ -21,17 +21,17 @@ type (
 		lock     sync.Mutex
 	}
 
-	contextKey struct{}
+	contextKey string
 )
 
 // WithLogCollector returns a new context with LogCollector.
 func WithLogCollector(ctx context.Context, lc *LogCollector) context.Context {
-	return context.WithValue(ctx, logContext, lc)
+	return context.WithValue(ctx, logContextKey, lc)
 }
 
 // LogCollectorFromContext returns LogCollector from ctx.
 func LogCollectorFromContext(ctx context.Context) *LogCollector {
-	val := ctx.Value(logContext)
+	val := ctx.Value(logContextKey)
 	if val == nil {
 		return nil
 	}
