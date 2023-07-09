@@ -32,7 +32,5 @@ func mysqlAcceptable(err error) bool {
 }
 
 func withMysqlAcceptable() SqlOption {
-	return func(conn *commonSqlConn) {
-		conn.accept = mysqlAcceptable
-	}
+	return WithAcceptable(mysqlAcceptable)
 }
