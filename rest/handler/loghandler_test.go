@@ -88,18 +88,14 @@ func TestLogHandlerSlow(t *testing.T) {
 func TestDetailedLogHandler_Hijack(t *testing.T) {
 	resp := httptest.NewRecorder()
 	writer := &detailLoggedResponseWriter{
-		writer: &response.WithCodeResponseWriter{
-			Writer: resp,
-		},
+		writer: response.NewWithCodeResponseWriter(resp),
 	}
 	assert.NotPanics(t, func() {
 		_, _, _ = writer.Hijack()
 	})
 
 	writer = &detailLoggedResponseWriter{
-		writer: &response.WithCodeResponseWriter{
-			Writer: mockedHijackable{resp},
-		},
+		writer: response.NewWithCodeResponseWriter(resp),
 	}
 	assert.NotPanics(t, func() {
 		_, _, _ = writer.Hijack()

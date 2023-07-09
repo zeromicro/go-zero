@@ -208,9 +208,7 @@ func TestTimeoutHijack(t *testing.T) {
 	resp := httptest.NewRecorder()
 
 	writer := &timeoutWriter{
-		w: &response.WithCodeResponseWriter{
-			Writer: resp,
-		},
+		w: response.NewWithCodeResponseWriter(resp),
 	}
 
 	assert.NotPanics(t, func() {
@@ -218,9 +216,7 @@ func TestTimeoutHijack(t *testing.T) {
 	})
 
 	writer = &timeoutWriter{
-		w: &response.WithCodeResponseWriter{
-			Writer: mockedHijackable{resp},
-		},
+		w: response.NewWithCodeResponseWriter(mockedHijackable{resp}),
 	}
 
 	assert.NotPanics(t, func() {
@@ -274,9 +270,7 @@ func TestTimeoutWriter_Hijack(t *testing.T) {
 func TestTimeoutWroteTwice(t *testing.T) {
 	c := logtest.NewCollector(t)
 	writer := &timeoutWriter{
-		w: &response.WithCodeResponseWriter{
-			Writer: httptest.NewRecorder(),
-		},
+		w:   response.NewWithCodeResponseWriter(httptest.NewRecorder()),
 		h:   make(http.Header),
 		req: httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody),
 	}
