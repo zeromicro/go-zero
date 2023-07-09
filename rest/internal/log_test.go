@@ -14,7 +14,7 @@ import (
 func TestInfo(t *testing.T) {
 	collector := new(LogCollector)
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
-	req = req.WithContext(context.WithValue(req.Context(), LogContext, collector))
+	req = req.WithContext(WithLogCollector(req.Context(), collector))
 	Info(req, "first")
 	Infof(req, "second %s", "third")
 	val := collector.Flush()
@@ -35,7 +35,10 @@ func TestError(t *testing.T) {
 	assert.True(t, strings.Contains(val, "third"))
 }
 
-func TestContextKey_String(t *testing.T) {
-	val := contextKey("foo")
-	assert.True(t, strings.Contains(val.String(), "foo"))
+func TestLogCollectorContext(t *testing.T) {
+	ctx := context.Background()
+	assert.Nil(t, LogCollectorFromContext(ctx))
+	collector := new(LogCollector)
+	ctx = WithLogCollector(ctx, collector)
+	assert.Equal(t, collector, LogCollectorFromContext(ctx))
 }

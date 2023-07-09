@@ -22,7 +22,7 @@ func TestLogHandler(t *testing.T) {
 	for _, logHandler := range handlers {
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
+			internal.LogCollectorFromContext(r.Context()).Append("anything")
 			w.Header().Set("X-Test", "test")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, err := w.Write([]byte("content"))
@@ -49,7 +49,7 @@ func TestLogHandlerVeryLong(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "http://localhost", &buf)
 	handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
+		internal.LogCollectorFromContext(r.Context()).Append("anything")
 		_, _ = io.Copy(io.Discard, r.Body)
 		w.Header().Set("X-Test", "test")
 		w.WriteHeader(http.StatusServiceUnavailable)

@@ -3,7 +3,6 @@ package handler
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -44,7 +43,7 @@ func LogHandler(next http.Handler) http.Handler {
 
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
-		next.ServeHTTP(&lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
+		next.ServeHTTP(&lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logBrief(r, lrw.Code, timer, logs)
 	})
@@ -102,7 +101,7 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
 		logs := new(internal.LogCollector)
-		next.ServeHTTP(lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
+		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logDetails(r, lrw, timer, logs)
 	})
