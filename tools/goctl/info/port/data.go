@@ -44,6 +44,7 @@ func portInfo() string {
 		{9103, "member_api"},
 		{9104, "member_rpc"},
 		{9105, "job_rpc"},
+		{9106, "mcms_rpc"},
 	})
 	return envInfo.Render()
 }
