@@ -21,10 +21,16 @@ import (
 
 var (
 	ServiceName string
+	ShowList    bool
 )
 
 // ShowEnv is used to show the environment variable usages.
 func ShowEnv(_ *cobra.Command, _ []string) error {
+	if ShowList {
+		getServiceList()
+		return nil
+	}
+
 	if lang {
 		color.Green.Println("Simple Admin的环境变量")
 		color.Red.Println("注意： 环境变量的优先级大于配置文件")
