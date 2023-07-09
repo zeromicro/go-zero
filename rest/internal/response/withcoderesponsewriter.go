@@ -22,6 +22,7 @@ func NewWithCodeResponseWriter(writer http.ResponseWriter) *WithCodeResponseWrit
 	default:
 		return &WithCodeResponseWriter{
 			Writer: writer,
+			Code:   http.StatusOK,
 		}
 	}
 }

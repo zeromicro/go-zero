@@ -37,7 +37,6 @@ func LogHandler(next http.Handler) http.Handler {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
 		lrw := response.NewWithCodeResponseWriter(w)
-		lrw.Code = http.StatusOK
 
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
@@ -92,7 +91,6 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 		timer := utils.NewElapsedTimer()
 		var buf bytes.Buffer
 		rw := response.NewWithCodeResponseWriter(w)
-		rw.Code = http.StatusOK
 		lrw := newDetailLoggedResponseWriter(rw, &buf)
 
 		var dup io.ReadCloser
