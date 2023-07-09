@@ -336,7 +336,8 @@
       "short": "查看额外信息，如环境变量和项目端口使用情况",
       "env": {
         "short": "查看环境变量",
-        "service_name": "服务名称，支持: core, fms"
+        "service_name": "服务名称，支持: core, fms, mcms",
+        "list": "列出支持的服务"
       },
       "port": {
         "short": "查看端口使用情况"
