@@ -40,7 +40,7 @@ func LogHandler(next http.Handler) http.Handler {
 
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
-		next.ServeHTTP(&lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
+		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logBrief(r, lrw.Code, timer, logs)
 	})
