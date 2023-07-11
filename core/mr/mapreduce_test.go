@@ -574,6 +574,7 @@ func TestMapReduceWithContext(t *testing.T) {
 			cancel()
 		}
 		writer.Write(i)
+		time.Sleep(time.Millisecond)
 	}, func(pipe <-chan int, cancel func(error)) {
 		for item := range pipe {
 			i := item
