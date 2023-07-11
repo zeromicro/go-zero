@@ -51,7 +51,8 @@ type detailLoggedResponseWriter struct {
 	buf    *bytes.Buffer
 }
 
-func newDetailLoggedResponseWriter(writer *response.WithCodeResponseWriter, buf *bytes.Buffer) *detailLoggedResponseWriter {
+func newDetailLoggedResponseWriter(writer *response.WithCodeResponseWriter,
+	buf *bytes.Buffer) *detailLoggedResponseWriter {
 	return &detailLoggedResponseWriter{
 		writer: writer,
 		buf:    buf,

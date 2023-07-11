@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -100,6 +101,15 @@ func TestDetailedLogHandler_Hijack(t *testing.T) {
 	assert.NotPanics(t, func() {
 		_, _, _ = writer.Hijack()
 	})
+
+	writer = &detailLoggedResponseWriter{
+		writer: response.NewWithCodeResponseWriter(mockedHijackable{
+			ResponseRecorder: resp,
+		}),
+	}
+	assert.NotPanics(t, func() {
+		_, _, _ = writer.Hijack()
+	})
 }
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
@@ -129,6 +139,13 @@ func TestWrapStatusCodeWithColor(t *testing.T) {
 	assert.Equal(t, "503", wrapStatusCode(http.StatusServiceUnavailable))
 }
 
+func TestDumpRequest(t *testing.T) {
+	const errMsg = "error"
+	r := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	r.Body = mockedReadCloser{errMsg: errMsg}
+	assert.Equal(t, errMsg, dumpRequest(r))
+}
+
 func BenchmarkLogHandler(b *testing.B) {
 	b.ReportAllocs()
 
@@ -141,4 +158,16 @@ func BenchmarkLogHandler(b *testing.B) {
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 	}
+}
+
+type mockedReadCloser struct {
+	errMsg string
+}
+
+func (m mockedReadCloser) Read(p []byte) (n int, err error) {
+	return 0, errors.New(m.errMsg)
+}
+
+func (m mockedReadCloser) Close() error {
+	return nil
 }
