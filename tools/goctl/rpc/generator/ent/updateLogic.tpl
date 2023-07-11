@@ -36,5 +36,5 @@ func (l *Update{{.modelName}}Logic) Update{{.modelName}}(in *{{.projectName}}.{{
 		return nil, dberrorhandler.DefaultEntError(l.Logger, err, in)
 	}
 
-    return &{{.projectName}}.BaseResp{Msg: {{if .useI18n}}i18n.CreateSuccess{{else}}errormsg.UpdateSuccess{{end}} }, nil
+    return &{{.projectName}}.BaseResp{Msg: {{if .useI18n}}i18n.UpdateSuccess{{else}}errormsg.UpdateSuccess{{end}} }, nil
 }
