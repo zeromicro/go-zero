@@ -4991,10 +4991,12 @@ func TestUnmarshalerProcessFieldPrimitiveWithJSONNumber(t *testing.T) {
 		value := reflect.ValueOf(&realValue) // pass a pointer to the value
 		v := json.Number(expectValue)
 		m := NewUnmarshaler("field")
-		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v, &fieldOptionsWithContext{}, "field")
+		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v,
+			&fieldOptionsWithContext{}, "field")
 		assert.Error(t, err)
-		assert.Equal(t, "type mismatch for field \"field\", expected \"string\", got \"int\"", err.Error())
+		assert.Equal(t, `type mismatch for field "field", expect "string", actual "int"`, err.Error())
 	})
+
 	t.Run("right type", func(t *testing.T) {
 		expectValue := int64(1)
 		realValue := int64(1)
@@ -5002,10 +5004,10 @@ func TestUnmarshalerProcessFieldPrimitiveWithJSONNumber(t *testing.T) {
 		value := reflect.ValueOf(&realValue) // pass a pointer to the value
 		v := json.Number(strconv.FormatInt(expectValue, 10))
 		m := NewUnmarshaler("field")
-		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v, &fieldOptionsWithContext{}, "field")
+		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v,
+			&fieldOptionsWithContext{}, "field")
 		assert.NoError(t, err)
 	})
-
 }
 
 func TestGetValueWithChainedKeys(t *testing.T) {
