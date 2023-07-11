@@ -36,14 +36,11 @@ func LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
-		lrw := response.WithCodeResponseWriter{
-			Writer: w,
-			Code:   http.StatusOK,
-		}
+		lrw := response.NewWithCodeResponseWriter(w)
 
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
-		next.ServeHTTP(&lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
+		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logBrief(r, lrw.Code, timer, logs)
 	})
@@ -54,7 +51,8 @@ type detailLoggedResponseWriter struct {
 	buf    *bytes.Buffer
 }
 
-func newDetailLoggedResponseWriter(writer *response.WithCodeResponseWriter, buf *bytes.Buffer) *detailLoggedResponseWriter {
+func newDetailLoggedResponseWriter(writer *response.WithCodeResponseWriter,
+	buf *bytes.Buffer) *detailLoggedResponseWriter {
 	return &detailLoggedResponseWriter{
 		writer: writer,
 		buf:    buf,
@@ -93,10 +91,8 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		var buf bytes.Buffer
-		lrw := newDetailLoggedResponseWriter(&response.WithCodeResponseWriter{
-			Writer: w,
-			Code:   http.StatusOK,
-		}, &buf)
+		rw := response.NewWithCodeResponseWriter(w)
+		lrw := newDetailLoggedResponseWriter(rw, &buf)
 
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
