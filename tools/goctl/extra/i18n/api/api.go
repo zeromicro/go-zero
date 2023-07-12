@@ -2,7 +2,6 @@ package api
 
 import (
 	_ "embed"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -98,7 +97,7 @@ func AppendToApiDesc(data, filePath string) error {
 	originString := string(file)
 
 	apiDescIndex := strings.Index(originString, "apiDesc")
-	data = fmt.Sprintf("\n%s", data)
+	//data = fmt.Sprintf("\n%s", data)
 
 	var newString string
 	offset := 12
