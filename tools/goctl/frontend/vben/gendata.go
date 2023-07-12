@@ -127,11 +127,12 @@ func genData(g *GenContext) error {
 
 func getComponent(dataType string) string {
 	switch dataType {
-	case "string":
+	case "string", "*string":
 		return "component: 'Input',"
-	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "int64", "uint32", "uint64", "float32", "float64":
+	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "int64", "uint32", "uint64", "float32", "float64",
+		"*int", "*uint", "*int8", "*uint8", "*int16", "*uint16", "*int32", "*int64", "*uint32", "*uint64", "*float32", "*float64":
 		return "component: 'InputNumber',"
-	case "bool":
+	case "bool", "*bool":
 		return "component: 'RadioButtonGroup',\n    defaultValue: false,\n    componentProps: {\n      options: [\n        { label: t('common.on'), value: false },\n        { label: t('common.off'), value: true },\n      ],\n    },"
 	default:
 		return "component: 'Input',"
@@ -165,11 +166,12 @@ func GetRules(t spec.Member) string {
 // GetRuleType returns the rule type from go type.
 func GetRuleType(t string) string {
 	switch t {
-	case "string":
+	case "string", "*string":
 		return "string"
-	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "int64", "uint32", "uint64":
+	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "int64", "uint32", "uint64",
+		"*int", "*uint", "*int8", "*uint8", "*int16", "*uint16", "*int32", "*int64", "*uint32", "*uint64":
 		return "number"
-	case "float32", "float64":
+	case "float32", "float64", "*float32", "*float64":
 		return "float"
 	default:
 		return "string"
