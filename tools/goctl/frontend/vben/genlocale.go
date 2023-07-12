@@ -66,11 +66,11 @@ func genLocale(g *GenContext) error {
 		}
 	}
 
-	if !pathx.FileExists(enLocaleFileName) || g.Overwrite {
+	if !pathx.FileExists(enLocaleFileName) {
 		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]any{
 			"localeData": localeEnData.String(),
 		},
-			enLocaleFileName, g.Overwrite); err != nil {
+			enLocaleFileName, false); err != nil {
 			return err
 		}
 	} else {
