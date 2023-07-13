@@ -86,8 +86,6 @@ func genLocale(g *GenContext) error {
 		} else if g.Overwrite {
 			begin, end := FindBeginEndOfLocaleField(data, strings.ToLower(g.ModelName))
 			data = data[:begin-2] + localeEnData.String() + data[end+1:]
-		} else {
-
 		}
 
 		err = os.WriteFile(enLocaleFileName, []byte(data), os.ModePerm)
