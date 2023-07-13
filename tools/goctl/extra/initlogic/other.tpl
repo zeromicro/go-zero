@@ -46,7 +46,7 @@
 		Path:        pointy.GetPointer("/{{.modelNameSnake}}"),
 		Description: pointy.GetPointer("apiDesc.get{{.modelName}}ById"),
 		ApiGroup:    pointy.GetPointer("{{.modelNameSnake}}"),
-		Method:      pointy.GetPointer("Post"),
+		Method:      pointy.GetPointer("POST"),
 	})
 
 	if err != nil {
