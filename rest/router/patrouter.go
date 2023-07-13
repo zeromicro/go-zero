@@ -23,6 +23,7 @@ var (
 	ErrInvalidPath = errors.New("path must begin with '/'")
 )
 
+// define patRouter struct
 type patRouter struct {
 	trees      map[string]*search.Tree
 	notFound   http.Handler
@@ -56,6 +57,7 @@ func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error 
 	return tree.Add(cleanPath, handler)
 }
 
+// Takes a http response writter and a http request to process the request and write if needed
 func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reqPath := path.Clean(r.URL.Path)
 	if tree, ok := pr.trees[r.Method]; ok {
@@ -82,14 +84,17 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// set notFound Handler to the input handler 
 func (pr *patRouter) SetNotFoundHandler(handler http.Handler) {
 	pr.notFound = handler
 }
 
+// set notAllowed Handler to the input handler 
 func (pr *patRouter) SetNotAllowedHandler(handler http.Handler) {
 	pr.notAllowed = handler
 }
 
+// handle not found depending on if notFound is defined in pr or not
 func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	if pr.notFound != nil {
 		pr.notFound.ServeHTTP(w, r)
@@ -98,6 +103,7 @@ func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// searches all trees in router for specified path and returns all treeMethods which contain path in their trees
 func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 	var allows []string
 
@@ -119,6 +125,7 @@ func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 	return "", false
 }
 
+// check if method is one from valid methods
 func validMethod(method string) bool {
 	return method == http.MethodDelete || method == http.MethodGet ||
 		method == http.MethodHead || method == http.MethodOptions ||
