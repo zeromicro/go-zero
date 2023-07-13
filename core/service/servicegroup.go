@@ -68,7 +68,7 @@ func (sg *ServiceGroup) doStart() {
 
 	for i := range sg.services {
 		service := sg.services[i]
-		routineGroup.RunSafe(func() {
+		routineGroup.Run(func() {
 			service.Start()
 		})
 	}
