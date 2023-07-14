@@ -35,7 +35,7 @@ func PrometheusHandler(path, method string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startTime := timex.Now()
-			cw := &response.WithCodeResponseWriter{Writer: w}
+			cw := response.NewWithCodeResponseWriter(w)
 			defer func() {
 				metricServerReqDur.Observe(timex.Since(startTime).Milliseconds(), path, method)
 				metricServerReqCodeTotal.Inc(path, strconv.Itoa(cw.Code), method)
