@@ -67,9 +67,10 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(ctx)
 	done := make(chan struct{})
 	tw := &timeoutWriter{
-		w:   w,
-		h:   make(http.Header),
-		req: r,
+		w:    w,
+		h:    make(http.Header),
+		req:  r,
+		code: http.StatusOK,
 	}
 	panicChan := make(chan any, 1)
 	go func() {
@@ -91,10 +92,12 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		for k, vv := range tw.h {
 			dst[k] = vv
 		}
-		if !tw.wroteHeader {
-			tw.code = http.StatusOK
+
+		// We don't need to write header 200, because it's written by default.
+		// If we write it again, it will cause a warning: `http: superfluous response.WriteHeader call`.
+		if tw.code != http.StatusOK {
+			w.WriteHeader(tw.code)
 		}
-		w.WriteHeader(tw.code)
 		w.Write(tw.wbuf.Bytes())
 	case <-ctx.Done():
 		tw.mu.Lock()

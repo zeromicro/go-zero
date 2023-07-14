@@ -16,14 +16,12 @@ func getServiceList() string {
 		envInfo.AppendRows([]table.Row{
 			{"core", "核心服务"},
 			{"fms", "文件服务"},
-			{"mcms", "消息中心服务"},
 		})
 	} else {
 		envInfo.AppendHeader(table.Row{"Service name", "Introduction"})
 		envInfo.AppendRows([]table.Row{
 			{"core", "Core Service"},
 			{"fms", "File Management Service"},
-			{"mcms", "Message Center Service"},
 		})
 	}
 	return envInfo.Render()

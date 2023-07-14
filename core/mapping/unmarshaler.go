@@ -618,7 +618,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 
 		target.SetFloat(fValue)
 	default:
-		return newTypeMismatchError(fullName)
+		return newTypeMismatchErrorWithHint(fullName, typeKind.String(), value.Type().String())
 	}
 
 	SetValue(fieldType, value, target)
@@ -1052,6 +1052,11 @@ func newInitError(name string) error {
 
 func newTypeMismatchError(name string) error {
 	return fmt.Errorf("type mismatch for field %q", name)
+}
+
+func newTypeMismatchErrorWithHint(name, expectType, actualType string) error {
+	return fmt.Errorf("type mismatch for field %q, expect %q, actual %q",
+		name, expectType, actualType)
 }
 
 func readKeys(key string) []string {

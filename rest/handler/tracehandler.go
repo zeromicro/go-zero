@@ -60,7 +60,7 @@ func TraceHandler(serviceName, path string, opts ...TraceOption) func(http.Handl
 			// convenient for tracking error messages
 			propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
 
-			trw := &response.WithCodeResponseWriter{Writer: w, Code: http.StatusOK}
+			trw := response.NewWithCodeResponseWriter(w)
 			next.ServeHTTP(trw, r.WithContext(spanCtx))
 
 			span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)

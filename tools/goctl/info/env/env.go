@@ -52,9 +52,6 @@ func ShowEnv(_ *cobra.Command, _ []string) error {
 		captchaEnvInfo()
 	case "fms":
 		fmsEnvInfo()
-	case "mcms":
-		mcmsEmailEnvInfo()
-		mcmsSmsEnvInfo()
 	}
 
 	return nil

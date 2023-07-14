@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -4978,6 +4979,34 @@ func TestUnmarshaler_Unmarshal(t *testing.T) {
 		unmarshaler := NewUnmarshaler(jsonTagKey)
 		err := unmarshaler.UnmarshalValuer(nil, &i)
 		assert.Error(t, err)
+	})
+}
+
+// TestUnmarshalerProcessFieldPrimitiveWithJSONNumber test the number type check.
+func TestUnmarshalerProcessFieldPrimitiveWithJSONNumber(t *testing.T) {
+	t.Run("wrong type", func(t *testing.T) {
+		expectValue := "1"
+		realValue := 1
+		fieldType := reflect.TypeOf(expectValue)
+		value := reflect.ValueOf(&realValue) // pass a pointer to the value
+		v := json.Number(expectValue)
+		m := NewUnmarshaler("field")
+		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v,
+			&fieldOptionsWithContext{}, "field")
+		assert.Error(t, err)
+		assert.Equal(t, `type mismatch for field "field", expect "string", actual "int"`, err.Error())
+	})
+
+	t.Run("right type", func(t *testing.T) {
+		expectValue := int64(1)
+		realValue := int64(1)
+		fieldType := reflect.TypeOf(expectValue)
+		value := reflect.ValueOf(&realValue) // pass a pointer to the value
+		v := json.Number(strconv.FormatInt(expectValue, 10))
+		m := NewUnmarshaler("field")
+		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v,
+			&fieldOptionsWithContext{}, "field")
+		assert.NoError(t, err)
 	})
 }
 

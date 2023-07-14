@@ -399,3 +399,11 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
 }
+
+// WithAcceptable returns a SqlOption that setting the acceptable function.
+// acceptable is the func to check if the error can be accepted.
+func WithAcceptable(acceptable func(err error) bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.accept = acceptable
+	}
+}
