@@ -56,6 +56,7 @@ func init() {
 	pgDatasourceCmdFlags.StringVar(&command.VarStringHome, "home")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
+	pgCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns, "ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
 
 	mongoCmdFlags.StringSliceVarP(&mongo.VarStringSliceType, "type", "t")
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c")
