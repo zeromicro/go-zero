@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/emicklei/proto v1.11.2
+	github.com/emicklei/proto v1.12.0
 	github.com/fatih/structtag v1.2.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gookit/color v1.5.3
