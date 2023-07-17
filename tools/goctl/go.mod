@@ -7,7 +7,7 @@ require (
 	github.com/emicklei/proto v1.11.2
 	github.com/fatih/structtag v1.2.0
 	github.com/gookit/color v1.5.3
-	github.com/iancoleman/strcase v0.2.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.7.0
