@@ -143,7 +143,13 @@ func genEntLogic(g *GenEntLogicContext) error {
 				return err
 			}
 
-			apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strcase.ToSnake(g.ModelName)))
+			err = pathx.MkdirIfNotExist(filepath.Join(workDir, "desc", strings.ToLower(g.ServiceName)))
+			if err != nil {
+				return err
+			}
+
+			apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s/%s.api", strings.ToLower(g.ServiceName),
+				strcase.ToSnake(g.ModelName)))
 
 			if pathx.FileExists(apiFilePath) && !g.Overwrite {
 				return nil
@@ -162,7 +168,9 @@ func genEntLogic(g *GenEntLogicContext) error {
 			allApiString := string(allApiData)
 
 			if !strings.Contains(allApiString, fmt.Sprintf("%s.api", strcase.ToSnake(g.ModelName))) {
-				allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("%s.api", strcase.ToSnake(g.ModelName)))
+				allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("./%s/%s.api",
+					strings.ToLower(g.ServiceName),
+					strcase.ToSnake(g.ModelName)))
 			}
 
 			err = os.WriteFile(allApiFile, []byte(allApiString), regularPerm)

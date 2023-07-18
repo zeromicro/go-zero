@@ -1,4 +1,4 @@
-import "base.api"
+import "../base.api"
 
 type (
     // The response data of {{.modelNameSpace}} information | {{.modelName}}信息
