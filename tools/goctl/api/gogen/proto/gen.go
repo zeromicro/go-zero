@@ -143,7 +143,13 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 		return err
 	}
 
-	apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName)))
+	err = pathx.MkdirIfNotExist(filepath.Join(workDir, "desc", strings.ToLower(p.RPCServiceName)))
+	if err != nil {
+		return err
+	}
+
+	apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s/%s.api", strings.ToLower(p.RPCServiceName),
+		strcase.ToSnake(p.ModelName)))
 
 	if pathx.FileExists(apiFilePath) && !p.Overwrite {
 		return nil
@@ -162,7 +168,9 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	allApiString := string(allApiData)
 
 	if !strings.Contains(allApiString, fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName))) {
-		allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName)))
+		allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("./%s/%s.api",
+			strings.ToLower(p.RPCServiceName),
+			strcase.ToSnake(p.ModelName)))
 	}
 
 	err = os.WriteFile(allApiFile, []byte(allApiString), regularPerm)

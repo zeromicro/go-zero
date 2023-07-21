@@ -290,6 +290,15 @@
         "service_type": "Service type: api, single, or rpc.",
         "i18n": "{{.global.i18n}}",
         "ent": "Whether to use Ent."
+      },
+      "proto2api": {
+        "short": "Generate additional data for API, such as type and service, through proto.",
+        "api_path": "API file path. If it is empty, the output will be displayed on the console.",
+        "proto_path": "Proto file path. Note that it is the proto file in the root directory, not in the desc folder.",
+        "model_name": "Model name used for filtering RPC.",
+        "group_name": "Group name. If it is empty, it will be the lowercase of the model name.",
+        "multiple": "Whether it is a proto for multiple services.",
+        "json_style": "The format of the JSON fields, defaulting to goZero."
       }
     },
     "template": {

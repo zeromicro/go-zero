@@ -1,15 +1,15 @@
 package makefile
 
 import (
+	"github.com/duke-git/lancet/v2/fileutil"
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/suyuan32/knife/core/io/filex"
 )
 
 // extractInfo extracts the information to context
 func extractInfo(g *GenContext) error {
-	makefileData, err := filex.ReadFileString(g.TargetPath)
+	makefileData, err := fileutil.ReadFileToString(g.TargetPath)
 	if err != nil {
 		return err
 	}

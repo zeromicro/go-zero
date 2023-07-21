@@ -5,10 +5,9 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/duke-git/lancet/v2/fileutil"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
-	"github.com/suyuan32/knife/core/io/filex"
-
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -99,7 +98,7 @@ func generateDockerfile(g *GenContext) error {
 		projPath = "."
 	}
 
-	if filex.Exist(dockerfileName) == nil {
+	if fileutil.IsExist(dockerfileName) {
 		err = os.Remove(dockerfileName)
 		if err != nil {
 			return err

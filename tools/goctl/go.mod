@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.3
+	github.com/duke-git/lancet/v2 v2.2.3
 	github.com/emicklei/proto v1.11.2
 	github.com/fatih/structtag v1.2.0
 	github.com/gookit/color v1.5.3
@@ -13,7 +14,6 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	github.com/suyuan32/knife v0.0.1-beta.1
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/go-zero v1.5.3

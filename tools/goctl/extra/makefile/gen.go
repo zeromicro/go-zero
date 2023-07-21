@@ -17,6 +17,7 @@ package makefile
 import (
 	"bytes"
 	_ "embed"
+	"github.com/duke-git/lancet/v2/fileutil"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -24,7 +25,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/suyuan32/knife/core/io/filex"
 
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
@@ -89,7 +89,7 @@ func Gen(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.EntFeature = "sql/execquery"
 
-	if err := filex.Exist(ctx.TargetPath); err == nil {
+	if fileutil.IsExist(ctx.TargetPath) {
 		err = extractInfo(&ctx)
 		if err != nil {
 			return errors.Wrap(err, "failed to extract makefile info")
@@ -124,12 +124,14 @@ func DoGen(g *GenContext) error {
 		"entFeature":       g.EntFeature,
 	})
 
-	err = filex.RemoveIfExist(g.TargetPath)
-	if err != nil {
-		return err
+	if fileutil.IsExist(g.TargetPath) {
+		err = fileutil.RemoveFile(g.TargetPath)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = filex.WriteFileString(g.TargetPath, makefileData.String(), filex.SuperReadWritePerm)
+	err = fileutil.WriteStringToFile(g.TargetPath, makefileData.String(), false)
 	if err != nil {
 		return err
 	}
