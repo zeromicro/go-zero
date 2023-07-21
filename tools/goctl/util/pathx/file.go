@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -308,4 +309,27 @@ func Hash(file string) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+// GetFilesPathFromDir returns file path slice from a directory.
+// If onlyName is true, it will only return name slice.
+func GetFilesPathFromDir(path string, onlyName bool) (result []string, err error) {
+	if len(path) == 0 {
+		return nil, errors.New("the path can not be empty")
+	}
+	if _, err := os.Stat(path); err != nil {
+		return nil, err
+	}
+	_ = filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return err
+		}
+		if onlyName {
+			result = append(result, filepath.Base(path))
+		} else {
+			result = append(result, path)
+		}
+		return err
+	})
+	return result, nil
 }

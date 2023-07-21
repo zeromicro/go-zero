@@ -17,6 +17,7 @@ package template
 import (
 	"errors"
 	"fmt"
+	"github.com/duke-git/lancet/v2/fileutil"
 	"path/filepath"
 
 	"github.com/gookit/color"
@@ -27,8 +28,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-
-	"github.com/suyuan32/knife/core/io/filex"
 )
 
 var (
@@ -71,7 +70,7 @@ func GenTemplate(_ *cobra.Command, _ []string) error {
 	tmplDir := filepath.Join(entDir, "template")
 
 	if VarBoolUpdate {
-		files, err := filex.GetFilesPathFromDir(tmplDir, false)
+		files, err := pathx.GetFilesPathFromDir(tmplDir, false)
 		if err != nil {
 			return err
 		}
@@ -83,12 +82,14 @@ func GenTemplate(_ *cobra.Command, _ []string) error {
 				return errors.New("failed to find the template")
 			}
 
-			err := filex.RemoveIfExist(v)
-			if err != nil {
-				return errors.Join(err, errors.New("failed to remove the original template"))
+			if fileutil.IsExist(v) {
+				err := fileutil.RemoveFile(v)
+				if err != nil {
+					return errors.Join(err, errors.New("failed to remove the original template"))
+				}
 			}
 
-			err = filex.WriteFileString(v, tpl, filex.SuperReadWritePerm)
+			err = fileutil.WriteStringToFile(v, tpl, false)
 			if err != nil {
 				return err
 			}
@@ -109,7 +110,7 @@ func GenTemplate(_ *cobra.Command, _ []string) error {
 			return errors.New("the template already exists")
 		}
 
-		err := filex.WriteFileString(filePath, tpl, filex.SuperReadWritePerm)
+		err := fileutil.WriteStringToFile(filePath, tpl, false)
 		if err != nil {
 			return err
 		}

@@ -290,6 +290,15 @@
         "service_type": "服务类型，api, single 或者 rpc",
         "i18n": "{{.global.i18n}}",
         "ent": "是否使用 Ent"
+      },
+      "proto2api": {
+        "short": "通过 proto 生成 api 额外数据，如 type 和 service",
+        "api_path": "api 文件路径，若为空则会输出到控制台",
+        "proto_path": "proto 文件路径，注意为根目录下的 proto 不是 desc 文件夹中的 proto 文件",
+        "model_name": "模型名称，用于过滤 rpc ",
+        "group_name": "分组名称，若为空则为模型名称的小写",
+        "multiple": "是否为多 service 的 proto",
+        "json_style": "JSON 字段的格式，默认为 goZero"
       }
     },
     "template": {
