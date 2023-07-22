@@ -308,7 +308,6 @@ func (db *commonSqlConn) acceptable(err error) bool {
 
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...any) (err error) {
-	var qerr error
 	err = db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
 		if err != nil {
@@ -317,12 +316,9 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 		}
 
 		return query(ctx, conn, func(rows *sql.Rows) error {
-			qerr = scanner(rows)
-			return qerr
+			return scanner(rows)
 		}, q, args...)
-	}, func(err error) bool {
-		return qerr == err || db.acceptable(err)
-	})
+	}, db.acceptable)
 	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("queryRows", "breaker")
 	}
