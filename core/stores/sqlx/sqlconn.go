@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -291,7 +292,8 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled
+	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled ||
+		errors.Is(err, errFormat) || errors.Is(err, errScanner)
 	if db.accept == nil {
 		return ok
 	}

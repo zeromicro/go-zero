@@ -2,9 +2,11 @@ package sqlx
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 
@@ -19,6 +21,10 @@ var (
 	ErrNotSettable = errors.New("passed in variable is not settable")
 	// ErrUnsupportedValueType is an error that indicates unsupported unmarshal type.
 	ErrUnsupportedValueType = errors.New("unsupported unmarshal type")
+	// ErrQueryRowMethod is incorrect query row method
+	ErrQueryRowMethod = errors.New("wrong query row method, please confirm to use QueryRow/QueryRows")
+
+	errScanner = fmt.Errorf("scanner errror")
 )
 
 type rowsScanner interface {
@@ -140,14 +146,14 @@ func parseTagName(field reflect.StructField) string {
 func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 	if !scanner.Next() {
 		if err := scanner.Err(); err != nil {
-			return err
+			return errorx.Wrap(errScanner, err.Error())
 		}
 		return ErrNotFound
 	}
 
 	rv := reflect.ValueOf(v)
 	if err := mapping.ValidatePtr(&rv); err != nil {
-		return err
+		return errorx.Wrap(errScanner, err.Error())
 	}
 
 	rte := reflect.TypeOf(v).Elem()
@@ -158,99 +164,108 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64,
 		reflect.String:
-		if !rve.CanSet() {
-			return ErrNotSettable
+		if rve.CanSet() {
+			return scanner.Scan(v)
 		}
-
-		return scanner.Scan(v)
+		return errorx.Wrap(errScanner, ErrNotSettable.Error())
 	case reflect.Struct:
 		columns, err := scanner.Columns()
 		if err != nil {
-			return err
+			return errorx.Wrap(errScanner, err.Error())
 		}
 
 		values, err := mapStructFieldsIntoSlice(rve, columns, strict)
 		if err != nil {
-			return err
+			return errorx.Wrap(errScanner, err.Error())
 		}
 
-		return scanner.Scan(values...)
+		if err = scanner.Scan(values...); err != nil {
+			return errorx.Wrap(errScanner, err.Error())
+		}
+		return nil
+	case reflect.Slice:
+		return errorx.Wrap(errScanner, ErrQueryRowMethod.Error())
 	default:
-		return ErrUnsupportedValueType
+		return errorx.Wrap(errScanner, ErrUnsupportedValueType.Error())
 	}
 }
 
 func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 	rv := reflect.ValueOf(v)
 	if err := mapping.ValidatePtr(&rv); err != nil {
-		return err
+		return errorx.Wrap(errScanner, err.Error())
 	}
 
 	rt := reflect.TypeOf(v)
 	rte := rt.Elem()
 	rve := rv.Elem()
-	if !rve.CanSet() {
-		return ErrNotSettable
-	}
-
 	switch rte.Kind() {
 	case reflect.Slice:
-		ptr := rte.Elem().Kind() == reflect.Ptr
-		appendFn := func(item reflect.Value) {
-			if ptr {
-				rve.Set(reflect.Append(rve, item))
-			} else {
-				rve.Set(reflect.Append(rve, reflect.Indirect(item)))
+		if rve.CanSet() {
+			ptr := rte.Elem().Kind() == reflect.Ptr
+			appendFn := func(item reflect.Value) {
+				if ptr {
+					rve.Set(reflect.Append(rve, item))
+				} else {
+					rve.Set(reflect.Append(rve, reflect.Indirect(item)))
+				}
 			}
-		}
-		fillFn := func(value any) error {
-			if err := scanner.Scan(value); err != nil {
-				return err
+			fillFn := func(value any) error {
+				if rve.CanSet() {
+					if err := scanner.Scan(value); err != nil {
+						return err
+					}
+
+					appendFn(reflect.ValueOf(value))
+					return nil
+				}
+				return ErrNotSettable
 			}
 
-			appendFn(reflect.ValueOf(value))
+			base := mapping.Deref(rte.Elem())
+			switch base.Kind() {
+			case reflect.Bool,
+				reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+				reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+				reflect.Float32, reflect.Float64,
+				reflect.String:
+				for scanner.Next() {
+					value := reflect.New(base)
+					if err := fillFn(value.Interface()); err != nil {
+						return errorx.Wrap(errScanner, err.Error())
+					}
+				}
+			case reflect.Struct:
+				columns, err := scanner.Columns()
+				if err != nil {
+					return errorx.Wrap(errScanner, err.Error())
+				}
+
+				for scanner.Next() {
+					value := reflect.New(base)
+					values, err := mapStructFieldsIntoSlice(value, columns, strict)
+					if err != nil {
+						return errorx.Wrap(errScanner, err.Error())
+					}
+
+					if err := scanner.Scan(values...); err != nil {
+						return errorx.Wrap(errScanner, err.Error())
+					}
+
+					appendFn(value)
+				}
+			default:
+				return errorx.Wrap(errScanner, ErrUnsupportedValueType.Error())
+			}
+
 			return nil
 		}
 
-		base := mapping.Deref(rte.Elem())
-		switch base.Kind() {
-		case reflect.Bool,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-			reflect.Float32, reflect.Float64,
-			reflect.String:
-			for scanner.Next() {
-				value := reflect.New(base)
-				if err := fillFn(value.Interface()); err != nil {
-					return err
-				}
-			}
-		case reflect.Struct:
-			columns, err := scanner.Columns()
-			if err != nil {
-				return err
-			}
-
-			for scanner.Next() {
-				value := reflect.New(base)
-				values, err := mapStructFieldsIntoSlice(value, columns, strict)
-				if err != nil {
-					return err
-				}
-
-				if err := scanner.Scan(values...); err != nil {
-					return err
-				}
-
-				appendFn(value)
-			}
-		default:
-			return ErrUnsupportedValueType
-		}
-
-		return nil
+		return errorx.Wrap(errScanner, ErrNotSettable.Error())
+	case reflect.Struct:
+		return errorx.Wrap(errScanner, ErrQueryRowMethod.Error())
 	default:
-		return ErrUnsupportedValueType
+		return errorx.Wrap(errScanner, ErrUnsupportedValueType.Error())
 	}
 }
 

@@ -3,16 +3,19 @@ package sqlx
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 
-var errUnbalancedEscape = errors.New("no char after escape char")
+var (
+	errFormat           = errors.New("format error")
+	errUnbalancedEscape = errorx.Wrap(errFormat, "no char after escape char")
+)
 
 func desensitize(datasource string) string {
 	// remove account
@@ -66,7 +69,7 @@ func format(query string, args ...any) (string, error) {
 		switch ch {
 		case '?':
 			if argIndex >= numArgs {
-				return "", fmt.Errorf("%d ? in sql, but less arguments provided", argIndex)
+				return "", errorx.Wrapf(errFormat, "%d ? in sql, but less arguments provided", argIndex)
 			}
 
 			writeValue(&b, args[argIndex])
@@ -83,7 +86,7 @@ func format(query string, args ...any) (string, error) {
 			if j > i+1 {
 				index, err := strconv.Atoi(query[i+1 : j])
 				if err != nil {
-					return "", err
+					return "", errorx.Wrap(err, err.Error())
 				}
 
 				// index starts from 1 for pg or oracle
@@ -93,7 +96,7 @@ func format(query string, args ...any) (string, error) {
 
 				index--
 				if index < 0 || numArgs <= index {
-					return "", fmt.Errorf("wrong index %d in sql", index)
+					return "", errorx.Wrapf(errFormat, "wrong index %d in sql", index)
 				}
 
 				writeValue(&b, args[index])
@@ -124,7 +127,7 @@ func format(query string, args ...any) (string, error) {
 	}
 
 	if argIndex < numArgs {
-		return "", fmt.Errorf("%d arguments provided, not matching sql", argIndex)
+		return "", errorx.Wrapf(errFormat, "%d arguments provided, not matching sql", argIndex)
 	}
 
 	return b.String(), nil

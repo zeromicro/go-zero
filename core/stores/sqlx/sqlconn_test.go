@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"io"
@@ -8,7 +9,9 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/trace/tracetest"
 	"github.com/zeromicro/go-zero/internal/dbtest"
@@ -234,6 +237,24 @@ func TestStatement(t *testing.T) {
 		assert.NoError(t, stmt.QueryRowsPartial(&vals))
 		assert.ElementsMatch(t, []string{"foo", "bar"}, vals)
 	})
+}
+
+func TestCommonSqlConn_acceptable(t *testing.T) {
+	mockErr := errors.New("mock error")
+	db := &commonSqlConn{
+		accept: func(err error) bool {
+			return mockErr == err
+		},
+	}
+
+	assert.True(t, db.acceptable(mockErr))
+	assert.False(t, db.acceptable(errors.New("any")))
+	assert.True(t, db.acceptable(nil))
+	assert.True(t, db.acceptable(sql.ErrNoRows))
+	assert.True(t, db.acceptable(sql.ErrTxDone))
+	assert.True(t, db.acceptable(context.Canceled))
+	assert.True(t, db.acceptable(errorx.Wrap(errFormat, "test")))
+	assert.True(t, db.acceptable(errorx.Wrap(errScanner, "test")))
 }
 
 func buildConn() (mock sqlmock.Sqlmock, err error) {

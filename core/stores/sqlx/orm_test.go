@@ -8,6 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/internal/dbtest"
 )
 
@@ -244,13 +245,14 @@ func TestUnmarshalRowStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, &mockedScanner{
 				colErr: errAny,
 				next:   1,
 			}, true)
-		}, "select name, age from users where user=?", "anyone"), errAny)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), errAny.Error())
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
@@ -261,10 +263,11 @@ func TestUnmarshalRowStruct(t *testing.T) {
 
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
-		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrNotMatchDestination.Error())
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
@@ -273,9 +276,11 @@ func TestUnmarshalRowStruct(t *testing.T) {
 
 		type myString chan int
 		var value myString
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
-		}, "select value from users where user=?", "anyone"), ErrUnsupportedValueType)
+		}, "select value from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrUnsupportedValueType.Error())
 	})
 }
 
@@ -305,9 +310,11 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
-		}, "select name, age from users where user=?", "anyone"), ErrNotReadableValue)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrNotReadableValue.Error())
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
@@ -388,9 +395,11 @@ func TestUnmarshalRowsBool(t *testing.T) {
 		var value struct {
 			value []bool `db:"value"`
 		}
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
-		}, "select value from users where user=?", "anyone"), ErrUnsupportedValueType)
+		}, "select value from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrQueryRowMethod.Error())
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
@@ -399,12 +408,14 @@ func TestUnmarshalRowsBool(t *testing.T) {
 
 		var value []bool
 		errAny := errors.New("any")
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				scanErr: errAny,
 				next:    1,
 			}, true)
-		}, "select value from users where user=?", "anyone"), errAny)
+		}, "select value from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), errAny.Error())
 	})
 }
 
@@ -855,12 +866,14 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				colErr: errAny,
 				next:   1,
 			}, true)
-		}, "select name, age from users where user=?", "anyone"), errAny)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), errAny.Error())
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
@@ -872,13 +885,15 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				cols:    []string{"name", "age"},
 				scanErr: errAny,
 				next:    1,
 			}, true)
-		}, "select name, age from users where user=?", "anyone"), errAny)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), errAny.Error())
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
@@ -887,13 +902,48 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				cols:    []string{"name", "age"},
 				scanErr: errAny,
 				next:    1,
 			}, true)
-		}, "select name, age from users where user=?", "anyone"), ErrUnsupportedValueType)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrUnsupportedValueType.Error())
+	})
+}
+
+func TestUnmarshalRowSlice(t *testing.T) {
+	var value []struct{}
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"name"}).FromCSVString("liao")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(&value, rows, true)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrQueryRowMethod.Error())
+	})
+}
+
+func TestUnmarshalRowsStructNonSlice(t *testing.T) {
+	var value struct {
+		Age  int64  `db:"age"`
+		Name string `db:"name"`
+	}
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		err := query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, rows, true)
+		}, "select name, age from users where user=?", "anyone")
+		assert.ErrorIs(t, err, errScanner)
+		assert.Contains(t, err.Error(), ErrQueryRowMethod.Error())
 	})
 }
 
@@ -1172,6 +1222,7 @@ func TestCommonSqlConn_QueryRowOptional(t *testing.T) {
 }
 
 func TestUnmarshalRowError(t *testing.T) {
+
 	tests := []struct {
 		name     string
 		colErr   error
@@ -1196,9 +1247,27 @@ func TestUnmarshalRowError(t *testing.T) {
 		{
 			name:    "with error",
 			scanErr: errors.New("foo"),
-			next:    1,
+			next:    0,
 			validate: func(err error) {
 				assert.Equal(t, ErrNotFound, err)
+			},
+		},
+		{
+			name:   "with col error",
+			colErr: errors.New("foo"),
+			next:   1,
+			validate: func(err error) {
+				assert.ErrorIs(t, err, errScanner)
+				assert.Contains(t, err.Error(), "foo")
+			},
+		},
+		{
+			name:    "with scan error",
+			scanErr: errors.New("foo"),
+			next:    1,
+			validate: func(err error) {
+				assert.ErrorIs(t, err, errScanner)
+				assert.Contains(t, err.Error(), "foo")
 			},
 		},
 	}
@@ -1219,8 +1288,64 @@ func TestUnmarshalRowError(t *testing.T) {
 						colErr:  test.colErr,
 						scanErr: test.scanErr,
 						err:     test.err,
+						next:    test.next,
 					}
 					return unmarshalRow(&r, &scanner, false)
+				}, "select age from users where user=?", "anyone"))
+			})
+		})
+	}
+}
+
+func TestUnmarshalRowsError(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		colErr   error
+		scanErr  error
+		err      error
+		next     int
+		validate func(err error)
+	}{
+		{
+			name:   "with col error",
+			colErr: errors.New("foo"),
+			next:   1,
+			validate: func(err error) {
+				assert.ErrorIs(t, err, errScanner)
+				assert.Contains(t, err.Error(), "foo")
+			},
+		},
+		{
+			name:    "with scan error",
+			scanErr: errors.New("foo"),
+			next:    1,
+			validate: func(err error) {
+				assert.ErrorIs(t, err, errScanner)
+				assert.Contains(t, err.Error(), "foo")
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+				rs := sqlmock.NewRows([]string{"age"}).FromCSVString("5")
+				mock.ExpectQuery("select (.+) from users where user=?").WithArgs(
+					"anyone").WillReturnRows(rs)
+
+				var r []struct {
+					User string `db:"user"`
+					Age  int    `db:"age"`
+				}
+				test.validate(query(context.Background(), db, func(rows *sql.Rows) error {
+					scanner := mockedScanner{
+						colErr:  test.colErr,
+						scanErr: test.scanErr,
+						err:     test.err,
+						next:    test.next,
+					}
+					return unmarshalRows(&r, &scanner, false)
 				}, "select age from users where user=?", "anyone"))
 			})
 		})
