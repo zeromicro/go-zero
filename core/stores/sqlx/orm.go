@@ -218,15 +218,12 @@ func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 			}
 		}
 		fillFn := func(value any) error {
-			if rve.CanSet() {
-				if err := scanner.Scan(value); err != nil {
-					return err
-				}
-
-				appendFn(reflect.ValueOf(value))
-				return nil
+			if err := scanner.Scan(value); err != nil {
+				return err
 			}
-			return ErrNotSettable
+
+			appendFn(reflect.ValueOf(value))
+			return nil
 		}
 
 		base := mapping.Deref(rte.Elem())
