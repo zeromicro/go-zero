@@ -164,10 +164,13 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64,
 		reflect.String:
-		if rve.CanSet() {
-			return scanner.Scan(v)
+		if !rve.CanSet() {
+			return errorx.Wrap(errScanner, ErrNotSettable.Error())
 		}
-		return errorx.Wrap(errScanner, ErrNotSettable.Error())
+		if err := scanner.Scan(v); err != nil {
+			return errorx.Wrap(errScanner, err.Error())
+		}
+		return nil
 	case reflect.Struct:
 		columns, err := scanner.Columns()
 		if err != nil {
@@ -199,69 +202,70 @@ func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 	rt := reflect.TypeOf(v)
 	rte := rt.Elem()
 	rve := rv.Elem()
+
+	if !rve.CanSet() {
+		return errorx.Wrap(errScanner, ErrNotSettable.Error())
+	}
+
 	switch rte.Kind() {
 	case reflect.Slice:
-		if rve.CanSet() {
-			ptr := rte.Elem().Kind() == reflect.Ptr
-			appendFn := func(item reflect.Value) {
-				if ptr {
-					rve.Set(reflect.Append(rve, item))
-				} else {
-					rve.Set(reflect.Append(rve, reflect.Indirect(item)))
+		ptr := rte.Elem().Kind() == reflect.Ptr
+		appendFn := func(item reflect.Value) {
+			if ptr {
+				rve.Set(reflect.Append(rve, item))
+			} else {
+				rve.Set(reflect.Append(rve, reflect.Indirect(item)))
+			}
+		}
+		fillFn := func(value any) error {
+			if rve.CanSet() {
+				if err := scanner.Scan(value); err != nil {
+					return err
+				}
+
+				appendFn(reflect.ValueOf(value))
+				return nil
+			}
+			return ErrNotSettable
+		}
+
+		base := mapping.Deref(rte.Elem())
+		switch base.Kind() {
+		case reflect.Bool,
+			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+			reflect.Float32, reflect.Float64,
+			reflect.String:
+			for scanner.Next() {
+				value := reflect.New(base)
+				if err := fillFn(value.Interface()); err != nil {
+					return errorx.Wrap(errScanner, err.Error())
 				}
 			}
-			fillFn := func(value any) error {
-				if rve.CanSet() {
-					if err := scanner.Scan(value); err != nil {
-						return err
-					}
-
-					appendFn(reflect.ValueOf(value))
-					return nil
-				}
-				return ErrNotSettable
+		case reflect.Struct:
+			columns, err := scanner.Columns()
+			if err != nil {
+				return errorx.Wrap(errScanner, err.Error())
 			}
 
-			base := mapping.Deref(rte.Elem())
-			switch base.Kind() {
-			case reflect.Bool,
-				reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-				reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-				reflect.Float32, reflect.Float64,
-				reflect.String:
-				for scanner.Next() {
-					value := reflect.New(base)
-					if err := fillFn(value.Interface()); err != nil {
-						return errorx.Wrap(errScanner, err.Error())
-					}
-				}
-			case reflect.Struct:
-				columns, err := scanner.Columns()
+			for scanner.Next() {
+				value := reflect.New(base)
+				values, err := mapStructFieldsIntoSlice(value, columns, strict)
 				if err != nil {
 					return errorx.Wrap(errScanner, err.Error())
 				}
 
-				for scanner.Next() {
-					value := reflect.New(base)
-					values, err := mapStructFieldsIntoSlice(value, columns, strict)
-					if err != nil {
-						return errorx.Wrap(errScanner, err.Error())
-					}
-
-					if err := scanner.Scan(values...); err != nil {
-						return errorx.Wrap(errScanner, err.Error())
-					}
-
-					appendFn(value)
+				if err := scanner.Scan(values...); err != nil {
+					return errorx.Wrap(errScanner, err.Error())
 				}
-			default:
-				return errorx.Wrap(errScanner, ErrUnsupportedValueType.Error())
-			}
 
-			return nil
+				appendFn(value)
+			}
+		default:
+			return errorx.Wrap(errScanner, ErrUnsupportedValueType.Error())
 		}
 
-		return errorx.Wrap(errScanner, ErrNotSettable.Error())
+		return nil
 	case reflect.Struct:
 		return errorx.Wrap(errScanner, ErrQueryRowMethod.Error())
 	default:
