@@ -137,7 +137,7 @@ func parseTagName(field reflect.StructField) string {
 	return strings.TrimSpace(options[0])
 }
 
-func unmarshalRow(v any, scanner rowsScanner, strict bool) (err error) {
+func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 	if !scanner.Next() {
 		if err := scanner.Err(); err != nil {
 			return err
@@ -180,7 +180,7 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) (err error) {
 	}
 }
 
-func unmarshalRows(v any, scanner rowsScanner, strict bool) (err error) {
+func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 	rv := reflect.ValueOf(v)
 	if err := mapping.ValidatePtr(&rv); err != nil {
 		return err
