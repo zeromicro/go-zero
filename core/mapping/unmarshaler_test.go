@@ -5081,6 +5081,17 @@ func TestGetValueWithChainedKeys(t *testing.T) {
 	})
 }
 
+func TestUnmarshalFromStringSliceForTypeMismatch(t *testing.T) {
+	var v struct {
+		Values map[string][]string `key:"values"`
+	}
+	assert.Error(t, UnmarshalKey(map[string]any{
+		"values": map[string]any{
+			"foo": "bar",
+		},
+	}, &v))
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
