@@ -1,0 +1,31 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+!**/Dockerfile
+!**/Makefile
+
+# Unignore all dirs
+!*/
+!api
+
+# ignore
+**/.idea
+**/.vscode
+**/.DS_Store
+**/logs
+**/adhoc
+**/coverage.txt
+
+# for test purpose
+go.work
+go.work.sum
+
+# gitlab ci
+.cache
+.golangci.yml
+
+# vim auto backup file
+*~
+!OWNERS

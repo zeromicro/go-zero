@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package stream;
+
+
+message placeholder {}
+
+service greet {
+  rpc hello (placeholder) returns (placeholder);
+}

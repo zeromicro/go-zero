@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package test;
+option go_package = "go";
+
+import "base.proto";
+
+message Req{}
+
+
+service TestService {
+  rpc TestRpcTwo (Req) returns (base.Reply);
+}

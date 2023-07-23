@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "etcd"
+  namespace: discov
+  labels:
+    app: "etcd"
+spec:
+  serviceName: "etcd"
+  replicas: 5
+  template:
+    metadata:
+      name: "etcd"
+      labels:
+        app: "etcd"
+    spec:
+      volumes:
+      - name: etcd-pvc
+        persistentVolumeClaim:
+          claimName: etcd-pvc
+      containers:
+      - name: "etcd"
+        image: quay.io/coreos/etcd:latest
+        ports:
+        - containerPort: 2379
+          name: client
+        - containerPort: 2380
+          name: peer
+        env:
+        - name: CLUSTER_SIZE
+          value: "5"
+        - name: SET_NAME
+          value: "etcd"
+        - name: VOLNAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: etcd-pvc
+          mountPath: /var/lib/etcd
+          subPathExpr: $(VOLNAME)  # data mounted respectively in each pod
+        command:
+          - "/bin/sh"
+          - "-ecx"
+          - |
+
+            chmod 700 /var/lib/etcd
+
+            IP=$(hostname -i)
+            PEERS=""
+            for i in $(seq 0 $((${CLUSTER_SIZE} - 1))); do
+                PEERS="${PEERS}${PEERS:+,}${SET_NAME}-${i}=http://${SET_NAME}-${i}.${SET_NAME}:2380"
+            done
+            exec etcd --name ${HOSTNAME} \
+              --listen-peer-urls http://0.0.0.0:2380 \
+              --listen-client-urls http://0.0.0.0:2379 \
+              --advertise-client-urls http://${HOSTNAME}.${SET_NAME}.discov:2379 \
+              --initial-advertise-peer-urls http://${HOSTNAME}.${SET_NAME}:2380 \
+              --initial-cluster ${PEERS} \
+              --initial-cluster-state new \
+              --logger zap \
+              --data-dir /var/lib/etcd \
+              --auto-compaction-retention 1

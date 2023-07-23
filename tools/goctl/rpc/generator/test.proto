@@ -1,0 +1,65 @@
+// test proto
+syntax = "proto3";
+
+package test;
+
+import "base/common.proto";
+option go_package = "github.com/test";
+
+message Req {
+  string in = 1;
+  common.User user = 2;
+}
+
+message Reply {
+  string out = 1;
+}
+
+message snake_req {}
+
+message snake_reply {}
+
+message CamelReq{}
+
+message CamelReply{}
+
+message EnumMessage {
+  enum Enum {
+    unknown = 0;
+    male = 1;
+    female = 2;
+  }
+}
+
+message CommonReply{}
+
+message MapReq{
+  map<string, string> m = 1;
+}
+
+message RepeatedReq{
+  repeated string id = 1;
+}
+
+service Test_Service {
+  // service
+  rpc Service (Req) returns (Reply);
+  // greet service
+  rpc GreetService (Req) returns (Reply);
+  // case snake
+  rpc snake_service (snake_req) returns (snake_reply);
+  // case camel
+  rpc CamelService (CamelReq) returns (CamelReply);
+  // case enum
+  rpc EnumService (EnumMessage) returns (CommonReply);
+  // case map
+  rpc MapService (MapReq) returns (CommonReply);
+  // case repeated
+  rpc RepeatedService (RepeatedReq) returns (CommonReply);
+  // server stream
+  rpc ServerStream (Req) returns (stream Reply);
+  // client stream
+  rpc ClientStream (stream Req) returns (Reply);
+  // stream
+  rpc Stream(stream Req) returns (stream Reply);
+}

@@ -1,0 +1,16 @@
+type Request struct {
+    Name string `path:"name,options=you|me"`
+}
+
+type Response struct {
+    Message string `json:"message"`
+}
+
+@server(
+    jwt: Auth
+    signature: true
+)
+service A-api {
+    @handler GreetHandler
+    get /greet/from/:name(Request) returns (Response)
+}

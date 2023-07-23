@@ -1,0 +1,111 @@
+// syntax doc
+syntax = "v1" // syntax comment
+
+// import doc
+import "foo.api" // import comment
+
+import(
+    // import group doc
+    "bar.api" // import group comment
+)
+
+// info doc
+info(// info comment
+    // author doc
+    author: "songmeizi" // author comment
+    // date doc
+    date: 2020-01-04 // date comment
+    // desc doc
+    desc: "break line
+    desc" // desc comment
+)
+
+
+type (
+    FooBar struct{
+        Foo int
+    }
+    // remove struct
+    Bar {
+        // vString
+        VString string `json:"vString"`
+        // vBool
+        VBool bool `json:"vBool"`
+        // vInt8
+        VInt8 int8 `json:"vInt8"`
+        // vInt16
+        VInt16 int16 `json:"vInt16"`
+        // vInt32
+        VInt32 int32 `json:"vInt32"`
+        // vInt64
+        VInt64 int64 `json:"vInt64"`
+        // vInt
+        VInt int `json:"vInt"`
+        // vUInt8
+        VUInt8 uint8 `json:"vUInt8"`
+        // vUInt16
+        VUInt16 uint16 `json:"vUInt16"`
+        // vUInt32
+        VUInt32 uint32 `json:"vUInt32"`
+        // vUInt64
+        VUInt64 uint64 `json:"vUInt64"`
+        // vFloat32
+        VFloat32 float32 `json:"vFloat32"`
+        // vFloat64
+        VFloat64 float64 `json:"vFloat64"`
+        // vByte
+        VByte byte `json:"vByte"`
+        // vRune
+        VRune rune `json:"vRune"`
+        // vMap
+        VMap map[string]int `json:"vMap"`
+        // vArray
+        VArray []int `json:"vArray"`
+        // vStruct
+        VStruct FooBar `json:"vStruct"`
+        // vStructPointer
+        VStructPointer *FooBar `json:"vStructPointer"`
+        // vInterface
+        VInterface interface{} `json:"vInterface"`
+        // inline
+        FooBar
+    }
+)
+
+@server(
+    host: 0.0.0.0
+    port: 8080
+    annotation: "break line
+    desc"
+)
+service foo-api{
+    @doc("foo")
+    @handler postFoo
+    // foo
+    post /foo (FooBar) returns (FooBar)
+
+    @doc(
+        summary: bar
+    )
+    @server(
+        handler: postBar
+    )
+    post /bar (FooBar)
+
+    @doc("foobar")
+    @handler postFooBar
+    /**
+    * httpmethod: post
+    * path: /foo/bar
+    * reply: FooBar
+    */
+    post /foo/bar returns (FooBar)
+
+    @doc("barfoo")
+    @handler postBarFoo
+    post /bar/foo // post:/bar/foo
+
+    @doc("barfoo")
+    @handler getBarFoo
+    get /bar/foo returns (FooBar)
+}

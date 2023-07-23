@@ -1,0 +1,10 @@
+syntax = "v1"
+
+type resp {
+    msg string `json:"msg"`
+}
+
+service greet {
+    @handler ping
+    get /ping returns (resp)
+}

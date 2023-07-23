@@ -1,0 +1,373 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd
+  namespace: discov
+spec:
+  ports:
+    - name: etcd-port
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+  selector:
+    app: etcd
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: etcd
+    etcd_node: etcd0
+  name: etcd0
+  namespace: discov
+spec:
+  containers:
+    - command:
+        - /usr/local/bin/etcd
+        - --name
+        - etcd0
+        - --initial-advertise-peer-urls
+        - http://etcd0:2380
+        - --listen-peer-urls
+        - http://0.0.0.0:2380
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://etcd0.discov:2379
+        - --initial-cluster
+        - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
+        - --initial-cluster-state
+        - new
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
+      name: etcd0
+      ports:
+        - containerPort: 2379
+          name: client
+          protocol: TCP
+        - containerPort: 2380
+          name: server
+          protocol: TCP
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - etcd
+          topologyKey: "kubernetes.io/hostname"
+  restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    etcd_node: etcd0
+  name: etcd0
+  namespace: discov
+spec:
+  ports:
+    - name: client
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+    - name: server
+      port: 2380
+      protocol: TCP
+      targetPort: 2380
+  selector:
+    etcd_node: etcd0
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: etcd
+    etcd_node: etcd1
+  name: etcd1
+  namespace: discov
+spec:
+  containers:
+    - command:
+        - /usr/local/bin/etcd
+        - --name
+        - etcd1
+        - --initial-advertise-peer-urls
+        - http://etcd1:2380
+        - --listen-peer-urls
+        - http://0.0.0.0:2380
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://etcd1.discov:2379
+        - --initial-cluster
+        - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
+        - --initial-cluster-state
+        - new
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
+      name: etcd1
+      ports:
+        - containerPort: 2379
+          name: client
+          protocol: TCP
+        - containerPort: 2380
+          name: server
+          protocol: TCP
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - etcd
+          topologyKey: "kubernetes.io/hostname"
+  restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    etcd_node: etcd1
+  name: etcd1
+  namespace: discov
+spec:
+  ports:
+    - name: client
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+    - name: server
+      port: 2380
+      protocol: TCP
+      targetPort: 2380
+  selector:
+    etcd_node: etcd1
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: etcd
+    etcd_node: etcd2
+  name: etcd2
+  namespace: discov
+spec:
+  containers:
+    - command:
+        - /usr/local/bin/etcd
+        - --name
+        - etcd2
+        - --initial-advertise-peer-urls
+        - http://etcd2:2380
+        - --listen-peer-urls
+        - http://0.0.0.0:2380
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://etcd2.discov:2379
+        - --initial-cluster
+        - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
+        - --initial-cluster-state
+        - new
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
+      name: etcd2
+      ports:
+        - containerPort: 2379
+          name: client
+          protocol: TCP
+        - containerPort: 2380
+          name: server
+          protocol: TCP
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - etcd
+          topologyKey: "kubernetes.io/hostname"
+  restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    etcd_node: etcd2
+  name: etcd2
+  namespace: discov
+spec:
+  ports:
+    - name: client
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+    - name: server
+      port: 2380
+      protocol: TCP
+      targetPort: 2380
+  selector:
+    etcd_node: etcd2
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: etcd
+    etcd_node: etcd3
+  name: etcd3
+  namespace: discov
+spec:
+  containers:
+    - command:
+        - /usr/local/bin/etcd
+        - --name
+        - etcd3
+        - --initial-advertise-peer-urls
+        - http://etcd3:2380
+        - --listen-peer-urls
+        - http://0.0.0.0:2380
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://etcd3.discov:2379
+        - --initial-cluster
+        - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
+        - --initial-cluster-state
+        - new
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
+      name: etcd3
+      ports:
+        - containerPort: 2379
+          name: client
+          protocol: TCP
+        - containerPort: 2380
+          name: server
+          protocol: TCP
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - etcd
+          topologyKey: "kubernetes.io/hostname"
+  restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    etcd_node: etcd3
+  name: etcd3
+  namespace: discov
+spec:
+  ports:
+    - name: client
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+    - name: server
+      port: 2380
+      protocol: TCP
+      targetPort: 2380
+  selector:
+    etcd_node: etcd3
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: etcd
+    etcd_node: etcd4
+  name: etcd4
+  namespace: discov
+spec:
+  containers:
+    - command:
+        - /usr/local/bin/etcd
+        - --name
+        - etcd4
+        - --initial-advertise-peer-urls
+        - http://etcd4:2380
+        - --listen-peer-urls
+        - http://0.0.0.0:2380
+        - --listen-client-urls
+        - http://0.0.0.0:2379
+        - --advertise-client-urls
+        - http://etcd4.discov:2379
+        - --initial-cluster
+        - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
+        - --initial-cluster-state
+        - new
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
+      name: etcd4
+      ports:
+        - containerPort: 2379
+          name: client
+          protocol: TCP
+        - containerPort: 2380
+          name: server
+          protocol: TCP
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - etcd
+          topologyKey: "kubernetes.io/hostname"
+  restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    etcd_node: etcd4
+  name: etcd4
+  namespace: discov
+spec:
+  ports:
+    - name: client
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+    - name: server
+      port: 2380
+      protocol: TCP
+      targetPort: 2380
+  selector:
+    etcd_node: etcd4

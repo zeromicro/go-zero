@@ -1,0 +1,10 @@
+type Request {
+    Name string `path:"name,options=you|me"`
+    XXX struct {
+    }
+}
+
+service A-api {
+    @handler GreetHandler
+    get /greet/from/:name(Request)
+}

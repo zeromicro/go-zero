@@ -1,0 +1,3 @@
+type ImportData struct {
+    Name string `path:"name,options=you|me"`
+}
