@@ -158,7 +158,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 
 	refValue := reflect.ValueOf(mapValue)
 	if refValue.Kind() != reflect.Slice {
-		return fmt.Errorf("%s: %v", fullName, errTypeMismatch)
+		return newTypeMismatchErrorWithHint(fullName, reflect.Slice.String(), refValue.Type().String())
 	}
 	if refValue.IsNil() {
 		return nil
@@ -180,9 +180,9 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 			continue
 		}
 
+		valid = true
 		sliceFullName := fmt.Sprintf("%s[%d]", fullName, i)
 
-		valid = true
 		switch dereffedBaseKind {
 		case reflect.Struct:
 			target := reflect.New(dereffedBaseType)
@@ -319,7 +319,6 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any, 
 	for _, key := range refValue.MapKeys() {
 		keythValue := refValue.MapIndex(key)
 		keythData := keythValue.Interface()
-
 		mapFullName := fmt.Sprintf("%s[%s]", fullName, key.String())
 
 		switch dereffedElemKind {
