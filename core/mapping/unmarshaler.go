@@ -348,7 +348,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any, 
 				return emptyValue, errTypeMismatch
 			}
 
-			innerValue, err := u.generateMap(elemType.Key(), elemType.Elem(), keythMap, fullName)
+			innerValue, err := u.generateMap(elemType.Key(), elemType.Elem(), keythMap, mapFullName)
 			if err != nil {
 				return emptyValue, err
 			}
