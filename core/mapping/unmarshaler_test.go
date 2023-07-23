@@ -4980,6 +4980,34 @@ func TestUnmarshaler_Unmarshal(t *testing.T) {
 		err := unmarshaler.UnmarshalValuer(nil, &i)
 		assert.Error(t, err)
 	})
+
+	t.Run("slice element missing error", func(t *testing.T) {
+		type inner struct {
+			S []struct {
+				Name string `json:"name"`
+				Age  int    `json:"age"`
+			} `json:"s"`
+		}
+		content := []byte(`{"s": [{"name": "foo"}]}`)
+		var s inner
+		err := UnmarshalJsonBytes(content, &s)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "s[0].age")
+	})
+
+	t.Run("map element missing error", func(t *testing.T) {
+		type inner struct {
+			S map[string]struct {
+				Name string `json:"name"`
+				Age  int    `json:"age"`
+			} `json:"s"`
+		}
+		content := []byte(`{"s": {"a":{"name": "foo"}}}`)
+		var s inner
+		err := UnmarshalJsonBytes(content, &s)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "s[a].age")
+	})
 }
 
 // TestUnmarshalerProcessFieldPrimitiveWithJSONNumber test the number type check.
