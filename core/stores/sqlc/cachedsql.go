@@ -248,3 +248,8 @@ func (cc CachedConn) WithSession(session sqlx.Session) CachedConn {
 		cache: cc.cache,
 	}
 }
+
+// returns the underlying sql.DB.
+func (cc CachedConn) RawDB() (*sql.DB, error) {
+	return cc.db.RawDB()
+}
