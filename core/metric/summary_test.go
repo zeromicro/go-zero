@@ -1,11 +1,12 @@
 package metric
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/proc"
-	"strings"
-	"testing"
 )
 
 func TestNewSummaryVec(t *testing.T) {
