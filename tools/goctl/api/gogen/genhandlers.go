@@ -3,14 +3,14 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"path"
-	"strings"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"path"
+	"strings"
 )
 
 const defaultLogicPackage = "logic"
@@ -47,7 +47,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		PackageName:	packageName 
+		PackageName:    packageName,
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,

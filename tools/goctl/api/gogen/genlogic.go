@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"path"
 	"strconv"
 	"strings"
@@ -52,6 +53,10 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	if len(route.RequestTypeName()) > 0 {
 		requestString = "req *" + requestGoTypeName(route, typesPacket)
 	}
+	packageName, err := golang.GetPackageName(dir)
+	if err != nil {
+		return err
+	}
 
 	subDir := getLogicFolderPath(group, route)
 	return genFile(fileGenConfig{
@@ -63,6 +68,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		templateFile:    logicTemplateFile,
 		builtinTemplate: logicTemplate,
 		data: map[string]string{
+			"packageName":  packageName,
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
 			"logic":        strings.Title(logic),
