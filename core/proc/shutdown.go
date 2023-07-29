@@ -96,4 +96,6 @@ func (lm *listenerManager) notifyListeners() {
 		group.RunSafe(listener)
 	}
 	group.Wait()
+
+	lm.listeners = nil
 }
