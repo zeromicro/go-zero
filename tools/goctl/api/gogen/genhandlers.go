@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
-
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -19,6 +19,7 @@ const defaultLogicPackage = "logic"
 var handlerTemplate string
 
 type handlerInfo struct {
+	PackageName        string
 	PkgName            string
 	ImportPackages     string
 	ImportHttpxPackage string
@@ -40,8 +41,13 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
+	packageName, err := golang.GetPackageName(dir)
+	if err != nil {
+		return err
+	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
+		PackageName:	packageName 
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,

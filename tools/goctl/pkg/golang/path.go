@@ -34,3 +34,17 @@ func GetParentPackage(dir string) (string, error) {
 
 	return filepath.ToSlash(filepath.Join(projectCtx.Path, trim)), nil
 }
+
+func GetPackageName(dir string) (string, error) {
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return "", err
+	}
+
+	projectCtx, err := ctx.Prepare(abs)
+	if err != nil {
+		return "", err
+	}
+	
+	return projectCtx.Path, nil
+}
