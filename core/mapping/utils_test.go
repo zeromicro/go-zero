@@ -218,25 +218,25 @@ func TestParseSegments(t *testing.T) {
 func TestValidatePtrWithNonPtr(t *testing.T) {
 	var foo string
 	rve := reflect.ValueOf(foo)
-	assert.NotNil(t, ValidatePtr(&rve))
+	assert.NotNil(t, ValidatePtr(rve))
 }
 
 func TestValidatePtrWithPtr(t *testing.T) {
 	var foo string
 	rve := reflect.ValueOf(&foo)
-	assert.Nil(t, ValidatePtr(&rve))
+	assert.Nil(t, ValidatePtr(rve))
 }
 
 func TestValidatePtrWithNilPtr(t *testing.T) {
 	var foo *string
 	rve := reflect.ValueOf(foo)
-	assert.NotNil(t, ValidatePtr(&rve))
+	assert.NotNil(t, ValidatePtr(rve))
 }
 
 func TestValidatePtrWithZeroValue(t *testing.T) {
 	var s string
 	e := reflect.Zero(reflect.TypeOf(s))
-	assert.NotNil(t, ValidatePtr(&e))
+	assert.NotNil(t, ValidatePtr(e))
 }
 
 func TestSetValueNotSettable(t *testing.T) {
