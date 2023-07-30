@@ -878,7 +878,7 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 
 func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName string) error {
 	rv := reflect.ValueOf(v)
-	if err := ValidatePtr(&rv); err != nil {
+	if err := ValidatePtr(rv); err != nil {
 		return err
 	}
 
