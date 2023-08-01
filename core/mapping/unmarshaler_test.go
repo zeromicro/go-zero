@@ -4789,6 +4789,25 @@ func TestUnmarshalJsonBytesWithAnonymousFieldNotInOptions(t *testing.T) {
 	assert.Error(t, UnmarshalJsonBytes(input, &c))
 }
 
+func TestUnmarshalJsonBytesWithCustomFieldUnsetErr(t *testing.T) {
+	type (
+		Conf struct {
+			Name string `json:"name"`
+		}
+	)
+
+	var (
+		input = []byte(`{}`)
+		c     Conf
+	)
+
+	e := UnmarshalJsonBytes(input, &c, WithCustomFieldUnsetErr(func(field string) error {
+		// Here you can customize exceptions and internationalization processing
+		return fmt.Errorf("the key %s is unset", field)
+	}))
+	assert.Error(t, e)
+}
+
 func TestUnmarshalNestedPtr(t *testing.T) {
 	type inner struct {
 		Int **int `key:"int"`

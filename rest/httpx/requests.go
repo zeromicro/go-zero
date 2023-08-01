@@ -23,9 +23,10 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	validator       atomic.Value
+	formUnmarshaler     = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
+	pathUnmarshaler     = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	validator           atomic.Value
+	customFieldUnsetErr func(key string) error
 )
 
 // Validator defines the interface for validating the request.
@@ -100,12 +101,16 @@ func ParseHeader(headerValue string) map[string]string {
 
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v any) error {
+	var opts []mapping.UnmarshalOption
+	if customFieldUnsetErr != nil {
+		opts = append(opts, mapping.WithCustomFieldUnsetErr(customFieldUnsetErr))
+	}
 	if withJsonBody(r) {
 		reader := io.LimitReader(r.Body, maxBodyLen)
-		return mapping.UnmarshalJsonReader(reader, v)
+		return mapping.UnmarshalJsonReader(reader, v, opts...)
 	}
 
-	return mapping.UnmarshalJsonMap(nil, v)
+	return mapping.UnmarshalJsonMap(nil, v, opts...)
 }
 
 // ParsePath parses the symbols reside in url path.
@@ -129,4 +134,10 @@ func SetValidator(val Validator) {
 
 func withJsonBody(r *http.Request) bool {
 	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
+}
+
+func SetCustomUnsetError(f func(string) error) {
+	customFieldUnsetErr = f
+	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithCustomFieldUnsetErr(f))
+	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithCustomFieldUnsetErr(f))
 }

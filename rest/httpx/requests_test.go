@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -255,6 +256,29 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Equal(t, "kevin", v[0].Name)
 		assert.Equal(t, 18, v[0].Age)
 	})
+}
+
+func TestParseCustomUnsetErr(t *testing.T) {
+	SetCustomUnsetError(func(tag string) error {
+		return fmt.Errorf("custom %s unset error", tag)
+	})
+	v := struct {
+		Name    string  `form:"name"`
+		Percent float64 `form:"percent"`
+	}{}
+
+	gr, err := http.NewRequest(http.MethodGet, "/a?name=hello", http.NoBody)
+	assert.Nil(t, err)
+	assert.EqualErrorf(t, Parse(gr, &v), "custom percent unset error", "custom unset error")
+
+	pv := struct {
+		Name    string  `json:"name"`
+		Percent float64 `json:"percent"`
+	}{}
+	body := `{"name":"hello"}`
+	pr := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+	pr.Header.Set(ContentType, header.JsonContentType)
+	assert.EqualErrorf(t, Parse(pr, &pv), "custom percent unset error", "custom unset error")
 }
 
 func TestParseRequired(t *testing.T) {
