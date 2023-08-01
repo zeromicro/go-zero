@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -259,26 +260,35 @@ func TestParseJsonBody(t *testing.T) {
 }
 
 func TestParseCustomUnsetErr(t *testing.T) {
-	SetCustomUnsetError(func(tag string) error {
-		return fmt.Errorf("custom %s unset error", tag)
+	startCtx := context.Background()
+	ctxKey := "method"
+
+	SetCustomUnsetError(func(ctx context.Context, tag string) error {
+		return fmt.Errorf("%s: custom %s unset error", ctx.Value(ctxKey).(string), tag)
 	})
-	v := struct {
-		Name    string  `form:"name"`
-		Percent float64 `form:"percent"`
-	}{}
+	t.Run("request get", func(t *testing.T) {
+		v := struct {
+			Name    string  `form:"name"`
+			Percent float64 `form:"percent"`
+		}{}
 
-	gr, err := http.NewRequest(http.MethodGet, "/a?name=hello", http.NoBody)
-	assert.Nil(t, err)
-	assert.EqualErrorf(t, Parse(gr, &v), "custom percent unset error", "custom unset error")
+		gr, err := http.NewRequest(http.MethodGet, "/a?name=hello", http.NoBody)
+		gr = gr.WithContext(context.WithValue(startCtx, ctxKey, "GET"))
+		assert.Nil(t, err)
+		assert.EqualErrorf(t, Parse(gr, &v), "GET: custom percent unset error", "custom unset error")
+	})
 
-	pv := struct {
-		Name    string  `json:"name"`
-		Percent float64 `json:"percent"`
-	}{}
-	body := `{"name":"hello"}`
-	pr := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-	pr.Header.Set(ContentType, header.JsonContentType)
-	assert.EqualErrorf(t, Parse(pr, &pv), "custom percent unset error", "custom unset error")
+	t.Run("request post", func(t *testing.T) {
+		pv := struct {
+			Name    string  `json:"name"`
+			Percent float64 `json:"percent"`
+		}{}
+		body := `{"name":"hello"}`
+		pr := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		pr.Header.Set(ContentType, header.JsonContentType)
+		pr = pr.WithContext(context.WithValue(startCtx, ctxKey, "POST"))
+		assert.EqualErrorf(t, Parse(pr, &pv), "POST: custom percent unset error", "custom unset error")
+	})
 }
 
 func TestParseRequired(t *testing.T) {

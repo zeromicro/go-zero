@@ -67,6 +67,17 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	return &unmarshaler
 }
 
+func WithOpts(u *Unmarshaler, opts ...UnmarshalOption) *Unmarshaler {
+	if u == nil {
+		return u
+	}
+	for _, opt := range opts {
+		opt(&u.opts)
+	}
+
+	return u
+}
+
 // UnmarshalKey unmarshals m into v with tag key.
 func UnmarshalKey(m map[string]any, v any) error {
 	return keyUnmarshaler.Unmarshal(m, v)
@@ -929,7 +940,7 @@ func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 }
 
 // WithCustomFieldUnsetErr customizes an Unmarshaler with custom field unset error.
-func WithCustomFieldUnsetErr(f func(string) error) UnmarshalOption {
+func WithCustomFieldUnsetErr(f func(fullName string) error) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.customFieldUnsetErr = f
 	}
