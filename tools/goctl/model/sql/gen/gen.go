@@ -158,7 +158,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 	}
 
 	for tableName, codes := range modelList {
-		tn := stringx.From(tableName)
+		tn := stringx.From(strings.ToLower(tableName))
 		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat,
 			fmt.Sprintf("%s_model", tn.Source()))
 		if err != nil {
