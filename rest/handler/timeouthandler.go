@@ -68,7 +68,7 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	done := make(chan struct{})
 	tw := &timeoutWriter{
 		w:    w,
-		h:    make(http.Header),
+		h:    w.Header(),
 		req:  r,
 		code: http.StatusOK,
 	}
