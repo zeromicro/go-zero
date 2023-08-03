@@ -291,12 +291,19 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled
-	if db.accept == nil {
-		return ok
+	if err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled {
+		return true
 	}
 
-	return ok || db.accept(err)
+	if _, ok := err.(acceptableError); ok {
+		return true
+	}
+
+	if db.accept == nil {
+		return false
+	}
+
+	return db.accept(err)
 }
 
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
