@@ -236,6 +236,33 @@ func TestStatement(t *testing.T) {
 	})
 }
 
+func TestBreakerWithFormatError(t *testing.T) {
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		conn := NewSqlConnFromDB(db, withMysqlAcceptable())
+		for i := 0; i < 1000; i++ {
+			var val string
+			if !assert.NotEqual(t, breaker.ErrServiceUnavailable,
+				conn.QueryRow(&val, "any ?, ?", "foo")) {
+				break
+			}
+		}
+	})
+}
+
+func TestBreakerWithScanError(t *testing.T) {
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		conn := NewSqlConnFromDB(db, withMysqlAcceptable())
+		for i := 0; i < 1000; i++ {
+			rows := sqlmock.NewRows([]string{"foo"}).AddRow("bar")
+			mock.ExpectQuery("any").WillReturnRows(rows)
+			var val int
+			if !assert.NotEqual(t, breaker.ErrServiceUnavailable, conn.QueryRow(&val, "any")) {
+				break
+			}
+		}
+	})
+}
+
 func buildConn() (mock sqlmock.Sqlmock, err error) {
 	_, err = connManager.GetResource(mockedDatasource, func() (io.Closer, error) {
 		var db *sql.DB
