@@ -2,21 +2,15 @@ package handler
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
-	"path"
-	"runtime"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
-	"github.com/zeromicro/go-zero/rest/internal"
 )
 
 const (
@@ -60,18 +54,19 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handler.ServeHTTP(w, r)
 		return
 	}
-
-	ctx, cancelCtx := context.WithTimeout(r.Context(), h.dt)
-	defer cancelCtx()
-
+	ctx, cancelCtx := context.WithCancel(r.Context())
 	r = r.WithContext(ctx)
+	// creat a timer
+	t := time.NewTimer(h.dt)
 	done := make(chan struct{})
 	tw := &timeoutWriter{
-		w:    w,
-		h:    w.Header(),
-		req:  r,
-		code: http.StatusOK,
+		w: w,
+		resetTimer: func() {
+			t.Reset(h.dt)
+		},
 	}
+	defer t.Stop()
+	defer cancelCtx()
 	panicChan := make(chan any, 1)
 	go func() {
 		defer func() {
@@ -88,27 +83,17 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case <-done:
 		tw.mu.Lock()
 		defer tw.mu.Unlock()
-		dst := w.Header()
-		for k, vv := range tw.h {
-			dst[k] = vv
-		}
-
-		// We don't need to write header 200, because it's written by default.
-		// If we write it again, it will cause a warning: `http: superfluous response.WriteHeader call`.
-		if tw.code != http.StatusOK {
-			w.WriteHeader(tw.code)
-		}
-		w.Write(tw.wbuf.Bytes())
-	case <-ctx.Done():
+		tw.Flush()
+	case <-t.C:
 		tw.mu.Lock()
 		defer tw.mu.Unlock()
 		// there isn't any user-defined middleware before TimoutHandler,
 		// so we can guarantee that cancelation in biz related code won't come here.
-		httpx.ErrorCtx(r.Context(), w, ctx.Err(), func(w http.ResponseWriter, err error) {
+		httpx.ErrorCtx(r.Context(), w, r.Context().Err(), func(w http.ResponseWriter, err error) {
 			if errors.Is(err, context.Canceled) {
-				w.WriteHeader(statusClientClosedRequest)
+				tw.WriteHeader(statusClientClosedRequest)
 			} else {
-				w.WriteHeader(http.StatusServiceUnavailable)
+				tw.WriteHeader(http.StatusServiceUnavailable)
 			}
 			io.WriteString(w, h.errorBody())
 		})
@@ -117,15 +102,12 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type timeoutWriter struct {
-	w    http.ResponseWriter
-	h    http.Header
-	wbuf bytes.Buffer
-	req  *http.Request
+	w http.ResponseWriter
 
+	resetTimer  func()
 	mu          sync.Mutex
 	timedOut    bool
 	wroteHeader bool
-	code        int
 }
 
 var _ http.Pusher = (*timeoutWriter)(nil)
@@ -136,20 +118,13 @@ func (tw *timeoutWriter) Flush() {
 	if !ok {
 		return
 	}
-
-	header := tw.w.Header()
-	for k, v := range tw.h {
-		header[k] = v
-	}
-
-	tw.w.Write(tw.wbuf.Bytes())
-	tw.wbuf.Reset()
+	tw.resetTimer()
 	flusher.Flush()
 }
 
 // Header returns the underline temporary http.Header.
 func (tw *timeoutWriter) Header() http.Header {
-	return tw.h
+	return tw.w.Header()
 }
 
 // Hijack implements the Hijacker interface.
@@ -179,30 +154,7 @@ func (tw *timeoutWriter) Write(p []byte) (int, error) {
 	if tw.timedOut {
 		return 0, http.ErrHandlerTimeout
 	}
-
-	if !tw.wroteHeader {
-		tw.writeHeaderLocked(http.StatusOK)
-	}
-
-	return tw.wbuf.Write(p)
-}
-
-func (tw *timeoutWriter) writeHeaderLocked(code int) {
-	checkWriteHeaderCode(code)
-
-	switch {
-	case tw.timedOut:
-		return
-	case tw.wroteHeader:
-		if tw.req != nil {
-			caller := relevantCaller()
-			internal.Errorf(tw.req, "http: superfluous response.WriteHeader call from %s (%s:%d)",
-				caller.Function, path.Base(caller.File), caller.Line)
-		}
-	default:
-		tw.wroteHeader = true
-		tw.code = code
-	}
+	return tw.w.Write(p)
 }
 
 func (tw *timeoutWriter) WriteHeader(code int) {
@@ -210,33 +162,7 @@ func (tw *timeoutWriter) WriteHeader(code int) {
 	defer tw.mu.Unlock()
 
 	if !tw.wroteHeader {
-		tw.writeHeaderLocked(code)
+		tw.w.WriteHeader(code)
+		tw.wroteHeader = true
 	}
-}
-
-func checkWriteHeaderCode(code int) {
-	if code < 100 || code > 599 {
-		panic(fmt.Sprintf("invalid WriteHeader code %v", code))
-	}
-}
-
-// relevantCaller searches the call stack for the first function outside of net/http.
-// The purpose of this function is to provide more helpful error messages.
-func relevantCaller() runtime.Frame {
-	pc := make([]uintptr, 16)
-	n := runtime.Callers(1, pc)
-	frames := runtime.CallersFrames(pc[:n])
-	var frame runtime.Frame
-	for {
-		frame, more := frames.Next()
-		if !strings.HasPrefix(frame.Function, "net/http.") {
-			return frame
-		}
-
-		if !more {
-			break
-		}
-	}
-
-	return frame
 }

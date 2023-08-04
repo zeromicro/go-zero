@@ -179,7 +179,9 @@ func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {
 		return timeout
 	}
 
-	return time.Duration(ng.conf.Timeout) * time.Millisecond
+	// factor 1.1, to avoid servers don't have enough time to write responses.
+	// setting the factor less than 1.0 may lead clients not receiving the responses.
+	return time.Duration(11*ng.conf.Timeout/10) * time.Millisecond
 }
 
 func (ng *engine) createMetrics() *stat.Metrics {
@@ -339,6 +341,9 @@ func (ng *engine) withTimeout() internal.StartOption {
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
 			svr.ReadTimeout = 4 * timeout / 5
+		}
+		// When timeout middleware is not enabled, it starts at http. Server's WriteTimeout
+		if !ng.conf.Middlewares.Timeout {
 			// factor 1.1, to avoid servers don't have enough time to write responses.
 			// setting the factor less than 1.0 may lead clients not receiving the responses.
 			svr.WriteTimeout = 11 * timeout / 10
