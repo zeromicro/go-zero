@@ -640,3 +640,15 @@ func BenchmarkTimingWheel(b *testing.B) {
 		tw.RemoveTimer(i)
 	}
 }
+
+func TestTimingWheel_Exist(t *testing.T) {
+	tw, _ := NewTimingWheel(time.Second, 1000, func(key, value any) {})
+	tw.SetTimer("first", "any", testStep)
+	assert.Equal(t, true, tw.Exist("first"))
+	assert.Equal(t, false, tw.Exist("second"))
+	tw.SetTimer("third", "any", 2*testStep)
+	tw.MoveTimer("third", testStep)
+	assert.Equal(t, true, tw.Exist("third"))
+	//tw.MoveTimer("second", 2*testStep)
+	//assert.Equal(t, false, tw.Exist("second"))
+}
