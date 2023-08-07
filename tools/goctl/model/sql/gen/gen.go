@@ -165,7 +165,11 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 			return err
 		}
 
-		name := util.SafeString(modelFilename) + "_gen.go"
+		name, err := format.FileNamingFormat(g.cfg.NamingFormat,
+			fmt.Sprintf("%s_model_gen.go", tn.Source()))
+		if err != nil {
+			return err
+		}
 		filename := filepath.Join(dirAbs, name)
 		err = os.WriteFile(filename, []byte(codes.modelCode), os.ModePerm)
 		if err != nil {
