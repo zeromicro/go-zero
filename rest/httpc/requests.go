@@ -97,6 +97,15 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 		reader = &buf
 	}
 
+	formVars, hasFormBody := val[formKey]
+	if hasFormBody && method == http.MethodPost {
+		DataUrlVal := nurl.Values{}
+		for key, val := range formVars {
+			DataUrlVal.Add(key, val.(string))
+		}
+		reader = strings.NewReader(DataUrlVal.Encode())
+	}
+
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), reader)
 	if err != nil {
 		return nil, err
@@ -107,12 +116,19 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 	if hasJsonBody {
 		req.Header.Set(header.ContentType, header.JsonContentType)
 	}
+	if hasFormBody && method == http.MethodPost {
+		req.Header.Set(header.ContentType, header.XwwwFromUrlencoded)
+	}
 
 	return req, nil
 }
 
 func fillHeader(r *http.Request, val map[string]any) {
 	for k, v := range val {
+		//note 自定义host需要单独处理
+		if strings.ToLower(k) == "host" {
+			r.Host = fmt.Sprint(v)
+		}
 		r.Header.Add(k, fmt.Sprint(v))
 	}
 }
