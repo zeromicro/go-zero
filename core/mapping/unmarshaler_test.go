@@ -2184,7 +2184,7 @@ func TestUnmarshalNestedKey(t *testing.T) {
 		},
 	}
 
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &c)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c)) {
 		assert.Equal(t, 1, c.ID)
 	}
 }
@@ -2204,7 +2204,7 @@ func TestUnmarhsalNestedKeyArray(t *testing.T) {
 		},
 	}
 
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &c)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c)) {
 		assert.Equal(t, 2, len(c.First))
 		assert.Equal(t, 1, c.First[0].ID)
 	}
@@ -2225,7 +2225,7 @@ func TestUnmarshalAnonymousOptionalRequiredProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Value)
 	}
 }
@@ -2243,7 +2243,7 @@ func TestUnmarshalAnonymousOptionalRequiredMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Value) == 0)
 	}
 }
@@ -2263,7 +2263,7 @@ func TestUnmarshalAnonymousOptionalOptionalProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Value)
 	}
 }
@@ -2281,7 +2281,7 @@ func TestUnmarshalAnonymousOptionalOptionalMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Value) == 0)
 	}
 }
@@ -2303,7 +2303,7 @@ func TestUnmarshalAnonymousOptionalRequiredBothProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "kevin", b.Name)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2325,7 +2325,7 @@ func TestUnmarshalAnonymousOptionalRequiredOneProvidedOneMissed(t *testing.T) {
 	}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousOptionalRequiredBothMissed(t *testing.T) {
@@ -2342,7 +2342,7 @@ func TestUnmarshalAnonymousOptionalRequiredBothMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.True(t, len(b.Value) == 0)
 	}
@@ -2365,7 +2365,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalBothProvided(t *testing
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "kevin", b.Name)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2385,7 +2385,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalBothMissed(t *testing.T
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.True(t, len(b.Value) == 0)
 	}
@@ -2407,7 +2407,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalRequiredProvidedOptiona
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2429,7 +2429,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalRequiredMissedOptionalP
 	}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousOptionalBothOptionalBothProvided(t *testing.T) {
@@ -2449,7 +2449,7 @@ func TestUnmarshalAnonymousOptionalBothOptionalBothProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "kevin", b.Name)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2471,7 +2471,7 @@ func TestUnmarshalAnonymousOptionalBothOptionalOneProvidedOneMissed(t *testing.T
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2491,7 +2491,7 @@ func TestUnmarshalAnonymousOptionalBothOptionalBothMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.True(t, len(b.Value) == 0)
 	}
@@ -2512,7 +2512,7 @@ func TestUnmarshalAnonymousRequiredProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Value)
 	}
 }
@@ -2530,7 +2530,7 @@ func TestUnmarshalAnonymousRequiredMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousOptionalProvided(t *testing.T) {
@@ -2548,7 +2548,7 @@ func TestUnmarshalAnonymousOptionalProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Value)
 	}
 }
@@ -2566,7 +2566,7 @@ func TestUnmarshalAnonymousOptionalMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Value) == 0)
 	}
 }
@@ -2588,7 +2588,7 @@ func TestUnmarshalAnonymousRequiredBothProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "kevin", b.Name)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2610,7 +2610,7 @@ func TestUnmarshalAnonymousRequiredOneProvidedOneMissed(t *testing.T) {
 	}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousRequiredBothMissed(t *testing.T) {
@@ -2629,7 +2629,7 @@ func TestUnmarshalAnonymousRequiredBothMissed(t *testing.T) {
 	}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousOneRequiredOneOptionalBothProvided(t *testing.T) {
@@ -2649,7 +2649,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalBothProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "kevin", b.Name)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2669,7 +2669,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalBothMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousOneRequiredOneOptionalRequiredProvidedOptionalMissed(t *testing.T) {
@@ -2688,7 +2688,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalRequiredProvidedOptionalMissed(
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2710,7 +2710,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalRequiredMissedOptionalProvided(
 	}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalAnonymousBothOptionalBothProvided(t *testing.T) {
@@ -2730,7 +2730,7 @@ func TestUnmarshalAnonymousBothOptionalBothProvided(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "kevin", b.Name)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2752,7 +2752,7 @@ func TestUnmarshalAnonymousBothOptionalOneProvidedOneMissed(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.Equal(t, "anything", b.Value)
 	}
@@ -2772,7 +2772,7 @@ func TestUnmarshalAnonymousBothOptionalBothMissed(t *testing.T) {
 	m := map[string]any{}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.True(t, len(b.Name) == 0)
 		assert.True(t, len(b.Value) == 0)
 	}
@@ -2797,7 +2797,7 @@ func TestUnmarshalAnonymousWrappedToMuch(t *testing.T) {
 	}
 
 	var b Bar
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b))
 }
 
 func TestUnmarshalWrappedObject(t *testing.T) {
@@ -2817,7 +2817,7 @@ func TestUnmarshalWrappedObject(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Inner.Value)
 	}
 }
@@ -2839,7 +2839,7 @@ func TestUnmarshalWrappedObjectOptional(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Name)
 	}
 }
@@ -2866,7 +2866,7 @@ func TestUnmarshalWrappedObjectOptionalFilled(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.EqualValues(t, hosts, b.Inner.Hosts)
 		assert.Equal(t, "key", b.Inner.Key)
 		assert.Equal(t, "anything", b.Name)
@@ -2894,7 +2894,7 @@ func TestUnmarshalWrappedNamedObjectOptional(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "thehost", b.Inner.Host)
 		assert.Equal(t, "thekey", b.Inner.Key)
 		assert.Equal(t, "anything", b.Name)
@@ -2918,7 +2918,7 @@ func TestUnmarshalWrappedObjectNamedPtr(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Inner.Value)
 	}
 }
@@ -2940,7 +2940,7 @@ func TestUnmarshalWrappedObjectPtr(t *testing.T) {
 	}
 
 	var b Bar
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &b)) {
 		assert.Equal(t, "anything", b.Inner.Value)
 	}
 }
@@ -3492,7 +3492,7 @@ func TestUnmarshalNestedMap(t *testing.T) {
 			},
 		}
 
-		if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &c)) {
+		if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c)) {
 			assert.Equal(t, "1", c.Anything["inner"]["id"])
 		}
 	})
@@ -3510,7 +3510,7 @@ func TestUnmarshalNestedMap(t *testing.T) {
 			},
 		}
 
-		if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &c)) {
+		if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c)) {
 			assert.Equal(t, []string{"id", "name"}, c.Anything["inner"])
 		}
 	})
@@ -3528,7 +3528,7 @@ func TestUnmarshalNestedMap(t *testing.T) {
 			},
 		}
 
-		assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &c))
+		assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c))
 	})
 }
 
@@ -3544,7 +3544,7 @@ func TestUnmarshalNestedMapMismatch(t *testing.T) {
 		},
 	}
 
-	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &c))
+	assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c))
 }
 
 func TestUnmarshalNestedMapSimple(t *testing.T) {
@@ -3558,7 +3558,7 @@ func TestUnmarshalNestedMapSimple(t *testing.T) {
 		},
 	}
 
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &c)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c)) {
 		assert.Equal(t, "1", c.Anything["id"])
 	}
 }
@@ -3574,7 +3574,7 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 		},
 	}
 
-	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &c)) {
+	if assert.NoError(t, NewUnmarshaler(jsonTagKey).Unmarshal(m, &c)) {
 		assert.Equal(t, "1", c.Anything["id"])
 	}
 }
