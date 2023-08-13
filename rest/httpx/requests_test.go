@@ -326,6 +326,8 @@ func TestParseHeaders_Error(t *testing.T) {
 
 func TestParseWithValidator(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v struct {
 		Name    string  `form:"name"`
 		Age     int     `form:"age"`
@@ -343,6 +345,8 @@ func TestParseWithValidator(t *testing.T) {
 
 func TestParseWithValidatorWithError(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v struct {
 		Name    string  `form:"name"`
 		Age     int     `form:"age"`
@@ -356,6 +360,8 @@ func TestParseWithValidatorWithError(t *testing.T) {
 
 func TestParseWithValidatorRequest(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v mockRequest
 	r, err := http.NewRequest(http.MethodGet, "/a?&age=18", http.NoBody)
 	assert.Nil(t, err)
@@ -433,9 +439,15 @@ func BenchmarkParseAuto(b *testing.B) {
 	}
 }
 
-type mockValidator struct{}
+type mockValidator struct {
+	nop bool
+}
 
 func (m mockValidator) Validate(r *http.Request, data any) error {
+	if m.nop {
+		return nil
+	}
+
 	if r.URL.Path == "/a" {
 		val := reflect.ValueOf(data).Elem().FieldByName("Name").String()
 		if val != "hello" {
