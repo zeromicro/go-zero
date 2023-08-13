@@ -1,10 +1,12 @@
 package sqlx
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +19,11 @@ import (
 const mockedDatasource = "sqlmock"
 
 func init() {
-	logx.Disable()
+	discardLog()
+}
+
+func discardLog() {
+	logx.SetWriter(logx.NewWriter(io.Discard))
 }
 
 func TestSqlConn(t *testing.T) {
@@ -54,7 +60,7 @@ func TestSqlConn(t *testing.T) {
 	assert.NotNil(t, badConn.Transact(func(session Session) error {
 		return nil
 	}))
-	assert.Equal(t, 14, len(me.GetSpans()))
+	assert.Equal(t, 15, len(me.GetSpans()))
 }
 
 func TestSqlConn_RawDB(t *testing.T) {
@@ -261,6 +267,61 @@ func TestBreakerWithScanError(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestWithLogOption(t *testing.T) {
+	t.Run("EnableStatement", func(t *testing.T) {
+		dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+			buffer := &bytes.Buffer{}
+			logx.SetWriter(logx.NewWriter(buffer))
+			defer discardLog()
+
+			conn := NewSqlConnFromDB(db, WithStatementLog(true))
+			rows := sqlmock.NewRows([]string{"foo"}).AddRow(1)
+			mock.ExpectQuery("any").WillReturnRows(rows)
+			var val int
+			err := conn.QueryRow(&val, "any")
+			assert.NoError(t, err)
+			assert.Contains(t, buffer.String(), "sql query")
+
+			buffer.Reset()
+			val = 0
+			rows = sqlmock.NewRows([]string{"foo"}).AddRow(1)
+			mock.ExpectPrepare("any").ExpectQuery().WillReturnRows(rows)
+			stmtSession, err := conn.Prepare("any")
+			assert.NoError(t, err)
+			err = stmtSession.QueryRow(&val)
+			assert.NoError(t, err)
+			assert.Contains(t, buffer.String(), "sql queryStmt:")
+		})
+	})
+
+	t.Run("EnableSlow", func(t *testing.T) {
+		dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+			buffer := &bytes.Buffer{}
+			logx.SetWriter(logx.NewWriter(buffer))
+			defer discardLog()
+
+			conn := NewSqlConnFromDB(db, WithSlowLog(true))
+			rows := sqlmock.NewRows([]string{"foo"}).AddRow(1)
+			mock.ExpectQuery("any").WillReturnRows(rows).WillDelayFor(time.Second * 1)
+			var val int
+			err := conn.QueryRow(&val, "any")
+			assert.NoError(t, err)
+			assert.Contains(t, buffer.String(), "[SQL] query: slowcall")
+
+			buffer.Reset()
+			val = 0
+			rows = sqlmock.NewRows([]string{"foo"}).AddRow(1)
+			mock.ExpectPrepare("any").ExpectQuery().WillReturnRows(rows).WillDelayFor(time.Second * 1)
+			stmtSession, err := conn.Prepare("any")
+			assert.NoError(t, err)
+			err = stmtSession.QueryRow(&val)
+			assert.NoError(t, err)
+			assert.Contains(t, buffer.String(), "[SQL] queryStmt: slowcall")
+		})
+	})
+
 }
 
 func buildConn() (mock sqlmock.Sqlmock, err error) {

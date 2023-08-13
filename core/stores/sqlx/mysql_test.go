@@ -8,7 +8,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 )
 
@@ -17,15 +16,11 @@ func init() {
 }
 
 func TestBreakerOnDuplicateEntry(t *testing.T) {
-	logx.Disable()
-
 	err := tryOnDuplicateEntryError(t, mysqlAcceptable)
 	assert.Equal(t, duplicateEntryCode, err.(*mysql.MySQLError).Number)
 }
 
 func TestBreakerOnNotHandlingDuplicateEntry(t *testing.T) {
-	logx.Disable()
-
 	var found bool
 	for i := 0; i < 100; i++ {
 		if tryOnDuplicateEntryError(t, nil) == breaker.ErrServiceUnavailable {
@@ -45,8 +40,6 @@ func TestMysqlAcceptable(t *testing.T) {
 }
 
 func tryOnDuplicateEntryError(t *testing.T, accept func(error) bool) error {
-	logx.Disable()
-
 	conn := commonSqlConn{
 		brk:    breaker.NewBreaker(),
 		accept: accept,

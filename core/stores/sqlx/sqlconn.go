@@ -56,15 +56,21 @@ type (
 		QueryRowsPartialCtx(ctx context.Context, v any, args ...any) error
 	}
 
+	logOption struct {
+		EnableStatement *bool
+		EnableSlow      *bool
+	}
+
 	// thread-safe
 	// Because CORBA doesn't support PREPARE, so we need to combine the
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
-		connProv connProvider
-		onError  func(context.Context, error)
-		beginTx  beginnable
-		brk      breaker.Breaker
-		accept   func(error) bool
+		connProv  connProvider
+		onError   func(context.Context, error)
+		beginTx   beginnable
+		brk       breaker.Breaker
+		accept    func(error) bool
+		logOption *logOption
 	}
 
 	connProvider func() (*sql.DB, error)
@@ -77,8 +83,9 @@ type (
 	}
 
 	statement struct {
-		query string
-		stmt  *sql.Stmt
+		query     string
+		stmt      *sql.Stmt
+		logOption *logOption
 	}
 
 	stmtConn interface {
@@ -154,6 +161,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 			return err
 		}
 
+		ctx = db.newLogOptionContext(ctx)
 		result, err = exec(ctx, conn, q, args...)
 		return err
 	}, db.acceptable)
@@ -182,14 +190,16 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 			return err
 		}
 
+		ctx = db.newLogOptionContext(ctx)
 		st, err := conn.PrepareContext(ctx, query)
 		if err != nil {
 			return err
 		}
 
 		stmt = statement{
-			query: query,
-			stmt:  st,
+			query:     query,
+			stmt:      st,
+			logOption: db.logOption,
 		}
 		return nil
 	}, db.acceptable)
@@ -281,6 +291,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 	}()
 
 	err = db.brk.DoWithAcceptable(func() error {
+		ctx = db.newLogOptionContext(ctx)
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
 	if err == breaker.ErrServiceUnavailable {
@@ -316,6 +327,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 			return err
 		}
 
+		ctx = db.newLogOptionContext(ctx)
 		return query(ctx, conn, func(rows *sql.Rows) error {
 			qerr = scanner(rows)
 			return qerr
@@ -328,6 +340,14 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	}
 
 	return
+}
+
+func (db *commonSqlConn) newLogOptionContext(ctx context.Context) context.Context {
+	if db.logOption == nil {
+		return ctx
+	}
+
+	return newLogOptionContext(ctx, *db.logOption)
 }
 
 func (s statement) Close() error {
@@ -344,6 +364,7 @@ func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result,
 		endSpan(span, err)
 	}()
 
+	ctx = s.newLogOptionContext(ctx)
 	return execStmt(ctx, s.stmt, s.query, args...)
 }
 
@@ -357,6 +378,7 @@ func (s statement) QueryRowCtx(ctx context.Context, v any, args ...any) (err err
 		endSpan(span, err)
 	}()
 
+	ctx = s.newLogOptionContext(ctx)
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, s.query, args...)
@@ -372,6 +394,7 @@ func (s statement) QueryRowPartialCtx(ctx context.Context, v any, args ...any) (
 		endSpan(span, err)
 	}()
 
+	ctx = s.newLogOptionContext(ctx)
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, s.query, args...)
@@ -387,6 +410,7 @@ func (s statement) QueryRowsCtx(ctx context.Context, v any, args ...any) (err er
 		endSpan(span, err)
 	}()
 
+	ctx = s.newLogOptionContext(ctx)
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, s.query, args...)
@@ -402,9 +426,18 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 		endSpan(span, err)
 	}()
 
+	ctx = s.newLogOptionContext(ctx)
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
+}
+
+func (s statement) newLogOptionContext(ctx context.Context) context.Context {
+	if s.logOption == nil {
+		return ctx
+	}
+
+	return newLogOptionContext(ctx, *s.logOption)
 }
 
 // WithAcceptable returns a SqlOption that setting the acceptable function.
@@ -412,5 +445,25 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 func WithAcceptable(acceptable func(err error) bool) SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.accept = acceptable
+	}
+}
+
+// WithStatementLog returns a SqlOption to set whether to output SQL statements in the log.
+func WithStatementLog(enable bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		if conn.logOption == nil {
+			conn.logOption = &logOption{}
+		}
+		conn.logOption.EnableStatement = &enable
+	}
+}
+
+// WithSlowLog returns a SqlOption to set whether to output slow SQL statements in the log.
+func WithSlowLog(enable bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		if conn.logOption == nil {
+			conn.logOption = &logOption{}
+		}
+		conn.logOption.EnableSlow = &enable
 	}
 }

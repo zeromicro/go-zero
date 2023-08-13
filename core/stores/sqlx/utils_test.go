@@ -39,6 +39,12 @@ func TestFormat(t *testing.T) {
 		hasErr bool
 	}{
 		{
+			name:   "begin",
+			query:  "Begin",
+			args:   []any{},
+			expect: "Begin",
+		},
+		{
 			name:   "mysql normal",
 			query:  "select name, age from users where bool=? and phone=?",
 			args:   []any{true, "133"},

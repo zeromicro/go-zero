@@ -7,12 +7,12 @@ import (
 )
 
 type (
-	beginnable func(*sql.DB) (trans, error)
+	beginnable func(ctx context.Context, db *sql.DB) (trans, error)
 
 	trans interface {
 		Session
-		Commit() error
-		Rollback() error
+		CommitCtx(ctx context.Context) error
+		RollbackCtx(ctx context.Context) error
 	}
 
 	txConn struct {
@@ -140,10 +140,52 @@ func (t txSession) QueryRowsPartialCtx(ctx context.Context, v any, q string,
 	}, q, args...)
 }
 
-func begin(db *sql.DB) (trans, error) {
-	tx, err := db.Begin()
+func (t txSession) CommitCtx(ctx context.Context) (err error) {
+	ctx, span := startSpan(ctx, "Commit")
+	defer func() {
+		endSpan(span, err)
+	}()
+
+	guard := newGuard(ctx, "transact")
+	_ = guard.start("COMMIT")
+
+	err = t.Tx.Commit()
+	guard.finish(ctx, err)
+
+	return
+}
+
+func (t txSession) RollbackCtx(ctx context.Context) (err error) {
+	ctx, span := startSpan(ctx, "Rollback")
+	defer func() {
+		endSpan(span, err)
+	}()
+
+	guard := newGuard(ctx, "transact")
+	_ = guard.start("ROLLBACK")
+
+	err = t.Tx.Rollback()
+	guard.finish(ctx, err)
+
+	return
+}
+
+func begin(ctx context.Context, db *sql.DB) (t trans, err error) {
+	ctx, span := startSpan(ctx, "Begin")
+	defer func() {
+		endSpan(span, err)
+	}()
+
+	guard := newGuard(ctx, "transact")
+	_ = guard.start("BEGIN")
+
+	var tx *sql.Tx
+	tx, err = db.Begin()
+
+	guard.finish(ctx, err)
+
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	return txSession{
@@ -165,24 +207,24 @@ func transact(ctx context.Context, db *commonSqlConn, b beginnable,
 func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
 	fn func(context.Context, Session) error) (err error) {
 	var tx trans
-	tx, err = b(conn)
+	tx, err = b(ctx, conn)
 	if err != nil {
 		return
 	}
 
 	defer func() {
 		if p := recover(); p != nil {
-			if e := tx.Rollback(); e != nil {
+			if e := tx.RollbackCtx(ctx); e != nil {
 				err = fmt.Errorf("recover from %#v, rollback failed: %w", p, e)
 			} else {
 				err = fmt.Errorf("recover from %#v", p)
 			}
 		} else if err != nil {
-			if e := tx.Rollback(); e != nil {
+			if e := tx.RollbackCtx(ctx); e != nil {
 				err = fmt.Errorf("transaction failed: %s, rollback failed: %w", err, e)
 			}
 		} else {
-			err = tx.Commit()
+			err = tx.CommitCtx(ctx)
 		}
 	}()
 

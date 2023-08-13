@@ -21,7 +21,7 @@ type mockTx struct {
 	status int
 }
 
-func (mt *mockTx) Commit() error {
+func (mt *mockTx) CommitCtx(_ context.Context) error {
 	mt.status |= mockCommit
 	return nil
 }
@@ -74,13 +74,13 @@ func (mt *mockTx) QueryRowsPartialCtx(_ context.Context, _ any, _ string, _ ...a
 	return nil
 }
 
-func (mt *mockTx) Rollback() error {
+func (mt *mockTx) RollbackCtx(_ context.Context) error {
 	mt.status |= mockRollback
 	return nil
 }
 
 func beginMock(mock *mockTx) beginnable {
-	return func(*sql.DB) (trans, error) {
+	return func(context.Context, *sql.DB) (trans, error) {
 		return mock, nil
 	}
 }
