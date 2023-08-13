@@ -362,6 +362,33 @@ func TestParseWithValidatorRequest(t *testing.T) {
 	assert.Error(t, Parse(r, &v))
 }
 
+func TestParseFormWithDot(t *testing.T) {
+	var v struct {
+		Age int `form:"user.age"`
+	}
+	r, err := http.NewRequest(http.MethodGet, "/a?user.age=18", http.NoBody)
+	assert.Nil(t, err)
+	assert.NoError(t, Parse(r, &v))
+	assert.Equal(t, 18, v.Age)
+}
+
+func TestParsePathWithDot(t *testing.T) {
+	var v struct {
+		Name string `path:"name.val"`
+		Age  int    `path:"age.val"`
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	r = pathvar.WithVars(r, map[string]string{
+		"name.val": "foo",
+		"age.val":  "18",
+	})
+	err := Parse(r, &v)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", v.Name)
+	assert.Equal(t, 18, v.Age)
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
