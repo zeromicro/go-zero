@@ -24,10 +24,10 @@ const (
 )
 
 var (
-	formUnmarshaler     = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
-	pathUnmarshaler     = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	validator           atomic.Value
-	customFieldUnsetErr func(ctx context.Context, key string) error
+	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	validator       atomic.Value
+  customFieldUnsetErr func(ctx context.Context, key string) error
 )
 
 // Validator defines the interface for validating the request.
