@@ -5092,6 +5092,21 @@ func TestUnmarshalFromStringSliceForTypeMismatch(t *testing.T) {
 	}, &v))
 }
 
+func TestUnmarshalWithOpaqueKeys(t *testing.T) {
+	var v struct {
+		Opaque string `key:"opaque.key"`
+		Value  string `key:"value"`
+	}
+	unmarshaler := NewUnmarshaler("key", WithOpaqueKeys())
+	if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+		"opaque.key": "foo",
+		"value":      "bar",
+	}, &v)) {
+		assert.Equal(t, "foo", v.Opaque)
+		assert.Equal(t, "bar", v.Value)
+	}
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
