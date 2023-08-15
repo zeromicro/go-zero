@@ -49,6 +49,7 @@ type (
 	unmarshalOptions struct {
 		fillDefault  bool
 		fromString   bool
+		opaqueKeys   bool
 		canonicalKey func(key string) string
 	}
 )
@@ -494,7 +495,7 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 			return err
 		}
 
-		_, hasValue := getValue(m, fieldKey)
+		_, hasValue := getValue(m, fieldKey, u.opts.opaqueKeys)
 		if hasValue {
 			if !filled {
 				filled = true
@@ -737,7 +738,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	}
 
 	valuer := createValuer(m, opts)
-	mapValue, hasValue := getValue(valuer, canonicalKey)
+	mapValue, hasValue := getValue(valuer, canonicalKey, u.opts.opaqueKeys)
 
 	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
@@ -928,6 +929,14 @@ func WithDefault() UnmarshalOption {
 	}
 }
 
+// WithOpaqueKeys customizes an Unmarshaler with opaque keys.
+// Opaque keys are keys that are not processed by the unmarshaler.
+func WithOpaqueKeys() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.opaqueKeys = true
+	}
+}
+
 func createValuer(v valuerWithParent, opts *fieldOptionsWithContext) valuerWithParent {
 	if opts.inherit() {
 		return recursiveValuer{
@@ -1005,8 +1014,8 @@ func fillWithSameType(fieldType reflect.Type, value reflect.Value, mapValue any,
 }
 
 // getValue gets the value for the specific key, the key can be in the format of parentKey.childKey
-func getValue(m valuerWithParent, key string) (any, bool) {
-	keys := readKeys(key)
+func getValue(m valuerWithParent, key string, opaque bool) (any, bool) {
+	keys := readKeys(key, opaque)
 	return getValueWithChainedKeys(m, keys)
 }
 
@@ -1065,7 +1074,11 @@ func newTypeMismatchErrorWithHint(name, expectType, actualType string) error {
 		name, expectType, actualType)
 }
 
-func readKeys(key string) []string {
+func readKeys(key string, opaque bool) []string {
+	if opaque {
+		return []string{key}
+	}
+
 	cacheKeysLock.Lock()
 	keys, ok := cacheKeys[key]
 	cacheKeysLock.Unlock()
