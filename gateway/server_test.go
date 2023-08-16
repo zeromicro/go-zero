@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"github.com/zeromicro/go-zero/gateway/internal"
 	"log"
 	"net"
 	"net/http"
@@ -92,6 +93,35 @@ func TestMustNewServer(t *testing.T) {
 	resp, err = httpc.Do(context.Background(), http.MethodGet, "http://localhost:18881/deposit_fail/100", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestMethodDefaultValue(t *testing.T) {
+
+	cases := []internal.Method{
+		{
+			RpcPath: "hello.Hello/Ping",
+		},
+		{
+
+			HttpMethod: http.MethodPost,
+			RpcPath:    "hello.Hello/Ping",
+		},
+		{
+			HttpPath: "hello.Hello/Ping",
+			RpcPath:  "hello.Hello/Ping",
+		},
+	}
+	result := internal.Method{
+		HttpMethod: http.MethodPost,
+		HttpPath:   "hello.Hello/Ping",
+		RpcPath:    "hello.Hello/Ping",
+	}
+
+	var s = Server{}
+	for _, m := range cases {
+		m = s.transformMethod(m)
+		assert.EqualValues(t, m, result)
+	}
 }
 
 func TestServer_ensureUpstreamNames(t *testing.T) {

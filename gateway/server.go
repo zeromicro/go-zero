@@ -86,13 +86,13 @@ func (s *Server) build() error {
 
 		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
 		for _, m := range methods {
-			if len(m.HttpMethod) > 0 && len(m.HttpPath) > 0 {
-				writer.Write(rest.Route{
-					Method:  m.HttpMethod,
-					Path:    m.HttpPath,
-					Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
-				})
-			}
+
+			m = s.transformMethod(m)
+			writer.Write(rest.Route{
+				Method:  m.HttpMethod,
+				Path:    m.HttpPath,
+				Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
+			})
 		}
 
 		methodSet := make(map[string]struct{})
@@ -116,6 +116,19 @@ func (s *Server) build() error {
 			s.Server.AddRoute(route)
 		}
 	})
+}
+
+func (s *Server) transformMethod(method internal.Method) internal.Method {
+
+	if len(method.HttpMethod) == 0 {
+		method.HttpMethod = http.MethodPost
+	}
+
+	if len(method.HttpPath) == 0 {
+		method.HttpPath = method.RpcPath
+	}
+
+	return method
 }
 
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
