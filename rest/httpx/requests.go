@@ -24,8 +24,8 @@ const (
 )
 
 var (
-	formUnmarshaler     = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
-	pathUnmarshaler     = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	formUnmarshaler     = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	pathUnmarshaler     = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
 	validator           atomic.Value
 	customFieldUnsetErr func(ctx context.Context, key string) error
 )
