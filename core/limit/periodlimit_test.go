@@ -25,7 +25,10 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 		seconds = 1
 		quota   = 5
 	)
-	l := NewPeriodLimit(seconds, quota, redis.New(s.Addr()), "periodlimit")
+
+	r, err := redis.NewRedis(redis.RedisConf{Host: s.Addr(), Type: "node"})
+	assert.Nil(t, err)
+	l := NewPeriodLimit(seconds, quota, r, "periodlimit")
 	s.Close()
 	val, err := l.Take("first")
 	assert.NotNil(t, err)
@@ -68,7 +71,9 @@ func TestQuotaFull(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
 
-	l := NewPeriodLimit(1, 1, redis.New(s.Addr()), "periodlimit")
+	r, err := redis.NewRedis(redis.RedisConf{Host: s.Addr(), Type: "node"})
+	assert.Nil(t, err)
+	l := NewPeriodLimit(1, 1, r, "periodlimit")
 	val, err := l.Take("first")
 	assert.Nil(t, err)
 	assert.Equal(t, HitQuota, val)

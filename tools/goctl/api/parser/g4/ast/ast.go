@@ -88,20 +88,20 @@ func WithVisitorDebug() VisitorOption {
 	}
 }
 
-type defaultExpr struct {
+type DefaultExpr struct {
 	prefix, v    string
 	line, column int
 	start, stop  int
 }
 
 // NewTextExpr creates a default instance for Expr
-func NewTextExpr(v string) *defaultExpr {
-	return &defaultExpr{
+func NewTextExpr(v string) *DefaultExpr {
+	return &DefaultExpr{
 		v: v,
 	}
 }
 
-func (v *ApiVisitor) newExprWithTerminalNode(node antlr.TerminalNode) *defaultExpr {
+func (v *ApiVisitor) newExprWithTerminalNode(node antlr.TerminalNode) *DefaultExpr {
 	if node == nil {
 		return nil
 	}
@@ -110,12 +110,12 @@ func (v *ApiVisitor) newExprWithTerminalNode(node antlr.TerminalNode) *defaultEx
 	return v.newExprWithToken(token)
 }
 
-func (v *ApiVisitor) newExprWithToken(token antlr.Token) *defaultExpr {
+func (v *ApiVisitor) newExprWithToken(token antlr.Token) *DefaultExpr {
 	if token == nil {
 		return nil
 	}
 
-	instance := &defaultExpr{}
+	instance := &DefaultExpr{}
 	instance.prefix = v.prefix
 	instance.v = token.GetText()
 	instance.line = token.GetLine()
@@ -126,8 +126,8 @@ func (v *ApiVisitor) newExprWithToken(token antlr.Token) *defaultExpr {
 	return instance
 }
 
-func (v *ApiVisitor) newExprWithText(text string, line, column, start, stop int) *defaultExpr {
-	instance := &defaultExpr{}
+func (v *ApiVisitor) newExprWithText(text string, line, column, start, stop int) *DefaultExpr {
+	instance := &DefaultExpr{}
 	instance.prefix = v.prefix
 	instance.v = text
 	instance.line = line
@@ -138,7 +138,7 @@ func (v *ApiVisitor) newExprWithText(text string, line, column, start, stop int)
 	return instance
 }
 
-func (e *defaultExpr) Prefix() string {
+func (e *DefaultExpr) Prefix() string {
 	if e == nil {
 		return ""
 	}
@@ -146,7 +146,7 @@ func (e *defaultExpr) Prefix() string {
 	return e.prefix
 }
 
-func (e *defaultExpr) Line() int {
+func (e *DefaultExpr) Line() int {
 	if e == nil {
 		return 0
 	}
@@ -154,7 +154,7 @@ func (e *defaultExpr) Line() int {
 	return e.line
 }
 
-func (e *defaultExpr) Column() int {
+func (e *DefaultExpr) Column() int {
 	if e == nil {
 		return 0
 	}
@@ -162,7 +162,7 @@ func (e *defaultExpr) Column() int {
 	return e.column
 }
 
-func (e *defaultExpr) Text() string {
+func (e *DefaultExpr) Text() string {
 	if e == nil {
 		return ""
 	}
@@ -170,7 +170,7 @@ func (e *defaultExpr) Text() string {
 	return e.v
 }
 
-func (e *defaultExpr) SetText(text string) {
+func (e *DefaultExpr) SetText(text string) {
 	if e == nil {
 		return
 	}
@@ -178,7 +178,7 @@ func (e *defaultExpr) SetText(text string) {
 	e.v = text
 }
 
-func (e *defaultExpr) Start() int {
+func (e *DefaultExpr) Start() int {
 	if e == nil {
 		return 0
 	}
@@ -186,7 +186,7 @@ func (e *defaultExpr) Start() int {
 	return e.start
 }
 
-func (e *defaultExpr) Stop() int {
+func (e *DefaultExpr) Stop() int {
 	if e == nil {
 		return 0
 	}
@@ -194,7 +194,7 @@ func (e *defaultExpr) Stop() int {
 	return e.stop
 }
 
-func (e *defaultExpr) Equal(expr Expr) bool {
+func (e *DefaultExpr) Equal(expr Expr) bool {
 	if e == nil {
 		return expr == nil
 	}
@@ -206,7 +206,7 @@ func (e *defaultExpr) Equal(expr Expr) bool {
 	return e.v == expr.Text()
 }
 
-func (e *defaultExpr) IsNotNil() bool {
+func (e *DefaultExpr) IsNotNil() bool {
 	return e != nil
 }
 

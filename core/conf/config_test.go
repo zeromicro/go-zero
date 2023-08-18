@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/zeromicro/go-zero/core/fs"
 	"github.com/zeromicro/go-zero/core/hash"
 )
 
@@ -15,13 +14,6 @@ var dupErr conflictKeyError
 
 func TestLoadConfig_notExists(t *testing.T) {
 	assert.NotNil(t, Load("not_a_file", nil))
-}
-
-func TestLoadConfig_notRecogFile(t *testing.T) {
-	filename, err := fs.TempFilenameWithText("hello")
-	assert.Nil(t, err)
-	defer os.Remove(filename)
-	assert.NotNil(t, LoadConfig(filename, nil))
 }
 
 func TestConfigJson(t *testing.T) {
@@ -68,7 +60,7 @@ func TestLoadFromJsonBytesArray(t *testing.T) {
 		}
 	}
 
-	assert.NoError(t, LoadConfigFromJsonBytes(input, &val))
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
 	var expect []string
 	for _, user := range val.Users {
 		expect = append(expect, user.Name)
@@ -145,17 +137,10 @@ b = 1
 func TestConfigJsonCanonical(t *testing.T) {
 	text := []byte(`{"a": "foo", "B": "bar"}`)
 
-	var val1 struct {
-		A string `json:"a"`
-		B string `json:"b"`
-	}
 	var val2 struct {
 		A string
 		B string
 	}
-	assert.NoError(t, LoadFromJsonBytes(text, &val1))
-	assert.Equal(t, "foo", val1.A)
-	assert.Equal(t, "bar", val1.B)
 	assert.NoError(t, LoadFromJsonBytes(text, &val2))
 	assert.Equal(t, "foo", val2.A)
 	assert.Equal(t, "bar", val2.B)
@@ -185,17 +170,10 @@ func TestConfigYamlCanonical(t *testing.T) {
 	text := []byte(`a: foo
 B: bar`)
 
-	var val1 struct {
-		A string `json:"a"`
-		B string `json:"b"`
-	}
 	var val2 struct {
 		A string
 		B string
 	}
-	assert.NoError(t, LoadConfigFromYamlBytes(text, &val1))
-	assert.Equal(t, "foo", val1.A)
-	assert.Equal(t, "bar", val1.B)
 	assert.NoError(t, LoadFromYamlBytes(text, &val2))
 	assert.Equal(t, "foo", val2.A)
 	assert.Equal(t, "bar", val2.B)

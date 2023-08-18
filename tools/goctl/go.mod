@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.3
-	github.com/duke-git/lancet/v2 v2.2.3
+	github.com/duke-git/lancet/v2 v2.2.4
 	github.com/emicklei/proto v1.12.1
 	github.com/fatih/structtag v1.2.0
 	github.com/gookit/color v1.5.4
@@ -17,7 +17,7 @@ require (
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/go-zero v1.5.4
-	golang.org/x/text v0.11.0
+	golang.org/x/text v0.12.0
 )
 
 require (

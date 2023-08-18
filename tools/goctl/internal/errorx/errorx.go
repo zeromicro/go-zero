@@ -1,6 +1,7 @@
 package errorx
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -25,7 +26,8 @@ func (e *GoctlError) Error() string {
 
 // Wrap wraps an error with goctl version and message.
 func Wrap(err error, message ...string) error {
-	e, ok := err.(*GoctlError)
+	var e *GoctlError
+	ok := errors.As(err, &e)
 	if ok {
 		return e
 	}

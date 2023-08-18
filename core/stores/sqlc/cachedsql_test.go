@@ -278,7 +278,11 @@ func TestStatCacheFails(t *testing.T) {
 	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stdout)
 
-	r := redis.New("localhost:59999")
+	s, err := miniredis.Run()
+	assert.Nil(t, err)
+
+	r, _ := redis.NewRedis(redis.RedisConf{Host: s.Addr(), Type: "node"})
+	assert.Nil(t, err)
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
 	for i := 0; i < 20; i++ {
@@ -292,7 +296,7 @@ func TestStatCacheFails(t *testing.T) {
 	assert.Equal(t, uint64(20), atomic.LoadUint64(&stats.Total))
 	assert.Equal(t, uint64(0), atomic.LoadUint64(&stats.Hit))
 	assert.Equal(t, uint64(20), atomic.LoadUint64(&stats.Miss))
-	assert.Equal(t, uint64(0), atomic.LoadUint64(&stats.DbFails))
+	assert.Equal(t, uint64(20), atomic.LoadUint64(&stats.DbFails))
 }
 
 func TestStatDbFails(t *testing.T) {

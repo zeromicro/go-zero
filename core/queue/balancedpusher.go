@@ -10,7 +10,7 @@ import (
 // ErrNoAvailablePusher indicates no pusher available.
 var ErrNoAvailablePusher = errors.New("no available pusher")
 
-// A BalancedPusher is used to push messages to multiple pusher with round robin algorithm.
+// A BalancedPusher is used to push messages to multiple pusher with round-robin algorithm.
 type BalancedPusher struct {
 	name    string
 	pushers []Pusher

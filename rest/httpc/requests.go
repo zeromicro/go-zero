@@ -26,7 +26,7 @@ var interceptors = []internal.Interceptor{
 	internal.LogInterceptor,
 }
 
-// Do sends an HTTP request with the given arguments and returns an HTTP response.
+// Do send an HTTP request with the given arguments and returns an HTTP response.
 // data is automatically marshal into a *httpRequest, typically it's defined in an API file.
 func Do(ctx context.Context, method, url string, data any) (*http.Response, error) {
 	req, err := buildRequest(ctx, method, url, data)

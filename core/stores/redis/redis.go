@@ -2414,23 +2414,9 @@ func (s *Redis) ZrangeWithScoresByFloatCtx(ctx context.Context, key string, star
 	return
 }
 
-// ZRevRangeWithScores is the implementation of redis zrevrange command with scores.
-// Deprecated: use ZrevrangeWithScores instead.
-func (s *Redis) ZRevRangeWithScores(key string, start, stop int64) ([]Pair, error) {
-	return s.ZrevrangeWithScoresCtx(context.Background(), key, start, stop)
-}
-
 // ZrevrangeWithScores is the implementation of redis zrevrange command with scores.
 func (s *Redis) ZrevrangeWithScores(key string, start, stop int64) ([]Pair, error) {
 	return s.ZrevrangeWithScoresCtx(context.Background(), key, start, stop)
-}
-
-// ZRevRangeWithScoresCtx is the implementation of redis zrevrange command with scores.
-// Deprecated: use ZrevrangeWithScoresCtx instead.
-func (s *Redis) ZRevRangeWithScoresCtx(ctx context.Context, key string, start, stop int64) (
-	val []Pair, err error,
-) {
-	return s.ZrevrangeWithScoresCtx(ctx, key, start, stop)
 }
 
 // ZrevrangeWithScoresCtx is the implementation of redis zrevrange command with scores.
@@ -2455,23 +2441,9 @@ func (s *Redis) ZrevrangeWithScoresCtx(ctx context.Context, key string, start, s
 	return
 }
 
-// ZRevRangeWithScoresByFloat is the implementation of redis zrevrange command with scores by float.
-// Deprecated: use ZrevrangeWithScoresByFloat instead.
-func (s *Redis) ZRevRangeWithScoresByFloat(key string, start, stop int64) ([]FloatPair, error) {
-	return s.ZrevrangeWithScoresByFloatCtx(context.Background(), key, start, stop)
-}
-
 // ZrevrangeWithScoresByFloat is the implementation of redis zrevrange command with scores by float.
 func (s *Redis) ZrevrangeWithScoresByFloat(key string, start, stop int64) ([]FloatPair, error) {
 	return s.ZrevrangeWithScoresByFloatCtx(context.Background(), key, start, stop)
-}
-
-// ZRevRangeWithScoresByFloatCtx is the implementation of redis zrevrange command with scores by float.
-// Deprecated: use ZrevrangeWithScoresByFloatCtx instead.
-func (s *Redis) ZRevRangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
-	val []FloatPair, err error,
-) {
-	return s.ZrevrangeWithScoresByFloatCtx(ctx, key, start, stop)
 }
 
 // ZrevrangeWithScoresByFloatCtx is the implementation of redis zrevrange command with scores by float.
@@ -2897,7 +2869,7 @@ func withHook(hook red.Hook) Option {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == red.Nil || err == context.Canceled
+	return err == nil || err == red.Nil || errors.Is(err, context.Canceled)
 }
 
 func getRedis(r *Redis) (RedisNode, error) {

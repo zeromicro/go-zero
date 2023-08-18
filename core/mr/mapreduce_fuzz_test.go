@@ -13,17 +13,17 @@ import (
 )
 
 func FuzzMapReduce(f *testing.F) {
-	rand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	f.Add(int64(10), runtime.NumCPU())
 	f.Fuzz(func(t *testing.T, n int64, workers int) {
 		n = n%5000 + 5000
-		genPanic := rand.Intn(100) == 0
-		mapperPanic := rand.Intn(100) == 0
-		reducerPanic := rand.Intn(100) == 0
-		genIdx := rand.Int63n(n)
-		mapperIdx := rand.Int63n(n)
-		reducerIdx := rand.Int63n(n)
+		genPanic := r.Intn(100) == 0
+		mapperPanic := r.Intn(100) == 0
+		reducerPanic := r.Intn(100) == 0
+		genIdx := r.Int63n(n)
+		mapperIdx := r.Int63n(n)
+		reducerIdx := r.Int63n(n)
 		squareSum := (n - 1) * n * (2*n - 1) / 6
 
 		fn := func() (int64, error) {

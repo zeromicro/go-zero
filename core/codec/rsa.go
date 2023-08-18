@@ -26,7 +26,7 @@ type (
 		DecryptBase64(input string) ([]byte, error)
 	}
 
-	// RsaEncrypter represents a RSA encrypter.
+	// RsaEncrypter represents an RSA encrypter.
 	RsaEncrypter interface {
 		Encrypt(input []byte) ([]byte, error)
 	}

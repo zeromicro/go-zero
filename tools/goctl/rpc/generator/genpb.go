@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -82,7 +83,7 @@ func findPbFile(current string, grpc bool) (string, error) {
 		}
 		return nil
 	})
-	if err == os.ErrExist {
+	if errors.Is(err, os.ErrExist) {
 		return filepath.Dir(filepath.Join(current, ret)), nil
 	}
 	return "", err

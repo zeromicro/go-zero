@@ -2,6 +2,7 @@ package serverinterceptors
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/load"
@@ -32,7 +33,7 @@ func UnarySheddingInterceptor(shedder load.Shedder, metrics *stat.Metrics) grpc.
 		}
 
 		defer func() {
-			if err == context.DeadlineExceeded {
+			if errors.Is(err, context.DeadlineExceeded) {
 				promise.Fail()
 			} else {
 				sheddingStat.IncrementPass()

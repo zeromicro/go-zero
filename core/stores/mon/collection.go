@@ -3,6 +3,7 @@ package mon
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -562,11 +563,11 @@ func (p keepablePromise) keep(err error) error {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == mongo.ErrNoDocuments || err == mongo.ErrNilValue ||
-		err == mongo.ErrNilDocument || err == mongo.ErrNilCursor || err == mongo.ErrEmptySlice ||
+	return err == nil || errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, mongo.ErrNilValue) ||
+		errors.Is(err, mongo.ErrNilDocument) || errors.Is(err, mongo.ErrNilCursor) || errors.Is(err, mongo.ErrEmptySlice) ||
 		// session errors
-		err == session.ErrSessionEnded || err == session.ErrNoTransactStarted ||
-		err == session.ErrTransactInProgress || err == session.ErrAbortAfterCommit ||
-		err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
-		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
+		errors.Is(err, session.ErrSessionEnded) || errors.Is(err, session.ErrNoTransactStarted) ||
+		errors.Is(err, session.ErrTransactInProgress) || errors.Is(err, session.ErrAbortAfterCommit) ||
+		errors.Is(err, session.ErrAbortTwice) || errors.Is(err, session.ErrCommitAfterAbort) ||
+		errors.Is(err, session.ErrUnackWCUnsupported) || errors.Is(err, session.ErrSnapshotTransaction)
 }

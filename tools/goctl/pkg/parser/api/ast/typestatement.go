@@ -277,7 +277,7 @@ type DataType interface {
 	RawText() string
 }
 
-// AnyDataType is the any data type.
+// AnyDataType is any data type.
 type AnyDataType struct {
 	// Any is the any token node.
 	Any     *TokenNode

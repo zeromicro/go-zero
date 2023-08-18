@@ -30,7 +30,7 @@ func TestBreakersDoWithAcceptable(t *testing.T) {
 		assert.Equal(t, errDummy, GetBreaker("anyone").DoWithAcceptable(func() error {
 			return errDummy
 		}, func(err error) bool {
-			return err == nil || err == errDummy
+			return err == nil || errors.Is(err, errDummy)
 		}))
 	}
 	verify(t, func() bool {
@@ -45,12 +45,12 @@ func TestBreakersDoWithAcceptable(t *testing.T) {
 		}, func(err error) bool {
 			return err == nil
 		})
-		assert.True(t, err == errDummy || err == ErrServiceUnavailable)
+		assert.True(t, errors.Is(err, errDummy) || errors.Is(err, ErrServiceUnavailable))
 	}
 	verify(t, func() bool {
-		return ErrServiceUnavailable == Do("another", func() error {
+		return errors.Is(Do("another", func() error {
 			return nil
-		})
+		}), ErrServiceUnavailable)
 	})
 }
 
@@ -75,12 +75,12 @@ func TestBreakersFallback(t *testing.T) {
 		}, func(err error) error {
 			return nil
 		})
-		assert.True(t, err == nil || err == errDummy)
+		assert.True(t, err == nil || errors.Is(err, errDummy))
 	}
 	verify(t, func() bool {
-		return ErrServiceUnavailable == Do("fallback", func() error {
+		return errors.Is(Do("fallback", func() error {
 			return nil
-		})
+		}), ErrServiceUnavailable)
 	})
 }
 
@@ -94,12 +94,12 @@ func TestBreakersAcceptableFallback(t *testing.T) {
 		}, func(err error) bool {
 			return err == nil
 		})
-		assert.True(t, err == nil || err == errDummy)
+		assert.True(t, err == nil || errors.Is(err, errDummy))
 	}
 	verify(t, func() bool {
-		return ErrServiceUnavailable == Do("acceptablefallback", func() error {
+		return errors.Is(Do("acceptablefallback", func() error {
 			return nil
-		})
+		}), ErrServiceUnavailable)
 	})
 }
 

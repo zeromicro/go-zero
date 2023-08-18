@@ -56,7 +56,8 @@ func TestRedisConf(t *testing.T) {
 		t.Run(stringx.RandId(), func(t *testing.T) {
 			if test.ok {
 				assert.Nil(t, test.RedisConf.Validate())
-				assert.NotNil(t, test.RedisConf.NewRedis())
+				_, err := NewRedis(test.RedisConf)
+				assert.NotNil(t, err)
 			} else {
 				assert.NotNil(t, test.RedisConf.Validate())
 			}

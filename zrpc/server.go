@@ -96,18 +96,6 @@ func (rs *RpcServer) Stop() {
 	logx.Close()
 }
 
-// DontLogContentForMethod disable logging content for given method.
-// Deprecated: use ServerMiddlewaresConf.IgnoreContentMethods instead.
-func DontLogContentForMethod(method string) {
-	serverinterceptors.DontLogContentForMethod(method)
-}
-
-// SetServerSlowThreshold sets the slow threshold on server side.
-// Deprecated: use ServerMiddlewaresConf.SlowThreshold instead.
-func SetServerSlowThreshold(threshold time.Duration) {
-	serverinterceptors.SetSlowThreshold(threshold)
-}
-
 func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
 	rds, err := redis.NewRedis(c.Redis.RedisConf)
 	if err != nil {
