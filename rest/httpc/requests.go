@@ -83,11 +83,14 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 
 	var reader io.Reader
 	jsonVars, hasJsonBody := val[jsonKey]
+	formVars, hasFormBody := val[formKey]
+	if hasJsonBody && hasFormBody {
+		return nil, fmt.Errorf("cannot have both json and form body")
+	}
 	if hasJsonBody {
 		if method == http.MethodGet {
 			return nil, ErrGetWithBody
 		}
-
 		var buf bytes.Buffer
 		enc := json.NewEncoder(&buf)
 		if err := enc.Encode(jsonVars); err != nil {
@@ -95,6 +98,13 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 		}
 
 		reader = &buf
+	} else if hasFormBody {
+		formData := nurl.Values{}
+		for k, v := range formVars {
+			formData.Add(k, fmt.Sprint(v))
+		}
+
+		reader = strings.NewReader(formData.Encode())
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), reader)
@@ -102,10 +112,14 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 		return nil, err
 	}
 
-	req.URL.RawQuery = buildFormQuery(u, val[formKey])
+	// req.URL.RawQuery = buildFormQuery(u, val[formKey])
+
 	fillHeader(req, val[headerKey])
 	if hasJsonBody {
 		req.Header.Set(header.ContentType, header.JsonContentType)
+	}
+	if hasFormBody {
+		req.Header.Set(header.ContentType, header.FormContentType)
 	}
 
 	return req, nil
