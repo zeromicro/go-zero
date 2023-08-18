@@ -43,7 +43,7 @@ func CreateIfNotExist(file string) (*os.File, error) {
 	return os.Create(file)
 }
 
-// RemoveIfExist deletes the specified file if it is exists.
+// RemoveIfExist deletes the specified file if it is existing.
 func RemoveIfExist(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -65,7 +65,7 @@ func RemoveOrQuit(filename string) error {
 	return os.Remove(filename)
 }
 
-// FileExists returns true if the specified file is exists.
+// FileExists returns true if the specified file is existing.
 func FileExists(file string) bool {
 	_, err := os.Stat(file)
 	return err == nil
@@ -192,7 +192,7 @@ func InitTemplates(category string, templates map[string]string) error {
 	return nil
 }
 
-// CreateTemplate writes template into file even it is exists.
+// CreateTemplate writes template into file even it is existing.
 func CreateTemplate(category, name, content string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {

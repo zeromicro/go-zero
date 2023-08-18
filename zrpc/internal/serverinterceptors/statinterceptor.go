@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -27,18 +26,6 @@ var (
 type StatConf struct {
 	SlowThreshold        time.Duration `json:",default=500ms"`
 	IgnoreContentMethods []string      `json:",optional"`
-}
-
-// DontLogContentForMethod disable logging content for given method.
-// Deprecated: use StatConf instead.
-func DontLogContentForMethod(method string) {
-	ignoreContentMethods.Store(method, lang.Placeholder)
-}
-
-// SetSlowThreshold sets the slow threshold.
-// Deprecated: use StatConf instead.
-func SetSlowThreshold(threshold time.Duration) {
-	slowThreshold.Set(threshold)
 }
 
 // UnaryStatInterceptor returns a func that uses given metrics to report stats.

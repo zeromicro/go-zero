@@ -50,7 +50,7 @@ func ToSnakeCase(s string) string {
 // ToCamelCase returns a copy string by converting snake case into camel case
 func ToCamelCase(s string) string {
 	s = ToLower(s)
-	out := []rune{}
+	var out []rune
 	for index, r := range s {
 		if r == '_' {
 			continue

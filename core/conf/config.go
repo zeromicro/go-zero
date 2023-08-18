@@ -65,12 +65,6 @@ func Load(file string, v any, opts ...Option) error {
 	return loader(content, v)
 }
 
-// LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
-// Deprecated: use Load instead.
-func LoadConfig(file string, v any, opts ...Option) error {
-	return Load(file, v, opts...)
-}
-
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v any) error {
 	info, err := buildFieldsInfo(reflect.TypeOf(v), "")
@@ -86,12 +80,6 @@ func LoadFromJsonBytes(content []byte, v any) error {
 	lowerCaseKeyMap := toLowerCaseKeyMap(m, info)
 
 	return mapping.UnmarshalJsonMap(lowerCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toLowerCase))
-}
-
-// LoadConfigFromJsonBytes loads config into v from content json bytes.
-// Deprecated: use LoadFromJsonBytes instead.
-func LoadConfigFromJsonBytes(content []byte, v any) error {
-	return LoadFromJsonBytes(content, v)
 }
 
 // LoadFromTomlBytes loads config into v from content toml bytes.
@@ -112,12 +100,6 @@ func LoadFromYamlBytes(content []byte, v any) error {
 	}
 
 	return LoadFromJsonBytes(b, v)
-}
-
-// LoadConfigFromYamlBytes loads config into v from content yaml bytes.
-// Deprecated: use LoadFromYamlBytes instead.
-func LoadConfigFromYamlBytes(content []byte, v any) error {
-	return LoadFromYamlBytes(content, v)
 }
 
 // MustLoad loads config into v from path, exits on error.

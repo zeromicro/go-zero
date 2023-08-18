@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"strings"
@@ -116,7 +117,8 @@ func formatError(err error) string {
 		return ""
 	}
 
-	opErr, ok := err.(*net.OpError)
+	var opErr *net.OpError
+	ok := errors.As(err, &opErr)
 	if ok && opErr.Timeout() {
 		return "timeout"
 	}

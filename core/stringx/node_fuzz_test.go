@@ -11,14 +11,14 @@ import (
 )
 
 func FuzzNodeFind(f *testing.F) {
-	rand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	f.Add(10)
 	f.Fuzz(func(t *testing.T, keys int) {
-		str := Randn(rand.Intn(100) + 50)
+		str := Randn(r.Intn(100) + 50)
 		keywords := make(map[string]struct{})
 		for i := 0; i < keys; i++ {
-			keyword := Randn(rand.Intn(10) + 5)
+			keyword := Randn(r.Intn(10) + 5)
 			if !strings.Contains(str, keyword) {
 				keywords[keyword] = struct{}{}
 			}
@@ -28,8 +28,8 @@ func FuzzNodeFind(f *testing.F) {
 		var scopes []scope
 		var n node
 		for i := 0; i < size%20; i++ {
-			start := rand.Intn(size)
-			stop := start + rand.Intn(20) + 1
+			start := r.Intn(size)
+			stop := start + r.Intn(20) + 1
 			if stop > size {
 				stop = size
 			}

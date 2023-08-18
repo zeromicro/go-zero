@@ -23,7 +23,7 @@ var (
 	zero = big.NewInt(0)
 )
 
-// DhKey defines the Diffie Hellman key.
+// DhKey defines the Diffie-Hellman key.
 type DhKey struct {
 	PriKey *big.Int
 	PubKey *big.Int
@@ -46,7 +46,7 @@ func ComputeKey(pubKey, priKey *big.Int) (*big.Int, error) {
 	return new(big.Int).Exp(pubKey, priKey, p), nil
 }
 
-// GenerateKey returns a Diffie Hellman key.
+// GenerateKey returns a Diffie-Hellman key.
 func GenerateKey() (*DhKey, error) {
 	var err error
 	var x *big.Int

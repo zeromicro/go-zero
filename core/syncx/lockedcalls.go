@@ -4,7 +4,7 @@ import "sync"
 
 type (
 	// LockedCalls makes sure the calls with the same key to be called sequentially.
-	// For example, A called F, before it's done, B called F, then B's call would not blocked,
+	// For example, A called F, before it's done, B called F, then B's call would not be blocked,
 	// after A's call finished, B's call got executed.
 	// The calls with the same key are independent, not sharing the returned values.
 	// A ------->calls F with key and executes<------->returns

@@ -327,7 +327,7 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 			query,
 			bodySign,
 		}, "\n")
-		rs.signature = codec.HmacBase64([]byte(key), contentOfSign)
+		rs.signature = codec.HmacBase64(key, contentOfSign)
 	}
 
 	var mode string

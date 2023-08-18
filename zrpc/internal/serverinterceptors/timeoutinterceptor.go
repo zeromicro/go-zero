@@ -2,6 +2,7 @@ package serverinterceptors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -49,9 +50,9 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 			return resp, err
 		case <-ctx.Done():
 			err := ctx.Err()
-			if err == context.Canceled {
+			if errors.Is(err, context.Canceled) {
 				err = status.Error(codes.Canceled, err.Error())
-			} else if err == context.DeadlineExceeded {
+			} else if errors.Is(err, context.DeadlineExceeded) {
 				err = status.Error(codes.DeadlineExceeded, err.Error())
 			}
 			return nil, err

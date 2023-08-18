@@ -14,7 +14,7 @@ func GetGroup(service parser.Service) (data []string) {
 		}
 	}
 
-	for k, _ := range groupNames {
+	for k := range groupNames {
 		data = append(data, k)
 	}
 

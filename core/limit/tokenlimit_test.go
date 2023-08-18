@@ -25,7 +25,9 @@ func TestTokenLimit_WithCtx(t *testing.T) {
 		rate  = 5
 		burst = 10
 	)
-	l := NewTokenLimiter(rate, burst, redis.New(s.Addr()), "tokenlimit")
+	r, err := redis.NewRedis(redis.RedisConf{Host: s.Addr(), Type: "node"})
+	assert.Nil(t, err)
+	l := NewTokenLimiter(rate, burst, r, "tokenlimit")
 	defer s.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -49,7 +51,9 @@ func TestTokenLimit_Rescue(t *testing.T) {
 		rate  = 5
 		burst = 10
 	)
-	l := NewTokenLimiter(rate, burst, redis.New(s.Addr()), "tokenlimit")
+	r, err := redis.NewRedis(redis.RedisConf{Host: s.Addr(), Type: "node"})
+	assert.Nil(t, err)
+	l := NewTokenLimiter(rate, burst, r, "tokenlimit")
 	s.Close()
 
 	var allowed int

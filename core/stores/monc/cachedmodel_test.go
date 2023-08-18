@@ -553,7 +553,9 @@ func createModel(t *testing.T, mt *mtest.T) *Model {
 	assert.Nil(t, err)
 	mon.Inject(mt.Name(), mt.Client)
 	if atomic.AddInt32(&index, 1)%2 == 0 {
-		return MustNewNodeModel(mt.Name(), mt.DB.Name(), mt.Coll.Name(), redis.New(s.Addr()))
+		rds, err := redis.NewRedis(redis.RedisConf{Host: s.Addr()})
+		assert.Nil(t, err)
+		return MustNewNodeModel(mt.Name(), mt.DB.Name(), mt.Coll.Name(), rds)
 	} else {
 		return MustNewModel(mt.Name(), mt.DB.Name(), mt.Coll.Name(), cache.CacheConf{
 			cache.NodeConf{

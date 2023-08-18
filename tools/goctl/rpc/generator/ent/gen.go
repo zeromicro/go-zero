@@ -228,7 +228,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		packageName = "logic"
 	}
 
-	singleSets := []string{}
+	var singleSets []string
 
 	setLogic := strings.Builder{}
 	for _, v := range schema.Fields {

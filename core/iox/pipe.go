@@ -2,7 +2,7 @@ package iox
 
 import "os"
 
-// RedirectInOut redirects stdin to r, stdout to w, and callers need to call restore afterwards.
+// RedirectInOut redirects stdin to r, stdout to w, and callers need to call restore afterward.
 func RedirectInOut() (restore func(), err error) {
 	var r, w *os.File
 	r, w, err = os.Pipe()

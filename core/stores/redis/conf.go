@@ -33,23 +33,6 @@ type (
 	}
 )
 
-// NewRedis returns a Redis.
-// Deprecated: use MustNewRedis or NewRedis instead.
-func (rc RedisConf) NewRedis() *Redis {
-	var opts []Option
-	if rc.Type == ClusterType {
-		opts = append(opts, Cluster())
-	}
-	if len(rc.Pass) > 0 {
-		opts = append(opts, WithPass(rc.Pass))
-	}
-	if rc.Tls {
-		opts = append(opts, WithTLS())
-	}
-
-	return New(rc.Host, opts...)
-}
-
 // Validate validates the RedisConf.
 func (rc RedisConf) Validate() error {
 	if len(rc.Host) == 0 {

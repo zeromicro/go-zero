@@ -21,7 +21,7 @@ import (
 // See also http://golang.org/pkg/runtime/#pkg-variables
 const DefaultMemProfileRate = 4096
 
-// started is non zero if a profile is running.
+// started is non-zero if a profile is running.
 var started uint32
 
 // Profile represents an active profiling session.

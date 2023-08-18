@@ -65,7 +65,7 @@ func TestDailyRotateRuleOutdatedFiles(t *testing.T) {
 			_ = os.Remove(f2.Name())
 		})
 		rule := DailyRotateRule{
-			filename: path.Join(os.TempDir(), "go-zero-test-"),
+			filename: filepath.Join(os.TempDir(), "go-zero-test-"),
 			days:     1,
 		}
 		assert.NotEmpty(t, rule.OutdatedFiles())
@@ -154,16 +154,18 @@ func TestSizeLimitRotateRuleOutdatedFiles(t *testing.T) {
 		f3, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary1)
 		assert.NoError(t, err)
 		t.Cleanup(func() {
-			_ = f1.Close()
 			_ = os.Remove(f1.Name())
-			_ = f2.Close()
 			_ = os.Remove(f2.Name())
-			_ = f3.Close()
 			_ = os.Remove(f3.Name())
 		})
+
+		_ = f1.Close()
+		_ = f2.Close()
+		_ = f3.Close()
+
 		rule := SizeLimitRotateRule{
 			DailyRotateRule: DailyRotateRule{
-				filename: path.Join(os.TempDir(), "go-zero-test-"),
+				filename: filepath.Join(os.TempDir(), "go-zero-test-"),
 				days:     1,
 			},
 		}

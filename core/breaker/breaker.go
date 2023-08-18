@@ -37,7 +37,7 @@ type (
 		Allow() (Promise, error)
 
 		// Do runs the given request if the Breaker accepts it.
-		// Do returns an error instantly if the Breaker rejects the request.
+		// Do return an error instantly if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		Do(req func() error) error
@@ -179,7 +179,7 @@ func (lt loggedThrottle) doReq(req func() error, fallback func(err error) error,
 }
 
 func (lt loggedThrottle) logError(err error) error {
-	if err == ErrServiceUnavailable {
+	if errors.Is(err, ErrServiceUnavailable) {
 		// if circuit open, not possible to have empty error window
 		stat.Report(fmt.Sprintf(
 			"proc(%s/%d), callee: %s, breaker is open and requests dropped\nlast errors:\n%s",

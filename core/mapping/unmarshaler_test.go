@@ -803,7 +803,7 @@ func TestUnmarshalFloat(t *testing.T) {
 	m := map[string]any{
 		"float32":    float32(1.5),
 		"float32str": "2.5",
-		"float64":    float64(3.5),
+		"float64":    3.5,
 		"float64str": "4.5",
 	}
 
