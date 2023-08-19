@@ -95,7 +95,7 @@ func TestMustNewServer(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
-func TestMethodDefaultValue(t *testing.T) {
+func TestMethodPathDefaultValue(t *testing.T) {
 
 	cases := []internal.Method{
 		{
@@ -107,13 +107,13 @@ func TestMethodDefaultValue(t *testing.T) {
 			RpcPath:    "hello.Hello/Ping",
 		},
 		{
-			HttpPath: "hello.Hello/Ping",
+			HttpPath: "/hello.Hello/Ping",
 			RpcPath:  "hello.Hello/Ping",
 		},
 	}
 	result := internal.Method{
 		HttpMethod: http.MethodPost,
-		HttpPath:   "hello.Hello/Ping",
+		HttpPath:   "/hello.Hello/Ping",
 		RpcPath:    "hello.Hello/Ping",
 	}
 
