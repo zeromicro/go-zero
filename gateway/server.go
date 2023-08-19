@@ -125,7 +125,7 @@ func (s *Server) transformMethod(method internal.Method) internal.Method {
 	}
 
 	if len(method.HttpPath) == 0 {
-		method.HttpPath = method.RpcPath
+		method.HttpPath = fmt.Sprintf("/%s", method.RpcPath)
 	}
 
 	return method
