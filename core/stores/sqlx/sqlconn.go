@@ -70,7 +70,7 @@ type (
 		beginTx   beginnable
 		brk       breaker.Breaker
 		accept    func(error) bool
-		logOption *logOption
+		logOption logOption
 	}
 
 	connProvider func() (*sql.DB, error)
@@ -85,7 +85,7 @@ type (
 	statement struct {
 		query     string
 		stmt      *sql.Stmt
-		logOption *logOption
+		logOption logOption
 	}
 
 	stmtConn interface {
@@ -343,11 +343,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 }
 
 func (db *commonSqlConn) newLogOptionContext(ctx context.Context) context.Context {
-	if db.logOption == nil {
-		return ctx
-	}
-
-	return newLogOptionContext(ctx, *db.logOption)
+	return newLogOptionContext(ctx, db.logOption)
 }
 
 func (s statement) Close() error {
@@ -433,11 +429,7 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 }
 
 func (s statement) newLogOptionContext(ctx context.Context) context.Context {
-	if s.logOption == nil {
-		return ctx
-	}
-
-	return newLogOptionContext(ctx, *s.logOption)
+	return newLogOptionContext(ctx, s.logOption)
 }
 
 // WithAcceptable returns a SqlOption that setting the acceptable function.
@@ -451,9 +443,6 @@ func WithAcceptable(acceptable func(err error) bool) SqlOption {
 // WithStatementLog returns a SqlOption to set whether to output SQL statements in the log.
 func WithStatementLog(enable bool) SqlOption {
 	return func(conn *commonSqlConn) {
-		if conn.logOption == nil {
-			conn.logOption = &logOption{}
-		}
 		conn.logOption.EnableStatement = &enable
 	}
 }
@@ -461,9 +450,6 @@ func WithStatementLog(enable bool) SqlOption {
 // WithSlowLog returns a SqlOption to set whether to output slow SQL statements in the log.
 func WithSlowLog(enable bool) SqlOption {
 	return func(conn *commonSqlConn) {
-		if conn.logOption == nil {
-			conn.logOption = &logOption{}
-		}
 		conn.logOption.EnableSlow = &enable
 	}
 }
