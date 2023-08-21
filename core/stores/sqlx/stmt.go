@@ -112,13 +112,13 @@ type (
 
 func newGuard(logOpt logOption, command string) sqlGuard {
 	logStmt := logStmtSql.True()
-	if logOpt.EnableStatement != nil {
-		logStmt = *logOpt.EnableStatement
+	if logOpt.EnableStatement.valid {
+		logStmt = logOpt.EnableStatement.value
 	}
 
 	logSlow := logSlowSql.True()
-	if logOpt.EnableSlow != nil {
-		logSlow = *logOpt.EnableSlow
+	if logOpt.EnableSlow.valid {
+		logSlow = logOpt.EnableSlow.value
 	}
 
 	if logSlow || logStmt {

@@ -205,33 +205,63 @@ func TestDisableStmtLog(t *testing.T) {
 }
 
 func TestDisableLogContext(t *testing.T) {
-	yes := true
-	no := false
 	t.Run("DisableLog", func(t *testing.T) {
 
+		assert.True(t, logStmtSql.True())
+		assert.True(t, logSlowSql.True())
+		defer func() {
+			logStmtSql.Set(true)
+			logSlowSql.Set(true)
+		}()
+
+		DisableLog()
+		assert.False(t, logStmtSql.True())
+		assert.False(t, logSlowSql.True())
+		guard := newGuard(logOption{}, "any")
+		assert.IsType(t, &nilGuard{}, guard)
+	})
+
+	t.Run("DisableStmtLog", func(t *testing.T) {
+		assert.True(t, logStmtSql.True())
+		assert.True(t, logSlowSql.True())
+		defer func() {
+			logStmtSql.Set(true)
+			logSlowSql.Set(true)
+		}()
+
+		DisableStmtLog()
+		assert.False(t, logStmtSql.True())
+		assert.True(t, logSlowSql.True())
+
+		guard := newGuard(logOption{}, "any")
+		assert.True(t, guard.(*realSqlGuard).slowLog(time.Hour))
+		assert.False(t, guard.(*realSqlGuard).statementLog())
+	})
+
+	t.Run("disable: Statement and Slow ", func(t *testing.T) {
 		guard := newGuard(logOption{
-			EnableStatement: &no,
-			EnableSlow:      &no,
+			EnableStatement: nullBool{valid: true, value: false},
+			EnableSlow:      nullBool{valid: true, value: false},
 		}, "any")
 		assert.IsType(t, &nilGuard{}, guard)
 	})
 
-	t.Run("DisableStatementLog", func(t *testing.T) {
+	t.Run("disable: Statement", func(t *testing.T) {
 		logStmtSql.Set(false)
 		defer logStmtSql.Set(true)
 
 		guard := newGuard(logOption{
-			EnableStatement: &yes,
-			EnableSlow:      &no,
+			EnableStatement: nullBool{valid: true, value: true},
+			EnableSlow:      nullBool{valid: true, value: false},
 		}, "any")
 		assert.False(t, guard.(*realSqlGuard).slowLog(time.Hour))
 		assert.True(t, guard.(*realSqlGuard).statementLog())
 	})
 
-	t.Run("DisableSlowLog", func(t *testing.T) {
+	t.Run("disable: Slow", func(t *testing.T) {
 		guard := newGuard(logOption{
-			EnableStatement: &no,
-			EnableSlow:      &yes,
+			EnableStatement: nullBool{valid: true, value: false},
+			EnableSlow:      nullBool{valid: true, value: true},
 		}, "any")
 		assert.True(t, guard.(*realSqlGuard).slowLog(time.Hour))
 		assert.False(t, guard.(*realSqlGuard).statementLog())

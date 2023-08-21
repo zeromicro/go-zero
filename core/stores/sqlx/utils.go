@@ -186,3 +186,9 @@ func newAcceptableError(err error) error {
 func (e acceptableError) Error() string {
 	return e.err.Error()
 }
+
+// nullBool represents a bool that may be null.
+type nullBool struct {
+	value bool
+	valid bool // valid is true if Bool is not NULL
+}

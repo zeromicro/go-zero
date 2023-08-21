@@ -57,8 +57,8 @@ type (
 	}
 
 	logOption struct {
-		EnableStatement *bool
-		EnableSlow      *bool
+		EnableStatement nullBool
+		EnableSlow      nullBool
 	}
 
 	// thread-safe
@@ -430,13 +430,19 @@ func WithAcceptable(acceptable func(err error) bool) SqlOption {
 // WithStatementLog returns a SqlOption to set whether to output SQL statements in the log.
 func WithStatementLog(enable bool) SqlOption {
 	return func(conn *commonSqlConn) {
-		conn.logOption.EnableStatement = &enable
+		conn.logOption.EnableStatement = nullBool{
+			value: enable,
+			valid: true,
+		}
 	}
 }
 
 // WithSlowLog returns a SqlOption to set whether to output slow SQL statements in the log.
 func WithSlowLog(enable bool) SqlOption {
 	return func(conn *commonSqlConn) {
-		conn.logOption.EnableSlow = &enable
+		conn.logOption.EnableSlow = nullBool{
+			value: enable,
+			valid: true,
+		}
 	}
 }
