@@ -17,7 +17,7 @@ func TestUnmarshalRowBool(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value bool
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.True(t, value)
@@ -30,7 +30,7 @@ func TestUnmarshalRowBool(t *testing.T) {
 		var value struct {
 			Value bool `db:"value"`
 		}
-		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Error(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 	})
@@ -42,7 +42,7 @@ func TestUnmarshalRowBoolNotSettable(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value bool
-		assert.NotNil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.NotNil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 	})
@@ -54,7 +54,7 @@ func TestUnmarshalRowInt(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value int
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, 2, value)
@@ -67,7 +67,7 @@ func TestUnmarshalRowInt8(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value int8
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, int8(3), value)
@@ -80,7 +80,7 @@ func TestUnmarshalRowInt16(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value int16
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.Equal(t, int16(4), value)
@@ -93,7 +93,7 @@ func TestUnmarshalRowInt32(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value int32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.Equal(t, int32(5), value)
@@ -106,7 +106,7 @@ func TestUnmarshalRowInt64(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value int64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, int64(6), value)
@@ -119,7 +119,7 @@ func TestUnmarshalRowUint(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value uint
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, uint(2), value)
@@ -132,7 +132,7 @@ func TestUnmarshalRowUint8(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value uint8
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, uint8(3), value)
@@ -145,7 +145,7 @@ func TestUnmarshalRowUint16(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value uint16
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, uint16(4), value)
@@ -158,7 +158,7 @@ func TestUnmarshalRowUint32(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value uint32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, uint32(5), value)
@@ -171,7 +171,7 @@ func TestUnmarshalRowUint64(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value uint64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, uint16(6), value)
@@ -184,7 +184,7 @@ func TestUnmarshalRowFloat32(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value float32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, float32(7), value)
@@ -197,7 +197,7 @@ func TestUnmarshalRowFloat64(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value float64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, float64(8), value)
@@ -211,7 +211,7 @@ func TestUnmarshalRowString(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value string
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -228,7 +228,7 @@ func TestUnmarshalRowStruct(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, "liao", value.Name)
@@ -245,7 +245,7 @@ func TestUnmarshalRowStruct(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, &mockedScanner{
 				colErr: errAny,
 				next:   1,
@@ -262,7 +262,7 @@ func TestUnmarshalRowStruct(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
 	})
@@ -273,7 +273,7 @@ func TestUnmarshalRowStruct(t *testing.T) {
 
 		type myString chan int
 		var value myString
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select value from users where user=?", "anyone"), ErrUnsupportedValueType)
 	})
@@ -289,7 +289,7 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, "liao", value.Name)
@@ -305,7 +305,7 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"), ErrNotReadableValue)
 	})
@@ -319,7 +319,7 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, "liao", *value.Name)
@@ -335,7 +335,7 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, 5, value.Age)
@@ -352,7 +352,7 @@ func TestUnmarshalRowStructWithTagsWrongColumns(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name"}).FromCSVString("liao")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.NotNil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.NotNil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 	})
@@ -365,7 +365,7 @@ func TestUnmarshalRowsBool(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []bool
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -376,7 +376,7 @@ func TestUnmarshalRowsBool(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []bool
-		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Error(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 	})
@@ -388,7 +388,7 @@ func TestUnmarshalRowsBool(t *testing.T) {
 		var value struct {
 			value []bool `db:"value"`
 		}
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"), ErrUnsupportedValueType)
 	})
@@ -399,7 +399,7 @@ func TestUnmarshalRowsBool(t *testing.T) {
 
 		var value []bool
 		errAny := errors.New("any")
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				scanErr: errAny,
 				next:    1,
@@ -415,7 +415,7 @@ func TestUnmarshalRowsInt(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []int
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -429,7 +429,7 @@ func TestUnmarshalRowsInt8(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []int8
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -443,7 +443,7 @@ func TestUnmarshalRowsInt16(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []int16
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -457,7 +457,7 @@ func TestUnmarshalRowsInt32(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []int32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -471,7 +471,7 @@ func TestUnmarshalRowsInt64(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []int64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -485,7 +485,7 @@ func TestUnmarshalRowsUint(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []uint
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -499,7 +499,7 @@ func TestUnmarshalRowsUint8(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []uint8
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -513,7 +513,7 @@ func TestUnmarshalRowsUint16(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []uint16
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -527,7 +527,7 @@ func TestUnmarshalRowsUint32(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []uint32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -541,7 +541,7 @@ func TestUnmarshalRowsUint64(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []uint64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -555,7 +555,7 @@ func TestUnmarshalRowsFloat32(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []float32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -569,7 +569,7 @@ func TestUnmarshalRowsFloat64(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []float64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -583,7 +583,7 @@ func TestUnmarshalRowsString(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []string
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -599,7 +599,7 @@ func TestUnmarshalRowsBoolPtr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*bool
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -615,7 +615,7 @@ func TestUnmarshalRowsIntPtr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*int
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -631,7 +631,7 @@ func TestUnmarshalRowsInt8Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*int8
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -647,7 +647,7 @@ func TestUnmarshalRowsInt16Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*int16
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -663,7 +663,7 @@ func TestUnmarshalRowsInt32Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*int32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -679,7 +679,7 @@ func TestUnmarshalRowsInt64Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*int64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -695,7 +695,7 @@ func TestUnmarshalRowsUintPtr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*uint
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -711,7 +711,7 @@ func TestUnmarshalRowsUint8Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*uint8
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -727,7 +727,7 @@ func TestUnmarshalRowsUint16Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*uint16
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -743,7 +743,7 @@ func TestUnmarshalRowsUint32Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*uint32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -759,7 +759,7 @@ func TestUnmarshalRowsUint64Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*uint64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -775,7 +775,7 @@ func TestUnmarshalRowsFloat32Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*float32
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -791,7 +791,7 @@ func TestUnmarshalRowsFloat64Ptr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*float64
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -807,7 +807,7 @@ func TestUnmarshalRowsStringPtr(t *testing.T) {
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
 		var value []*string
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
@@ -836,7 +836,7 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 
@@ -855,7 +855,7 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				colErr: errAny,
 				next:   1,
@@ -872,7 +872,7 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				cols:    []string{"name", "age"},
 				scanErr: errAny,
@@ -887,7 +887,7 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 		errAny := errors.New("any error")
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, &mockedScanner{
 				cols:    []string{"name", "age"},
 				scanErr: errAny,
@@ -926,7 +926,7 @@ func TestUnmarshalRowsStructWithNullStringType(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "value"}).AddRow(
 			"first", "firstnullstring").AddRow("second", nil)
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 
@@ -960,7 +960,7 @@ func TestUnmarshalRowsStructWithTags(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 
@@ -1001,7 +1001,7 @@ func TestUnmarshalRowsStructAndEmbeddedAnonymousStructWithTags(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"name", "age", "value"}).FromCSVString("first,2,3\nsecond,3,4")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age, value from users where user=?", "anyone"))
 
@@ -1043,7 +1043,7 @@ func TestUnmarshalRowsStructAndEmbeddedStructPtrAnonymousWithTags(t *testing.T) 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"name", "age", "value"}).FromCSVString("first,2,3\nsecond,3,4")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age, value from users where user=?", "anyone"))
 
@@ -1077,7 +1077,7 @@ func TestUnmarshalRowsStructPtr(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 
@@ -1110,7 +1110,7 @@ func TestUnmarshalRowsStructWithTagsPtr(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 
@@ -1143,7 +1143,7 @@ func TestUnmarshalRowsStructWithTagsPtrWithInnerPtr(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 
@@ -1163,7 +1163,7 @@ func TestCommonSqlConn_QueryRowOptional(t *testing.T) {
 			User string `db:"user"`
 			Age  int    `db:"age"`
 		}
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRow(&r, rows, false)
 		}, "select age from users where user=?", "anyone"))
 		assert.Empty(t, r.User)
@@ -1214,7 +1214,7 @@ func TestUnmarshalRowError(t *testing.T) {
 					User string `db:"user"`
 					Age  int    `db:"age"`
 				}
-				test.validate(query(context.Background(), db, func(rows *sql.Rows) error {
+				test.validate(query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 					scanner := mockedScanner{
 						colErr:  test.colErr,
 						scanErr: test.scanErr,
@@ -1290,7 +1290,7 @@ func TestAnonymousStructPr(t *testing.T) {
 			AddRow("second", 3, "grade one", "chinese", "class three grade two", 99)
 		mock.ExpectQuery("select (.+) from users where user=?").
 			WithArgs("anyone").WillReturnRows(rs)
-		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Nil(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age,grade,discipline,class_name,score from users where user=?",
 			"anyone"))
@@ -1338,7 +1338,7 @@ func TestAnonymousStructPrError(t *testing.T) {
 			AddRow("second", 3, "grade one", "chinese", "class three grade two", 99)
 		mock.ExpectQuery("select (.+) from users where user=?").
 			WithArgs("anyone").WillReturnRows(rs)
-		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.Error(t, query(context.Background(), logOption{}, db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age, grade, discipline, class_name, score from users where user=?",
 			"anyone"))

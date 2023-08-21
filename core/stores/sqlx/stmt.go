@@ -34,8 +34,8 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
-func exec(ctx context.Context, conn sessionConn, q string, args ...any) (sql.Result, error) {
-	guard := newGuard(ctx, "exec")
+func exec(ctx context.Context, logOpt logOption, conn sessionConn, q string, args ...any) (sql.Result, error) {
+	guard := newGuard(logOpt, "exec")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func exec(ctx context.Context, conn sessionConn, q string, args ...any) (sql.Res
 	return result, err
 }
 
-func execStmt(ctx context.Context, conn stmtConn, q string, args ...any) (sql.Result, error) {
-	guard := newGuard(ctx, "execStmt")
+func execStmt(ctx context.Context, logOpt logOption, conn stmtConn, q string, args ...any) (sql.Result, error) {
+	guard := newGuard(logOpt, "execStmt")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
 	}
@@ -58,8 +58,8 @@ func execStmt(ctx context.Context, conn stmtConn, q string, args ...any) (sql.Re
 	return result, err
 }
 
-func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error, q string, args ...any) error {
-	guard := newGuard(ctx, "query")
+func query(ctx context.Context, logOpt logOption, conn sessionConn, scanner func(*sql.Rows) error, q string, args ...any) error {
+	guard := newGuard(logOpt, "query")
 	if err := guard.start(q, args...); err != nil {
 		return err
 	}
@@ -74,8 +74,8 @@ func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 	return scanner(rows)
 }
 
-func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error, q string, args ...any) error {
-	guard := newGuard(ctx, "queryStmt")
+func queryStmt(ctx context.Context, logOpt logOption, conn stmtConn, scanner func(*sql.Rows) error, q string, args ...any) error {
+	guard := newGuard(logOpt, "queryStmt")
 	if err := guard.start(q, args...); err != nil {
 		return err
 	}
@@ -110,9 +110,7 @@ type (
 	}
 )
 
-func newGuard(ctx context.Context, command string) sqlGuard {
-	logOpt, _ := sqlLogOptionFromContext(ctx)
-
+func newGuard(logOpt logOption, command string) sqlGuard {
 	logStmt := logStmtSql.True()
 	if logOpt.EnableStatement != nil {
 		logStmt = *logOpt.EnableStatement
@@ -180,23 +178,4 @@ func (e *realSqlGuard) slowLog(duration time.Duration) bool {
 
 func (e *realSqlGuard) statementLog() bool {
 	return e.enableStatement
-}
-
-var emptySqlLogOption = logOption{}
-
-type (
-	logOptionKey struct{}
-)
-
-func newLogOptionContext(ctx context.Context, logOpt logOption) context.Context {
-	return context.WithValue(ctx, logOptionKey{}, logOpt)
-}
-
-func sqlLogOptionFromContext(ctx context.Context) (logOption, bool) {
-	value := ctx.Value(logOptionKey{})
-	if value == nil {
-		return emptySqlLogOption, false
-	}
-
-	return value.(logOption), true
 }

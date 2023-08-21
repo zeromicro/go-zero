@@ -21,7 +21,7 @@ type mockTx struct {
 	status int
 }
 
-func (mt *mockTx) CommitCtx(_ context.Context) error {
+func (mt *mockTx) Commit() error {
 	mt.status |= mockCommit
 	return nil
 }
@@ -74,30 +74,29 @@ func (mt *mockTx) QueryRowsPartialCtx(_ context.Context, _ any, _ string, _ ...a
 	return nil
 }
 
-func (mt *mockTx) RollbackCtx(_ context.Context) error {
+func (mt *mockTx) Rollback() error {
 	mt.status |= mockRollback
 	return nil
 }
 
 func beginMock(mock *mockTx) beginnable {
-	return func(context.Context, *sql.DB) (trans, error) {
+	return func(context.Context, logOption, *sql.DB) (trans, error) {
 		return mock, nil
 	}
 }
 
 func TestTransactCommit(t *testing.T) {
 	mock := &mockTx{}
-	err := transactOnConn(context.Background(), nil, beginMock(mock),
-		func(context.Context, Session) error {
-			return nil
-		})
+	err := transactOnConn(context.Background(), logOption{}, nil, beginMock(mock), func(context.Context, Session) error {
+		return nil
+	})
 	assert.Equal(t, mockCommit, mock.status)
 	assert.Nil(t, err)
 }
 
 func TestTransactRollback(t *testing.T) {
 	mock := &mockTx{}
-	err := transactOnConn(context.Background(), nil, beginMock(mock),
+	err := transactOnConn(context.Background(), logOption{}, nil, beginMock(mock),
 		func(context.Context, Session) error {
 			return errors.New("rollback")
 		})

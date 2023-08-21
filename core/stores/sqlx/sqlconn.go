@@ -161,8 +161,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 			return err
 		}
 
-		ctx = db.newLogOptionContext(ctx)
-		result, err = exec(ctx, conn, q, args...)
+		result, err = exec(ctx, db.logOption, conn, q, args...)
 		return err
 	}, db.acceptable)
 	if err == breaker.ErrServiceUnavailable {
@@ -190,8 +189,11 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 			return err
 		}
 
-		ctx = db.newLogOptionContext(ctx)
+		guard := newGuard(db.logOption, "prepare")
+		_ = guard.start(query)
+
 		st, err := conn.PrepareContext(ctx, query)
+		guard.finish(ctx, err)
 		if err != nil {
 			return err
 		}
@@ -291,8 +293,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 	}()
 
 	err = db.brk.DoWithAcceptable(func() error {
-		ctx = db.newLogOptionContext(ctx)
-		return transact(ctx, db, db.beginTx, fn)
+		return transact(ctx, db.logOption, db, db.beginTx, fn)
 	}, db.acceptable)
 	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("Transact", "breaker")
@@ -327,8 +328,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 			return err
 		}
 
-		ctx = db.newLogOptionContext(ctx)
-		return query(ctx, conn, func(rows *sql.Rows) error {
+		return query(ctx, db.logOption, conn, func(rows *sql.Rows) error {
 			qerr = scanner(rows)
 			return qerr
 		}, q, args...)
@@ -340,10 +340,6 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	}
 
 	return
-}
-
-func (db *commonSqlConn) newLogOptionContext(ctx context.Context) context.Context {
-	return newLogOptionContext(ctx, db.logOption)
 }
 
 func (s statement) Close() error {
@@ -360,8 +356,7 @@ func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result,
 		endSpan(span, err)
 	}()
 
-	ctx = s.newLogOptionContext(ctx)
-	return execStmt(ctx, s.stmt, s.query, args...)
+	return execStmt(ctx, s.logOption, s.stmt, s.query, args...)
 }
 
 func (s statement) QueryRow(v any, args ...any) error {
@@ -374,8 +369,7 @@ func (s statement) QueryRowCtx(ctx context.Context, v any, args ...any) (err err
 		endSpan(span, err)
 	}()
 
-	ctx = s.newLogOptionContext(ctx)
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, s.query, args...)
 }
@@ -390,8 +384,7 @@ func (s statement) QueryRowPartialCtx(ctx context.Context, v any, args ...any) (
 		endSpan(span, err)
 	}()
 
-	ctx = s.newLogOptionContext(ctx)
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, s.query, args...)
 }
@@ -406,8 +399,7 @@ func (s statement) QueryRowsCtx(ctx context.Context, v any, args ...any) (err er
 		endSpan(span, err)
 	}()
 
-	ctx = s.newLogOptionContext(ctx)
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, s.query, args...)
 }
@@ -422,14 +414,9 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 		endSpan(span, err)
 	}()
 
-	ctx = s.newLogOptionContext(ctx)
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
-}
-
-func (s statement) newLogOptionContext(ctx context.Context) context.Context {
-	return newLogOptionContext(ctx, s.logOption)
 }
 
 // WithAcceptable returns a SqlOption that setting the acceptable function.
