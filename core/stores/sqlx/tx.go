@@ -146,7 +146,7 @@ func (t txSession) QueryRowsPartialCtx(ctx context.Context, v any, q string,
 	}, q, args...)
 }
 
-func commit(ctx context.Context, tx trans, logOpt logOption) (err error) {
+func commit(ctx context.Context, logOpt logOption, tx trans) (err error) {
 	ctx, span := startSpan(ctx, "Commit")
 	defer func() {
 		endSpan(span, err)
@@ -161,7 +161,7 @@ func commit(ctx context.Context, tx trans, logOpt logOption) (err error) {
 	return
 }
 
-func rollback(ctx context.Context, tx trans, logOpt logOption) (err error) {
+func rollback(ctx context.Context, logOpt logOption, tx trans) (err error) {
 	ctx, span := startSpan(ctx, "Rollback")
 	defer func() {
 		endSpan(span, err)
@@ -221,17 +221,17 @@ func transactOnConn(ctx context.Context, logOpt logOption, conn *sql.DB, b begin
 
 	defer func() {
 		if p := recover(); p != nil {
-			if e := rollback(ctx, tx, logOpt); e != nil {
+			if e := rollback(ctx, logOpt, tx); e != nil {
 				err = fmt.Errorf("recover from %#v, rollback failed: %w", p, e)
 			} else {
 				err = fmt.Errorf("recover from %#v", p)
 			}
 		} else if err != nil {
-			if e := rollback(ctx, tx, logOpt); e != nil {
+			if e := rollback(ctx, logOpt, tx); e != nil {
 				err = fmt.Errorf("transaction failed: %s, rollback failed: %w", err, e)
 			}
 		} else {
-			err = commit(ctx, tx, logOpt)
+			err = commit(ctx, logOpt, tx)
 		}
 	}()
 
