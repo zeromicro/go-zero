@@ -53,6 +53,7 @@ func init() {
 	pgDatasourceCmdFlags.StringVar(&command.VarStringStyle, "style")
 	pgDatasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
 	pgDatasourceCmdFlags.BoolVar(&command.VarBoolStrict, "strict")
+	pgDatasourceCmdFlags.StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns, "ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
 	pgDatasourceCmdFlags.StringVar(&command.VarStringHome, "home")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
