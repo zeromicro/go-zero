@@ -3,11 +3,13 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
 	"github.com/fullstorydev/grpcurl"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mr"
@@ -16,6 +18,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type (
@@ -25,6 +28,7 @@ type (
 		upstreams     []Upstream
 		processHeader func(http.Header) []string
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		respHandler   func(writer io.Writer, status *status.Status, message proto.Message)
 	}
 
 	// Option defines the method to customize Server.
@@ -53,6 +57,10 @@ func (s *Server) Start() {
 // Stop stops the gateway server.
 func (s *Server) Stop() {
 	s.Server.Stop()
+}
+
+func (s *Server) SetRespHandler(handler func(writer io.Writer, status *status.Status, message proto.Message)) {
+	s.respHandler = handler
 }
 
 func (s *Server) build() error {
@@ -128,7 +136,9 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		}
 
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
-		handler := internal.NewEventHandler(w, resolver)
+		handler := internal.NewEventHandler(w, resolver, func(eventHandler *internal.EventHandler) {
+			eventHandler.RespHandler = s.respHandler
+		})
 		if err := grpcurl.InvokeRPC(r.Context(), source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
