@@ -13,4 +13,9 @@
 
 ## 本项目遵循 Apache 2.0 协议， 使用请注明出处
 ## This project uses the Apache 2.0 license, please indicate the source when using it
+
+## 原许可证位于 .originallicense 文件夹下
+
+## The original license is located under the .originallicense folder
+
 ## Simple Admin Core [https://github.com/suyuan32/simple-admin-core](https://github.com/suyuan32/simple-admin-core)
