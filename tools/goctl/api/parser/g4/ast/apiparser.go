@@ -421,7 +421,7 @@ func (p *Parser) checkServices(apiItem *Api, types map[string]TypeExpr, linePref
 
 				_, ok := types[structName]
 				if !ok {
-					return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+					return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 						linePrefix, route.Reply.Name.Expr().Line(), route.Reply.Name.Expr().Column(), structName)
 				}
 			}
@@ -434,7 +434,7 @@ func (p *Parser) checkRequestBody(route *Route, types map[string]TypeExpr, lineP
 	if route.Req != nil && route.Req.Name.IsNotNil() && route.Req.Name.Expr().IsNotNil() {
 		_, ok := types[route.Req.Name.Expr().Text()]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, route.Req.Name.Expr().Line(), route.Req.Name.Expr().Column(), route.Req.Name.Expr().Text())
 		}
 	}
@@ -471,7 +471,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		}
 		_, ok := types[name]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, v.Literal.Line(), v.Literal.Column(), name)
 		}
 
@@ -482,7 +482,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		}
 		_, ok := types[name]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, v.Name.Line(), v.Name.Column(), name)
 		}
 	case *Map:
