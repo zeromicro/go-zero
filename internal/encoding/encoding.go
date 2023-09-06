@@ -15,6 +15,7 @@ func TomlToJson(data []byte) ([]byte, error) {
 	if err := toml.NewDecoder(bytes.NewReader(data)).Decode(&val); err != nil {
 		return nil, err
 	}
+
 	return encodeToJSON(val)
 }
 
@@ -24,17 +25,8 @@ func YamlToJson(data []byte) ([]byte, error) {
 	if err := yaml.Unmarshal(data, &val); err != nil {
 		return nil, err
 	}
-	val = toStringKeyMap(val)
-	return encodeToJSON(val)
-}
 
-// encodeToJSON encodes the given value into its JSON representation.
-func encodeToJSON(val any) ([]byte, error) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return encodeToJSON(toStringKeyMap(val))
 }
 
 // convertKeyToString ensures all keys of the map are of type string.
@@ -58,6 +50,16 @@ func convertSlice(in []any) []any {
 		res[i] = toStringKeyMap(v)
 	}
 	return res
+}
+
+// encodeToJSON encodes the given value into its JSON representation.
+func encodeToJSON(val any) ([]byte, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(val); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 // toStringKeyMap processes the data to ensure that all map keys are of type string.
