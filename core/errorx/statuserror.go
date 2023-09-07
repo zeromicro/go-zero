@@ -29,3 +29,8 @@ func NewAlreadyExistsError(msg string) error {
 func NewUnauthenticatedError(msg string) error {
 	return status.Error(codes.Unauthenticated, msg)
 }
+
+// NewResourceExhaustedError returns status error with ResourceExhausted error code.
+func NewResourceExhaustedError(msg string) error {
+	return status.Error(codes.ResourceExhausted, msg)
+}
