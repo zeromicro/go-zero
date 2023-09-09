@@ -5107,6 +5107,117 @@ func TestUnmarshalWithOpaqueKeys(t *testing.T) {
 	}
 }
 
+func TestUnmarshalWithIgnoreFields(t *testing.T) {
+	type (
+		Foo struct {
+			Value        string
+			IgnoreString string `json:"-"`
+			IgnoreInt    int    `json:"-"`
+		}
+
+		Bar struct {
+			Foo1 Foo
+			Foo2 *Foo
+			Foo3 []Foo
+			Foo4 []*Foo
+			Foo5 map[string]Foo
+			Foo6 map[string]Foo
+		}
+
+		Bar1 struct {
+			Foo `json:"-"`
+		}
+
+		Bar2 struct {
+			*Foo `json:"-"`
+		}
+	)
+
+	var bar Bar
+	unmarshaler := NewUnmarshaler(jsonTagKey)
+	if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+		"Foo1": map[string]any{
+			"Value":        "foo",
+			"IgnoreString": "any",
+			"IgnoreInt":    2,
+		},
+		"Foo2": map[string]any{
+			"Value":        "foo",
+			"IgnoreString": "any",
+			"IgnoreInt":    2,
+		},
+		"Foo3": []map[string]any{
+			{
+				"Value":        "foo",
+				"IgnoreString": "any",
+				"IgnoreInt":    2,
+			},
+		},
+		"Foo4": []map[string]any{
+			{
+				"Value":        "foo",
+				"IgnoreString": "any",
+				"IgnoreInt":    2,
+			},
+		},
+		"Foo5": map[string]any{
+			"key": map[string]any{
+				"Value":        "foo",
+				"IgnoreString": "any",
+				"IgnoreInt":    2,
+			},
+		},
+		"Foo6": map[string]any{
+			"key": map[string]any{
+				"Value":        "foo",
+				"IgnoreString": "any",
+				"IgnoreInt":    2,
+			},
+		},
+	}, &bar)) {
+		assert.Equal(t, "foo", bar.Foo1.Value)
+		assert.Empty(t, bar.Foo1.IgnoreString)
+		assert.Equal(t, 0, bar.Foo1.IgnoreInt)
+		assert.Equal(t, "foo", bar.Foo2.Value)
+		assert.Empty(t, bar.Foo2.IgnoreString)
+		assert.Equal(t, 0, bar.Foo2.IgnoreInt)
+		assert.Equal(t, "foo", bar.Foo3[0].Value)
+		assert.Empty(t, bar.Foo3[0].IgnoreString)
+		assert.Equal(t, 0, bar.Foo3[0].IgnoreInt)
+		assert.Equal(t, "foo", bar.Foo4[0].Value)
+		assert.Empty(t, bar.Foo4[0].IgnoreString)
+		assert.Equal(t, 0, bar.Foo4[0].IgnoreInt)
+		assert.Equal(t, "foo", bar.Foo5["key"].Value)
+		assert.Empty(t, bar.Foo5["key"].IgnoreString)
+		assert.Equal(t, 0, bar.Foo5["key"].IgnoreInt)
+		assert.Equal(t, "foo", bar.Foo6["key"].Value)
+		assert.Empty(t, bar.Foo6["key"].IgnoreString)
+		assert.Equal(t, 0, bar.Foo6["key"].IgnoreInt)
+	}
+
+	var bar1 Bar1
+	if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+		"Value":        "foo",
+		"IgnoreString": "any",
+		"IgnoreInt":    2,
+	}, &bar1)) {
+		assert.Empty(t, bar1.Value)
+		assert.Empty(t, bar1.IgnoreString)
+		assert.Equal(t, 0, bar1.IgnoreInt)
+	}
+
+	var bar2 Bar1
+	if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+		"Value":        "foo",
+		"IgnoreString": "any",
+		"IgnoreInt":    2,
+	}, &bar2)) {
+		assert.Empty(t, bar2.Value)
+		assert.Empty(t, bar2.IgnoreString)
+		assert.Equal(t, 0, bar2.IgnoreInt)
+	}
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
