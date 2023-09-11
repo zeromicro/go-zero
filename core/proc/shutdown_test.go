@@ -28,3 +28,33 @@ func TestShutdown(t *testing.T) {
 	called()
 	assert.Equal(t, 3, val)
 }
+
+func TestNotifyMoreThanOnce(t *testing.T) {
+	ch := make(chan struct{}, 1)
+
+	go func() {
+		var val int
+		called := AddWrapUpListener(func() {
+			val++
+		})
+		WrapUp()
+		WrapUp()
+		called()
+		assert.Equal(t, 1, val)
+
+		called = AddShutdownListener(func() {
+			val += 2
+		})
+		Shutdown()
+		Shutdown()
+		called()
+		assert.Equal(t, 3, val)
+		ch <- struct{}{}
+	}()
+
+	select {
+	case <-ch:
+	case <-time.After(time.Second):
+		t.Fatal("timeout, check error logs")
+	}
+}
