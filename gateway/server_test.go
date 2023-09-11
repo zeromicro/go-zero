@@ -47,30 +47,6 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 	}
 }
 
-func TestPostFormData(t *testing.T) {
-
-	type Request struct {
-		Node   string `path:"node"`
-		ID     int    `form:"id"`
-		Header string `header:"X-Header"`
-	}
-	var domain = flag.String("domain", "http://localhost:3333", "the domain to request")
-	flag.Parse()
-
-	req := Request{
-		Node:   "foo",
-		ID:     1024,
-		Header: "foo-header",
-	}
-	resp, err := httpc.Do(context.Background(), http.MethodPost, *domain+"/nodes/:node", req)
-	// resp, err := httpc.Do(context.Background(), http.MethodPost, *domain+"/nodes/:node", req)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	io.Copy(os.Stdout, resp.Body)
-}
 
 
 

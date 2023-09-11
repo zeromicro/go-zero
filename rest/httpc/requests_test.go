@@ -63,9 +63,10 @@ func TestDoRequest_Moved(t *testing.T) {
 
 func TestDo(t *testing.T) {
 	me := tracetest.NewInMemoryExporter(t)
+	// Generally, form-data and body json cannot exist at the same time in post requests
 	type Data struct {
-		Key    string `path:"key"`
-		Value  int    `form:"value"`
+		Key string `path:"key"`
+		// Value  int    `form:"value"`
 		Header string `header:"X-Header"`
 		Body   string `json:"body"`
 	}
@@ -82,8 +83,8 @@ func TestDo(t *testing.T) {
 	defer svr.Close()
 
 	data := Data{
-		Key:    "foo",
-		Value:  10,
+		Key: "foo",
+		// Value:  10,
 		Header: "my-header",
 		Body:   "my body",
 	}
@@ -100,9 +101,10 @@ func TestDo(t *testing.T) {
 }
 
 func TestDo_Ptr(t *testing.T) {
+	// Generally, form-data and body json cannot exist at the same time in post requests
 	type Data struct {
-		Key    string `path:"key"`
-		Value  int    `form:"value"`
+		Key string `path:"key"`
+		// Value  int    `form:"value"`
 		Header string `header:"X-Header"`
 		Body   string `json:"body"`
 	}
@@ -113,7 +115,7 @@ func TestDo_Ptr(t *testing.T) {
 			var req Data
 			assert.Nil(t, httpx.Parse(r, &req))
 			assert.Equal(t, "foo", req.Key)
-			assert.Equal(t, 10, req.Value)
+			//	assert.Equal(t, 10, req.Value)
 			assert.Equal(t, "my-header", req.Header)
 			assert.Equal(t, "my body", req.Body)
 		}))
@@ -123,8 +125,8 @@ func TestDo_Ptr(t *testing.T) {
 	defer svr.Close()
 
 	data := &Data{
-		Key:    "foo",
-		Value:  10,
+		Key: "foo",
+		//Value:  10,
 		Header: "my-header",
 		Body:   "my body",
 	}
@@ -182,6 +184,42 @@ func TestDo_BadRequest(t *testing.T) {
 	}
 	_, err = Do(context.Background(), http.MethodPost, "/nodes/:val", val5)
 	assert.NotNil(t, err)
+}
+
+func TestDo_FormData(t *testing.T) {
+
+	type Request struct {
+		Key    string `path:"key"`
+		ID     int    `form:"id"`
+		Name   string `form:" name"`
+		Header string `header:"X-Header"`
+	}
+
+	rt := router.NewRouter()
+	err := rt.Handle(http.MethodPost, "/nodes/:key",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var req Request
+			assert.Nil(t, httpx.Parse(r, &req))
+			httpx.Parse(r, &req)
+			assert.Equal(t, "foo", req.Key)
+			assert.Equal(t, 1024, req.ID)
+			assert.Equal(t, "foo-header", req.Header)
+			assert.Equal(t, "xrwang8", req.Name)
+		}))
+	assert.Nil(t, err)
+
+	svr := httptest.NewServer(http.HandlerFunc(rt.ServeHTTP))
+	defer svr.Close()
+
+	req := Request{
+		Key:    "foo",
+		ID:     1024,
+		Name:   "xrwang8",
+		Header: "foo-header",
+	}
+	_, err = Do(context.Background(), http.MethodPost, svr.URL+"/nodes/:key", req)
+
+	assert.Nil(t, err)
 }
 
 func TestDo_Json(t *testing.T) {
