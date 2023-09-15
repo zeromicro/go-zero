@@ -5206,15 +5206,13 @@ func TestUnmarshalWithIgnoreFields(t *testing.T) {
 		assert.Equal(t, 0, bar1.IgnoreInt)
 	}
 
-	var bar2 Bar1
+	var bar2 Bar2
 	if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
 		"Value":        "foo",
 		"IgnoreString": "any",
 		"IgnoreInt":    2,
 	}, &bar2)) {
-		assert.Empty(t, bar2.Value)
-		assert.Empty(t, bar2.IgnoreString)
-		assert.Equal(t, 0, bar2.IgnoreInt)
+		assert.Nil(t, bar2.Foo)
 	}
 }
 
