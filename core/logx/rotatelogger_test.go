@@ -206,6 +206,27 @@ func TestRotateLoggerClose(t *testing.T) {
 		_, err := logger.Write([]byte("foo"))
 		assert.ErrorIs(t, err, ErrLogFileClosed)
 	})
+
+	t.Run("close without losing logs", func(t *testing.T) {
+		text := "foo"
+		filename, err := fs.TempFilenameWithText(text)
+		assert.Nil(t, err)
+		if len(filename) > 0 {
+			defer os.Remove(filename)
+		}
+		logger, err := NewLogger(filename, new(DailyRotateRule), false)
+		assert.Nil(t, err)
+		msg := []byte("foo")
+		n := 100
+		for i := 0; i < n; i++ {
+			_, err = logger.Write(msg)
+			assert.Nil(t, err)
+		}
+		assert.Nil(t, logger.Close())
+		bs, err := os.ReadFile(filename)
+		assert.Nil(t, err)
+		assert.Equal(t, len(msg)*n+len(text), len(bs))
+	})
 }
 
 func TestRotateLoggerGetBackupFilename(t *testing.T) {

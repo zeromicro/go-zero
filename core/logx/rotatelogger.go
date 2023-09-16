@@ -381,6 +381,16 @@ func (l *RotateLogger) startWorker() {
 			case event := <-l.channel:
 				l.write(event)
 			case <-l.done:
+				// avoid losing logs before closing.
+			priority:
+				for {
+					select {
+					case event := <-l.channel:
+						l.write(event)
+					default:
+						break priority
+					}
+				}
 				return
 			}
 		}
