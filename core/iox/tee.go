@@ -27,7 +27,9 @@ func (t *limitTeeReader) Read(p []byte) (n int, err error) {
 		if n, err := t.w.Write(p[:limit]); err != nil {
 			return n, err
 		}
+
 		t.n -= limit
 	}
+
 	return
 }
