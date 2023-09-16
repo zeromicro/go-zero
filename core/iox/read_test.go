@@ -51,6 +51,11 @@ b`,
 	}
 }
 
+func TestReadTextError(t *testing.T) {
+	_, err := ReadText("not-exist")
+	assert.NotNil(t, err)
+}
+
 func TestReadTextLines(t *testing.T) {
 	text := `1
 
@@ -92,6 +97,11 @@ func TestReadTextLines(t *testing.T) {
 			assert.Equal(t, test.expectLines, len(lines))
 		})
 	}
+}
+
+func TestReadTextLinesError(t *testing.T) {
+	_, err := ReadTextLines("not-exist")
+	assert.NotNil(t, err)
 }
 
 func TestDupReadCloser(t *testing.T) {

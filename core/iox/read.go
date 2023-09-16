@@ -28,6 +28,13 @@ func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser) {
 	return io.NopCloser(tee), io.NopCloser(&buf)
 }
 
+// KeepSpace customizes the reading functions to keep leading and tailing spaces.
+func KeepSpace() TextReadOption {
+	return func(o *textReadOptions) {
+		o.keepSpace = true
+	}
+}
+
 // LimitDupReadCloser returns two io.ReadCloser that read from the first will be written to the second.
 // But the second io.ReadCloser is limited to up to n bytes.
 // The first returned reader needs to be read first, because the content
@@ -36,13 +43,6 @@ func LimitDupReadCloser(reader io.ReadCloser, n int64) (io.ReadCloser, io.ReadCl
 	var buf bytes.Buffer
 	tee := LimitTeeReader(reader, &buf, n)
 	return io.NopCloser(tee), io.NopCloser(&buf)
-}
-
-// KeepSpace customizes the reading functions to keep leading and tailing spaces.
-func KeepSpace() TextReadOption {
-	return func(o *textReadOptions) {
-		o.keepSpace = true
-	}
 }
 
 // ReadBytes reads exactly the bytes with the length of len(buf)

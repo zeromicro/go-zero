@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"io"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLimitTeeReader(t *testing.T) {
@@ -22,14 +24,17 @@ func TestLimitTeeReader(t *testing.T) {
 	if !bytes.Equal(wb.Bytes(), src[:limit]) {
 		t.Errorf("bytes written = %q want %q", wb.Bytes(), src)
 	}
-	if n, err := r.Read(dst); n != 0 || err != io.EOF {
-		t.Errorf("r.Read at EOF = %d, %v want 0, EOF", n, err)
-	}
+
+	n, err := r.Read(dst)
+	assert.Equal(t, 0, n)
+	assert.Equal(t, io.EOF, err)
+
 	rb = bytes.NewBuffer(src)
 	pr, pw := io.Pipe()
-	pr.Close()
-	r = LimitTeeReader(rb, pw, limit)
-	if n, err := io.ReadFull(r, dst); n != 0 || err != io.ErrClosedPipe {
-		t.Errorf("closed tee: ReadFull(r, dst) = %d, %v; want 0, EPIPE", n, err)
+	if assert.NoError(t, pr.Close()) {
+		r = LimitTeeReader(rb, pw, limit)
+		n, err := io.ReadFull(r, dst)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, io.ErrClosedPipe, err)
 	}
 }
