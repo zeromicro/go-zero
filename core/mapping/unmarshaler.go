@@ -22,6 +22,7 @@ import (
 const (
 	defaultKeyName = "key"
 	delimiter      = '.'
+	ignoreKey      = "-"
 )
 
 var (
@@ -453,6 +454,10 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 		return err
 	}
 
+	if key == ignoreKey {
+		return nil
+	}
+
 	if options.optional() {
 		return u.processAnonymousFieldOptional(field, value, key, m, fullName)
 	}
@@ -738,6 +743,10 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
+	}
+
+	if key == ignoreKey {
+		return nil
 	}
 
 	fullName = join(fullName, key)

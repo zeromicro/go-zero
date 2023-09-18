@@ -24,3 +24,8 @@ func TestCountLines(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 4, lines)
 }
+
+func TestCountLinesError(t *testing.T) {
+	_, err := CountLines("not-exist")
+	assert.NotNil(t, err)
+}
