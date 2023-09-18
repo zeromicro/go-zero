@@ -1,10 +1,12 @@
 package mapping
 
 import (
+	"context"
 	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -34,6 +36,8 @@ var (
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
+
+	customFieldUnsetErr func(ctx context.Context, key string) error
 )
 
 type (
@@ -47,10 +51,11 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fillDefault  bool
-		fromString   bool
-		opaqueKeys   bool
-		canonicalKey func(key string) string
+		fillDefault         bool
+		fromString          bool
+		opaqueKeys          bool
+		canonicalKey        func(key string) string
+		customFieldUnsetErr func(key string) error
 	}
 )
 
@@ -70,6 +75,17 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 // UnmarshalKey unmarshals m into v with tag key.
 func UnmarshalKey(m map[string]any, v any) error {
 	return keyUnmarshaler.Unmarshal(m, v)
+}
+
+func WithOpts(u *Unmarshaler, opts ...UnmarshalOption) *Unmarshaler {
+	if u == nil {
+		return u
+	}
+	for _, opt := range opts {
+		opt(&u.opts)
+	}
+
+	return u
 }
 
 // Unmarshal unmarshals m into v.
@@ -861,6 +877,9 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 			}
 
 			if required {
+				if u.opts.customFieldUnsetErr != nil {
+					return u.opts.customFieldUnsetErr(fullName)
+				}
 				return fmt.Errorf("%q is not set", fullName)
 			}
 
@@ -870,6 +889,9 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	default:
 		if !opts.optional() {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return newInitError(fullName)
 		}
 	}
@@ -935,6 +957,27 @@ func WithOpaqueKeys() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.opaqueKeys = true
 	}
+}
+
+func WithCustomFieldUnsetErr(f func(fullName string) error) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.customFieldUnsetErr = f
+	}
+}
+
+func WithCustomUnsetError(f func(ctx context.Context, fullName string) error) {
+	customFieldUnsetErr = f
+}
+
+func GetUnmarshalOptions(r *http.Request) []UnmarshalOption {
+	var opts []UnmarshalOption
+	if customFieldUnsetErr != nil {
+		unsetErrFun := func(key string) error {
+			return customFieldUnsetErr(r.Context(), key)
+		}
+		opts = append(opts, WithCustomFieldUnsetErr(unsetErrFun))
+	}
+	return opts
 }
 
 func createValuer(v valuerWithParent, opts *fieldOptionsWithContext) valuerWithParent {

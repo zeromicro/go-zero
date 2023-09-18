@@ -25,3 +25,17 @@ func ParseHeaders(header http.Header, v any) error {
 
 	return headerUnmarshaler.Unmarshal(m, v)
 }
+
+func ParseRequestHeaders(r *http.Request, v any) error {
+	m := map[string]any{}
+	for k, v := range r.Header {
+		if len(v) == 1 {
+			m[k] = v[0]
+		} else {
+			m[k] = v
+		}
+	}
+
+	unmarshaler := mapping.WithOpts(headerUnmarshaler, mapping.GetUnmarshalOptions(r)...)
+	return unmarshaler.Unmarshal(m, v)
+}

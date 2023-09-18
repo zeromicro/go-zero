@@ -63,7 +63,7 @@ func Parse(r *http.Request, v any) error {
 
 // ParseHeaders parses the headers request.
 func ParseHeaders(r *http.Request, v any) error {
-	return encoding.ParseHeaders(r.Header, v)
+	return encoding.ParseRequestHeaders(r, v)
 }
 
 // ParseForm parses the form request.
@@ -73,7 +73,8 @@ func ParseForm(r *http.Request, v any) error {
 		return err
 	}
 
-	return formUnmarshaler.Unmarshal(params, v)
+	unmarshaler := mapping.WithOpts(formUnmarshaler, mapping.GetUnmarshalOptions(r)...)
+	return unmarshaler.Unmarshal(params, v)
 }
 
 // ParseHeader parses the request header and returns a map.
@@ -100,9 +101,10 @@ func ParseHeader(headerValue string) map[string]string {
 
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v any) error {
+	opts := mapping.GetUnmarshalOptions(r)
 	if withJsonBody(r) {
 		reader := io.LimitReader(r.Body, maxBodyLen)
-		return mapping.UnmarshalJsonReader(reader, v)
+		return mapping.UnmarshalJsonReader(reader, v, opts...)
 	}
 
 	return mapping.UnmarshalJsonMap(nil, v)
@@ -117,7 +119,8 @@ func ParsePath(r *http.Request, v any) error {
 		m[k] = v
 	}
 
-	return pathUnmarshaler.Unmarshal(m, v)
+	unmarshaler := mapping.WithOpts(pathUnmarshaler, mapping.GetUnmarshalOptions(r)...)
+	return unmarshaler.Unmarshal(m, v)
 }
 
 // SetValidator sets the validator.
