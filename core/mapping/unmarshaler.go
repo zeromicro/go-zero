@@ -1,10 +1,12 @@
 package mapping
 
 import (
+	"context"
 	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -20,6 +22,7 @@ import (
 const (
 	defaultKeyName = "key"
 	delimiter      = '.'
+	ignoreKey      = "-"
 )
 
 var (
@@ -34,6 +37,8 @@ var (
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
+
+	customFieldUnsetErr func(ctx context.Context, key string) error
 )
 
 type (
@@ -47,9 +52,11 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fillDefault  bool
-		fromString   bool
-		canonicalKey func(key string) string
+		fillDefault         bool
+		fromString          bool
+		opaqueKeys          bool
+		canonicalKey        func(key string) string
+		customFieldUnsetErr func(key string) error
 	}
 )
 
@@ -69,6 +76,17 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 // UnmarshalKey unmarshals m into v with tag key.
 func UnmarshalKey(m map[string]any, v any) error {
 	return keyUnmarshaler.Unmarshal(m, v)
+}
+
+func WithOpts(u *Unmarshaler, opts ...UnmarshalOption) *Unmarshaler {
+	if u == nil {
+		return u
+	}
+	for _, opt := range opts {
+		opt(&u.opts)
+	}
+
+	return u
 }
 
 // Unmarshal unmarshals m into v.
@@ -436,6 +454,10 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 		return err
 	}
 
+	if key == ignoreKey {
+		return nil
+	}
+
 	if options.optional() {
 		return u.processAnonymousFieldOptional(field, value, key, m, fullName)
 	}
@@ -494,7 +516,7 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 			return err
 		}
 
-		_, hasValue := getValue(m, fieldKey)
+		_, hasValue := getValue(m, fieldKey, u.opts.opaqueKeys)
 		if hasValue {
 			if !filled {
 				filled = true
@@ -723,6 +745,10 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 		return err
 	}
 
+	if key == ignoreKey {
+		return nil
+	}
+
 	fullName = join(fullName, key)
 	if opts != nil && len(opts.EnvVar) > 0 {
 		envVal := proc.Env(opts.EnvVar)
@@ -737,7 +763,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	}
 
 	valuer := createValuer(m, opts)
-	mapValue, hasValue := getValue(valuer, canonicalKey)
+	mapValue, hasValue := getValue(valuer, canonicalKey, u.opts.opaqueKeys)
 
 	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
@@ -860,6 +886,9 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 			}
 
 			if required {
+				if u.opts.customFieldUnsetErr != nil {
+					return u.opts.customFieldUnsetErr(fullName)
+				}
 				return fmt.Errorf("%q is not set", fullName)
 			}
 
@@ -869,6 +898,9 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	default:
 		if !opts.optional() {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return newInitError(fullName)
 		}
 	}
@@ -926,6 +958,35 @@ func WithDefault() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fillDefault = true
 	}
+}
+
+// WithOpaqueKeys customizes an Unmarshaler with opaque keys.
+// Opaque keys are keys that are not processed by the unmarshaler.
+func WithOpaqueKeys() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.opaqueKeys = true
+	}
+}
+
+func WithCustomFieldUnsetErr(f func(fullName string) error) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.customFieldUnsetErr = f
+	}
+}
+
+func WithCustomUnsetError(f func(ctx context.Context, fullName string) error) {
+	customFieldUnsetErr = f
+}
+
+func GetUnmarshalOptions(r *http.Request) []UnmarshalOption {
+	var opts []UnmarshalOption
+	if customFieldUnsetErr != nil {
+		unsetErrFun := func(key string) error {
+			return customFieldUnsetErr(r.Context(), key)
+		}
+		opts = append(opts, WithCustomFieldUnsetErr(unsetErrFun))
+	}
+	return opts
 }
 
 func createValuer(v valuerWithParent, opts *fieldOptionsWithContext) valuerWithParent {
@@ -1005,8 +1066,8 @@ func fillWithSameType(fieldType reflect.Type, value reflect.Value, mapValue any,
 }
 
 // getValue gets the value for the specific key, the key can be in the format of parentKey.childKey
-func getValue(m valuerWithParent, key string) (any, bool) {
-	keys := readKeys(key)
+func getValue(m valuerWithParent, key string, opaque bool) (any, bool) {
+	keys := readKeys(key, opaque)
 	return getValueWithChainedKeys(m, keys)
 }
 
@@ -1065,7 +1126,11 @@ func newTypeMismatchErrorWithHint(name, expectType, actualType string) error {
 		name, expectType, actualType)
 }
 
-func readKeys(key string) []string {
+func readKeys(key string, opaque bool) []string {
+	if opaque {
+		return []string{key}
+	}
+
 	cacheKeysLock.Lock()
 	keys, ok := cacheKeys[key]
 	cacheKeysLock.Unlock()
