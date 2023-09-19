@@ -2,12 +2,13 @@ package handler
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/codec"
@@ -35,6 +36,19 @@ func TestCryptionHandlerGet(t *testing.T) {
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, "test", recorder.Header().Get("X-Test"))
 	assert.Equal(t, base64.StdEncoding.EncodeToString(expect), recorder.Body.String())
+}
+
+func TestCryptionHandlerGet_badKey(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/any", http.NoBody)
+	handler := CryptionHandler(append(aesKey, aesKey...))(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			_, err := w.Write([]byte(respText))
+			w.Header().Set("X-Test", "test")
+			assert.Nil(t, err)
+		}))
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 }
 
 func TestCryptionHandlerPost(t *testing.T) {
@@ -120,10 +134,29 @@ func TestCryptionHandler_ContentTooLong(t *testing.T) {
 	defer svr.Close()
 
 	body := make([]byte, maxBytes+1)
-	rand.Read(body)
+	_, err := rand.Read(body)
+	assert.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPost, svr.URL, bytes.NewReader(body))
 	assert.Nil(t, err)
 	resp, err := http.DefaultClient.Do(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestCryptionHandler_BadBody(t *testing.T) {
+	req, err := http.NewRequest(http.MethodPost, "/foo", iotest.ErrReader(io.ErrUnexpectedEOF))
+	assert.Nil(t, err)
+	err = decryptBody(maxBytes, aesKey, req)
+	assert.ErrorIs(t, err, io.ErrUnexpectedEOF)
+}
+
+func TestCryptionHandler_BadKey(t *testing.T) {
+	var buf bytes.Buffer
+	enc, err := codec.EcbEncrypt(aesKey, []byte(reqText))
+	assert.Nil(t, err)
+	buf.WriteString(base64.StdEncoding.EncodeToString(enc))
+
+	req := httptest.NewRequest(http.MethodPost, "/any", &buf)
+	err = decryptBody(maxBytes, append(aesKey, aesKey...), req)
+	assert.Error(t, err)
 }
