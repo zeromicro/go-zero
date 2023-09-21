@@ -1,6 +1,7 @@
 package mathx
 
 import (
+	"runtime"
 	"testing"
 	"time"
 
@@ -68,4 +69,24 @@ func TestUnstable_Distribution(t *testing.T) {
 	entropy := CalcEntropy(mi)
 	assert.True(t, len(m) > 1)
 	assert.True(t, entropy > 0.95)
+}
+
+func BenchmarkAroundDuration(b *testing.B) {
+	unstable := NewUnstable(0.05)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = unstable.AroundDuration(time.Second)
+		}
+	})
+}
+
+func BenchmarkAroundInt(b *testing.B) {
+	unstable := NewUnstable(0.05)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = unstable.AroundInt(10)
+		}
+	})
 }
