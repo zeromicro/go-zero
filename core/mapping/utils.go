@@ -34,6 +34,7 @@ const (
 
 var (
 	errUnsupportedType  = errors.New("unsupported type on setting field value")
+	errNumberOverflow   = errors.New("integer overflow")
 	errNumberRange      = errors.New("wrong number range setting")
 	optionsCache        = make(map[string]optionsCacheValue)
 	cacheLock           sync.RWMutex
@@ -482,22 +483,61 @@ func parseSegments(val string) []string {
 	return segments
 }
 
+func setIntValue(value reflect.Value, v any, min, max int64) error {
+	iv := v.(int64)
+	if iv < min || iv > max {
+		return errNumberOverflow
+	}
+
+	value.SetInt(iv)
+	return nil
+}
+
 func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v any) error {
 	switch kind {
 	case reflect.Bool:
 		value.SetBool(v.(bool))
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return nil
+	case reflect.Int: // int depends on int size, 32 or 64
+		return setIntValue(value, v, math.MinInt, math.MaxInt)
+	case reflect.Int8:
+		return setIntValue(value, v, math.MinInt8, math.MaxInt8)
+	case reflect.Int16:
+		return setIntValue(value, v, math.MinInt16, math.MaxInt16)
+	case reflect.Int32:
+		return setIntValue(value, v, math.MinInt32, math.MaxInt32)
+	case reflect.Int64:
 		value.SetInt(v.(int64))
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return nil
+	case reflect.Uint: // uint depends on int size, 32 or 64
+		return setUintValue(value, v, math.MaxUint)
+	case reflect.Uint8:
+		return setUintValue(value, v, math.MaxUint8)
+	case reflect.Uint16:
+		return setUintValue(value, v, math.MaxUint16)
+	case reflect.Uint32:
+		return setUintValue(value, v, math.MaxUint32)
+	case reflect.Uint64:
 		value.SetUint(v.(uint64))
+		return nil
 	case reflect.Float32, reflect.Float64:
 		value.SetFloat(v.(float64))
+		return nil
 	case reflect.String:
 		value.SetString(v.(string))
+		return nil
 	default:
 		return errUnsupportedType
 	}
+}
 
+func setUintValue(value reflect.Value, v any, boundary uint64) error {
+	iv := v.(uint64)
+	if iv > boundary {
+		return errNumberOverflow
+	}
+
+	value.SetUint(iv)
 	return nil
 }
 
