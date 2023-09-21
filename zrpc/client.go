@@ -3,6 +3,7 @@ package zrpc
 import (
 	"time"
 
+	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
@@ -85,15 +86,14 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 // NewClientWithTarget returns a Client with connecting to given target.
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
-	middlewares := ClientMiddlewaresConf{
-		Trace:      true,
-		Duration:   true,
-		Prometheus: true,
-		Breaker:    true,
-		Timeout:    true,
+	var config RpcClientConf
+	if err := conf.FillDefault(&config); err != nil {
+		return nil, err
 	}
 
-	return internal.NewClient(target, middlewares, opts...)
+	config.Target = target
+
+	return NewClient(config, opts...)
 }
 
 // Conn returns the underlying grpc.ClientConn.

@@ -219,9 +219,7 @@ func transferTokenNode(node *TokenNode, opt ...tokenNodeOption) *TokenNode {
 		}
 	}
 	if !option.ignoreLeadingComment {
-		for _, v := range node.LeadingCommentGroup {
-			result.LeadingCommentGroup = append(result.LeadingCommentGroup, v)
-		}
+		result.LeadingCommentGroup = append(result.LeadingCommentGroup, node.LeadingCommentGroup...)
 	}
 	return result
 }

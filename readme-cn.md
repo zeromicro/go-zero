@@ -17,14 +17,6 @@
 
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-> ***注意：***
->
-> 从 v1.3.0 之前版本升级请执行以下命令：
->
-> `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
->
-> `goctl migrate —verbose —version v1.5.2`
-
 ## 0. go-zero 介绍
 
 go-zero（收录于 CNCF 云原生技术全景图：[https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)）是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
@@ -301,6 +293,9 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >89. 北京数智方科技有限公司
 >90. 元匠科技
 >91. 宁波甬风信息科技有限公司
+>92. 深圳市万佳安物联科技股份有限公司
+>93. 武侯区编程之美软件开发工作室
+>94. 西安交通大学智慧能源与碳中和研究中心
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

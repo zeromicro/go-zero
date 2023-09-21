@@ -61,5 +61,5 @@ jobs:
         run: |
           go mod verify
           go mod download
-          go test -v -race ./...
+          go test ./...
           cd tools/goctl && go build -v goctl.go

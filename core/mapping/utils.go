@@ -79,7 +79,7 @@ func SetMapIndexValue(tp reflect.Type, value, key, target reflect.Value) {
 }
 
 // ValidatePtr validates v if it's a valid pointer.
-func ValidatePtr(v *reflect.Value) error {
+func ValidatePtr(v reflect.Value) error {
 	// sequence is very important, IsNil must be called after checking Kind() with reflect.Ptr,
 	// panic otherwise
 	if !v.IsValid() || v.Kind() != reflect.Ptr || v.IsNil() {
@@ -103,21 +103,21 @@ func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		intValue, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot parsed as int", str)
+			return 0, fmt.Errorf("the value %q cannot be parsed as int", str)
 		}
 
 		return intValue, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		uintValue, err := strconv.ParseUint(str, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot parsed as uint", str)
+			return 0, fmt.Errorf("the value %q cannot be parsed as uint", str)
 		}
 
 		return uintValue, nil
 	case reflect.Float32, reflect.Float64:
 		floatValue, err := strconv.ParseFloat(str, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot parsed as float", str)
+			return 0, fmt.Errorf("the value %q cannot be parsed as float", str)
 		}
 
 		return floatValue, nil
@@ -372,8 +372,6 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 		default:
 			return fmt.Errorf("field %q has wrong optional", fieldName)
 		}
-	case option == optionalOption:
-		fieldOpts.Optional = true
 	case strings.HasPrefix(option, optionsOption):
 		val, err := parseProperty(fieldName, optionsOption, option)
 		if err != nil {

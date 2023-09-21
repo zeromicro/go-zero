@@ -11,11 +11,14 @@ func TestStartAgent(t *testing.T) {
 	logx.Disable()
 
 	const (
-		endpoint1 = "localhost:1234"
-		endpoint2 = "remotehost:1234"
-		endpoint3 = "localhost:1235"
-		endpoint4 = "localhost:1236"
-		endpoint5 = "udp://localhost:6831"
+		endpoint1  = "localhost:1234"
+		endpoint2  = "remotehost:1234"
+		endpoint3  = "localhost:1235"
+		endpoint4  = "localhost:1236"
+		endpoint5  = "udp://localhost:6831"
+		endpoint6  = "localhost:1237"
+		endpoint71 = "/tmp/trace.log"
+		endpoint72 = "/not-exist-fs/trace.log"
 	)
 	c1 := Config{
 		Name: "foo",
@@ -57,6 +60,21 @@ func TestStartAgent(t *testing.T) {
 		Endpoint: endpoint5,
 		Batcher:  kindJaeger,
 	}
+	c8 := Config{
+		Disabled: true,
+		Endpoint: endpoint6,
+		Batcher:  kindJaeger,
+	}
+	c9 := Config{
+		Name:     "file",
+		Endpoint: endpoint71,
+		Batcher:  kindFile,
+	}
+	c10 := Config{
+		Name:     "file",
+		Endpoint: endpoint72,
+		Batcher:  kindFile,
+	}
 
 	StartAgent(c1)
 	StartAgent(c1)
@@ -66,12 +84,16 @@ func TestStartAgent(t *testing.T) {
 	StartAgent(c5)
 	StartAgent(c6)
 	StartAgent(c7)
+	StartAgent(c8)
+	StartAgent(c9)
+	StartAgent(c10)
+	defer StopAgent()
 
 	lock.Lock()
 	defer lock.Unlock()
 
 	// because remotehost cannot be resolved
-	assert.Equal(t, 5, len(agents))
+	assert.Equal(t, 6, len(agents))
 	_, ok := agents[""]
 	assert.True(t, ok)
 	_, ok = agents[endpoint1]
@@ -80,4 +102,10 @@ func TestStartAgent(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = agents[endpoint5]
 	assert.True(t, ok)
+	_, ok = agents[endpoint6]
+	assert.False(t, ok)
+	_, ok = agents[endpoint71]
+	assert.True(t, ok)
+	_, ok = agents[endpoint72]
+	assert.False(t, ok)
 }

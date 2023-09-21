@@ -11,7 +11,7 @@ import (
 
 type mockedRoute struct {
 	route string
-	value int
+	value any
 }
 
 func TestSearch(t *testing.T) {
@@ -185,6 +185,12 @@ func TestSearchInvalidItem(t *testing.T) {
 	tree := NewTree()
 	err := tree.Add("/", nil)
 	assert.Equal(t, errEmptyItem, err)
+}
+
+func TestSearchInvalidState(t *testing.T) {
+	nd := newNode("0")
+	nd.children[0]["1"] = nil
+	assert.Error(t, add(nd, "1/2", "2"))
 }
 
 func BenchmarkSearchTree(b *testing.B) {

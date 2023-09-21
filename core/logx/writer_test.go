@@ -97,6 +97,15 @@ func TestConsoleWriter(t *testing.T) {
 	w.(*concreteWriter).statLog = easyToCloseWriter{}
 }
 
+func TestNewFileWriter(t *testing.T) {
+	t.Run("access", func(t *testing.T) {
+		_, err := newFileWriter(LogConf{
+			Path: "/not-exists",
+		})
+		assert.Error(t, err)
+	})
+}
+
 func TestNopWriter(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var w nopWriter

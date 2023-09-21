@@ -32,6 +32,10 @@ func (bp *BufferPool) Get() *bytes.Buffer {
 
 // Put returns buf into bp.
 func (bp *BufferPool) Put(buf *bytes.Buffer) {
+	if buf == nil {
+		return
+	}
+
 	if buf.Cap() < bp.capability {
 		bp.pool.Put(buf)
 	}
