@@ -609,24 +609,11 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 	target := reflect.New(Deref(fieldType)).Elem()
 
 	switch typeKind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		iValue, err := v.Int64()
-		if err != nil {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if err := setValueFromString(typeKind, target, v.String()); err != nil {
 			return err
 		}
-
-		target.SetInt(iValue)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		iValue, err := v.Int64()
-		if err != nil {
-			return err
-		}
-
-		if iValue < 0 {
-			return fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String())
-		}
-
-		target.SetUint(uint64(iValue))
 	case reflect.Float32, reflect.Float64:
 		fValue, err := v.Float64()
 		if err != nil {

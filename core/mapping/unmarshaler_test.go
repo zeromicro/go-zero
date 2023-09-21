@@ -569,6 +569,330 @@ func TestUnmarshalIntWithString(t *testing.T) {
 	})
 }
 
+func TestUnmarshalInt8WithOverflow(t *testing.T) {
+	t.Run("int8 from string", func(t *testing.T) {
+		type inner struct {
+			Value int8 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "8589934592", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int8 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int8 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int8 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int8 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("-8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int8 from int64", func(t *testing.T) {
+		type inner struct {
+			Value int8 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalInt16WithOverflow(t *testing.T) {
+	t.Run("int16 from string", func(t *testing.T) {
+		type inner struct {
+			Value int16 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "8589934592", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int16 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int16 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int16 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int16 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("-8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int16 from int64", func(t *testing.T) {
+		type inner struct {
+			Value int16 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalInt32WithOverflow(t *testing.T) {
+	t.Run("int32 from string", func(t *testing.T) {
+		type inner struct {
+			Value int32 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "8589934592", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int32 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int32 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int32 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int32 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("-8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int32 from int64", func(t *testing.T) {
+		type inner struct {
+			Value int32 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalUint8WithOverflow(t *testing.T) {
+	t.Run("uint8 from string", func(t *testing.T) {
+		type inner struct {
+			Value uint8 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "8589934592", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint8 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint8 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint8 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint8 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("-1"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint8 from int64", func(t *testing.T) {
+		type inner struct {
+			Value uint8 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalUint16WithOverflow(t *testing.T) {
+	t.Run("uint16 from string", func(t *testing.T) {
+		type inner struct {
+			Value uint16 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "8589934592", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint16 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint16 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint16 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint16 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("-1"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint16 from int64", func(t *testing.T) {
+		type inner struct {
+			Value uint16 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalUint32WithOverflow(t *testing.T) {
+	t.Run("uint32 from string", func(t *testing.T) {
+		type inner struct {
+			Value uint32 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "8589934592", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint32 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint32 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("8589934592"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint32 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint32 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("-1"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint32 from int64", func(t *testing.T) {
+		type inner struct {
+			Value uint32 `key:"int"`
+		}
+
+		m := map[string]any{
+			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
 func TestUnmarshalBoolSliceRequired(t *testing.T) {
 	type inner struct {
 		Bools []bool `key:"bools"`
