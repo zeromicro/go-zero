@@ -517,6 +517,21 @@ func TestGzipFile(t *testing.T) {
 	})
 }
 
+func TestRotateLogger_WithExistingFile(t *testing.T) {
+	const body = "foo"
+	filename, err := fs.TempFilenameWithText(body)
+	assert.Nil(t, err)
+	if len(filename) > 0 {
+		defer os.Remove(filename)
+	}
+
+	rule := NewSizeLimitRotateRule(filename, "-", 1, 100, 3, false)
+	logger, err := NewLogger(filename, rule, false)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(len(body)), logger.currentSize)
+	assert.Nil(t, logger.Close())
+}
+
 func BenchmarkRotateLogger(b *testing.B) {
 	filename := "./test.log"
 	filename2 := "./test2.log"
