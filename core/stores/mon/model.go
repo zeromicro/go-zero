@@ -51,11 +51,11 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	}
 
 	brk := breaker.GetBreaker(uri)
-	if withOutBreaker != nil {
-		breaker.NoBreakerFor(uri)
-	}
 	if withBreaker != nil {
 		brk = withBreaker.(breaker.Breaker)
+	}
+	if withOutBreaker != nil {
+		breaker.NoBreakerFor(uri)
 	}
 
 	name := strings.Join([]string{uri, collection}, "/")
