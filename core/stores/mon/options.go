@@ -1,6 +1,7 @@
 package mon
 
 import (
+	"github.com/zeromicro/go-zero/core/breaker"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -10,6 +11,9 @@ import (
 const defaultTimeout = time.Second * 3
 
 var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+
+var withBreaker any
+var withOutBreaker any
 
 type (
 	options = mopt.ClientOptions
@@ -33,5 +37,19 @@ func defaultTimeoutOption() Option {
 func WithTimeout(timeout time.Duration) Option {
 	return func(opts *options) {
 		opts.SetTimeout(timeout)
+	}
+}
+
+// WithOutBreaker not use breaker.
+func WithOutBreaker() Option {
+	return func(opts *options) {
+		withOutBreaker = struct{}{}
+	}
+}
+
+// WithBreaker use customer breaker.
+func WithBreaker(brk breaker.Breaker) Option {
+	return func(opts *options) {
+		withOutBreaker = brk
 	}
 }
