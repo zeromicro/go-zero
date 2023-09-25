@@ -52,6 +52,14 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 
 	name := strings.Join([]string{uri, collection}, "/")
 	brk := breaker.GetBreaker(uri)
+
+	if withOutBreaker != nil {
+		breaker.NoBreakerFor(uri)
+	}
+	if withBreaker != nil {
+		brk = withBreaker.(breaker.Breaker)
+	}
+	
 	coll := newCollection(cli.Database(db).Collection(collection), brk)
 	return newModel(name, cli, coll, brk, opts...), nil
 }
