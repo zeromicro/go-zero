@@ -13,7 +13,7 @@ const defaultTimeout = time.Second * 3
 var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
 
 var withBreaker any
-var withOutBreaker any
+var withoutBreaker any
 
 type (
 	options = mopt.ClientOptions
@@ -40,16 +40,16 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-// WithOutBreaker not use breaker.
-func WithOutBreaker() Option {
+// WithoutBreaker not use breaker.
+func WithoutBreaker() Option {
 	return func(opts *options) {
-		withOutBreaker = struct{}{}
+		withoutBreaker = struct{}{}
 	}
 }
 
 // WithBreaker use customer breaker.
 func WithBreaker(brk breaker.Breaker) Option {
 	return func(opts *options) {
-		withOutBreaker = brk
+		withBreaker = brk
 	}
 }

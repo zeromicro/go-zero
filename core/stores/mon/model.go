@@ -54,7 +54,7 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	if withBreaker != nil {
 		brk = withBreaker.(breaker.Breaker)
 	}
-	if withOutBreaker != nil {
+	if withoutBreaker != nil {
 		breaker.NoBreakerFor(uri)
 	}
 
