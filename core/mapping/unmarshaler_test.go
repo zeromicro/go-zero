@@ -731,6 +731,34 @@ func TestUnmarshalInt32WithOverflow(t *testing.T) {
 	})
 }
 
+func TestUnmarshalInt64WithOverflow(t *testing.T) {
+	t.Run("int64 from string", func(t *testing.T) {
+		type inner struct {
+			Value int64 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "18446744073709551616", // overflow, 1 << 64
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("int64 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value int64 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("18446744073709551616"), // overflow, 1 << 64
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
 func TestUnmarshalUint8WithOverflow(t *testing.T) {
 	t.Run("uint8 from string", func(t *testing.T) {
 		type inner struct {
@@ -758,7 +786,7 @@ func TestUnmarshalUint8WithOverflow(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
-	t.Run("uint8 from json.Number", func(t *testing.T) {
+	t.Run("uint8 from json.Number with negative", func(t *testing.T) {
 		type inner struct {
 			Value uint8 `key:"int"`
 		}
@@ -812,7 +840,7 @@ func TestUnmarshalUint16WithOverflow(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
-	t.Run("uint16 from json.Number", func(t *testing.T) {
+	t.Run("uint16 from json.Number with negative", func(t *testing.T) {
 		type inner struct {
 			Value uint16 `key:"int"`
 		}
@@ -866,7 +894,7 @@ func TestUnmarshalUint32WithOverflow(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
-	t.Run("uint32 from json.Number", func(t *testing.T) {
+	t.Run("uint32 from json.Number with negative", func(t *testing.T) {
 		type inner struct {
 			Value uint32 `key:"int"`
 		}
@@ -886,6 +914,116 @@ func TestUnmarshalUint32WithOverflow(t *testing.T) {
 
 		m := map[string]any{
 			"int": int64(1) << 36, // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalUint64WithOverflow(t *testing.T) {
+	t.Run("uint64 from string", func(t *testing.T) {
+		type inner struct {
+			Value uint64 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": "18446744073709551616", // overflow, 1 << 64
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("uint64 from json.Number", func(t *testing.T) {
+		type inner struct {
+			Value uint64 `key:"int,string"`
+		}
+
+		m := map[string]any{
+			"int": json.Number("18446744073709551616"), // overflow, 1 << 64
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalFloat32WithOverflow(t *testing.T) {
+	t.Run("float32 from string greater than float64", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float,string"`
+		}
+
+		m := map[string]any{
+			"float": "1.79769313486231570814527423731704356798070e+309", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from string greater than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float,string"`
+		}
+
+		m := map[string]any{
+			"float": "1.79769313486231570814527423731704356798070e+300", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from json.Number greater than float64", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float"`
+		}
+
+		m := map[string]any{
+			"float": json.Number("1.79769313486231570814527423731704356798070e+309"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from json.Number greater than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float"`
+		}
+
+		m := map[string]any{
+			"float": json.Number("1.79769313486231570814527423731704356798070e+300"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+}
+
+func TestUnmarshalFloat64WithOverflow(t *testing.T) {
+	t.Run("float64 from string greater than float64", func(t *testing.T) {
+		type inner struct {
+			Value float64 `key:"float,string"`
+		}
+
+		m := map[string]any{
+			"float": "1.79769313486231570814527423731704356798070e+309", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from json.Number greater than float64", func(t *testing.T) {
+		type inner struct {
+			Value float64 `key:"float"`
+		}
+
+		m := map[string]any{
+			"float": json.Number("1.79769313486231570814527423731704356798070e+309"), // overflow
 		}
 
 		var in inner
@@ -1119,16 +1257,20 @@ func TestUnmarshalFloat(t *testing.T) {
 	type inner struct {
 		Float32      float32 `key:"float32"`
 		Float32Str   float32 `key:"float32str,string"`
+		Float32Num   float32 `key:"float32num"`
 		Float64      float64 `key:"float64"`
 		Float64Str   float64 `key:"float64str,string"`
+		Float64Num   float64 `key:"float64num"`
 		DefaultFloat float32 `key:"defaultfloat,default=5.5"`
 		Optional     float32 `key:",optional"`
 	}
 	m := map[string]any{
 		"float32":    float32(1.5),
 		"float32str": "2.5",
-		"float64":    float64(3.5),
+		"float32num": json.Number("2.6"),
+		"float64":    3.5,
 		"float64str": "4.5",
+		"float64num": json.Number("4.6"),
 	}
 
 	var in inner
@@ -1136,8 +1278,10 @@ func TestUnmarshalFloat(t *testing.T) {
 	if ast.NoError(UnmarshalKey(m, &in)) {
 		ast.Equal(float32(1.5), in.Float32)
 		ast.Equal(float32(2.5), in.Float32Str)
+		ast.Equal(float32(2.6), in.Float32Num)
 		ast.Equal(3.5, in.Float64)
 		ast.Equal(4.5, in.Float64Str)
+		ast.Equal(4.6, in.Float64Num)
 		ast.Equal(float32(5.5), in.DefaultFloat)
 	}
 }

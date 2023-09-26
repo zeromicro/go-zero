@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -614,7 +615,18 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 		if err := setValueFromString(typeKind, target, v.String()); err != nil {
 			return err
 		}
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float32:
+		fValue, err := v.Float64()
+		if err != nil {
+			return err
+		}
+
+		if fValue > math.MaxFloat32 {
+			return float32OverflowError(v.String())
+		}
+
+		target.SetFloat(fValue)
+	case reflect.Float64:
 		fValue, err := v.Float64()
 		if err != nil {
 			return err
