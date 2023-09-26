@@ -34,7 +34,6 @@ const (
 
 var (
 	errUnsupportedType  = errors.New("unsupported type on setting field value")
-	errNumberOverflow   = errors.New("integer overflow")
 	errNumberRange      = errors.New("wrong number range setting")
 	optionsCache        = make(map[string]optionsCacheValue)
 	cacheLock           sync.RWMutex
@@ -43,6 +42,10 @@ var (
 )
 
 type (
+	integer interface {
+		~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+	}
+
 	optionsCacheValue struct {
 		key     string
 		options *fieldOptions
@@ -104,21 +107,32 @@ func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		intValue, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot be parsed as int", str)
+			return 0, err
 		}
 
 		return intValue, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		uintValue, err := strconv.ParseUint(str, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot be parsed as uint", str)
+			return 0, err
 		}
 
 		return uintValue, nil
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float32:
 		floatValue, err := strconv.ParseFloat(str, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot be parsed as float", str)
+			return 0, err
+		}
+
+		if floatValue > math.MaxFloat32 {
+			return 0, float32OverflowError(str)
+		}
+
+		return floatValue, nil
+	case reflect.Float64:
+		floatValue, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return 0, err
 		}
 
 		return floatValue, nil
@@ -216,6 +230,10 @@ func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
 	return false, nil
 }
 
+func intOverflowError[T integer](v T, kind reflect.Kind) error {
+	return fmt.Errorf("parsing \"%d\" as %s: value out of range", v, kind.String())
+}
+
 func isLeftInclude(b byte) (bool, error) {
 	switch b {
 	case '[':
@@ -236,6 +254,10 @@ func isRightInclude(b byte) (bool, error) {
 	default:
 		return false, errNumberRange
 	}
+}
+
+func float32OverflowError(str string) error {
+	return fmt.Errorf("parsing %q as float32: value out of range", str)
 }
 
 func maybeNewValue(fieldType reflect.Type, value reflect.Value) {
@@ -486,7 +508,7 @@ func parseSegments(val string) []string {
 func setIntValue(value reflect.Value, v any, min, max int64) error {
 	iv := v.(int64)
 	if iv < min || iv > max {
-		return errNumberOverflow
+		return intOverflowError(iv, value.Kind())
 	}
 
 	value.SetInt(iv)
@@ -534,7 +556,7 @@ func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v any) err
 func setUintValue(value reflect.Value, v any, boundary uint64) error {
 	iv := v.(uint64)
 	if iv > boundary {
-		return errNumberOverflow
+		return intOverflowError(iv, value.Kind())
 	}
 
 	value.SetUint(iv)
@@ -615,7 +637,8 @@ func usingDifferentKeys(key string, field reflect.StructField) bool {
 	return false
 }
 
-func validateAndSetValue(kind reflect.Kind, value reflect.Value, str string, opts *fieldOptionsWithContext) error {
+func validateAndSetValue(kind reflect.Kind, value reflect.Value, str string,
+	opts *fieldOptionsWithContext) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}
