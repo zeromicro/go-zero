@@ -209,6 +209,27 @@ func TestRotateLoggerClose(t *testing.T) {
 		_, err := logger.Write([]byte("foo"))
 		assert.ErrorIs(t, err, ErrLogFileClosed)
 	})
+
+	t.Run("close without losing logs", func(t *testing.T) {
+		text := "foo"
+		filename, err := fs.TempFilenameWithText(text)
+		assert.Nil(t, err)
+		if len(filename) > 0 {
+			defer os.Remove(filename)
+		}
+		logger, err := NewLogger(filename, new(DailyRotateRule), false)
+		assert.Nil(t, err)
+		msg := []byte("foo")
+		n := 100
+		for i := 0; i < n; i++ {
+			_, err = logger.Write(msg)
+			assert.Nil(t, err)
+		}
+		assert.Nil(t, logger.Close())
+		bs, err := os.ReadFile(filename)
+		assert.Nil(t, err)
+		assert.Equal(t, len(msg)*n+len(text), len(bs))
+	})
 }
 
 func TestRotateLoggerGetBackupFilename(t *testing.T) {
@@ -503,6 +524,21 @@ func TestGzipFile(t *testing.T) {
 		assert.NoError(t, gzipFile("any", fsys))
 		assert.True(t, fsys.Removed())
 	})
+}
+
+func TestRotateLogger_WithExistingFile(t *testing.T) {
+	const body = "foo"
+	filename, err := fs.TempFilenameWithText(body)
+	assert.Nil(t, err)
+	if len(filename) > 0 {
+		defer os.Remove(filename)
+	}
+
+	rule := NewSizeLimitRotateRule(filename, "-", 1, 100, 3, false)
+	logger, err := NewLogger(filename, rule, false)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(len(body)), logger.currentSize)
+	assert.Nil(t, logger.Close())
 }
 
 func BenchmarkRotateLogger(b *testing.B) {

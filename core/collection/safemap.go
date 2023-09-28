@@ -29,6 +29,8 @@ func NewSafeMap() *SafeMap {
 // Del deletes the value with the given key from m.
 func (m *SafeMap) Del(key any) {
 	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	if _, ok := m.dirtyOld[key]; ok {
 		delete(m.dirtyOld, key)
 		m.deletionOld++
@@ -52,7 +54,6 @@ func (m *SafeMap) Del(key any) {
 		m.dirtyNew = make(map[any]any)
 		m.deletionNew = 0
 	}
-	m.lock.Unlock()
 }
 
 // Get gets the value with the given key from m.
@@ -89,6 +90,8 @@ func (m *SafeMap) Range(f func(key, val any) bool) {
 // Set sets the value into m with the given key.
 func (m *SafeMap) Set(key, value any) {
 	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	if m.deletionOld <= maxDeletion {
 		if _, ok := m.dirtyNew[key]; ok {
 			delete(m.dirtyNew, key)
@@ -102,7 +105,6 @@ func (m *SafeMap) Set(key, value any) {
 		}
 		m.dirtyNew[key] = value
 	}
-	m.lock.Unlock()
 }
 
 // Size returns the size of m.
