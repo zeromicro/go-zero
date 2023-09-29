@@ -147,3 +147,6 @@ func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {
 
 func (m mockClientConn) Connect() {
 }
+
+func (m mockClientConn) Shutdown() {
+}

@@ -23,11 +23,6 @@ func TestStartAgent(t *testing.T) {
 	c1 := Config{
 		Name: "foo",
 	}
-	c2 := Config{
-		Name:     "bar",
-		Endpoint: endpoint1,
-		Batcher:  kindJaeger,
-	}
 	c3 := Config{
 		Name:     "any",
 		Endpoint: endpoint2,
@@ -55,16 +50,6 @@ func TestStartAgent(t *testing.T) {
 		},
 		OtlpHttpPath: "/v1/traces",
 	}
-	c7 := Config{
-		Name:     "UDP",
-		Endpoint: endpoint5,
-		Batcher:  kindJaeger,
-	}
-	c8 := Config{
-		Disabled: true,
-		Endpoint: endpoint6,
-		Batcher:  kindJaeger,
-	}
 	c9 := Config{
 		Name:     "file",
 		Endpoint: endpoint71,
@@ -78,13 +63,10 @@ func TestStartAgent(t *testing.T) {
 
 	StartAgent(c1)
 	StartAgent(c1)
-	StartAgent(c2)
 	StartAgent(c3)
 	StartAgent(c4)
 	StartAgent(c5)
 	StartAgent(c6)
-	StartAgent(c7)
-	StartAgent(c8)
 	StartAgent(c9)
 	StartAgent(c10)
 	defer StopAgent()
@@ -93,15 +75,15 @@ func TestStartAgent(t *testing.T) {
 	defer lock.Unlock()
 
 	// because remotehost cannot be resolved
-	assert.Equal(t, 5, len(agents))
+	assert.Equal(t, 3, len(agents))
 	_, ok := agents[""]
 	assert.True(t, ok)
 	_, ok = agents[endpoint1]
-	assert.True(t, ok)
+	assert.False(t, ok)
 	_, ok = agents[endpoint2]
 	assert.False(t, ok)
 	_, ok = agents[endpoint5]
-	assert.True(t, ok)
+	assert.False(t, ok)
 	_, ok = agents[endpoint6]
 	assert.False(t, ok)
 	_, ok = agents[endpoint71]

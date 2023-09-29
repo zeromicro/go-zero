@@ -298,6 +298,7 @@ func (l *RotateLogger) initialize() error {
 		if l.fp, err = os.OpenFile(l.filename, os.O_APPEND|os.O_WRONLY, defaultFileMode); err != nil {
 			return err
 		}
+
 		l.currentSize = fileInfo.Size()
 	}
 
@@ -381,7 +382,15 @@ func (l *RotateLogger) startWorker() {
 			case event := <-l.channel:
 				l.write(event)
 			case <-l.done:
-				return
+				// avoid losing logs before closing.
+				for {
+					select {
+					case event := <-l.channel:
+						l.write(event)
+					default:
+						return
+					}
+				}
 			}
 		}
 	}()
