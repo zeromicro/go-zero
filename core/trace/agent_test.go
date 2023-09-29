@@ -75,15 +75,15 @@ func TestStartAgent(t *testing.T) {
 	defer lock.Unlock()
 
 	// because remotehost cannot be resolved
-	assert.Equal(t, 5, len(agents))
+	assert.Equal(t, 3, len(agents))
 	_, ok := agents[""]
 	assert.True(t, ok)
 	_, ok = agents[endpoint1]
-	assert.True(t, ok)
+	assert.False(t, ok)
 	_, ok = agents[endpoint2]
 	assert.False(t, ok)
 	_, ok = agents[endpoint5]
-	assert.True(t, ok)
+	assert.False(t, ok)
 	_, ok = agents[endpoint6]
 	assert.False(t, ok)
 	_, ok = agents[endpoint71]
