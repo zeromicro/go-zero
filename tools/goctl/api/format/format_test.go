@@ -58,7 +58,7 @@ func TestFormat(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, formattedStr, r)
 	_, err = apiFormat(notFormattedStr, false)
-	assert.Errorf(t, err, " line 7:13 can not found declaration 'Student' in context")
+	assert.Errorf(t, err, " line 7:13 can not find declaration 'Student' in context")
 }
 
 func Test_apiFormatReader_issue1721(t *testing.T) {

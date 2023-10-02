@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/color"
@@ -39,7 +38,7 @@ func LogHandler(next http.Handler) http.Handler {
 		lrw := response.NewWithCodeResponseWriter(w)
 
 		var dup io.ReadCloser
-		r.Body, dup = iox.DupReadCloser(r.Body)
+		r.Body, dup = iox.LimitDupReadCloser(r.Body, limitBodyBytes)
 		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logBrief(r, lrw.Code, timer, logs)
@@ -136,14 +135,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 
 	ok := isOkResponse(code)
 	if !ok {
-		fullReq := dumpRequest(r)
-		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
-		body, err := io.ReadAll(limitReader)
-		if err != nil {
-			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
-		} else {
-			buf.WriteString(fmt.Sprintf("\n%s", string(body)))
-		}
+		buf.WriteString(fmt.Sprintf("\n%s", dumpRequest(r)))
 	}
 
 	body := logs.Flush()
