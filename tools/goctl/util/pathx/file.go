@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
@@ -58,7 +58,7 @@ func RemoveOrQuit(filename string) error {
 	}
 
 	fmt.Printf("%s exists, overwrite it?\nEnter to overwrite or Ctrl-C to cancel...",
-		aurora.BgRed(aurora.Bold(filename)))
+		color.New(color.BgRed, color.Bold).Render(filename))
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
 	return os.Remove(filename)
@@ -145,9 +145,17 @@ func GetTemplateDir(category string) (string, error) {
 		// backward compatible, it will be removed in the feature
 		// backward compatible start.
 		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
-		fs, _ := ioutil.ReadDir(beforeTemplateDir)
+		entries, _ := os.ReadDir(beforeTemplateDir)
+		infos := make([]fs.FileInfo, 0, len(entries))
+		for _, entry := range entries {
+			info, err := entry.Info()
+			if err != nil {
+				continue
+			}
+			infos = append(infos, info)
+		}
 		var hasContent bool
-		for _, e := range fs {
+		for _, e := range infos {
 			if e.Size() > 0 {
 				hasContent = true
 			}
@@ -256,7 +264,7 @@ func createTemplate(file, content string, force bool) error {
 
 // MustTempDir creates a temporary directory.
 func MustTempDir() string {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	if err != nil {
 		log.Fatalln(err)
 	}

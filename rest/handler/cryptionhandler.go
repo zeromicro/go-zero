@@ -132,7 +132,7 @@ func (w *cryptionResponseWriter) flush(key []byte) {
 	body := base64.StdEncoding.EncodeToString(content)
 	if n, err := io.WriteString(w.ResponseWriter, body); err != nil {
 		logx.Errorf("write response failed, error: %s", err)
-	} else if n < len(content) {
-		logx.Errorf("actual bytes: %d, written bytes: %d", len(content), n)
+	} else if n < len(body) {
+		logx.Errorf("actual bytes: %d, written bytes: %d", len(body), n)
 	}
 }

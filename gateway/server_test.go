@@ -10,7 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/internal/mock"
 	"github.com/zeromicro/go-zero/rest/httpc"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -51,6 +53,8 @@ func TestMustNewServer(t *testing.T) {
 
 	s := MustNewServer(c, withDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
 		return zrpc.MustNewClient(conf, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
+	}), WithHeaderProcessor(func(header http.Header) []string {
+		return []string{"foo"}
 	}))
 	s.upstreams = []Upstream{
 		{
@@ -77,6 +81,7 @@ func TestMustNewServer(t *testing.T) {
 
 	assert.NoError(t, s.build())
 	go s.Server.Start()
+	defer s.Stop()
 
 	time.Sleep(time.Millisecond * 200)
 
@@ -102,4 +107,21 @@ func TestServer_ensureUpstreamNames(t *testing.T) {
 
 	assert.NoError(t, s.ensureUpstreamNames())
 	assert.Equal(t, "target", s.upstreams[0].Name)
+}
+
+func TestServer_ensureUpstreamNames_badEtcd(t *testing.T) {
+	var s = Server{
+		upstreams: []Upstream{
+			{
+				Grpc: zrpc.RpcClientConf{
+					Etcd: discov.EtcdConf{},
+				},
+			},
+		},
+	}
+
+	logtest.PanicOnFatal(t)
+	assert.Panics(t, func() {
+		s.Start()
+	})
 }

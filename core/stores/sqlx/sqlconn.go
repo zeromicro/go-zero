@@ -11,9 +11,6 @@ import (
 // spanName is used to identify the span name for the SQL execution.
 const spanName = "sql"
 
-// ErrNotFound is an alias of sql.ErrNoRows
-var ErrNotFound = sql.ErrNoRows
-
 type (
 	// Session stands for raw connections or transaction sessions
 	Session interface {
@@ -129,6 +126,13 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	}
 
 	return conn
+}
+
+// NewSqlConnFromSession returns a SqlConn with the given session.
+func NewSqlConnFromSession(session Session) SqlConn {
+	return txConn{
+		Session: session,
+	}
 }
 
 func (db *commonSqlConn) Exec(q string, args ...any) (result sql.Result, err error) {
@@ -287,12 +291,19 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled
-	if db.accept == nil {
-		return ok
+	if err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled {
+		return true
 	}
 
-	return ok || db.accept(err)
+	if _, ok := err.(acceptableError); ok {
+		return true
+	}
+
+	if db.accept == nil {
+		return false
+	}
+
+	return db.accept(err)
 }
 
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
@@ -394,4 +405,12 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
+}
+
+// WithAcceptable returns a SqlOption that setting the acceptable function.
+// acceptable is the func to check if the error can be accepted.
+func WithAcceptable(acceptable func(err error) bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.accept = acceptable
+	}
 }

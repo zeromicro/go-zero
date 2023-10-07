@@ -1,17 +1,16 @@
 package zrpc
 
 import (
-	"log"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
-
-const defaultClientKeepaliveTime = 20 * time.Second
 
 var (
 	// WithDialOption is an alias of internal.WithDialOption.
@@ -43,10 +42,7 @@ type (
 // MustNewClient returns a Client, exits on any error.
 func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	cli, err := NewClient(c, options...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return cli
 }
 
@@ -90,21 +86,14 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 // NewClientWithTarget returns a Client with connecting to given target.
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
-	middlewares := ClientMiddlewaresConf{
-		Trace:      true,
-		Duration:   true,
-		Prometheus: true,
-		Breaker:    true,
-		Timeout:    true,
+	var config RpcClientConf
+	if err := conf.FillDefault(&config); err != nil {
+		return nil, err
 	}
 
-	opts = append([]ClientOption{
-		WithDialOption(grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time: defaultClientKeepaliveTime,
-		})),
-	}, opts...)
+	config.Target = target
 
-	return internal.NewClient(target, middlewares, opts...)
+	return NewClient(config, opts...)
 }
 
 // Conn returns the underlying grpc.ClientConn.

@@ -168,23 +168,23 @@ func TestPeriodicalExecutor_FlushPanic(t *testing.T) {
 
 func TestPeriodicalExecutor_Wait(t *testing.T) {
 	var lock sync.Mutex
-	executer := NewBulkExecutor(func(tasks []any) {
+	executor := NewBulkExecutor(func(tasks []any) {
 		lock.Lock()
 		defer lock.Unlock()
 		time.Sleep(10 * time.Millisecond)
 	}, WithBulkTasks(1), WithBulkInterval(time.Second))
 	for i := 0; i < 10; i++ {
-		executer.Add(1)
+		executor.Add(1)
 	}
-	executer.Flush()
-	executer.Wait()
+	executor.Flush()
+	executor.Wait()
 }
 
 func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 	const total = 3
 	var cnt int
 	var lock sync.Mutex
-	executer := NewBulkExecutor(func(tasks []any) {
+	executor := NewBulkExecutor(func(tasks []any) {
 		defer func() {
 			cnt++
 		}()
@@ -193,10 +193,10 @@ func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}, WithBulkTasks(1), WithBulkInterval(10*time.Millisecond))
 	for i := 0; i < total; i++ {
-		executer.Add(2)
+		executor.Add(2)
 	}
-	executer.Flush()
-	executer.Wait()
+	executor.Flush()
+	executor.Wait()
 	assert.Equal(t, total, cnt)
 }
 

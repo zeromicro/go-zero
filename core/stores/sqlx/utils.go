@@ -51,7 +51,13 @@ func escape(input string) string {
 	return b.String()
 }
 
-func format(query string, args ...any) (string, error) {
+func format(query string, args ...any) (val string, err error) {
+	defer func() {
+		if err != nil {
+			err = newAcceptableError(err)
+		}
+	}()
+
 	numArgs := len(args)
 	if numArgs == 0 {
 		return query, nil
@@ -66,7 +72,8 @@ func format(query string, args ...any) (string, error) {
 		switch ch {
 		case '?':
 			if argIndex >= numArgs {
-				return "", fmt.Errorf("%d ? in sql, but less arguments provided", argIndex)
+				return "", fmt.Errorf("%d ? in sql, but only %d arguments provided",
+					argIndex+1, numArgs)
 			}
 
 			writeValue(&b, args[argIndex])
@@ -164,4 +171,18 @@ func writeValue(buf *strings.Builder, arg any) {
 	default:
 		buf.WriteString(mapping.Repr(v))
 	}
+}
+
+type acceptableError struct {
+	err error
+}
+
+func newAcceptableError(err error) error {
+	return acceptableError{
+		err: err,
+	}
+}
+
+func (e acceptableError) Error() string {
+	return e.err.Error()
 }

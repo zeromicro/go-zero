@@ -226,7 +226,8 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
-        "verbose": "Enable log output"
+        "verbose": "Enable log output",
+        "client": "Whether to generate rpc client"
       },
       "template": {
         "short": "Generate proto template",
@@ -243,7 +244,8 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
-        "verbose": "Enable log output"
+        "verbose": "Enable log output",
+        "client": "Whether to generate rpc client"
       }
     },
     "template": {

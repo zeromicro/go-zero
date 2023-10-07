@@ -2,7 +2,6 @@ package command
 
 import (
 	_ "embed"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -76,12 +75,12 @@ func TestFromDDl(t *testing.T) {
 	user1Sql := filepath.Join(tempDir, "user1.sql")
 	user2Sql := filepath.Join(tempDir, "user2.sql")
 
-	err = ioutil.WriteFile(user1Sql, []byte(sql), os.ModePerm)
+	err = os.WriteFile(user1Sql, []byte(sql), os.ModePerm)
 	if err != nil {
 		return
 	}
 
-	err = ioutil.WriteFile(user2Sql, []byte(sql), os.ModePerm)
+	err = os.WriteFile(user2Sql, []byte(sql), os.ModePerm)
 	if err != nil {
 		return
 	}

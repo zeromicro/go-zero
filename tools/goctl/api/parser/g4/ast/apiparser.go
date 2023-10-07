@@ -19,7 +19,6 @@ type (
 		linePrefix               string
 		debug                    bool
 		log                      console.Console
-		src                      string
 		skipCheckTypeDeclaration bool
 		handlerMap               map[string]PlaceHolder
 		routeMap                 map[string]PlaceHolder
@@ -88,30 +87,29 @@ func (p *Parser) Parse(filename string) (*Api, error) {
 		return nil, err
 	}
 
-	p.src = abs
 	data, err := p.readContent(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	p.importStatck.push(p.src)
+	p.importStatck.push(abs)
 	return p.parse(filename, data)
 }
 
 // ParseContent is used to parse the api from the specified content
 func (p *Parser) ParseContent(content string, filename ...string) (*Api, error) {
-	var f string
+	var f, abs string
 	if len(filename) > 0 {
 		f = filename[0]
-		abs, err := filepath.Abs(f)
+		a, err := filepath.Abs(f)
 		if err != nil {
 			return nil, err
 		}
 
-		p.src = abs
+		abs = a
 	}
 
-	p.importStatck.push(p.src)
+	p.importStatck.push(abs)
 	return p.parse(f, content)
 }
 
@@ -127,7 +125,7 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	apiAstList = append(apiAstList, root)
 	p.storeVerificationInfo(root)
 	p.syntax = root.Syntax
-	impApiAstList, err := p.invokeImportedApi(root.Import)
+	impApiAstList, err := p.invokeImportedApi(filename, root.Import)
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +142,10 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	return allApi, nil
 }
 
-func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
+func (p *Parser) invokeImportedApi(filename string, imports []*ImportExpr) ([]*Api, error) {
 	var apiAstList []*Api
 	for _, imp := range imports {
-		dir := filepath.Dir(p.src)
+		dir := filepath.Dir(filename)
 		impPath := strings.ReplaceAll(imp.Value.Text(), "\"", "")
 		if !filepath.IsAbs(impPath) {
 			impPath = filepath.Join(dir, impPath)
@@ -178,7 +176,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		}
 		p.storeVerificationInfo(nestedApi)
 		apiAstList = append(apiAstList, nestedApi)
-		list, err := p.invokeImportedApi(nestedApi.Import)
+		list, err := p.invokeImportedApi(impPath, nestedApi.Import)
 		p.importStatck.pop()
 		apiAstList = append(apiAstList, list...)
 
@@ -422,7 +420,7 @@ func (p *Parser) checkServices(apiItem *Api, types map[string]TypeExpr, linePref
 
 				_, ok := types[structName]
 				if !ok {
-					return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+					return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 						linePrefix, route.Reply.Name.Expr().Line(), route.Reply.Name.Expr().Column(), structName)
 				}
 			}
@@ -435,7 +433,7 @@ func (p *Parser) checkRequestBody(route *Route, types map[string]TypeExpr, lineP
 	if route.Req != nil && route.Req.Name.IsNotNil() && route.Req.Name.Expr().IsNotNil() {
 		_, ok := types[route.Req.Name.Expr().Text()]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, route.Req.Name.Expr().Line(), route.Req.Name.Expr().Column(), route.Req.Name.Expr().Text())
 		}
 	}
@@ -472,7 +470,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		}
 		_, ok := types[name]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, v.Literal.Line(), v.Literal.Column(), name)
 		}
 
@@ -483,7 +481,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		}
 		_, ok := types[name]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, v.Name.Line(), v.Name.Column(), name)
 		}
 	case *Map:

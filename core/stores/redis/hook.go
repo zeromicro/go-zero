@@ -47,7 +47,7 @@ func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 			logDuration(ctx, []red.Cmder{cmd}, duration)
 		}
 
-		metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
+		metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
 		if msg := formatError(err); len(msg) > 0 {
 			metricReqErr.Inc(cmd.Name(), msg)
 		}
@@ -73,7 +73,7 @@ func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipel
 			logDuration(ctx, cmds, duration)
 		}
 
-		metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
+		metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
 		if msg := formatError(err); len(msg) > 0 {
 			metricReqErr.Inc("Pipeline", msg)
 		}

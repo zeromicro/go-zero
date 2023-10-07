@@ -3,7 +3,7 @@ package mr
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"runtime"
 	"sync/atomic"
@@ -17,7 +17,7 @@ import (
 var errDummy = errors.New("dummy")
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func TestFinish(t *testing.T) {
@@ -574,6 +574,7 @@ func TestMapReduceWithContext(t *testing.T) {
 			cancel()
 		}
 		writer.Write(i)
+		time.Sleep(time.Millisecond)
 	}, func(pipe <-chan int, cancel func(error)) {
 		for item := range pipe {
 			i := item

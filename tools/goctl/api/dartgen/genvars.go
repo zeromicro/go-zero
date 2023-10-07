@@ -2,7 +2,6 @@ package dartgen
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -83,7 +82,7 @@ func genVars(dir string, isLegacy bool, scheme string, hostname string) error {
 	}
 
 	if !fileExists(dir + "vars.dart") {
-		err = ioutil.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s://%s';`, scheme, hostname)), 0o644)
+		err = os.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s://%s';`, scheme, hostname)), 0o644)
 		if err != nil {
 			return err
 		}
@@ -94,7 +93,7 @@ func genVars(dir string, isLegacy bool, scheme string, hostname string) error {
 		if isLegacy {
 			tpl = varTemplate
 		}
-		err = ioutil.WriteFile(dir+"kv.dart", []byte(tpl), 0o644)
+		err = os.WriteFile(dir+"kv.dart", []byte(tpl), 0o644)
 		if err != nil {
 			return err
 		}

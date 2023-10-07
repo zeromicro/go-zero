@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -647,7 +647,7 @@ func NewScanner(filename string, src interface{}) (*Scanner, error) {
 }
 
 func readData(filename string, src interface{}) ([]byte, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err == nil {
 		return data, nil
 	}

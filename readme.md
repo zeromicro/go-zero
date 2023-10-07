@@ -102,17 +102,6 @@ Run the following command under your project:
 ```shell
 go get -u github.com/zeromicro/go-zero
 ```
-## Upgrade
-
-To upgrade from versions eariler than v1.3.0, run the following commands.
-
-```shell
-go install github.com/zeromicro/go-zero/tools/goctl@latest
-```
-
-```shell
-goctl migrate —verbose —version v1.5.0
-```
 
 ##  Quick Start
 

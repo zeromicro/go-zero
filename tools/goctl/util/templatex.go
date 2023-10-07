@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	goformat "go/format"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"text/template"
 
@@ -50,7 +50,7 @@ func (t *DefaultTemplate) SaveTo(data any, path string, forceUpdate bool) error 
 		return err
 	}
 
-	return ioutil.WriteFile(path, output.Bytes(), regularPerm)
+	return os.WriteFile(path, output.Bytes(), regularPerm)
 }
 
 // Execute returns the codes after the template executed

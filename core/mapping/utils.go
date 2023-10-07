@@ -42,6 +42,10 @@ var (
 )
 
 type (
+	integer interface {
+		~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+	}
+
 	optionsCacheValue struct {
 		key     string
 		options *fieldOptions
@@ -79,7 +83,7 @@ func SetMapIndexValue(tp reflect.Type, value, key, target reflect.Value) {
 }
 
 // ValidatePtr validates v if it's a valid pointer.
-func ValidatePtr(v *reflect.Value) error {
+func ValidatePtr(v reflect.Value) error {
 	// sequence is very important, IsNil must be called after checking Kind() with reflect.Ptr,
 	// panic otherwise
 	if !v.IsValid() || v.Kind() != reflect.Ptr || v.IsNil() {
@@ -103,21 +107,32 @@ func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		intValue, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot parsed as int", str)
+			return 0, err
 		}
 
 		return intValue, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		uintValue, err := strconv.ParseUint(str, 10, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot parsed as uint", str)
+			return 0, err
 		}
 
 		return uintValue, nil
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float32:
 		floatValue, err := strconv.ParseFloat(str, 64)
 		if err != nil {
-			return 0, fmt.Errorf("the value %q cannot parsed as float", str)
+			return 0, err
+		}
+
+		if floatValue > math.MaxFloat32 {
+			return 0, float32OverflowError(str)
+		}
+
+		return floatValue, nil
+	case reflect.Float64:
+		floatValue, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return 0, err
 		}
 
 		return floatValue, nil
@@ -215,6 +230,10 @@ func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
 	return false, nil
 }
 
+func intOverflowError[T integer](v T, kind reflect.Kind) error {
+	return fmt.Errorf("parsing \"%d\" as %s: value out of range", v, kind.String())
+}
+
 func isLeftInclude(b byte) (bool, error) {
 	switch b {
 	case '[':
@@ -235,6 +254,10 @@ func isRightInclude(b byte) (bool, error) {
 	default:
 		return false, errNumberRange
 	}
+}
+
+func float32OverflowError(str string) error {
+	return fmt.Errorf("parsing %q as float32: value out of range", str)
 }
 
 func maybeNewValue(fieldType reflect.Type, value reflect.Value) {
@@ -372,8 +395,6 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 		default:
 			return fmt.Errorf("field %q has wrong optional", fieldName)
 		}
-	case option == optionalOption:
-		fieldOpts.Optional = true
 	case strings.HasPrefix(option, optionsOption):
 		val, err := parseProperty(fieldName, optionsOption, option)
 		if err != nil {
@@ -484,22 +505,61 @@ func parseSegments(val string) []string {
 	return segments
 }
 
+func setIntValue(value reflect.Value, v any, min, max int64) error {
+	iv := v.(int64)
+	if iv < min || iv > max {
+		return intOverflowError(iv, value.Kind())
+	}
+
+	value.SetInt(iv)
+	return nil
+}
+
 func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v any) error {
 	switch kind {
 	case reflect.Bool:
 		value.SetBool(v.(bool))
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return nil
+	case reflect.Int: // int depends on int size, 32 or 64
+		return setIntValue(value, v, math.MinInt, math.MaxInt)
+	case reflect.Int8:
+		return setIntValue(value, v, math.MinInt8, math.MaxInt8)
+	case reflect.Int16:
+		return setIntValue(value, v, math.MinInt16, math.MaxInt16)
+	case reflect.Int32:
+		return setIntValue(value, v, math.MinInt32, math.MaxInt32)
+	case reflect.Int64:
 		value.SetInt(v.(int64))
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return nil
+	case reflect.Uint: // uint depends on int size, 32 or 64
+		return setUintValue(value, v, math.MaxUint)
+	case reflect.Uint8:
+		return setUintValue(value, v, math.MaxUint8)
+	case reflect.Uint16:
+		return setUintValue(value, v, math.MaxUint16)
+	case reflect.Uint32:
+		return setUintValue(value, v, math.MaxUint32)
+	case reflect.Uint64:
 		value.SetUint(v.(uint64))
+		return nil
 	case reflect.Float32, reflect.Float64:
 		value.SetFloat(v.(float64))
+		return nil
 	case reflect.String:
 		value.SetString(v.(string))
+		return nil
 	default:
 		return errUnsupportedType
 	}
+}
 
+func setUintValue(value reflect.Value, v any, boundary uint64) error {
+	iv := v.(uint64)
+	if iv > boundary {
+		return intOverflowError(iv, value.Kind())
+	}
+
+	value.SetUint(iv)
 	return nil
 }
 
@@ -577,7 +637,8 @@ func usingDifferentKeys(key string, field reflect.StructField) bool {
 	return false
 }
 
-func validateAndSetValue(kind reflect.Kind, value reflect.Value, str string, opts *fieldOptionsWithContext) error {
+func validateAndSetValue(kind reflect.Kind, value reflect.Value, str string,
+	opts *fieldOptionsWithContext) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}

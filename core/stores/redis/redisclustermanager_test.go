@@ -3,6 +3,8 @@ package redis
 import (
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
+	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,5 +41,19 @@ func TestSplitClusterAddrs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.ElementsMatch(t, tc.expected, splitClusterAddrs(tc.input))
 		})
+	}
+}
+
+func TestGetCluster(t *testing.T) {
+	r := miniredis.RunT(t)
+	defer r.Close()
+	c, err := getCluster(&Redis{
+		Addr:  r.Addr(),
+		Type:  ClusterType,
+		tls:   true,
+		hooks: []red.Hook{durationHook},
+	})
+	if assert.NoError(t, err) {
+		assert.NotNil(t, c)
 	}
 }
