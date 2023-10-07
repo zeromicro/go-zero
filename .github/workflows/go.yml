@@ -43,7 +43,7 @@ jobs:
         run: |
           # race test ignore packages which impacted by redis v9,
           # we can remove it after redis v9 fix race issue https://github.com/redis/go-redis/issues/2557
-          go test -race $(go list ./... | grep -v -e /core/stores/redis -e /core/stores/sqlc -e /core/stores/monc -e /core/stores/kv -e /core/stores/cache -e /core/bloom -e /core/limit -e /zrpc/internal/serverinterceptors -e /zrpc/internal/auth -e /zrpc$)
+          go test -race -tags=race $(go list ./... | grep -v -e /core/stores/redis -e /core/stores/sqlc -e /core/stores/monc -e /core/stores/kv -e /core/stores/cache -e /core/bloom -e /core/limit)
 
       - name: Codecov
         uses: codecov/codecov-action@v3
