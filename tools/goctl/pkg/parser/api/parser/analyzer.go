@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -101,7 +102,25 @@ func (a *Analyzer) convert2Spec() error {
 		return err
 	}
 
-	return a.fillService()
+	if err := a.fillService(); err != nil {
+		return err
+	}
+	sort.SliceStable(a.spec.Types, func(i, j int) bool {
+		return a.spec.Types[i].Name() < a.spec.Types[j].Name()
+	})
+
+	groups := make([]spec.Group, 0, len(a.spec.Service.Groups))
+	for _, v := range a.spec.Service.Groups {
+		sort.SliceStable(v.Routes, func(i, j int) bool {
+			return v.Routes[i].Path < v.Routes[j].Path
+		})
+		groups = append(groups, v)
+	}
+	sort.SliceStable(groups, func(i, j int) bool {
+		return groups[i].Annotation.Properties["group"] < groups[j].Annotation.Properties["group"]
+	})
+	a.spec.Service.Groups = groups
+	return nil
 }
 
 func (a *Analyzer) convertAtDoc(atDoc ast.AtDocStmt) spec.AtDoc {
