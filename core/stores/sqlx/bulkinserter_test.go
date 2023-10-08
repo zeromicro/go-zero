@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
+	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -13,14 +15,19 @@ import (
 )
 
 type mockedConn struct {
-	query   string
-	args    []any
-	execErr error
+	query          string
+	args           []any
+	execErr        error
+	updateCallback func(query string, args []any)
 }
 
 func (c *mockedConn) ExecCtx(_ context.Context, query string, args ...any) (sql.Result, error) {
 	c.query = query
 	c.args = args
+	if c.updateCallback != nil {
+		c.updateCallback(query, args)
+	}
+
 	return nil, c.execErr
 }
 
@@ -143,4 +150,36 @@ func TestBulkInserter_Update(t *testing.T) {
 	inserter.inserter.Execute([]string(nil))
 	assert.NotNil(t, inserter.UpdateStmt("foo"))
 	assert.NotNil(t, inserter.Insert("foo", "bar"))
+}
+
+func TestBulkInserter_UpdateStmt(t *testing.T) {
+	var updated int32
+	conn := mockedConn{
+		execErr: errors.New("foo"),
+		updateCallback: func(query string, args []any) {
+			count := atomic.AddInt32(&updated, 1)
+			assert.Empty(t, args)
+			assert.Equal(t, 100, strings.Count(query, "foo"))
+			if count == 1 {
+				assert.Equal(t, 0, strings.Count(query, "bar"))
+			} else {
+				assert.Equal(t, 100, strings.Count(query, "bar"))
+			}
+		},
+	}
+
+	inserter, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom) VALUES(?)`)
+	assert.NoError(t, err)
+	for i := 0; i < 100; i++ {
+		assert.NoError(t, inserter.Insert("foo"))
+	}
+
+	assert.NoError(t, inserter.UpdateStmt(`INSERT INTO classroom_dau(classroom, user) VALUES(?, ?)`))
+
+	for i := 0; i < 100; i++ {
+		assert.NoError(t, inserter.Insert("foo", "bar"))
+	}
+	inserter.Flush()
+
+	assert.Equal(t, int32(2), atomic.LoadInt32(&updated))
 }
