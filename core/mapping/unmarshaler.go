@@ -622,7 +622,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 		}
 
 		if fValue > math.MaxFloat32 {
-			return float32OverflowError(v.String())
+			return fmt.Errorf("parsing %q as float32: value out of range", v.String())
 		}
 
 		target.SetFloat(fValue)
