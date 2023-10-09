@@ -30,7 +30,7 @@ const (
 	leftSquareBracket  = '['
 	rightSquareBracket = ']'
 	segmentSeparator   = ','
-	intSize            = 32 << (^uint(0) >> 63)
+	intSize            = 32 << (^uint(0) >> 63) // 32 or 64
 )
 
 var (
