@@ -3,9 +3,11 @@
 package proc
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"os"
+	"syscall"
+	"testing"
+	"time"
 )
 
 func TestDone(t *testing.T) {
@@ -15,4 +17,28 @@ func TestDone(t *testing.T) {
 	default:
 	}
 	assert.NotNil(t, Done())
+}
+
+func TestSIGTERMShutdownSignal(t *testing.T) {
+	p, err := os.FindProcess(os.Getpid())
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	err = p.Signal(syscall.SIGTERM)
+	assert.Nil(t, err)
+
+	<-Done()
+}
+
+func TestSIGINTShutdownSignal(t *testing.T) {
+	p, err := os.FindProcess(os.Getpid())
+	assert.Nil(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	err = p.Signal(syscall.SIGTERM)
+	assert.Nil(t, err)
+
+	<-Done()
 }
