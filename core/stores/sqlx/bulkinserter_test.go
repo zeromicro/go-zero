@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -170,16 +171,31 @@ func TestBulkInserter_UpdateStmt(t *testing.T) {
 
 	inserter, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom) VALUES(?)`)
 	assert.NoError(t, err)
-	for i := 0; i < 100; i++ {
-		assert.NoError(t, inserter.Insert("foo"))
+
+	var wg1 sync.WaitGroup
+	wg1.Add(2)
+	for i := 0; i < 2; i++ {
+		go func() {
+			defer wg1.Done()
+			for i := 0; i < 50; i++ {
+				assert.NoError(t, inserter.Insert("foo"))
+			}
+		}()
 	}
+	wg1.Wait()
 
 	assert.NoError(t, inserter.UpdateStmt(`INSERT INTO classroom_dau(classroom, user) VALUES(?, ?)`))
 
-	for i := 0; i < 100; i++ {
-		assert.NoError(t, inserter.Insert("foo", "bar"))
-	}
-	inserter.Flush()
+	var wg2 sync.WaitGroup
+	wg2.Add(1)
+	go func() {
+		defer wg2.Done()
+		for i := 0; i < 100; i++ {
+			assert.NoError(t, inserter.Insert("foo", "bar"))
+		}
+		inserter.Flush()
+	}()
+	wg2.Wait()
 
 	assert.Equal(t, int32(2), atomic.LoadInt32(&updated))
 }
