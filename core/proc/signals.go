@@ -20,7 +20,7 @@ func init() {
 
 		// https://golang.org/pkg/os/signal/#Notify
 		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM, syscall.SIGINT)
+		signal.Notify(signals, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
 
 		for {
 			v := <-signals
@@ -34,7 +34,7 @@ func init() {
 					profiler.Stop()
 					profiler = nil
 				}
-			case syscall.SIGTERM, syscall.SIGINT:
+			case syscall.SIGTERM:
 				select {
 				case <-done:
 					// already closed
