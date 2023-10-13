@@ -536,6 +536,9 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 	}
 
 	if filled && required != requiredFilled {
+		if u.opts.customFieldUnsetErr != nil {
+			return u.opts.customFieldUnsetErr(fullName)
+		}
 		return fmt.Errorf("%q is not fully set", key)
 	}
 
@@ -639,6 +642,9 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 		}
 
 		if iValue < 0 {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String())
 		}
 
@@ -715,6 +721,9 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 	case reflect.Bool:
 		val, err := strconv.ParseBool(envVal)
 		if err != nil {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
@@ -722,6 +731,9 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 		return nil
 	case durationType.Kind():
 		if err := fillDurationValue(fieldType, value, envVal); err != nil {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
@@ -768,6 +780,9 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
 		if !value.IsZero() {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return fmt.Errorf("set the default value, %q must be zero", fullName)
 		}
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
@@ -788,11 +803,16 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 		if opts.optional() {
 			return nil
 		}
-
+		if u.opts.customFieldUnsetErr != nil {
+			return u.opts.customFieldUnsetErr(fullName)
+		}
 		return fmt.Errorf("field %q mustn't be nil", key)
 	}
 
 	if !value.CanSet() {
+		if u.opts.customFieldUnsetErr != nil {
+			return u.opts.customFieldUnsetErr(fullName)
+		}
 		return fmt.Errorf("field %q is not settable", key)
 	}
 
@@ -820,6 +840,9 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 	mapValue any, key string, opts *fieldOptionsWithContext, fullName string) error {
 	valueKind := reflect.TypeOf(mapValue).Kind()
 	if valueKind != reflect.String {
+		if u.opts.customFieldUnsetErr != nil {
+			return u.opts.customFieldUnsetErr(fullName)
+		}
 		return fmt.Errorf("the value in map is not string, but %s", valueKind)
 	}
 
@@ -832,11 +855,17 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 		case fmt.Stringer:
 			checkValue = mt.String()
 		default:
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return fmt.Errorf("the value in map is not string or json.Number, but %s",
 				valueKind.String())
 		}
 
 		if !stringx.Contains(options, checkValue) {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return fmt.Errorf(`value "%s" for field %q is not defined in options "%v"`,
 				mapValue, key, options)
 		}
