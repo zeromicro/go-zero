@@ -38,7 +38,7 @@ var (
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
 
-	customFieldUnsetErr func(ctx context.Context, key string) error
+	customFieldError func(ctx context.Context, key string, err error) error
 )
 
 type (
@@ -52,11 +52,11 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fillDefault         bool
-		fromString          bool
-		opaqueKeys          bool
-		canonicalKey        func(key string) string
-		customFieldUnsetErr func(key string) error
+		fillDefault      bool
+		fromString       bool
+		opaqueKeys       bool
+		canonicalKey     func(key string) string
+		customFieldError func(key string, err error) error
 	}
 )
 
@@ -89,6 +89,16 @@ func WithOpts(u *Unmarshaler, opts ...UnmarshalOption) *Unmarshaler {
 	return u
 }
 
+func (u *Unmarshaler) outError(fullName string, err error) error {
+	if err == nil {
+		return nil
+	}
+	if u.opts.customFieldError != nil {
+		return u.opts.customFieldError(fullName, err)
+	}
+	return err
+}
+
 // Unmarshal unmarshals m into v.
 func (u *Unmarshaler) Unmarshal(i, v any) error {
 	return u.unmarshal(i, v, "")
@@ -97,25 +107,25 @@ func (u *Unmarshaler) Unmarshal(i, v any) error {
 func (u *Unmarshaler) unmarshal(i, v any, fullName string) error {
 	valueType := reflect.TypeOf(v)
 	if valueType.Kind() != reflect.Ptr {
-		return errValueNotSettable
+		return u.outError(fullName, errValueNotSettable)
 	}
 
 	elemType := Deref(valueType)
 	switch iv := i.(type) {
 	case map[string]any:
 		if elemType.Kind() != reflect.Struct {
-			return errTypeMismatch
+			return u.outError(fullName, errTypeMismatch)
 		}
 
 		return u.unmarshalValuer(mapValuer(iv), v, fullName)
 	case []any:
 		if elemType.Kind() != reflect.Slice {
-			return errTypeMismatch
+			return u.outError(fullName, errTypeMismatch)
 		}
 
 		return u.fillSlice(elemType, reflect.ValueOf(v).Elem(), iv, fullName)
 	default:
-		return errUnsupportedType
+		return u.outError(fullName, errUnsupportedType)
 	}
 }
 
@@ -141,7 +151,7 @@ func (u *Unmarshaler) fillMap(fieldType reflect.Type, value reflect.Value, mapVa
 	}
 
 	if !targetValue.Type().AssignableTo(value.Type()) {
-		return errTypeMismatch
+		return u.outError(fullName, errTypeMismatch)
 	}
 
 	value.Set(targetValue)
@@ -150,7 +160,7 @@ func (u *Unmarshaler) fillMap(fieldType reflect.Type, value reflect.Value, mapVa
 
 func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return u.outError("", errValueNotSettable)
 	}
 
 	switch v := mapValue.(type) {
@@ -163,7 +173,7 @@ func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error
 			return err
 		}
 	default:
-		return errUnsupportedType
+		return u.outError("", errUnsupportedType)
 	}
 
 	return nil
@@ -171,12 +181,12 @@ func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error
 
 func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, mapValue any, fullName string) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return u.outError("", errValueNotSettable)
 	}
 
 	refValue := reflect.ValueOf(mapValue)
 	if refValue.Kind() != reflect.Slice {
-		return newTypeMismatchErrorWithHint(fullName, reflect.Slice.String(), refValue.Type().String())
+		return u.outError("", newTypeMismatchErrorWithHint(fullName, reflect.Slice.String(), refValue.Type().String()))
 	}
 	if refValue.IsNil() {
 		return nil
@@ -206,7 +216,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 			target := reflect.New(dereffedBaseType)
 			val, ok := ithValue.(map[string]any)
 			if !ok {
-				return errTypeMismatch
+				return u.outError(sliceFullName, errTypeMismatch)
 			}
 
 			if err := u.unmarshal(val, target.Interface(), sliceFullName); err != nil {
@@ -238,14 +248,14 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 	switch v := mapValue.(type) {
 	case fmt.Stringer:
 		if err := jsonx.UnmarshalFromString(v.String(), &slice); err != nil {
-			return err
+			return u.outError(fullName, err)
 		}
 	case string:
 		if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
-			return err
+			return u.outError(fullName, err)
 		}
 	default:
-		return errUnsupportedType
+		return u.outError(fullName, errUnsupportedType)
 	}
 
 	baseFieldType := Deref(fieldType.Elem())
@@ -267,9 +277,9 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case fmt.Stringer:
-		return setValueFromString(baseKind, ithVal, v.String())
+		return u.outError(fullName, setValueFromString(baseKind, ithVal, v.String()))
 	case string:
-		return setValueFromString(baseKind, ithVal, v)
+		return u.outError(fullName, setValueFromString(baseKind, ithVal, v))
 	case map[string]any:
 		return u.fillMap(ithVal.Type(), ithVal, value, fullName)
 	default:
@@ -278,7 +288,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 		if ithVal.Kind() == reflect.Ptr {
 			baseType := Deref(ithVal.Type())
 			if !reflect.TypeOf(value).AssignableTo(baseType) {
-				return errTypeMismatch
+				return u.outError(fullName, errTypeMismatch)
 			}
 
 			target := reflect.New(baseType).Elem()
@@ -288,7 +298,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 		}
 
 		if !reflect.TypeOf(value).AssignableTo(ithVal.Type()) {
-			return errTypeMismatch
+			return u.outError(fullName, errTypeMismatch)
 		}
 
 		ithVal.Set(reflect.ValueOf(value))
@@ -307,7 +317,7 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 		if baseFieldKind == reflect.String {
 			slice = parseGroupedSegments(defaultValue)
 		} else if err := jsonx.UnmarshalFromString(defaultValue, &slice); err != nil {
-			return err
+			return u.outError(fullName, err)
 		}
 
 		defaultCacheLock.Lock()
@@ -326,7 +336,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any, 
 	}
 
 	if keyType != valueType.Key() {
-		return emptyValue, errTypeMismatch
+		return emptyValue, u.outError(fullName, errTypeMismatch)
 	}
 
 	refValue := reflect.ValueOf(mapValue)
@@ -350,7 +360,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any, 
 		case reflect.Struct:
 			keythMap, ok := keythData.(map[string]any)
 			if !ok {
-				return emptyValue, errTypeMismatch
+				return emptyValue, u.outError(fullName, errTypeMismatch)
 			}
 
 			target := reflect.New(dereffedElemType)
@@ -362,7 +372,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any, 
 		case reflect.Map:
 			keythMap, ok := keythData.(map[string]any)
 			if !ok {
-				return emptyValue, errTypeMismatch
+				return emptyValue, u.outError(fullName, errTypeMismatch)
 			}
 
 			innerValue, err := u.generateMap(elemType.Key(), elemType.Elem(), keythMap, mapFullName)
@@ -375,31 +385,31 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any, 
 			switch v := keythData.(type) {
 			case bool:
 				if dereffedElemKind != reflect.Bool {
-					return emptyValue, errTypeMismatch
+					return emptyValue, u.outError(fullName, errTypeMismatch)
 				}
 
 				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case string:
 				if dereffedElemKind != reflect.String {
-					return emptyValue, errTypeMismatch
+					return emptyValue, u.outError(fullName, errTypeMismatch)
 				}
 
 				val := reflect.ValueOf(v)
 				if !val.Type().AssignableTo(dereffedElemType) {
-					return emptyValue, errTypeMismatch
+					return emptyValue, u.outError(fullName, errTypeMismatch)
 				}
 
 				targetValue.SetMapIndex(key, val)
 			case json.Number:
 				target := reflect.New(dereffedElemType)
 				if err := setValueFromString(dereffedElemKind, target.Elem(), v.String()); err != nil {
-					return emptyValue, err
+					return emptyValue, u.outError(fullName, err)
 				}
 
 				targetValue.SetMapIndex(key, target.Elem())
 			default:
 				if dereffedElemKind != keythValue.Kind() {
-					return emptyValue, errTypeMismatch
+					return emptyValue, u.outError(fullName, errTypeMismatch)
 				}
 
 				targetValue.SetMapIndex(key, keythValue)
@@ -414,7 +424,7 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 	string, *fieldOptionsWithContext, error) {
 	key, options, err := parseKeyAndOptions(u.key, field)
 	if err != nil {
-		return "", nil, err
+		return "", nil, u.outError(fullName, err)
 	} else if options == nil {
 		return key, nil, nil
 	}
@@ -536,10 +546,7 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 	}
 
 	if filled && required != requiredFilled {
-		if u.opts.customFieldUnsetErr != nil {
-			return u.opts.customFieldUnsetErr(fullName)
-		}
-		return fmt.Errorf("%q is not fully set", key)
+		return u.outError(fullName, fmt.Errorf("%q is not fully set", key))
 	}
 
 	return nil
@@ -569,7 +576,7 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		mv, ok := mapValue.(map[string]any)
 		if !ok {
-			return errTypeMismatch
+			return u.outError(fullName, errTypeMismatch)
 		}
 
 		return u.processFieldStruct(fieldType, value, &simpleValuer{
@@ -602,14 +609,14 @@ func (u *Unmarshaler) processFieldPrimitive(fieldType reflect.Type, value reflec
 	default:
 		if typeKind == valueKind {
 			if err := validateValueInOptions(mapValue, opts.options()); err != nil {
-				return err
+				return u.outError(fullName, err)
 			}
 
-			return fillWithSameType(fieldType, value, mapValue, opts)
+			return u.outError(fullName, fillWithSameType(fieldType, value, mapValue, opts))
 		}
 	}
 
-	return newTypeMismatchError(fullName)
+	return u.outError(fullName, newTypeMismatchError(fullName))
 }
 
 func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type, value reflect.Value,
@@ -618,11 +625,11 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 	typeKind := baseType.Kind()
 
 	if err := validateJsonNumberRange(v, opts); err != nil {
-		return err
+		return u.outError(fullName, err)
 	}
 
 	if err := validateValueInOptions(v, opts.options()); err != nil {
-		return err
+		return u.outError(fullName, err)
 	}
 
 	target := reflect.New(Deref(fieldType)).Elem()
@@ -631,33 +638,30 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		iValue, err := v.Int64()
 		if err != nil {
-			return err
+			return u.outError(fullName, err)
 		}
 
 		target.SetInt(iValue)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		iValue, err := v.Int64()
 		if err != nil {
-			return err
+			return u.outError(fullName, err)
 		}
 
 		if iValue < 0 {
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String())
+			return u.outError(fullName, fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String()))
 		}
 
 		target.SetUint(uint64(iValue))
 	case reflect.Float32, reflect.Float64:
 		fValue, err := v.Float64()
 		if err != nil {
-			return err
+			return u.outError(fullName, err)
 		}
 
 		target.SetFloat(fValue)
 	default:
-		return newTypeMismatchErrorWithHint(fullName, typeKind.String(), value.Type().String())
+		return u.outError(fullName, newTypeMismatchErrorWithHint(fullName, typeKind.String(), value.Type().String()))
 	}
 
 	SetValue(fieldType, value, target)
@@ -713,7 +717,7 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value reflect.Value,
 	envVal string, opts *fieldOptionsWithContext, fullName string) error {
 	if err := validateValueInOptions(envVal, opts.options()); err != nil {
-		return err
+		return u.outError(fullName, err)
 	}
 
 	fieldKind := fieldType.Kind()
@@ -721,20 +725,14 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 	case reflect.Bool:
 		val, err := strconv.ParseBool(envVal)
 		if err != nil {
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
+			return u.outError(fullName, fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err))
 		}
 
 		value.SetBool(val)
 		return nil
 	case durationType.Kind():
 		if err := fillDurationValue(fieldType, value, envVal); err != nil {
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
+			return u.outError(fullName, fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err))
 		}
 
 		return nil
@@ -780,10 +778,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
 		if !value.IsZero() {
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return fmt.Errorf("set the default value, %q must be zero", fullName)
+			return u.outError(fullName, fmt.Errorf("set the default value, %q must be zero", fullName))
 		}
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	} else if !hasValue {
@@ -803,17 +798,11 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 		if opts.optional() {
 			return nil
 		}
-		if u.opts.customFieldUnsetErr != nil {
-			return u.opts.customFieldUnsetErr(fullName)
-		}
-		return fmt.Errorf("field %q mustn't be nil", key)
+		return u.outError(fullName, fmt.Errorf("field %q mustn't be nil", key))
 	}
 
 	if !value.CanSet() {
-		if u.opts.customFieldUnsetErr != nil {
-			return u.opts.customFieldUnsetErr(fullName)
-		}
-		return fmt.Errorf("field %q is not settable", key)
+		return u.outError(fullName, fmt.Errorf("field %q is not settable", key))
 	}
 
 	maybeNewValue(fieldType, value)
@@ -840,10 +829,7 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 	mapValue any, key string, opts *fieldOptionsWithContext, fullName string) error {
 	valueKind := reflect.TypeOf(mapValue).Kind()
 	if valueKind != reflect.String {
-		if u.opts.customFieldUnsetErr != nil {
-			return u.opts.customFieldUnsetErr(fullName)
-		}
-		return fmt.Errorf("the value in map is not string, but %s", valueKind)
+		return u.outError(fullName, fmt.Errorf("the value in map is not string, but %s", valueKind))
 	}
 
 	options := opts.options()
@@ -855,23 +841,17 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 		case fmt.Stringer:
 			checkValue = mt.String()
 		default:
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return fmt.Errorf("the value in map is not string or json.Number, but %s",
-				valueKind.String())
+			return u.outError(fullName, fmt.Errorf("the value in map is not string or json.Number, but %s",
+				valueKind.String()))
 		}
 
 		if !stringx.Contains(options, checkValue) {
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return fmt.Errorf(`value "%s" for field %q is not defined in options "%v"`,
-				mapValue, key, options)
+			return u.outError(fullName, fmt.Errorf(`value "%s" for field %q is not defined in options "%v"`,
+				mapValue, key, options))
 		}
 	}
 
-	return fillPrimitive(fieldType, value, mapValue, opts, fullName)
+	return u.outError(fullName, fillPrimitive(fieldType, value, mapValue, opts, fullName))
 }
 
 func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, value reflect.Value,
@@ -880,14 +860,14 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 	fieldKind := derefedType.Kind()
 	if defaultValue, ok := opts.getDefault(); ok {
 		if derefedType == durationType {
-			return fillDurationValue(fieldType, value, defaultValue)
+			return u.outError(fullName, fillDurationValue(fieldType, value, defaultValue))
 		}
 
 		switch fieldKind {
 		case reflect.Array, reflect.Slice:
 			return u.fillSliceWithDefault(derefedType, value, defaultValue, fullName)
 		default:
-			return setValueFromString(fieldKind, value, defaultValue)
+			return u.outError(fullName, setValueFromString(fieldKind, value, defaultValue))
 		}
 	}
 
@@ -911,14 +891,11 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		if !opts.optional() {
 			required, err := structValueRequired(u.key, derefedType)
 			if err != nil {
-				return err
+				return u.outError(fullName, err)
 			}
 
 			if required {
-				if u.opts.customFieldUnsetErr != nil {
-					return u.opts.customFieldUnsetErr(fullName)
-				}
-				return fmt.Errorf("%q is not set", fullName)
+				return u.outError(fullName, fmt.Errorf("%q is not set", fullName))
 			}
 
 			return u.processFieldNotFromString(fieldType, value, valueWithParent{
@@ -927,10 +904,7 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	default:
 		if !opts.optional() {
-			if u.opts.customFieldUnsetErr != nil {
-				return u.opts.customFieldUnsetErr(fullName)
-			}
-			return newInitError(fullName)
+			return u.outError(fullName, fmt.Errorf("%q is not set", fullName))
 		}
 	}
 
@@ -940,13 +914,13 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName string) error {
 	rv := reflect.ValueOf(v)
 	if err := ValidatePtr(rv); err != nil {
-		return err
+		return u.outError(fullName, err)
 	}
 
 	valueType := reflect.TypeOf(v)
 	baseType := Deref(valueType)
 	if baseType.Kind() != reflect.Struct {
-		return errValueNotStruct
+		return u.outError(fullName, errValueNotStruct)
 	}
 
 	valElem := rv.Elem()
@@ -997,23 +971,23 @@ func WithOpaqueKeys() UnmarshalOption {
 	}
 }
 
-func WithCustomFieldUnsetErr(f func(fullName string) error) UnmarshalOption {
+func WithOptionCustomFieldError(f func(fullName string, err error) error) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
-		opt.customFieldUnsetErr = f
+		opt.customFieldError = f
 	}
 }
 
-func WithCustomUnsetError(f func(ctx context.Context, fullName string) error) {
-	customFieldUnsetErr = f
+func WithCustomFieldError(f func(ctx context.Context, fullName string, err error) error) {
+	customFieldError = f
 }
 
 func GetUnmarshalOptions(r *http.Request) []UnmarshalOption {
 	var opts []UnmarshalOption
-	if customFieldUnsetErr != nil {
-		unsetErrFun := func(key string) error {
-			return customFieldUnsetErr(r.Context(), key)
+	if customFieldError != nil {
+		unsetErrFun := func(key string, err error) error {
+			return customFieldError(r.Context(), key, err)
 		}
-		opts = append(opts, WithCustomFieldUnsetErr(unsetErrFun))
+		opts = append(opts, WithOptionCustomFieldError(unsetErrFun))
 	}
 	return opts
 }
