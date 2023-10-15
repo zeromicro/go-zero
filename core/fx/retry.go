@@ -2,15 +2,12 @@ package fx
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/errorx"
 )
 
 const defaultRetryTimes = 3
-
-var errTimeout = errors.New("retry timeout")
 
 type (
 	// RetryOption defines the method to customize DoWithRetry.
@@ -70,14 +67,14 @@ func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opt
 				return nil
 			}
 		case <-ctx.Done():
-			berr.Add(errTimeout)
+			berr.Add(ctx.Err())
 			return berr.Err()
 		}
 
 		if options.interval > 0 {
 			select {
 			case <-ctx.Done():
-				berr.Add(errTimeout)
+				berr.Add(ctx.Err())
 				return berr.Err()
 			case <-time.After(options.interval):
 			}
