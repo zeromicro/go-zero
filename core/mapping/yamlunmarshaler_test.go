@@ -1011,6 +1011,15 @@ func TestUnmarshalYamlMapRune(t *testing.T) {
 	assert.Equal(t, rune(3), v.Machine["node3"])
 }
 
+func TestUnmarshalYamlStringOfInt(t *testing.T) {
+	text := `password: 123456`
+	var v struct {
+		Password string `json:"password"`
+	}
+	reader := strings.NewReader(text)
+	assert.Error(t, UnmarshalYamlReader(reader, &v))
+}
+
 func TestUnmarshalYamlBadInput(t *testing.T) {
 	var v struct {
 		Any string
