@@ -28,7 +28,7 @@ type (
 // and performs modification operations, it is best to lock them,
 // otherwise there may be data race issues
 func DoWithRetry(fn func() error, opts ...RetryOption) error {
-	return retry(func(errChan chan error, retryCount int) {
+	return retry(context.Background(), func(errChan chan error, retryCount int) {
 		errChan <- fn()
 	}, opts...)
 }
@@ -40,12 +40,12 @@ func DoWithRetry(fn func() error, opts ...RetryOption) error {
 // otherwise there may be data race issues
 func DoWithRetryCtx(ctx context.Context, fn func(ctx context.Context, retryCount int) error,
 	opts ...RetryOption) error {
-	return retry(func(errChan chan error, retryCount int) {
+	return retry(ctx, func(errChan chan error, retryCount int) {
 		errChan <- fn(ctx, retryCount)
 	}, opts...)
 }
 
-func retry(fn func(errChan chan error, retryCount int), opts ...RetryOption) error {
+func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opts ...RetryOption) error {
 	options := newRetryOptions()
 	for _, opt := range opts {
 		opt(options)
@@ -53,7 +53,6 @@ func retry(fn func(errChan chan error, retryCount int), opts ...RetryOption) err
 
 	var berr errorx.BatchError
 	var cancelFunc context.CancelFunc
-	ctx := context.Background()
 	if options.timeout > 0 {
 		ctx, cancelFunc = context.WithTimeout(ctx, options.timeout)
 		defer cancelFunc()
