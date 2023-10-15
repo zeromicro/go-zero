@@ -34,14 +34,12 @@ func init() {
 					profiler.Stop()
 					profiler = nil
 				}
-			case syscall.SIGTERM, syscall.SIGINT:
-				select {
-				case <-done:
-					// already closed
-				default:
-					close(done)
-				}
-				gracefulStop(signals)
+			case syscall.SIGTERM:
+				stopOnSignal()
+				gracefulStop(signals, syscall.SIGTERM)
+			case syscall.SIGINT:
+				stopOnSignal()
+				gracefulStop(signals, syscall.SIGINT)
 			default:
 				logx.Error("Got unregistered signal:", v)
 			}
@@ -52,4 +50,13 @@ func init() {
 // Done returns the channel that notifies the process quitting.
 func Done() <-chan struct{} {
 	return done
+}
+
+func stopOnSignal() {
+	select {
+	case <-done:
+		// already closed
+	default:
+		close(done)
+	}
 }
