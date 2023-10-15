@@ -1,3 +1,7 @@
+coverage:
+  status:
+    patch: true
+    project: false
 comment:
   layout: "flags, files"
   behavior: once
