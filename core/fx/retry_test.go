@@ -136,13 +136,13 @@ func TestRetryCtx(t *testing.T) {
 		var times int
 		assert.NoError(t, DoWithRetryCtx(ctx, func(ctx context.Context, retryCount int) error {
 			times++
-			if retryCount == defaultRetryTimes {
+			if times == defaultRetryTimes {
 				return nil
 			}
 
 			time.Sleep(time.Millisecond * 50)
 			return errors.New("any")
-		}, WithInterval(time.Millisecond*150)))
-		assert.Equal(t, 3, times)
+		}))
+		assert.Equal(t, defaultRetryTimes, times)
 	})
 }
