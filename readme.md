@@ -43,17 +43,19 @@ go-zero contains simple API description syntax and code generation tool called `
 ## Backgrounds of go-zero
 
 At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After research and comparison, we chose to:
+In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
 
-* Golang based
+* Go Beyond with Golang
   * Great performance
   * Simple syntax
   * Proven engineering efficiency
   * Extreme deployment experience
   * Less server resource consumption
-* Self-designed microservice architecture
-  * I have rich experience in designing microservice architectures
-  * Easy to locate the problems
-  * Easy to extend the features
+
+* Self-Design Our Microservice Architecture
+  * Microservice architecture facilitates the creation of scalable, flexible, and maintainable software systems with independent, reusable components.
+  * Easy to locate the problems within microservices.
+  * Easy to extend the features by adding or modifying specific microservices without impacting the entire system.
 
 ## Design considerations on go-zero
 
