@@ -11,6 +11,20 @@ type (
 	errorArray []error
 )
 
+// Errors returns a slice containing zero or more errors that the supplied
+// error is composed of. If the error is nil, a nil slice is returned.
+func Errors(err error) []error {
+	if err == nil {
+		return nil
+	}
+
+	if be, ok := err.(*BatchError); ok {
+		return be.Errors()
+	}
+
+	return []error{err}
+}
+
 // Add adds errs to be, nil errors are ignored.
 func (be *BatchError) Add(errs ...error) {
 	for _, err := range errs {
@@ -35,6 +49,23 @@ func (be *BatchError) Err() error {
 // NotNil checks if any error inside.
 func (be *BatchError) NotNil() bool {
 	return len(be.errs) > 0
+}
+
+// Errors returns the list of underlying errors.
+// Callers of this function are free to modify the returned slice.
+func (be *BatchError) Errors() []error {
+	if be == nil {
+		return nil
+	}
+	return append([]error(nil), be.errs...)
+}
+
+// Error implements error interface. This allows users to convert error to BatchError.
+func (be *BatchError) Error() string {
+	if be == nil || be.Err() == nil {
+		return ""
+	}
+	return be.Err().Error()
 }
 
 // Error returns a string that represents inside errors.
