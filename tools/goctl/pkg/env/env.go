@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
 
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	sortedmap "github.com/zeromicro/go-zero/tools/goctl/pkg/collection"
@@ -109,6 +110,14 @@ func Print(args ...string) string {
 
 func Get(key string) string {
 	return GetOr(key, "")
+}
+
+// Set sets the environment variable for testing
+func Set(t *testing.T, key, value string) {
+	goctlEnv.SetKV(key, value)
+	t.Cleanup(func() {
+		goctlEnv.Remove(key)
+	})
 }
 
 func GetOr(key, def string) string {

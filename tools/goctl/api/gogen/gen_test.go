@@ -2,6 +2,7 @@ package gogen
 
 import (
 	_ "embed"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	goformat "go/format"
 	"os"
 	"path/filepath"
@@ -53,7 +54,10 @@ func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := os.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
 	assert.Nil(t, err)
-	defer os.Remove(filename)
+	env.Set(t, env.GoctlExperimental, "off")
+	t.Cleanup(func() {
+		os.Remove(filename)
+	})
 
 	api, err := parser.Parse(filename)
 	assert.Nil(t, err)
