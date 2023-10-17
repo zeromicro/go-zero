@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/internal/devserver"
 )
 
 func TestServiceConf(t *testing.T) {
@@ -14,6 +15,10 @@ func TestServiceConf(t *testing.T) {
 			Mode: "console",
 		},
 		Mode: "dev",
+		DevServer: devserver.Config{
+			Port:       6470,
+			HealthPath: "/healthz",
+		},
 	}
 	c.MustSetUp()
 }
