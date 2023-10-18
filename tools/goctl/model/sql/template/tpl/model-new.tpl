@@ -11,3 +11,10 @@ func (m *default{{.upperStartCamelObject}}Model) withSession(session sqlx.Sessio
 		table:      {{.table}},
 	}
 }
+
+func (m *default{{.upperStartCamelObject}}Model) WithSession(session sqlx.Session) *default{{.upperStartCamelObject}}Model {
+	return &default{{.upperStartCamelObject}}Model{
+		{{if .withCache}}CachedConn:m.CachedConn.WithSession(session){{else}}conn:sqlx.NewSqlConnFromSession(session){{end}},
+		table:      {{.table}},
+	}
+}
