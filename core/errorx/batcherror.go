@@ -2,7 +2,7 @@ package errorx
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 )
 
 type (
@@ -55,15 +55,5 @@ func (ea errorArray) Error() string {
 }
 
 func (ea errorArray) Unwrap() error {
-	var err error
-
-	for _, each := range ea {
-		if err == nil {
-			err = each
-		} else {
-			err = fmt.Errorf("%w + %w", each, err)
-		}
-	}
-
-	return err
+	return errors.Join(ea...)
 }
