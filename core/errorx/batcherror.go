@@ -61,7 +61,7 @@ func (ea errorArray) Unwrap() error {
 		if err == nil {
 			err = each
 		} else {
-			err = fmt.Errorf("%w%w", each, err)
+			err = fmt.Errorf("%w + %w", each, err)
 		}
 	}
 
