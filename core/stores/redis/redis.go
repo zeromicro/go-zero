@@ -8,6 +8,7 @@ import (
 	"time"
 
 	red "github.com/go-redis/redis/v8"
+
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -1721,6 +1722,46 @@ func (s *Redis) SetnxExCtx(ctx context.Context, key, value string, seconds int) 
 		}
 
 		val, err = conn.SetNX(ctx, key, value, time.Duration(seconds)*time.Second).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Setxx is the implementation of redis setxx command.
+func (s *Redis) Setxx(key, value string) (bool, error) {
+	return s.SetxxCtx(context.Background(), key, value)
+}
+
+// SetxxCtx is the implementation of redis setxx command.
+func (s *Redis) SetxxCtx(ctx context.Context, key, value string) (val bool, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.SetXX(ctx, key, value, 0).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// SetxxEx is the implementation of redis setxx command with expire.
+func (s *Redis) SetxxEx(key, value string, seconds int) (bool, error) {
+	return s.SetxxExCtx(context.Background(), key, value, seconds)
+}
+
+// SetxxExCtx is the implementation of redis setxx command with expire.
+func (s *Redis) SetxxExCtx(ctx context.Context, key, value string, seconds int) (val bool, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.SetXX(ctx, key, value, time.Duration(seconds)*time.Second).Result()
 		return err
 	}, acceptable)
 
