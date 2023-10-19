@@ -7,10 +7,13 @@ import (
 	"io"
 	"log"
 	"path"
+	"reflect"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 
 	fatihcolor "github.com/fatih/color"
+
 	"github.com/zeromicro/go-zero/core/color"
 )
 
@@ -332,7 +335,7 @@ func wrapLevelWithColor(level string) string {
 
 func writeJson(writer io.Writer, info any) {
 	if content, err := json.Marshal(info); err != nil {
-		log.Println(err.Error())
+		log.Printf("err: %s, type: %s\n\n%s\n", err.Error(), reflect.TypeOf(info).Name(), debug.Stack())
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
@@ -384,7 +387,7 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 	buf.WriteString(level)
 	buf.WriteByte(plainEncodingSep)
 	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		log.Println(err.Error())
+		log.Printf("err: %s, type: %s\n\n%s\n", err.Error(), reflect.TypeOf(val).Name(), debug.Stack())
 		return
 	}
 
