@@ -2,10 +2,13 @@ package serverinterceptors
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/zrpc/internal/codes"
 	"google.golang.org/grpc"
+	gcodes "google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // StreamBreakerInterceptor is an interceptor that acts as a circuit breaker.
@@ -26,6 +29,9 @@ func UnaryBreakerInterceptor(ctx context.Context, req any, info *grpc.UnaryServe
 		resp, err = handler(ctx, req)
 		return err
 	}, codes.Acceptable)
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		err = status.Error(gcodes.Unavailable, err.Error())
+	}
 
 	return resp, err
 }
