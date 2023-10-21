@@ -1,7 +1,7 @@
 type (
 	{{.lowerStartCamelObject}}Model interface{
 		{{.method}}
-        WithSession(session sqlx.Session) *default{{.upperStartCamelObject}}Model
+        withSession(session sqlx.Session) *default{{.upperStartCamelObject}}Model
 	}
 
 	default{{.upperStartCamelObject}}Model struct {
