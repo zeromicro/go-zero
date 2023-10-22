@@ -22,13 +22,13 @@ type (
 	Option func(opts *options)
 )
 
-// DisableLog disables logging of mongo command, includes info and slow logs.
+// DisableLog disables logging of mongo commands, includes info and slow logs.
 func DisableLog() {
 	logMon.Set(false)
 	logSlowMon.Set(false)
 }
 
-// DisableInfoLog disables info logging of mongo command, but keeps slow logs.
+// DisableInfoLog disables info logging of mongo commands, but keeps slow logs.
 func DisableInfoLog() {
 	logMon.Set(false)
 }
