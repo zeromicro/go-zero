@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -49,7 +50,7 @@ func start(host string, port int, handler http.Handler, run func(svr *http.Serve
 		}
 	})
 	defer func() {
-		if err == http.ErrServerClosed {
+		if errors.Is(err, http.ErrServerClosed) {
 			waitForCalled()
 		}
 	}()
