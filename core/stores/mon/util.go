@@ -22,7 +22,10 @@ func logDuration(ctx context.Context, name, method string, startTime time.Durati
 	logger := logx.WithContext(ctx).WithDuration(duration)
 	if err != nil {
 		logger.Errorf("mongo(%s) - %s - fail(%s)", name, method, err.Error())
-	} else if logSlowMon.True() && duration > slowThreshold.Load() {
+		return
+	}
+
+	if logSlowMon.True() && duration > slowThreshold.Load() {
 		logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", name, method)
 	} else if logMon.True() {
 		logger.Infof("mongo(%s) - %s - ok", name, method)
@@ -39,32 +42,20 @@ func logDurationWithDocs(ctx context.Context, name, method string, startTime tim
 	// if non-nil, we just log without docs.
 	if jerr != nil {
 		if err != nil {
-			if logSlowMon.True() && duration > slowThreshold.Load() {
-				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s)", name, method, err.Error())
-			} else {
-				logger.Errorf("mongo(%s) - %s - fail(%s)", name, method, err.Error())
-			}
-		} else {
-			if logSlowMon.True() && duration > slowThreshold.Load() {
-				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", name, method)
-			} else if logMon.True() {
-				logger.Infof("mongo(%s) - %s - ok", name, method)
-			}
-		}
-	} else if err != nil {
-		if logSlowMon.True() && duration > slowThreshold.Load() {
-			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
-				name, method, err.Error(), string(content))
-		} else {
-			logger.Errorf("mongo(%s) - %s - fail(%s) - %s",
-				name, method, err.Error(), string(content))
-		}
-	} else {
-		if logSlowMon.True() && duration > slowThreshold.Load() {
-			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
-				name, method, string(content))
+			logger.Errorf("mongo(%s) - %s - fail(%s)", name, method, err.Error())
+		} else if logSlowMon.True() && duration > slowThreshold.Load() {
+			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", name, method)
 		} else if logMon.True() {
-			logger.Infof("mongo(%s) - %s - ok - %s", name, method, string(content))
+			logger.Infof("mongo(%s) - %s - ok", name, method)
 		}
+		return
+	}
+
+	if err != nil {
+		logger.Errorf("mongo(%s) - %s - fail(%s) - %s", name, method, err.Error(), string(content))
+	} else if logSlowMon.True() && duration > slowThreshold.Load() {
+		logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s", name, method, string(content))
+	} else if logMon.True() {
+		logger.Infof("mongo(%s) - %s - ok - %s", name, method, string(content))
 	}
 }
