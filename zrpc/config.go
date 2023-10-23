@@ -15,6 +15,8 @@ type (
 	ClientMiddlewaresConf = internal.ClientMiddlewaresConf
 	// ServerMiddlewaresConf defines whether to use server middlewares.
 	ServerMiddlewaresConf = internal.ServerMiddlewaresConf
+	// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
+	ServerSpecifiedTimeoutConf = internal.ServerSpecifiedTimeoutConf
 	// StatConf defines the stat config.
 	StatConf = internal.StatConf
 	// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
