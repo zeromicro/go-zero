@@ -76,7 +76,7 @@ func (s *rpcServer) Start(register RegisterFn) error {
 
 	// we need to make sure all others are wrapped up,
 	// so we do graceful stop at shutdown phase instead of wrap up phase
-	waitForCalled := proc.AddWrapUpListener(func() {
+	waitForCalled := proc.AddShutdownListener(func() {
 		if s.health != nil {
 			s.health.Shutdown()
 		}
