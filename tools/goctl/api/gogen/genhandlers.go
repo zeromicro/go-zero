@@ -3,12 +3,12 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"path"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
