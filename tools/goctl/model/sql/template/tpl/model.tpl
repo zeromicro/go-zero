@@ -35,3 +35,4 @@ func (m *custom{{.upperStartCamelObject}}Model) withSession(session sqlx.Session
     return New{{.upperStartCamelObject}}Model(sqlx.NewSqlConnFromSession(session))
 }
 {{end}}
+
