@@ -501,10 +501,11 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update any,
 
 func (c *decoratedCollection) logDuration(ctx context.Context, method string,
 	startTime time.Duration, err error, docs ...any) {
-	logDurationWithDoc(ctx, c.name, method, startTime, err, docs...)
+	logDurationWithDocs(ctx, c.name, method, startTime, err, docs...)
 }
 
-func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string, startTime time.Duration, err error) {
+func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string,
+	startTime time.Duration, err error) {
 	logDuration(ctx, c.name, method, startTime, err)
 }
 
