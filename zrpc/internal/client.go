@@ -48,8 +48,7 @@ type (
 )
 
 // NewClient returns a Client.
-func NewClient(target string, middlewares ClientMiddlewaresConf,
-	opts ...ClientOption) (Client, error) {
+func NewClient(target string, middlewares ClientMiddlewaresConf, opts ...ClientOption) (Client, error) {
 	cli := client{
 		middlewares: middlewares,
 	}

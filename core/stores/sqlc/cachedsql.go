@@ -97,6 +97,9 @@ func (cc CachedConn) Exec(exec ExecFn, keys ...string) (sql.Result, error) {
 }
 
 // ExecCtx runs given exec on given keys, and returns execution result.
+// If DB operation succeeds, it will delete cache with given keys,
+// if DB operation fails, it will return nil result and non-nil error,
+// if DB operation succeeds but cache deletion fails, it will return result and non-nil error.
 func (cc CachedConn) ExecCtx(ctx context.Context, exec ExecCtxFn, keys ...string) (
 	sql.Result, error) {
 	res, err := exec(ctx, cc.db)
@@ -104,11 +107,7 @@ func (cc CachedConn) ExecCtx(ctx context.Context, exec ExecCtxFn, keys ...string
 		return nil, err
 	}
 
-	if err := cc.DelCacheCtx(ctx, keys...); err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return res, cc.DelCacheCtx(ctx, keys...)
 }
 
 // ExecNoCache runs exec with given sql statement, without affecting cache.
@@ -214,6 +213,17 @@ func (cc CachedConn) SetCacheCtx(ctx context.Context, key string, val any) error
 	return cc.cache.SetCtx(ctx, key, val)
 }
 
+// SetCacheWithExpire sets v into cache with given key with given expire.
+func (cc CachedConn) SetCacheWithExpire(key string, val any, expire time.Duration) error {
+	return cc.SetCacheWithExpireCtx(context.Background(), key, val, expire)
+}
+
+// SetCacheWithExpireCtx sets v into cache with given key with given expire.
+func (cc CachedConn) SetCacheWithExpireCtx(ctx context.Context, key string, val any,
+	expire time.Duration) error {
+	return cc.cache.SetWithExpireCtx(ctx, key, val, expire)
+}
+
 // Transact runs given fn in transaction mode.
 func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 	fnCtx := func(_ context.Context, session sqlx.Session) error {
@@ -225,4 +235,16 @@ func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 // TransactCtx runs given fn in transaction mode.
 func (cc CachedConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	return cc.db.TransactCtx(ctx, fn)
+}
+
+// WithSession returns a new CachedConn with given session.
+// If query from session, the uncommitted data might be returned.
+// Don't query for the uncommitted data, you should just use it,
+// and don't use the cache for the uncommitted data.
+// Not recommend to use cache within transactions due to consistency problem.
+func (cc CachedConn) WithSession(session sqlx.Session) CachedConn {
+	return CachedConn{
+		db:    sqlx.NewSqlConnFromSession(session),
+		cache: cc.cache,
+	}
 }

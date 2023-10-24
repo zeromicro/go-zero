@@ -1,7 +1,6 @@
 package logc
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,14 +10,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestAddGlobalFields(t *testing.T) {
-	var buf bytes.Buffer
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
+	buf := logtest.NewCollector(t)
 
 	Info(context.Background(), "hello")
 	buf.Reset()
@@ -34,155 +30,90 @@ func TestAddGlobalFields(t *testing.T) {
 }
 
 func TestAlert(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	Alert(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
 }
 
 func TestError(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Error(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestErrorf(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Errorf(context.Background(), "foo %s", "bar")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestErrorv(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Errorv(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestErrorw(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Errorw(context.Background(), "foo", Field("a", "b"))
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestInfo(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Info(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestInfof(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Infof(context.Background(), "foo %s", "bar")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestInfov(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Infov(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestInfow(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Infow(context.Background(), "foo", Field("a", "b"))
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestDebug(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Debug(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestDebugf(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Debugf(context.Background(), "foo %s", "bar")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestDebugv(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Debugv(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func TestDebugw(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Debugw(context.Background(), "foo", Field("a", "b"))
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
@@ -204,48 +135,28 @@ func TestMisc(t *testing.T) {
 }
 
 func TestSlow(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Slow(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)), buf.String())
 }
 
 func TestSlowf(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Slowf(context.Background(), "foo %s", "bar")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)), buf.String())
 }
 
 func TestSlowv(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Slowv(context.Background(), "foo")
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)), buf.String())
 }
 
 func TestSloww(t *testing.T) {
-	var buf strings.Builder
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
-
+	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Sloww(context.Background(), "foo", Field("a", "b"))
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)), buf.String())

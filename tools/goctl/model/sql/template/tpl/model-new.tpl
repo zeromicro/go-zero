@@ -4,3 +4,4 @@ func new{{.upperStartCamelObject}}Model(conn sqlx.SqlConn{{if .withCache}}, c ca
 		table:      {{.table}},
 	}
 }
+

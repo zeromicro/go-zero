@@ -324,7 +324,7 @@ func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 		if len(each) == 1 {
 			one := each[0]
 			if one.Name == table.PrimaryKey.Name {
-				log.Warning("[ConvertDataType]: table q%, duplicate unique index with primary key:  %q", table.Table, one.Name)
+				log.Warning("[ConvertDataType]: table %q, duplicate unique index with primary key:  %q", table.Table, one.Name)
 				continue
 			}
 		}

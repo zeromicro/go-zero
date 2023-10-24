@@ -69,10 +69,10 @@ func (t *Tree) Add(route string, item any) error {
 	}
 
 	err := add(t.root, route[1:], item)
-	switch err {
-	case errDupItem:
+	switch {
+	case errors.Is(err, errDupItem):
 		return duplicatedItem(route)
-	case errDupSlash:
+	case errors.Is(err, errDupSlash):
 		return duplicatedSlash(route)
 	default:
 		return err
@@ -171,11 +171,11 @@ func add(nd *node, route string, item any) error {
 		token := route[:i]
 		children := nd.getChildren(token)
 		if child, ok := children[token]; ok {
-			if child != nil {
-				return add(child, route[i+1:], item)
+			if child == nil {
+				return errInvalidState
 			}
 
-			return errInvalidState
+			return add(child, route[i+1:], item)
 		}
 
 		child := newNode(nil)

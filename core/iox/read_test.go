@@ -40,15 +40,20 @@ b`,
 
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			tmpfile, err := fs.TempFilenameWithText(test.input)
+			tmpFile, err := fs.TempFilenameWithText(test.input)
 			assert.Nil(t, err)
-			defer os.Remove(tmpfile)
+			defer os.Remove(tmpFile)
 
-			content, err := ReadText(tmpfile)
+			content, err := ReadText(tmpFile)
 			assert.Nil(t, err)
 			assert.Equal(t, test.expect, content)
 		})
 	}
+}
+
+func TestReadTextError(t *testing.T) {
+	_, err := ReadText("not-exist")
+	assert.NotNil(t, err)
 }
 
 func TestReadTextLines(t *testing.T) {
@@ -59,9 +64,9 @@ func TestReadTextLines(t *testing.T) {
     #a
     3`
 
-	tmpfile, err := fs.TempFilenameWithText(text)
+	tmpFile, err := fs.TempFilenameWithText(text)
 	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
+	defer os.Remove(tmpFile)
 
 	tests := []struct {
 		options     []TextReadOption
@@ -87,11 +92,16 @@ func TestReadTextLines(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
-			lines, err := ReadTextLines(tmpfile, test.options...)
+			lines, err := ReadTextLines(tmpFile, test.options...)
 			assert.Nil(t, err)
 			assert.Equal(t, test.expectLines, len(lines))
 		})
 	}
+}
+
+func TestReadTextLinesError(t *testing.T) {
+	_, err := ReadTextLines("not-exist")
+	assert.NotNil(t, err)
 }
 
 func TestDupReadCloser(t *testing.T) {
@@ -106,6 +116,29 @@ func TestDupReadCloser(t *testing.T) {
 
 	verify(r1)
 	verify(r2)
+}
+
+func TestLimitDupReadCloser(t *testing.T) {
+	input := "hello world"
+	limitBytes := int64(4)
+	reader := io.NopCloser(bytes.NewBufferString(input))
+	r1, r2 := LimitDupReadCloser(reader, limitBytes)
+	verify := func(r io.Reader) {
+		output, err := io.ReadAll(r)
+		assert.Nil(t, err)
+		assert.Equal(t, input, string(output))
+	}
+	verifyLimit := func(r io.Reader, limit int64) {
+		output, err := io.ReadAll(r)
+		if limit < int64(len(input)) {
+			input = input[:limit]
+		}
+		assert.Nil(t, err)
+		assert.Equal(t, input, string(output))
+	}
+
+	verify(r1)
+	verifyLimit(r2, limitBytes)
 }
 
 func TestReadBytes(t *testing.T) {

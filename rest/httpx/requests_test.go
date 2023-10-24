@@ -326,6 +326,8 @@ func TestParseHeaders_Error(t *testing.T) {
 
 func TestParseWithValidator(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v struct {
 		Name    string  `form:"name"`
 		Age     int     `form:"age"`
@@ -343,6 +345,8 @@ func TestParseWithValidator(t *testing.T) {
 
 func TestParseWithValidatorWithError(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v struct {
 		Name    string  `form:"name"`
 		Age     int     `form:"age"`
@@ -356,10 +360,39 @@ func TestParseWithValidatorWithError(t *testing.T) {
 
 func TestParseWithValidatorRequest(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v mockRequest
 	r, err := http.NewRequest(http.MethodGet, "/a?&age=18", http.NoBody)
 	assert.Nil(t, err)
 	assert.Error(t, Parse(r, &v))
+}
+
+func TestParseFormWithDot(t *testing.T) {
+	var v struct {
+		Age int `form:"user.age"`
+	}
+	r, err := http.NewRequest(http.MethodGet, "/a?user.age=18", http.NoBody)
+	assert.Nil(t, err)
+	assert.NoError(t, Parse(r, &v))
+	assert.Equal(t, 18, v.Age)
+}
+
+func TestParsePathWithDot(t *testing.T) {
+	var v struct {
+		Name string `path:"name.val"`
+		Age  int    `path:"age.val"`
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	r = pathvar.WithVars(r, map[string]string{
+		"name.val": "foo",
+		"age.val":  "18",
+	})
+	err := Parse(r, &v)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", v.Name)
+	assert.Equal(t, 18, v.Age)
 }
 
 func BenchmarkParseRaw(b *testing.B) {
@@ -406,9 +439,15 @@ func BenchmarkParseAuto(b *testing.B) {
 	}
 }
 
-type mockValidator struct{}
+type mockValidator struct {
+	nop bool
+}
 
 func (m mockValidator) Validate(r *http.Request, data any) error {
+	if m.nop {
+		return nil
+	}
+
 	if r.URL.Path == "/a" {
 		val := reflect.ValueOf(data).Elem().FieldByName("Name").String()
 		if val != "hello" {

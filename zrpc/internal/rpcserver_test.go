@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/proc"
@@ -40,11 +41,13 @@ func TestRpcServer(t *testing.T) {
 	}()
 
 	wg.Wait()
+	time.Sleep(100 * time.Millisecond)
+
 	lock.Lock()
 	grpcServer.GracefulStop()
 	lock.Unlock()
 
-	proc.WrapUp()
+	proc.Shutdown()
 	wgDone.Wait()
 }
 

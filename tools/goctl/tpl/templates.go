@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
@@ -70,8 +70,8 @@ func genTemplates(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(abs),
-		aurora.Red("edit on your risk!"))
+	fmt.Printf("Templates are generated in %s, %s\n", color.Green.Render(abs),
+		color.Red.Render("edit on your risk!"))
 
 	return nil
 }
@@ -116,7 +116,7 @@ func cleanTemplates(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Printf("%s\n", aurora.Green("templates are cleaned!"))
+	fmt.Printf("%s\n", color.Green.Render("templates are cleaned!"))
 	return nil
 }
 
@@ -131,7 +131,7 @@ func updateTemplates(_ *cobra.Command, _ []string) (err error) {
 
 	defer func() {
 		if err == nil {
-			fmt.Println(aurora.Green(fmt.Sprintf("%s template are update!", category)).String())
+			fmt.Println(color.Green.Sprintf("%s template are update!", category))
 		}
 	}()
 	switch category {
@@ -170,7 +170,7 @@ func revertTemplates(_ *cobra.Command, _ []string) (err error) {
 
 	defer func() {
 		if err == nil {
-			fmt.Println(aurora.Green(fmt.Sprintf("%s template are reverted!", filename)).String())
+			fmt.Println(color.Green.Sprintf("%s template are reverted!", filename))
 		}
 	}()
 	switch category {

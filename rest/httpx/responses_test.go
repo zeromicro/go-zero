@@ -3,6 +3,7 @@ package httpx
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -80,14 +81,14 @@ func TestError(t *testing.T) {
 				headers: make(map[string][]string),
 			}
 			if test.errorHandler != nil {
-				lock.RLock()
+				errorLock.RLock()
 				prev := errorHandler
-				lock.RUnlock()
+				errorLock.RUnlock()
 				SetErrorHandler(test.errorHandler)
 				defer func() {
-					lock.Lock()
+					errorLock.Lock()
 					errorHandler = prev
-					lock.Unlock()
+					errorLock.Unlock()
 				}()
 			}
 			Error(&w, errors.New(test.input))
@@ -129,13 +130,71 @@ func TestOk(t *testing.T) {
 }
 
 func TestOkJson(t *testing.T) {
-	w := tracedResponseWriter{
-		headers: make(map[string][]string),
-	}
-	msg := message{Name: "anyone"}
-	OkJson(&w, msg)
-	assert.Equal(t, http.StatusOK, w.code)
-	assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+	t.Run("no handler", func(t *testing.T) {
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJson(&w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+	})
+
+	t.Run("with handler", func(t *testing.T) {
+		okLock.RLock()
+		prev := okHandler
+		okLock.RUnlock()
+		t.Cleanup(func() {
+			okLock.Lock()
+			okHandler = prev
+			okLock.Unlock()
+		})
+
+		SetOkHandler(func(_ context.Context, v interface{}) any {
+			return fmt.Sprintf("hello %s", v.(message).Name)
+		})
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJson(&w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, `"hello anyone"`, w.builder.String())
+	})
+}
+
+func TestOkJsonCtx(t *testing.T) {
+	t.Run("no handler", func(t *testing.T) {
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJsonCtx(context.Background(), &w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+	})
+
+	t.Run("with handler", func(t *testing.T) {
+		okLock.RLock()
+		prev := okHandler
+		okLock.RUnlock()
+		t.Cleanup(func() {
+			okLock.Lock()
+			okHandler = prev
+			okLock.Unlock()
+		})
+
+		SetOkHandler(func(_ context.Context, v interface{}) any {
+			return fmt.Sprintf("hello %s", v.(message).Name)
+		})
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJsonCtx(context.Background(), &w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, `"hello anyone"`, w.builder.String())
+	})
 }
 
 func TestWriteJsonTimeout(t *testing.T) {
@@ -275,14 +334,14 @@ func TestErrorCtx(t *testing.T) {
 				headers: make(map[string][]string),
 			}
 			if test.errorHandlerCtx != nil {
-				lock.RLock()
-				prev := errorHandlerCtx
-				lock.RUnlock()
+				errorLock.RLock()
+				prev := errorHandler
+				errorLock.RUnlock()
 				SetErrorHandlerCtx(test.errorHandlerCtx)
 				defer func() {
-					lock.Lock()
+					errorLock.Lock()
 					test.errorHandlerCtx = prev
-					lock.Unlock()
+					errorLock.Unlock()
 				}()
 			}
 			ErrorCtx(context.Background(), &w, errors.New(test.input))

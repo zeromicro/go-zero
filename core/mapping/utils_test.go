@@ -218,30 +218,31 @@ func TestParseSegments(t *testing.T) {
 func TestValidatePtrWithNonPtr(t *testing.T) {
 	var foo string
 	rve := reflect.ValueOf(foo)
-	assert.NotNil(t, ValidatePtr(&rve))
+	assert.NotNil(t, ValidatePtr(rve))
 }
 
 func TestValidatePtrWithPtr(t *testing.T) {
 	var foo string
 	rve := reflect.ValueOf(&foo)
-	assert.Nil(t, ValidatePtr(&rve))
+	assert.Nil(t, ValidatePtr(rve))
 }
 
 func TestValidatePtrWithNilPtr(t *testing.T) {
 	var foo *string
 	rve := reflect.ValueOf(foo)
-	assert.NotNil(t, ValidatePtr(&rve))
+	assert.NotNil(t, ValidatePtr(rve))
 }
 
 func TestValidatePtrWithZeroValue(t *testing.T) {
 	var s string
 	e := reflect.Zero(reflect.TypeOf(s))
-	assert.NotNil(t, ValidatePtr(&e))
+	assert.NotNil(t, ValidatePtr(e))
 }
 
 func TestSetValueNotSettable(t *testing.T) {
 	var i int
-	assert.NotNil(t, setValueFromString(reflect.Int, reflect.ValueOf(i), "1"))
+	assert.Error(t, setValueFromString(reflect.Int, reflect.ValueOf(i), "1"))
+	assert.Error(t, validateAndSetValue(reflect.Int, reflect.ValueOf(i), "1", nil))
 }
 
 func TestParseKeyAndOptionsErrors(t *testing.T) {
@@ -299,4 +300,37 @@ func TestSetValueFormatErrors(t *testing.T) {
 			assert.NotNil(t, err)
 		})
 	}
+}
+
+func TestValidateValueRange(t *testing.T) {
+	t.Run("float", func(t *testing.T) {
+		assert.NoError(t, validateValueRange(1.2, nil))
+	})
+
+	t.Run("float number range", func(t *testing.T) {
+		assert.NoError(t, validateNumberRange(1.2, nil))
+	})
+
+	t.Run("bad float", func(t *testing.T) {
+		assert.Error(t, validateValueRange("a", &fieldOptionsWithContext{
+			Range: &numberRange{},
+		}))
+	})
+
+	t.Run("bad float validate", func(t *testing.T) {
+		var v struct {
+			Foo float32
+		}
+		assert.Error(t, validateAndSetValue(reflect.Int, reflect.ValueOf(&v).Elem().Field(0),
+			"1", &fieldOptionsWithContext{
+				Range: &numberRange{
+					left:  2,
+					right: 3,
+				},
+			}))
+	})
+}
+
+func TestSetMatchedPrimitiveValue(t *testing.T) {
+	assert.Error(t, setMatchedPrimitiveValue(reflect.Func, reflect.ValueOf(2), "1"))
 }

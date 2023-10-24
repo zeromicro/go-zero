@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/fs"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/router"
 )
 
 const (
@@ -200,6 +202,7 @@ Verbose: true
 		},
 	}
 
+	var index int32
 	for _, yaml := range yamls {
 		yaml := yaml
 		for _, route := range routes {
@@ -208,6 +211,11 @@ Verbose: true
 				var cnf RestConf
 				assert.Nil(t, conf.LoadFromYamlBytes([]byte(yaml), &cnf))
 				ng := newEngine(cnf)
+				if atomic.AddInt32(&index, 1)%2 == 0 {
+					ng.setUnsignedCallback(func(w http.ResponseWriter, r *http.Request,
+						next http.Handler, strict bool, code int) {
+					})
+				}
 				ng.addRoutes(route)
 				ng.use(func(next http.HandlerFunc) http.HandlerFunc {
 					return func(w http.ResponseWriter, r *http.Request) {
@@ -396,6 +404,29 @@ func TestEngine_withTimeout(t *testing.T) {
 			assert.Equal(t, time.Duration(0), svr.IdleTimeout)
 		})
 	}
+}
+
+func TestEngine_start(t *testing.T) {
+	logx.Disable()
+
+	t.Run("http", func(t *testing.T) {
+		ng := newEngine(RestConf{
+			Host: "localhost",
+			Port: -1,
+		})
+		assert.Error(t, ng.start(router.NewRouter()))
+	})
+
+	t.Run("https", func(t *testing.T) {
+		ng := newEngine(RestConf{
+			Host:     "localhost",
+			Port:     -1,
+			CertFile: "foo",
+			KeyFile:  "bar",
+		})
+		ng.tlsConfig = &tls.Config{}
+		assert.Error(t, ng.start(router.NewRouter()))
+	})
 }
 
 type mockedRouter struct {

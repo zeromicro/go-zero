@@ -35,11 +35,11 @@ func TestConfigJson(t *testing.T) {
 	"c": "${FOO}",
 	"d": "abcd!@#$112"
 }`
+	t.Setenv("FOO", "2")
+
 	for _, test := range tests {
 		test := test
 		t.Run(test, func(t *testing.T) {
-			os.Setenv("FOO", "2")
-			defer os.Unsetenv("FOO")
 			tmpfile, err := createTempFile(test, text)
 			assert.Nil(t, err)
 			defer os.Remove(tmpfile)
@@ -81,8 +81,7 @@ b = 1
 c = "${FOO}"
 d = "abcd!@#$112"
 `
-	os.Setenv("FOO", "2")
-	defer os.Unsetenv("FOO")
+	t.Setenv("FOO", "2")
 	tmpfile, err := createTempFile(".toml", text)
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile)
@@ -207,8 +206,7 @@ b = 1
 c = "${FOO}"
 d = "abcd!@#112"
 `
-	os.Setenv("FOO", "2")
-	defer os.Unsetenv("FOO")
+	t.Setenv("FOO", "2")
 	tmpfile, err := createTempFile(".toml", text)
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile)
@@ -239,11 +237,10 @@ func TestConfigJsonEnv(t *testing.T) {
 	"c": "${FOO}",
 	"d": "abcd!@#$a12 3"
 }`
+	t.Setenv("FOO", "2")
 	for _, test := range tests {
 		test := test
 		t.Run(test, func(t *testing.T) {
-			os.Setenv("FOO", "2")
-			defer os.Unsetenv("FOO")
 			tmpfile, err := createTempFile(test, text)
 			assert.Nil(t, err)
 			defer os.Remove(tmpfile)

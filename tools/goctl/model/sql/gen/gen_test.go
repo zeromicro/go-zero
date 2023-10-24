@@ -3,7 +3,6 @@ package gen
 import (
 	"database/sql"
 	_ "embed"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -30,7 +29,7 @@ func TestCacheModel(t *testing.T) {
 	_ = Clean()
 
 	sqlFile := filepath.Join(pathx.MustTempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
+	err := os.WriteFile(sqlFile, []byte(source), 0o777)
 	assert.Nil(t, err)
 
 	dir := filepath.Join(pathx.MustTempDir(), "./testmodel")
@@ -65,7 +64,7 @@ func TestNamingModel(t *testing.T) {
 	_ = Clean()
 
 	sqlFile := filepath.Join(pathx.MustTempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
+	err := os.WriteFile(sqlFile, []byte(source), 0o777)
 	assert.Nil(t, err)
 
 	dir, _ := filepath.Abs("./testmodel")
@@ -103,7 +102,7 @@ func TestFolderName(t *testing.T) {
 	_ = Clean()
 
 	sqlFile := filepath.Join(pathx.MustTempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
+	err := os.WriteFile(sqlFile, []byte(source), 0o777)
 	assert.Nil(t, err)
 
 	dir, _ := filepath.Abs("./testmodel")
@@ -179,7 +178,7 @@ func Test_genPublicModel(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	modelFilename := filepath.Join(modelDir, "foo.sql")
-	err = ioutil.WriteFile(modelFilename, []byte(source), 0o777)
+	err = os.WriteFile(modelFilename, []byte(source), 0o777)
 	require.NoError(t, err)
 
 	g, err := NewDefaultGenerator(modelDir, &config.Config{

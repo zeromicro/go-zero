@@ -9,7 +9,11 @@ import (
 
 const defaultTimeout = time.Second * 3
 
-var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+var (
+	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+	logMon        = syncx.ForAtomicBool(true)
+	logSlowMon    = syncx.ForAtomicBool(true)
+)
 
 type (
 	options = mopt.ClientOptions
@@ -17,6 +21,17 @@ type (
 	// Option defines the method to customize a mongo model.
 	Option func(opts *options)
 )
+
+// DisableLog disables logging of mongo commands, includes info and slow logs.
+func DisableLog() {
+	logMon.Set(false)
+	logSlowMon.Set(false)
+}
+
+// DisableInfoLog disables info logging of mongo commands, but keeps slow logs.
+func DisableInfoLog() {
+	logMon.Set(false)
+}
 
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {

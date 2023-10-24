@@ -7,6 +7,8 @@ CREATE TABLE `test_user`
   名',
     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP comment '创建\r时间',
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `delete_time` timestamp NULL DEFAULT NULL,
+    `delete_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `mobile_unique` (`mobile`),
     UNIQUE KEY `class_name_unique` (`class`,`name`),

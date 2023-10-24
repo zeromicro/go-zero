@@ -147,3 +147,65 @@ func TestSafeMap_Range(t *testing.T) {
 	assert.Equal(t, m.dirtyNew, newMap.dirtyNew)
 	assert.Equal(t, m.dirtyOld, newMap.dirtyOld)
 }
+
+func TestSetManyTimes(t *testing.T) {
+	const iteration = maxDeletion * 2
+	m := NewSafeMap()
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	var count int
+	m.Range(func(k, v any) bool {
+		count++
+		return count < maxDeletion/2
+	})
+	assert.Equal(t, maxDeletion/2, count)
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+	for i := 0; i < iteration; i++ {
+		m.Set(i, i)
+		if i%3 == 0 {
+			m.Del(i / 2)
+		}
+	}
+
+	count = 0
+	m.Range(func(k, v any) bool {
+		count++
+		return count < maxDeletion
+	})
+	assert.Equal(t, maxDeletion, count)
+}
+
+func TestSetManyTimesNew(t *testing.T) {
+	m := NewSafeMap()
+	for i := 0; i < maxDeletion*3; i++ {
+		m.Set(i, i)
+	}
+	for i := 0; i < maxDeletion*2; i++ {
+		m.Del(i)
+	}
+	for i := 0; i < maxDeletion*3; i++ {
+		m.Set(i+maxDeletion*3, i+maxDeletion*3)
+	}
+	for i := 0; i < maxDeletion*2; i++ {
+		m.Del(i + maxDeletion*2)
+	}
+	for i := 0; i < maxDeletion-copyThreshold+1; i++ {
+		m.Del(i + maxDeletion*2)
+	}
+	assert.Equal(t, 0, len(m.dirtyNew))
+}

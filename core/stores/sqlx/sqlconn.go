@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -10,9 +11,6 @@ import (
 
 // spanName is used to identify the span name for the SQL execution.
 const spanName = "sql"
-
-// ErrNotFound is an alias of sql.ErrNoRows
-var ErrNotFound = sql.ErrNoRows
 
 type (
 	// Session stands for raw connections or transaction sessions
@@ -131,6 +129,13 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	return conn
 }
 
+// NewSqlConnFromSession returns a SqlConn with the given session.
+func NewSqlConnFromSession(session Session) SqlConn {
+	return txConn{
+		Session: session,
+	}
+}
+
 func (db *commonSqlConn) Exec(q string, args ...any) (result sql.Result, err error) {
 	return db.ExecCtx(context.Background(), q, args...)
 }
@@ -153,7 +158,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		result, err = exec(ctx, conn, q, args...)
 		return err
 	}, db.acceptable)
-	if err == breaker.ErrServiceUnavailable {
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
 		metricReqErr.Inc("Exec", "breaker")
 	}
 
@@ -189,7 +194,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		}
 		return nil
 	}, db.acceptable)
-	if err == breaker.ErrServiceUnavailable {
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
 		metricReqErr.Inc("Prepare", "breaker")
 	}
 
@@ -279,7 +284,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 	err = db.brk.DoWithAcceptable(func() error {
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
-	if err == breaker.ErrServiceUnavailable {
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
 		metricReqErr.Inc("Transact", "breaker")
 	}
 
@@ -287,12 +292,21 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled
-	if db.accept == nil {
-		return ok
+	if err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone) ||
+		errors.Is(err, context.Canceled) {
+		return true
 	}
 
-	return ok || db.accept(err)
+	var e acceptableError
+	if errors.As(err, &e) {
+		return true
+	}
+
+	if db.accept == nil {
+		return false
+	}
+
+	return db.accept(err)
 }
 
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
@@ -310,9 +324,9 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 			return qerr
 		}, q, args...)
 	}, func(err error) bool {
-		return qerr == err || db.acceptable(err)
+		return errors.Is(err, qerr) || db.acceptable(err)
 	})
-	if err == breaker.ErrServiceUnavailable {
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
 		metricReqErr.Inc("queryRows", "breaker")
 	}
 
@@ -394,4 +408,12 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
+}
+
+// WithAcceptable returns a SqlOption that setting the acceptable function.
+// acceptable is the func to check if the error can be accepted.
+func WithAcceptable(acceptable func(err error) bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.accept = acceptable
+	}
 }

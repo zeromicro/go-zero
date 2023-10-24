@@ -3,9 +3,11 @@ package ctx
 import (
 	"bytes"
 	"go/build"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -106,6 +108,93 @@ func Test_getRealModule(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getRealModule() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDecodePackages(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    io.Reader
+		want    []Module
+		wantErr bool
+	}{
+		{
+			name: "single module",
+			data: strings.NewReader(`{
+						"Path":"foo",
+						"Dir":"/home/foo",
+						"GoMod":"/home/foo/go.mod",
+						"GoVersion":"go1.16"}`),
+			want: []Module{
+				{
+					Path:      "foo",
+					Dir:       "/home/foo",
+					GoMod:     "/home/foo/go.mod",
+					GoVersion: "go1.16",
+				},
+			},
+		},
+		{
+			name: "go work multiple modules",
+			data: strings.NewReader(`
+					{
+						"Path":"foo",
+						"Dir":"/home/foo",
+						"GoMod":"/home/foo/go.mod",
+						"GoVersion":"go1.18"
+					}
+					{
+						"Path":"bar",
+						"Dir":"/home/bar",
+						"GoMod":"/home/bar/go.mod",
+						"GoVersion":"go1.18"
+					}`),
+			want: []Module{
+				{
+					Path:      "foo",
+					Dir:       "/home/foo",
+					GoMod:     "/home/foo/go.mod",
+					GoVersion: "go1.18",
+				},
+				{
+					Path:      "bar",
+					Dir:       "/home/bar",
+					GoMod:     "/home/bar/go.mod",
+					GoVersion: "go1.18",
+				},
+			},
+		},
+		{
+			name: "There are extra characters at the beginning",
+			data: strings.NewReader(`Active code page: 65001
+					{
+						"Path":"foo",
+						"Dir":"/home/foo",
+						"GoMod":"/home/foo/go.mod",
+						"GoVersion":"go1.18"
+					}`),
+			want: []Module{
+				{
+					Path:      "foo",
+					Dir:       "/home/foo",
+					GoMod:     "/home/foo/go.mod",
+					GoVersion: "go1.18",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := decodePackages(tt.data)
+			if err != nil {
+				t.Errorf("decodePackages() error %v,wantErr = %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(result, tt.want) {
+				t.Errorf("decodePackages() = %v,want  %v", result, tt.want)
+
 			}
 		})
 	}
