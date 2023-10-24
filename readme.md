@@ -217,7 +217,7 @@ go get -u github.com/zeromicro/go-zero
 
 5. Write the business logic code
 
-    * the dependencies can be passed into the logic within servicecontext.go, like mysql, reds, etc.
+    * the dependencies can be passed into the logic within servicecontext.go, like mysql, redis, etc.
     * add the logic code in a logic package according to .api file
 
 6. Generate code like Java, TypeScript, Dart, JavaScript, etc. just from the api file
