@@ -16,8 +16,12 @@ type (
 		Set(v float64, labels ...string)
 		// Inc increments labels.
 		Inc(labels ...string)
+		// Dec decrements labels.
+		Dec(labels ...string)
 		// Add adds v to labels.
 		Add(v float64, labels ...string)
+		// Sub subtracts v to labels.
+		Sub(v float64, labels ...string)
 		close() bool
 	}
 
@@ -50,12 +54,27 @@ func NewGaugeVec(cfg *GaugeVecOpts) GaugeVec {
 	return gv
 }
 
+func (gv *promGaugeVec) Set(v float64, labels ...string) {
+	if !prometheus.Enabled() {
+		return
+	}
+
+	gv.gauge.WithLabelValues(labels...).Set(v)
+}
+
 func (gv *promGaugeVec) Inc(labels ...string) {
 	if !prometheus.Enabled() {
 		return
 	}
 
 	gv.gauge.WithLabelValues(labels...).Inc()
+}
+
+func (gv *promGaugeVec) Dec(labels ...string) {
+	if !prometheus.Enabled() {
+		return
+	}
+	gv.gauge.WithLabelValues(labels...).Dec()
 }
 
 func (gv *promGaugeVec) Add(v float64, labels ...string) {
@@ -66,12 +85,11 @@ func (gv *promGaugeVec) Add(v float64, labels ...string) {
 	gv.gauge.WithLabelValues(labels...).Add(v)
 }
 
-func (gv *promGaugeVec) Set(v float64, labels ...string) {
+func (gv *promGaugeVec) Sub(v float64, labels ...string) {
 	if !prometheus.Enabled() {
 		return
 	}
-
-	gv.gauge.WithLabelValues(labels...).Set(v)
+	gv.gauge.WithLabelValues(labels...).Sub(v)
 }
 
 func (gv *promGaugeVec) close() bool {
