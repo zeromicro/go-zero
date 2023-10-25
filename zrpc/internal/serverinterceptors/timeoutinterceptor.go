@@ -27,10 +27,10 @@ type (
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
 func UnaryTimeoutInterceptor(timeout time.Duration,
 	methodTimeouts ...MethodTimeoutConf) grpc.UnaryServerInterceptor {
-	cache := initMethodTimeouts(methodTimeouts)
+	timeouts := buildMethodTimeouts(methodTimeouts)
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (any, error) {
-		t := getTimeoutByUnaryServerInfo(info, timeout, cache)
+		t := getTimeoutByUnaryServerInfo(info.FullMethod, timeouts, timeout)
 		ctx, cancel := context.WithTimeout(ctx, t)
 		defer cancel()
 
@@ -73,20 +73,20 @@ func UnaryTimeoutInterceptor(timeout time.Duration,
 	}
 }
 
-func initMethodTimeouts(timeouts []MethodTimeoutConf) methodTimeouts {
-	cache := make(methodTimeouts, len(timeouts))
+func buildMethodTimeouts(timeouts []MethodTimeoutConf) methodTimeouts {
+	mt := make(methodTimeouts, len(timeouts))
 	for _, st := range timeouts {
 		if st.FullMethod != "" {
-			cache[st.FullMethod] = st.Timeout
+			mt[st.FullMethod] = st.Timeout
 		}
 	}
 
-	return cache
+	return mt
 }
 
-func getTimeoutByUnaryServerInfo(info *grpc.UnaryServerInfo, defaultTimeout time.Duration,
-	timeouts methodTimeouts) time.Duration {
-	if v, ok := timeouts[info.FullMethod]; ok {
+func getTimeoutByUnaryServerInfo(method string, timeouts methodTimeouts,
+	defaultTimeout time.Duration) time.Duration {
+	if v, ok := timeouts[method]; ok {
 		return v
 	}
 
