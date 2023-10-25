@@ -103,13 +103,6 @@ type tempServer struct {
 func (s *tempServer) run(duration time.Duration) {
 	time.Sleep(duration)
 }
-func (s *tempServer) GetTimeoutByFullMethod(fullMethod string, defaultTimeout time.Duration) time.Duration {
-	if fullMethod == "/" {
-		return defaultTimeout
-	}
-
-	return s.timeout
-}
 
 func TestUnaryTimeoutInterceptor_TimeoutStrategy(t *testing.T) {
 	type args struct {
@@ -133,17 +126,6 @@ func TestUnaryTimeoutInterceptor_TimeoutStrategy(t *testing.T) {
 				serverTimeout:      time.Second * 3,
 				runTime:            time.Millisecond * 50,
 				fullMethod:         "/",
-			},
-			wantErr: nil,
-		},
-		{
-			name: "do not timeout with timeout strategy",
-			args: args{
-				interceptorTimeout: time.Second,
-				contextTimeout:     time.Second * 5,
-				serverTimeout:      time.Second * 3,
-				runTime:            time.Second * 2,
-				fullMethod:         "/2s",
 			},
 			wantErr: nil,
 		},
@@ -235,9 +217,9 @@ func TestUnaryTimeoutInterceptor_SpecifiedTimeout(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var specifiedTimeouts []ServerSpecifiedTimeoutConf
+			var specifiedTimeouts []MethodTimeoutConf
 			if tt.args.methodTimeout > 0 {
-				specifiedTimeouts = []ServerSpecifiedTimeoutConf{
+				specifiedTimeouts = []MethodTimeoutConf{
 					{
 						FullMethod: tt.args.method,
 						Timeout:    tt.args.methodTimeout,

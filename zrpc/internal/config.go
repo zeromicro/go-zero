@@ -25,5 +25,6 @@ type (
 		Breaker    bool     `json:",default=true"`
 	}
 
-	ServerSpecifiedTimeoutConf = serverinterceptors.ServerSpecifiedTimeoutConf
+	// MethodTimeoutConf defines specified timeout for gRPC methods.
+	MethodTimeoutConf = serverinterceptors.MethodTimeoutConf
 )
