@@ -14,11 +14,23 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type (
+	// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
+	ServerSpecifiedTimeoutConf struct {
+		FullMethod string
+		Timeout    time.Duration
+	}
+
+	specifiedTimeoutCache map[string]time.Duration
+)
+
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
-func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor {
+func UnaryTimeoutInterceptor(timeout time.Duration, specifiedTimeouts ...ServerSpecifiedTimeoutConf) grpc.UnaryServerInterceptor {
+	cache := cacheSpecifiedTimeout(specifiedTimeouts)
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (any, error) {
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+		t := getTimeoutByUnaryServerInfo(info, timeout, cache)
+		ctx, cancel := context.WithTimeout(ctx, t)
 		defer cancel()
 
 		var resp any
@@ -58,4 +70,29 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 			return nil, err
 		}
 	}
+}
+
+func cacheSpecifiedTimeout(specifiedTimeouts []ServerSpecifiedTimeoutConf) specifiedTimeoutCache {
+	cache := make(specifiedTimeoutCache, len(specifiedTimeouts))
+	for _, st := range specifiedTimeouts {
+		if st.FullMethod != "" {
+			cache[st.FullMethod] = st.Timeout
+		}
+	}
+
+	return cache
+}
+
+func getTimeoutByUnaryServerInfo(info *grpc.UnaryServerInfo, defaultTimeout time.Duration, specifiedTimeout specifiedTimeoutCache) time.Duration {
+	if ts, ok := info.Server.(TimeoutStrategy); ok {
+		return ts.GetTimeoutByFullMethod(info.FullMethod, defaultTimeout)
+	} else if v, ok := specifiedTimeout[info.FullMethod]; ok {
+		return v
+	}
+
+	return defaultTimeout
+}
+
+type TimeoutStrategy interface {
+	GetTimeoutByFullMethod(fullMethod string, defaultTimeout time.Duration) time.Duration
 }

@@ -24,4 +24,6 @@ type (
 		Prometheus bool     `json:",default=true"`
 		Breaker    bool     `json:",default=true"`
 	}
+
+	ServerSpecifiedTimeoutConf = serverinterceptors.ServerSpecifiedTimeoutConf
 )

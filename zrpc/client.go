@@ -110,3 +110,8 @@ func DontLogClientContentForMethod(method string) {
 func SetClientSlowThreshold(threshold time.Duration) {
 	clientinterceptors.SetSlowThreshold(threshold)
 }
+
+// WithTimeoutCallOption return a call option with given timeout.
+func WithTimeoutCallOption(timeout time.Duration) grpc.CallOption {
+	return clientinterceptors.WithTimeoutCallOption(timeout)
+}
