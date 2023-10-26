@@ -41,12 +41,12 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 
 func TestDepositServer_Deposit(t *testing.T) {
 	tests := []struct {
-		name              string
-		amount            float32
-		timeoutCallOption time.Duration
-		res               *mock.DepositResponse
-		errCode           codes.Code
-		errMsg            string
+		name    string
+		amount  float32
+		timeout time.Duration
+		res     *mock.DepositResponse
+		errCode codes.Code
+		errMsg  string
 	}{
 		{
 			name:    "invalid request with negative amount",
@@ -66,12 +66,12 @@ func TestDepositServer_Deposit(t *testing.T) {
 			errMsg:  "context deadline exceeded",
 		},
 		{
-			name:              "valid request with timeout call option",
-			amount:            2000.00,
-			timeoutCallOption: time.Second * 3,
-			res:               &mock.DepositResponse{Ok: true},
-			errCode:           codes.OK,
-			errMsg:            "",
+			name:    "valid request with timeout call option",
+			amount:  2000.00,
+			timeout: time.Second * 3,
+			res:     &mock.DepositResponse{Ok: true},
+			errCode: codes.OK,
+			errMsg:  "",
 		},
 	}
 
@@ -171,8 +171,8 @@ func TestDepositServer_Deposit(t *testing.T) {
 					err      error
 				)
 
-				if tt.timeoutCallOption > 0 {
-					response, err = cli.Deposit(ctx, request, WithTimeoutCallOption(tt.timeoutCallOption))
+				if tt.timeout > 0 {
+					response, err = cli.Deposit(ctx, request, WithCallTimeout(tt.timeout))
 				} else {
 					response, err = cli.Deposit(ctx, request)
 				}

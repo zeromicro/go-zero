@@ -114,7 +114,7 @@ func TestTimeoutInterceptor_TimeoutCallOption(t *testing.T) {
 			cc := new(grpc.ClientConn)
 			var co []grpc.CallOption
 			if tt.args.callOptionTimeout > 0 {
-				co = append(co, WithTimeoutCallOption(tt.args.callOptionTimeout))
+				co = append(co, WithCallTimeout(tt.args.callOptionTimeout))
 			}
 
 			err := interceptor(context.Background(), "/foo", nil, nil, cc,
