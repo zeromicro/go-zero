@@ -3,7 +3,6 @@ package metric
 import (
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/zeromicro/go-zero/core/proc"
-	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
 type (
@@ -53,11 +52,9 @@ func NewSummaryVec(cfg *SummaryVecOpts) SummaryVec {
 }
 
 func (sv *promSummaryVec) Observe(v float64, labels ...string) {
-	if !prometheus.Enabled() {
-		return
-	}
-
-	sv.summary.WithLabelValues(labels...).Observe(v)
+	update(func() {
+		sv.summary.WithLabelValues(labels...).Observe(v)
+	})
 }
 
 func (sv *promSummaryVec) close() bool {
