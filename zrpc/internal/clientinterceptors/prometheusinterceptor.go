@@ -19,7 +19,7 @@ var (
 		Name:      "duration_ms",
 		Help:      "rpc client requests duration(ms).",
 		Labels:    []string{"method"},
-		Buckets:   []float64{5, 10, 25, 50, 100, 250, 500, 1000},
+		Buckets:   []float64{1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000},
 	})
 
 	metricClientReqCodeTotal = metric.NewCounterVec(&metric.CounterVecOpts{
