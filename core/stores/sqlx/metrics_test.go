@@ -34,8 +34,8 @@ func TestSqlxMetric(t *testing.T) {
 	s, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	content := string(s)
-	assert.Contains(t, content, "mysql_client_requests_durations_ms_sum{command=\"test-cmd\"} 8\n")
-	assert.Contains(t, content, "mysql_client_requests_durations_ms_count{command=\"test-cmd\"} 1\n")
+	assert.Contains(t, content, "mysql_client_requests_duration_ms_sum{command=\"test-cmd\"} 8\n")
+	assert.Contains(t, content, "mysql_client_requests_duration_ms_count{command=\"test-cmd\"} 1\n")
 	assert.Contains(t, content, "mysql_client_requests_error_total{command=\"test-cmd\",error=\"internal-error\"} 1\n")
 	assert.Contains(t, content, "mysql_client_requests_slow_total{command=\"test-cmd\"} 1\n")
 }
