@@ -24,4 +24,7 @@ type (
 		Prometheus bool     `json:",default=true"`
 		Breaker    bool     `json:",default=true"`
 	}
+
+	// MethodTimeoutConf defines specified timeout for gRPC methods.
+	MethodTimeoutConf = serverinterceptors.MethodTimeoutConf
 )

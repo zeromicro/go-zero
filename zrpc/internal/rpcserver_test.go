@@ -47,7 +47,7 @@ func TestRpcServer(t *testing.T) {
 	grpcServer.GracefulStop()
 	lock.Unlock()
 
-	proc.WrapUp()
+	proc.Shutdown()
 	wgDone.Wait()
 }
 

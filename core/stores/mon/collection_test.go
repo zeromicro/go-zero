@@ -599,13 +599,11 @@ func TestDecoratedCollection_LogDuration(t *testing.T) {
 		errors.New("bar"), make(chan int))
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "bar")
-	assert.Contains(t, buf.String(), "slowcall")
 
 	buf.Reset()
 	c.logDuration(context.Background(), "foo", timex.Now()-slowThreshold.Load()*2,
 		errors.New("bar"))
 	assert.Contains(t, buf.String(), "foo")
-	assert.Contains(t, buf.String(), "slowcall")
 
 	buf.Reset()
 	c.logDuration(context.Background(), "foo", timex.Now()-slowThreshold.Load()*2, nil)

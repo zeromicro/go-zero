@@ -113,11 +113,13 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 }
 
 func startAgent(c Config) error {
+	AddResources(semconv.ServiceNameKey.String(c.Name))
+
 	opts := []sdktrace.TracerProviderOption{
 		// Set the sampling rate based on the parent span to 100%
 		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(c.Sampler))),
 		// Record information about this application in a Resource.
-		sdktrace.WithResource(resource.NewSchemaless(semconv.ServiceNameKey.String(c.Name))),
+		sdktrace.WithResource(resource.NewSchemaless(attrResources...)),
 	}
 
 	if len(c.Endpoint) > 0 {
