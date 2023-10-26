@@ -3,6 +3,7 @@ package metric
 import (
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/zeromicro/go-zero/core/proc"
+	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
 type (
@@ -57,10 +58,18 @@ func NewHistogramVec(cfg *HistogramVecOpts) HistogramVec {
 }
 
 func (hv *promHistogramVec) Observe(v int64, labels ...string) {
+	if !prometheus.Enabled() {
+		return
+	}
+
 	hv.ObserveFloat(float64(v), labels...)
 }
 
 func (hv *promHistogramVec) ObserveFloat(v float64, labels ...string) {
+	if !prometheus.Enabled() {
+		return
+	}
+
 	hv.histogram.WithLabelValues(labels...).Observe(v)
 }
 

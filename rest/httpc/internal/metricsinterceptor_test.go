@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

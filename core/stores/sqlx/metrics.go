@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/zeromicro/go-zero/core/metric"
 )
 
@@ -15,7 +14,7 @@ var (
 	metricReqDur = metric.NewHistogramVec(&metric.HistogramVecOpts{
 		Namespace: namespace,
 		Subsystem: "requests",
-		Name:      "durations_ms",
+		Name:      "duration_ms",
 		Help:      "mysql client requests duration(ms).",
 		Labels:    []string{"command"},
 		Buckets:   []float64{0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 15000},
