@@ -34,11 +34,9 @@ var (
 		Labels:    []string{"command"},
 	})
 
-	connLabels = []string{"db_name", "hash"}
-
-	connCollector = newCollector()
-
-	_ prometheus.Collector = (*collector)(nil)
+	connLabels                         = []string{"db_name", "hash"}
+	connCollector                      = newCollector()
+	_             prometheus.Collector = (*collector)(nil)
 )
 
 type (
@@ -143,15 +141,24 @@ func (c *collector) Collect(ch chan<- prometheus.Metric) {
 	for _, client := range c.clients {
 		dbName, hash := client.dbName, client.hash
 		stats := client.poolStats()
-		ch <- prometheus.MustNewConstMetric(c.maxOpenConnections, prometheus.GaugeValue, float64(stats.MaxOpenConnections), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.openConnections, prometheus.GaugeValue, float64(stats.OpenConnections), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.inUseConnections, prometheus.GaugeValue, float64(stats.InUse), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.idleConnections, prometheus.GaugeValue, float64(stats.Idle), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.waitCount, prometheus.CounterValue, float64(stats.WaitCount), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.waitDuration, prometheus.CounterValue, stats.WaitDuration.Seconds(), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.maxIdleClosed, prometheus.CounterValue, float64(stats.MaxIdleClosed), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.maxLifetimeClosed, prometheus.CounterValue, float64(stats.MaxLifetimeClosed), dbName, hash)
-		ch <- prometheus.MustNewConstMetric(c.maxIdleTimeClosed, prometheus.CounterValue, float64(stats.MaxIdleTimeClosed), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.maxOpenConnections, prometheus.GaugeValue,
+			float64(stats.MaxOpenConnections), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.openConnections, prometheus.GaugeValue,
+			float64(stats.OpenConnections), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.inUseConnections, prometheus.GaugeValue,
+			float64(stats.InUse), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.idleConnections, prometheus.GaugeValue,
+			float64(stats.Idle), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.waitCount, prometheus.CounterValue,
+			float64(stats.WaitCount), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.waitDuration, prometheus.CounterValue,
+			stats.WaitDuration.Seconds(), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.maxIdleClosed, prometheus.CounterValue,
+			float64(stats.MaxIdleClosed), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.maxLifetimeClosed, prometheus.CounterValue,
+			float64(stats.MaxLifetimeClosed), dbName, hash)
+		ch <- prometheus.MustNewConstMetric(c.maxIdleTimeClosed, prometheus.CounterValue,
+			float64(stats.MaxIdleTimeClosed), dbName, hash)
 	}
 }
 
