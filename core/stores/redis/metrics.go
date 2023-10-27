@@ -34,11 +34,9 @@ var (
 		Labels:    []string{"command"},
 	})
 
-	connLabels = []string{"key", "client_type"}
-
-	connCollector = newCollector()
-
-	_ prometheus.Collector = (*collector)(nil)
+	connLabels                         = []string{"key", "client_type"}
+	connCollector                      = newCollector()
+	_             prometheus.Collector = (*collector)(nil)
 )
 
 type (

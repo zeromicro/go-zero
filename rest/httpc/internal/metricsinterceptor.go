@@ -31,26 +31,24 @@ var (
 	})
 )
 
-type (
-	MetricsURLRewriter func(u url.URL) string
-)
+type MetricsURLRewriter func(u url.URL) string
 
 func MetricsInterceptor(name string, pr MetricsURLRewriter) Interceptor {
 	return func(r *http.Request) (*http.Request, ResponseHandler) {
 		startTime := timex.Now()
 		return r, func(resp *http.Response, err error) {
-			u := cleanURL(*r.URL)
-			method := r.Method
-			var (
-				code int
-				path string
-			)
+			var code int
+			var path string
+
 			// error or resp is nil, set code=500
 			if err != nil || resp == nil {
 				code = http.StatusInternalServerError
 			} else {
 				code = resp.StatusCode
 			}
+
+			u := cleanURL(*r.URL)
+			method := r.Method
 			if pr != nil {
 				path = pr(u)
 			} else {
