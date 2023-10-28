@@ -126,6 +126,11 @@ func TestWriteJson(t *testing.T) {
 	log.SetOutput(&buf)
 	writeJson(nil, "foo")
 	assert.Contains(t, buf.String(), "foo")
+
+	buf.Reset()
+	writeJson(hardToWriteWriter{}, "foo")
+	assert.Contains(t, buf.String(), "write error")
+
 	buf.Reset()
 	writeJson(nil, make(chan int))
 	assert.Contains(t, buf.String(), "unsupported type")
