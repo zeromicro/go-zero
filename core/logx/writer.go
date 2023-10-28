@@ -334,7 +334,25 @@ func wrapLevelWithColor(level string) string {
 
 func writeJson(writer io.Writer, info any) {
 	if content, err := json.Marshal(info); err != nil {
-		log.Printf("err: %s, type: %s\n\n%s\n", err.Error(), reflect.TypeOf(info).Name(), debug.Stack())
+		writeJsonEncodeErr(writer, fmt.Sprintf("err: %s, type: %s\n\n%s",
+			err.Error(), reflect.TypeOf(info).Name(), debug.Stack()))
+
+		return
+	} else if writer == nil {
+		log.Println(string(content))
+	} else {
+		writer.Write(append(content, '\n'))
+	}
+}
+
+func writeJsonEncodeErr(writer io.Writer, errMsg string) {
+	entry := make(logEntry)
+	entry[timestampKey] = getTimestamp()
+	entry[levelKey] = levelError
+	entry[contentKey] = errMsg
+
+	if content, err := json.Marshal(entry); err != nil {
+		log.Println(err.Error())
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
@@ -386,7 +404,9 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 	buf.WriteString(level)
 	buf.WriteByte(plainEncodingSep)
 	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		log.Printf("err: %s, type: %s\n\n%s\n", err.Error(), reflect.TypeOf(val).Name(), debug.Stack())
+		writePlainValueEncodeErr(writer, fmt.Sprintf("err: %s, type: %s\n\n%s",
+			err.Error(), reflect.TypeOf(val).Name(), debug.Stack()))
+
 		return
 	}
 
@@ -395,6 +415,25 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 		buf.WriteString(item)
 	}
 	buf.WriteByte('\n')
+	if writer == nil {
+		log.Println(buf.String())
+		return
+	}
+
+	if _, err := writer.Write(buf.Bytes()); err != nil {
+		log.Println(err.Error())
+	}
+}
+
+func writePlainValueEncodeErr(writer io.Writer, errMsg string) {
+	var buf bytes.Buffer
+	buf.WriteString(getTimestamp())
+	buf.WriteByte(plainEncodingSep)
+	buf.WriteString(levelError)
+	buf.WriteByte(plainEncodingSep)
+	buf.Write([]byte(errMsg))
+	buf.WriteByte('\n')
+
 	if writer == nil {
 		log.Println(buf.String())
 		return
