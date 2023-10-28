@@ -341,7 +341,9 @@ func writeJson(writer io.Writer, info any) {
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
-		writer.Write(append(content, '\n'))
+		if _, err := writer.Write(append(content, '\n')); err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
@@ -356,7 +358,9 @@ func writeJsonEncodeErr(writer io.Writer, errMsg string) {
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
-		writer.Write(append(content, '\n'))
+		if _, err := writer.Write(append(content, '\n')); err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
