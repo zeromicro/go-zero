@@ -1,5 +1,3 @@
-//go:build go1.19
-
 package stringx
 
 import (
