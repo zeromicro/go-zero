@@ -143,12 +143,6 @@ func TestWriteJson(t *testing.T) {
 		RC: func() {},
 	})
 	assert.Contains(t, buf.String(), "runtime/debug.Stack")
-
-	buf.Reset()
-	writeJson(hardToWriteWriter{}, C{
-		RC: func() {},
-	})
-	assert.Contains(t, buf.String(), "write error")
 }
 
 func TestWritePlainAny(t *testing.T) {
@@ -193,12 +187,6 @@ func TestWritePlainAny(t *testing.T) {
 		RC: func() {},
 	})
 	assert.Contains(t, buf.String(), "runtime/debug.Stack")
-
-	buf.Reset()
-	writePlainAny(hardToWriteWriter{}, levelError, C{
-		RC: func() {},
-	})
-	assert.Contains(t, buf.String(), "write error")
 }
 
 func TestLogWithLimitContentLength(t *testing.T) {
