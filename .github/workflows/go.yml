@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: 1.19
           check-latest: true
@@ -47,12 +47,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          # use 1.18 to guarantee Go 1.18 compatibility
+          # use 1.19 to guarantee Go 1.19 compatibility
           go-version: 1.19
           check-latest: true
           cache: true

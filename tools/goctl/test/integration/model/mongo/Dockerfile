@@ -1,4 +1,4 @@
-FROM golang:1.18
+FROM golang:1.19
 
 ENV TZ Asia/Shanghai
 ENV GOPROXY https://goproxy.cn,direct
