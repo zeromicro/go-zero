@@ -1,6 +1,6 @@
 module github.com/zeromicro/go-zero
 
-go 1.19
+go 1.20
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
@@ -32,7 +32,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.19.0
 	go.opentelemetry.io/otel/trace v1.19.0
 	go.uber.org/automaxprocs v1.5.3
-	go.uber.org/goleak v1.2.1
+	go.uber.org/goleak v1.3.0
 	golang.org/x/net v0.17.0
 	golang.org/x/sys v0.13.0
 	golang.org/x/time v0.3.0
