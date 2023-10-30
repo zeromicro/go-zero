@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/zeromicro/go-zero/internal/devserver"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
