@@ -31,41 +31,43 @@ go-zero contains simple API description syntax and code generation tool called `
 
 #### Advantages of go-zero:
 
-* improve the stability of the services with tens of millions of daily active users
-* builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
-* builtin middlewares also can be integrated into your frameworks
-* simple API syntax, one command to generate a couple of different languages
-* auto validate the request parameters from clients
-* plenty of builtin microservice management and concurrent toolkits
+* Improves the stability of the services with tens of millions of daily active users
+* Builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
+* Builtin middlewares also can be integrated into your frameworks
+* Simple API syntax, one command to generate a couple of different languages
+* Auto validate the request parameters from clients
+* Plenty of builtin microservice management and concurrent toolkits
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
 
 ## Backgrounds of go-zero
 
 At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After research and comparison, we chose to:
+In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
 
-* Golang based
-  * great performance
-  * simple syntax
-  * proven engineering efficiency
-  * extreme deployment experience
-  * less server resource consumption
-* Self-designed microservice architecture
-  * I have rich experience in designing microservice architectures
-  * easy to locate the problems
-  * easy to extend the features
+* Go Beyond with Golang
+  * Great performance
+  * Simple syntax
+  * Proven engineering efficiency
+  * Extreme deployment experience
+  * Less server resource consumption
+
+* Self-Design Our Microservice Architecture
+  * Microservice architecture facilitates the creation of scalable, flexible, and maintainable software systems with independent, reusable components.
+  * Easy to locate the problems within microservices.
+  * Easy to extend the features by adding or modifying specific microservices without impacting the entire system.
 
 ## Design considerations on go-zero
 
 By designing the microservice architecture, we expected to ensure stability, as well as productivity. And from just the beginning, we have the following design principles:
 
-* keep it simple
-* high availability
-* stable on high concurrency
-* easy to extend
-* resilience design, failure-oriented programming
-* try best to be friendly to the business logic development, encapsulate the complexity
-* one thing, one way
+* Keep it simple
+* High availability
+* Stable on high concurrency
+* Easy to extend
+* Resilience design, failure-oriented programming
+* Try best to be friendly to the business logic development, encapsulate the complexity
+* One thing, one way
 
 After almost half a year, we finished the transfer from a monolithic system to microservice system and deployed on August 2018. The new system guaranteed business growth and system stability.
 
@@ -73,19 +75,19 @@ After almost half a year, we finished the transfer from a monolithic system to m
 
 go-zero is a web and rpc framework that integrates lots of engineering practices. The features are mainly listed below:
 
-* powerful tool included, less code to write
-* simple interfaces
-* fully compatible with net/http
-* middlewares are supported, easy to extend
-* high performance
-* failure-oriented programming, resilience design
-* builtin service discovery, load balancing
-* builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto-trigger, auto recover
-* auto validation of API request parameters
-* chained timeout control
-* auto management of data caching
-* call tracing, metrics, and monitoring
-* high concurrency protected
+* Powerful tool included, less code to write
+* Simple interfaces
+* Fully compatible with net/http
+* Middlewares are supported, easy to extend
+* High performance
+* Failure-oriented programming, resilience design
+* Builtin service discovery, load balancing
+* Builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto-trigger, auto recover
+* Auto validation of API request parameters
+* Chained timeout control
+* Auto management of data caching
+* Call tracing, metrics, and monitoring
+* High concurrency protected
 
 As below, go-zero protects the system with a couple of layers and mechanisms:
 
@@ -105,13 +107,13 @@ go get -u github.com/zeromicro/go-zero
 
 ##  Quick Start
 
-1. full examples can be checked out from below:
+1. Full examples can be checked out from below:
 
      [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 
      [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 
-2. install goctl
+2. Install goctl
 
    `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve productivity, and make our lives easier.
 
@@ -127,7 +129,7 @@ go get -u github.com/zeromicro/go-zero
    # run goctl like
    docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
    
-   # docker for arm64 (M1) architecture
+   # docker for arm64(Mac) architecture
    docker pull kevinwan/goctl:latest-arm64
    # run goctl like
    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
@@ -135,7 +137,7 @@ go get -u github.com/zeromicro/go-zero
    
    make sure goctl is executable.
    
-3. create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
+3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 
    ```go
    type (
@@ -160,7 +162,7 @@ go get -u github.com/zeromicro/go-zero
    goctl api -o greet.api
    ```
 
-4. generate the go server-side code
+4. Generate the go server-side code
 
    ```shell
    goctl api go -api greet.api -dir greet
@@ -215,7 +217,7 @@ go get -u github.com/zeromicro/go-zero
 
 5. Write the business logic code
 
-    * the dependencies can be passed into the logic within servicecontext.go, like mysql, reds, etc.
+    * the dependencies can be passed into the logic within servicecontext.go, like mysql, redis, etc.
     * add the logic code in a logic package according to .api file
 
 6. Generate code like Java, TypeScript, Dart, JavaScript, etc. just from the api file

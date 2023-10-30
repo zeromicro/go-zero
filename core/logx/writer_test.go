@@ -126,9 +126,23 @@ func TestWriteJson(t *testing.T) {
 	log.SetOutput(&buf)
 	writeJson(nil, "foo")
 	assert.Contains(t, buf.String(), "foo")
+
+	buf.Reset()
+	writeJson(hardToWriteWriter{}, "foo")
+	assert.Contains(t, buf.String(), "write error")
+
 	buf.Reset()
 	writeJson(nil, make(chan int))
 	assert.Contains(t, buf.String(), "unsupported type")
+
+	buf.Reset()
+	type C struct {
+		RC func()
+	}
+	writeJson(nil, C{
+		RC: func() {},
+	})
+	assert.Contains(t, buf.String(), "runtime/debug.Stack")
 }
 
 func TestWritePlainAny(t *testing.T) {
@@ -165,6 +179,14 @@ func TestWritePlainAny(t *testing.T) {
 	writePlainAny(hardToWriteWriter{}, levelFatal, "foo")
 	assert.Contains(t, buf.String(), "write error")
 
+	buf.Reset()
+	type C struct {
+		RC func()
+	}
+	writePlainAny(nil, levelError, C{
+		RC: func() {},
+	})
+	assert.Contains(t, buf.String(), "runtime/debug.Stack")
 }
 
 func TestLogWithLimitContentLength(t *testing.T) {

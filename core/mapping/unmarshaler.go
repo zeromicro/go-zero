@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -18,9 +19,10 @@ import (
 )
 
 const (
-	defaultKeyName = "key"
-	delimiter      = '.'
-	ignoreKey      = "-"
+	defaultKeyName   = "key"
+	delimiter        = '.'
+	ignoreKey        = "-"
+	numberTypeString = "number"
 )
 
 var (
@@ -609,25 +611,23 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 	target := reflect.New(Deref(fieldType)).Elem()
 
 	switch typeKind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		iValue, err := v.Int64()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if err := setValueFromString(typeKind, target, v.String()); err != nil {
+			return err
+		}
+	case reflect.Float32:
+		fValue, err := v.Float64()
 		if err != nil {
 			return err
 		}
 
-		target.SetInt(iValue)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		iValue, err := v.Int64()
-		if err != nil {
-			return err
+		if fValue > math.MaxFloat32 {
+			return fmt.Errorf("parsing %q as float32: value out of range", v.String())
 		}
 
-		if iValue < 0 {
-			return fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String())
-		}
-
-		target.SetUint(uint64(iValue))
-	case reflect.Float32, reflect.Float64:
+		target.SetFloat(fValue)
+	case reflect.Float64:
 		fValue, err := v.Float64()
 		if err != nil {
 			return err
@@ -635,7 +635,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 
 		target.SetFloat(fValue)
 	default:
-		return newTypeMismatchErrorWithHint(fullName, typeKind.String(), value.Type().String())
+		return newTypeMismatchErrorWithHint(fullName, typeKind.String(), numberTypeString)
 	}
 
 	SetValue(fieldType, value, target)

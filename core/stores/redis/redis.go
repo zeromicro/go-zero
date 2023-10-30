@@ -2849,7 +2849,7 @@ func withHook(hook red.Hook) Option {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == red.Nil || err == context.Canceled
+	return err == nil || err == red.Nil || errors.Is(err, context.Canceled)
 }
 
 func getRedis(r *Redis) (RedisNode, error) {

@@ -1,34 +1,34 @@
 package breaker
 
-const noOpBreakerName = "nopBreaker"
+const nopBreakerName = "nopBreaker"
 
-type noOpBreaker struct{}
+type nopBreaker struct{}
 
-func newNoOpBreaker() Breaker {
-	return noOpBreaker{}
+func newNopBreaker() Breaker {
+	return nopBreaker{}
 }
 
-func (b noOpBreaker) Name() string {
-	return noOpBreakerName
+func (b nopBreaker) Name() string {
+	return nopBreakerName
 }
 
-func (b noOpBreaker) Allow() (Promise, error) {
+func (b nopBreaker) Allow() (Promise, error) {
 	return nopPromise{}, nil
 }
 
-func (b noOpBreaker) Do(req func() error) error {
+func (b nopBreaker) Do(req func() error) error {
 	return req()
 }
 
-func (b noOpBreaker) DoWithAcceptable(req func() error, _ Acceptable) error {
+func (b nopBreaker) DoWithAcceptable(req func() error, _ Acceptable) error {
 	return req()
 }
 
-func (b noOpBreaker) DoWithFallback(req func() error, _ func(err error) error) error {
+func (b nopBreaker) DoWithFallback(req func() error, _ func(err error) error) error {
 	return req()
 }
 
-func (b noOpBreaker) DoWithFallbackAcceptable(req func() error, _ func(err error) error,
+func (b nopBreaker) DoWithFallbackAcceptable(req func() error, _ func(err error) error,
 	_ Acceptable) error {
 	return req()
 }
