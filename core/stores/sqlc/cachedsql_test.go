@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/fx"
 	"github.com/zeromicro/go-zero/core/logx"
