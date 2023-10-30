@@ -92,31 +92,31 @@ func apiFormatReader(reader io.Reader, filename string, skipCheckDeclare bool) e
 
 // ApiFormatByPath format api from file path
 func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
-	if env.UseExperimental() {
+	if !env.UseExperimental() {
+		data, err := os.ReadFile(apiFilePath)
+		if err != nil {
+			return err
+		}
+
+		abs, err := filepath.Abs(apiFilePath)
+		if err != nil {
+			return err
+		}
+
+		result, err := apiFormat(string(data), skipCheckDeclare, abs)
+		if err != nil {
+			return err
+		}
+
+		_, err = parser.ParseContentWithParserSkipCheckTypeDeclaration(result, abs)
+		if err != nil {
+			return err
+		}
+
+		return os.WriteFile(apiFilePath, []byte(result), os.ModePerm)
+	} else {
 		return apiF.File(apiFilePath)
 	}
-
-	data, err := os.ReadFile(apiFilePath)
-	if err != nil {
-		return err
-	}
-
-	abs, err := filepath.Abs(apiFilePath)
-	if err != nil {
-		return err
-	}
-
-	result, err := apiFormat(string(data), skipCheckDeclare, abs)
-	if err != nil {
-		return err
-	}
-
-	_, err = parser.ParseContentWithParserSkipCheckTypeDeclaration(result, abs)
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(apiFilePath, []byte(result), os.ModePerm)
 }
 
 func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, error) {

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	apiParser "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 	"path/filepath"
 	"unicode"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
-	apiParser "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
 type parser struct {
@@ -21,24 +21,23 @@ type parser struct {
 // it will be removed in the future.
 // Parse parses the api file.
 func Parse(filename string) (*spec.ApiSpec, error) {
-	if env.UseExperimental() {
-		return apiParser.Parse(filename, "")
-	}
+	if !env.UseExperimental() {
+		astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
+		parsedApi, err := astParser.Parse(filename)
+		if err != nil {
+			return nil, err
+		}
 
-	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
-	parsedApi, err := astParser.Parse(filename)
-	if err != nil {
-		return nil, err
-	}
+		apiSpec := new(spec.ApiSpec)
+		p := parser{ast: parsedApi, spec: apiSpec}
+		err = p.convert2Spec()
+		if err != nil {
+			return nil, err
+		}
 
-	apiSpec := new(spec.ApiSpec)
-	p := parser{ast: parsedApi, spec: apiSpec}
-	err = p.convert2Spec()
-	if err != nil {
-		return nil, err
+		return apiSpec, nil
 	}
-
-	return apiSpec, nil
+	return apiParser.Parse(filename, "")
 }
 
 func parseContent(content string, skipCheckTypeDeclaration bool, filename ...string) (*spec.ApiSpec, error) {
