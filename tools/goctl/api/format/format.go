@@ -114,9 +114,8 @@ func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
 		}
 
 		return os.WriteFile(apiFilePath, []byte(result), os.ModePerm)
-	} else {
-		return apiF.File(apiFilePath)
 	}
+	return apiF.File(apiFilePath)
 }
 
 func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, error) {
