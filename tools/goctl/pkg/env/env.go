@@ -60,7 +60,7 @@ func init() {
 		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
 			goctlEnv.SetKV(GoctlCache, value)
 		}
-		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOff)
+		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOn)
 		goctlEnv.SetKV(GoctlExperimental, experimental)
 	}
 
