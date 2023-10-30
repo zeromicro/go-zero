@@ -27,7 +27,7 @@ func TestLockedCallDoErr(t *testing.T) {
 	v, err := g.Do("key", func() (any, error) {
 		return nil, someErr
 	})
-	if err != someErr {
+	if !errors.Is(err, someErr) {
 		t.Errorf("Do error = %v; want someErr", err)
 	}
 	if v != nil {

@@ -2,6 +2,7 @@ package iox
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os"
 )
@@ -26,7 +27,7 @@ func CountLines(file string) (int, error) {
 		count += bytes.Count(buf[:c], lineSep)
 
 		switch {
-		case err == io.EOF:
+		case errors.Is(err, io.EOF):
 			if noEol {
 				count++
 			}

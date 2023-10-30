@@ -25,3 +25,29 @@ func TestWithTimeout(t *testing.T) {
 	WithTimeout(time.Second)(opts)
 	assert.Equal(t, time.Second, *opts.Timeout)
 }
+
+func TestDisableLog(t *testing.T) {
+	assert.True(t, logMon.True())
+	assert.True(t, logSlowMon.True())
+	defer func() {
+		logMon.Set(true)
+		logSlowMon.Set(true)
+	}()
+
+	DisableLog()
+	assert.False(t, logMon.True())
+	assert.False(t, logSlowMon.True())
+}
+
+func TestDisableInfoLog(t *testing.T) {
+	assert.True(t, logMon.True())
+	assert.True(t, logSlowMon.True())
+	defer func() {
+		logMon.Set(true)
+		logSlowMon.Set(true)
+	}()
+
+	DisableInfoLog()
+	assert.False(t, logMon.True())
+	assert.True(t, logSlowMon.True())
+}

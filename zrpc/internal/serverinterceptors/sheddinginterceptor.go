@@ -2,11 +2,14 @@ package serverinterceptors
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const serviceType = "rpc"
@@ -28,11 +31,12 @@ func UnarySheddingInterceptor(shedder load.Shedder, metrics *stat.Metrics) grpc.
 		if err != nil {
 			metrics.AddDrop()
 			sheddingStat.IncrementDrop()
+			err = status.Error(codes.ResourceExhausted, err.Error())
 			return
 		}
 
 		defer func() {
-			if err == context.DeadlineExceeded {
+			if errors.Is(err, context.DeadlineExceeded) {
 				promise.Fail()
 			} else {
 				sheddingStat.IncrementPass()

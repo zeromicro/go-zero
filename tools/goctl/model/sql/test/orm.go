@@ -128,7 +128,7 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 	}
 
 	rv := reflect.ValueOf(v)
-	if err := mapping.ValidatePtr(&rv); err != nil {
+	if err := mapping.ValidatePtr(rv); err != nil {
 		return err
 	}
 
@@ -163,7 +163,7 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 
 func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 	rv := reflect.ValueOf(v)
-	if err := mapping.ValidatePtr(&rv); err != nil {
+	if err := mapping.ValidatePtr(rv); err != nil {
 		return err
 	}
 

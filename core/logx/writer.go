@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"path"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 
@@ -332,11 +333,13 @@ func wrapLevelWithColor(level string) string {
 
 func writeJson(writer io.Writer, info any) {
 	if content, err := json.Marshal(info); err != nil {
-		log.Println(err.Error())
+		log.Printf("err: %s\n\n%s", err.Error(), debug.Stack())
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
-		writer.Write(append(content, '\n'))
+		if _, err := writer.Write(append(content, '\n')); err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
@@ -384,7 +387,7 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 	buf.WriteString(level)
 	buf.WriteByte(plainEncodingSep)
 	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		log.Println(err.Error())
+		log.Printf("err: %s\n\n%s", err.Error(), debug.Stack())
 		return
 	}
 

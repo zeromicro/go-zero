@@ -2,6 +2,7 @@ package mon
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/trace"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,8 +24,8 @@ func startSpan(ctx context.Context, cmd string) (context.Context, oteltrace.Span
 func endSpan(span oteltrace.Span, err error) {
 	defer span.End()
 
-	if err == nil || err == mongo.ErrNoDocuments ||
-		err == mongo.ErrNilValue || err == mongo.ErrNilDocument {
+	if err == nil || errors.Is(err, mongo.ErrNoDocuments) ||
+		errors.Is(err, mongo.ErrNilValue) || errors.Is(err, mongo.ErrNilDocument) {
 		span.SetStatus(codes.Ok, "")
 		return
 	}

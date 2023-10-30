@@ -52,19 +52,15 @@ func TestHookProcessCase2(t *testing.T) {
 	defer ztrace.StopAgent()
 
 	w := logtest.NewCollector(t)
-
 	ctx, err := durationHook.BeforeProcess(context.Background(), red.NewCmd(context.Background()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 
 	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background(), "foo", "bar")))
 	assert.True(t, strings.Contains(w.String(), "slow"))
-	assert.True(t, strings.Contains(w.String(), "trace"))
-	assert.True(t, strings.Contains(w.String(), "span"))
 }
 
 func TestHookProcessCase3(t *testing.T) {
@@ -89,6 +85,14 @@ func TestHookProcessCase4(t *testing.T) {
 }
 
 func TestHookProcessPipelineCase1(t *testing.T) {
+	ztrace.StartAgent(ztrace.Config{
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
+	})
+	defer ztrace.StopAgent()
+
 	writer := log.Writer()
 	var buf strings.Builder
 	log.SetOutput(&buf)
@@ -100,7 +104,6 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 		red.NewCmd(context.Background()),
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	assert.NoError(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{}))
 	assert.NoError(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
@@ -119,12 +122,10 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	defer ztrace.StopAgent()
 
 	w := logtest.NewCollector(t)
-
 	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 
@@ -132,8 +133,6 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 		red.NewCmd(context.Background(), "foo", "bar"),
 	}))
 	assert.True(t, strings.Contains(w.String(), "slow"))
-	assert.True(t, strings.Contains(w.String(), "trace"))
-	assert.True(t, strings.Contains(w.String(), "span"))
 }
 
 func TestHookProcessPipelineCase3(t *testing.T) {

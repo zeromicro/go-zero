@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -53,7 +54,10 @@ func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := os.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
 	assert.Nil(t, err)
-	defer os.Remove(filename)
+	env.Set(t, env.GoctlExperimental, "off")
+	t.Cleanup(func() {
+		os.Remove(filename)
+	})
 
 	api, err := parser.Parse(filename)
 	assert.Nil(t, err)

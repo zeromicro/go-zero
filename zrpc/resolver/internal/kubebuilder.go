@@ -68,7 +68,11 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			options.FieldSelector = nameSelector + svc.Name
 		}))
 	in := inf.Core().V1().Endpoints()
-	in.Informer().AddEventHandler(handler)
+	_, err = in.Informer().AddEventHandler(handler)
+	if err != nil {
+		return nil, err
+	}
+
 	threading.GoSafe(func() {
 		inf.Start(proc.Done())
 	})
@@ -76,6 +80,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	if err != nil {
 		return nil, err
 	}
+
 	handler.Update(endpoints)
 
 	return &nopResolver{cc: cc}, nil
