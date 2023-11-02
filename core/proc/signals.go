@@ -20,7 +20,7 @@ func init() {
 
 		// https://golang.org/pkg/os/signal/#Notify
 		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
+		signal.Notify(signals, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM, syscall.SIGINT)
 
 		for {
 			v := <-signals
@@ -35,14 +35,11 @@ func init() {
 					profiler = nil
 				}
 			case syscall.SIGTERM:
-				select {
-				case <-done:
-					// already closed
-				default:
-					close(done)
-				}
-
-				gracefulStop(signals)
+				stopOnSignal()
+				gracefulStop(signals, syscall.SIGTERM)
+			case syscall.SIGINT:
+				stopOnSignal()
+				gracefulStop(signals, syscall.SIGINT)
 			default:
 				logx.Error("Got unregistered signal:", v)
 			}
@@ -53,4 +50,13 @@ func init() {
 // Done returns the channel that notifies the process quitting.
 func Done() <-chan struct{} {
 	return done
+}
+
+func stopOnSignal() {
+	select {
+	case <-done:
+		// already closed
+	default:
+		close(done)
+	}
 }

@@ -5527,7 +5527,7 @@ func TestUnmarshalerProcessFieldPrimitiveWithJSONNumber(t *testing.T) {
 		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v,
 			&fieldOptionsWithContext{}, "field")
 		assert.Error(t, err)
-		assert.Equal(t, `type mismatch for field "field", expect "string", actual "int"`, err.Error())
+		assert.Equal(t, `type mismatch for field "field", expect "string", actual "number"`, err.Error())
 	})
 
 	t.Run("right type", func(t *testing.T) {

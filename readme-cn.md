@@ -122,7 +122,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     # run goctl like
     docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
     
-    # docker for arm64 (M1) architecture
+    # docker for arm64(Mac) architecture
     docker pull kevinwan/goctl:latest-arm64
     # run goctl like
     docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
@@ -296,6 +296,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >92. 深圳市万佳安物联科技股份有限公司
 >93. 武侯区编程之美软件开发工作室
 >94. 西安交通大学智慧能源与碳中和研究中心
+>95. 成都创软科技有限责任公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
