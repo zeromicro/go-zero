@@ -107,7 +107,7 @@ func ParseJsonBody(r *http.Request, v any) error {
 		return mapping.UnmarshalJsonReader(reader, v, opts...)
 	}
 
-	return mapping.UnmarshalJsonMap(nil, v)
+	return mapping.UnmarshalJsonMap(nil, v, opts...)
 }
 
 // ParsePath parses the symbols reside in url path.

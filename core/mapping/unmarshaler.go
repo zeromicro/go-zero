@@ -89,6 +89,10 @@ func WithOpts(u *Unmarshaler, opts ...UnmarshalOption) *Unmarshaler {
 	return u
 }
 
+func (u *Unmarshaler) OutError(fullName string, err error) error {
+	return u.outError(fullName, err)
+}
+
 func (u *Unmarshaler) outError(fullName string, err error) error {
 	if err == nil {
 		return nil
