@@ -17,7 +17,9 @@ type parser struct {
 	spec *spec.ApiSpec
 }
 
-// Parse parses the api file
+// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// it will be removed in the future.
+// Parse parses the api file.
 func Parse(filename string) (*spec.ApiSpec, error) {
 	if env.UseExperimental() {
 		return apiParser.Parse(filename, "")
@@ -61,11 +63,15 @@ func parseContent(content string, skipCheckTypeDeclaration bool, filename ...str
 	return apiSpec, nil
 }
 
+// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// it will be removed in the future.
 // ParseContent parses the api content
 func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
 	return parseContent(content, false, filename...)
 }
 
+// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// it will be removed in the future.
 // ParseContentWithParserSkipCheckTypeDeclaration parses the api content with skip check type declaration
 func ParseContentWithParserSkipCheckTypeDeclaration(content string, filename ...string) (*spec.ApiSpec, error) {
 	return parseContent(content, true, filename...)
