@@ -37,4 +37,4 @@ LABEL org.opencontainers.image.source="https://github.com/zeromicro/go-zero"
 LABEL org.opencontainers.image.title="goctl (cli)"
 LABEL org.opencontainers.image.version="v1.6.0"
 
-CMD ["goctl"]
+ENTRYPOINT ["/usr/local/bin/goctl"]
