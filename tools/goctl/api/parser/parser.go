@@ -21,23 +21,24 @@ type parser struct {
 // it will be removed in the future.
 // Parse parses the api file.
 func Parse(filename string) (*spec.ApiSpec, error) {
-	if !env.UseExperimental() {
-		astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
-		parsedApi, err := astParser.Parse(filename)
-		if err != nil {
-			return nil, err
-		}
-
-		apiSpec := new(spec.ApiSpec)
-		p := parser{ast: parsedApi, spec: apiSpec}
-		err = p.convert2Spec()
-		if err != nil {
-			return nil, err
-		}
-
-		return apiSpec, nil
+	if env.UseExperimental() {
+		return apiParser.Parse(filename, "")
 	}
-	return apiParser.Parse(filename, "")
+
+	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
+	parsedApi, err := astParser.Parse(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	apiSpec := new(spec.ApiSpec)
+	p := parser{ast: parsedApi, spec: apiSpec}
+	err = p.convert2Spec()
+	if err != nil {
+		return nil, err
+	}
+
+	return apiSpec, nil
 }
 
 func parseContent(content string, skipCheckTypeDeclaration bool, filename ...string) (*spec.ApiSpec, error) {
