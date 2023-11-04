@@ -95,6 +95,7 @@ func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
 	if env.UseExperimental() {
 		return apiF.File(apiFilePath)
 	}
+
 	data, err := os.ReadFile(apiFilePath)
 	if err != nil {
 		return err
