@@ -50,7 +50,7 @@ func init() {
 	datasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
 	pgDatasourceCmdFlags.StringVar(&command.VarStringURL, "url")
-	pgDatasourceCmdFlags.StringVarP(&command.VarStringTable, "table", "t")
+	pgDatasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
 	pgDatasourceCmdFlags.StringVarPWithDefaultValue(&command.VarStringSchema, "schema", "s", "public")
 	pgDatasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringPrefix, "prefix")
