@@ -66,7 +66,7 @@ func TestGenCacheKeys(t *testing.T) {
 				Comment:  "更新时间",
 			},
 		},
-	})
+	}, "prefix")
 
 	t.Run("primaryCacheKey", func(t *testing.T) {
 		assert.Equal(t, true, func() bool {
@@ -161,7 +161,7 @@ func TestGenCacheKeys(t *testing.T) {
 					Comment:  "更新时间",
 				},
 			},
-		})
+		}, "prefix")
 
 		assert.Equal(t, true, func() bool {
 			return cacheKeyEqual(primariCacheKey, Key{

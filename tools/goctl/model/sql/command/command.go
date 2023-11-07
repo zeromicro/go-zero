@@ -29,6 +29,8 @@ var (
 	VarStringDir string
 	// VarBoolCache describes whether the cache is enabled.
 	VarBoolCache bool
+	//VarStringPrefix describes a prefix with cache
+	VarStringPrefix string
 	// VarBoolIdea describes whether is idea or not.
 	VarBoolIdea bool
 	// VarStringURL describes the dsn of the sql.
@@ -63,6 +65,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 	src := VarStringSrc
 	dir := VarStringDir
 	cache := VarBoolCache
+	prefix := VarStringPrefix
 	idea := VarBoolIdea
 	style := VarStringStyle
 	database := VarStringDatabase
@@ -88,6 +91,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 		dir:           dir,
 		cfg:           cfg,
 		cache:         cache,
+		prefix:        prefix,
 		idea:          idea,
 		database:      database,
 		strict:        VarBoolStrict,
@@ -102,6 +106,7 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 	url := strings.TrimSpace(VarStringURL)
 	dir := strings.TrimSpace(VarStringDir)
 	cache := VarBoolCache
+	prefix := VarStringPrefix
 	idea := VarBoolIdea
 	style := VarStringStyle
 	home := VarStringHome
@@ -130,6 +135,7 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 		tablePat:      patterns,
 		cfg:           cfg,
 		cache:         cache,
+		prefix:        prefix,
 		idea:          idea,
 		strict:        VarBoolStrict,
 		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
@@ -191,6 +197,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	url := strings.TrimSpace(VarStringURL)
 	dir := strings.TrimSpace(VarStringDir)
 	cache := VarBoolCache
+	prefix := VarStringPrefix
 	idea := VarBoolIdea
 	style := VarStringStyle
 	schema := VarStringSchema
@@ -216,15 +223,15 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	ignoreColumns := mergeColumns(VarStringSliceIgnoreColumns)
 
-	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea, VarBoolStrict, ignoreColumns)
+	return fromPostgreSqlDataSource(url, pattern, dir, schema, prefix, cfg, cache, idea, VarBoolStrict)
 }
 
 type ddlArg struct {
 	src, dir      string
 	cfg           *config.Config
 	cache, idea   bool
+	prefix        string
 	database      string
 	strict        bool
 	ignoreColumns []string
@@ -253,7 +260,7 @@ func fromDDL(arg ddlArg) error {
 	}
 
 	for _, file := range files {
-		err = generator.StartFromDDL(file, arg.cache, arg.strict, arg.database)
+		err = generator.StartFromDDL(file, arg.prefix, arg.cache, arg.strict, arg.database)
 		if err != nil {
 			return err
 		}
@@ -267,6 +274,7 @@ type dataSourceArg struct {
 	tablePat      pattern
 	cfg           *config.Config
 	cache, idea   bool
+	prefix        string
 	strict        bool
 	ignoreColumns []string
 }
@@ -327,10 +335,10 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 		return err
 	}
 
-	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict)
+	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict, arg.prefix)
 }
 
-func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string) error {
+func fromPostgreSqlDataSource(url, pattern, dir, schema, prefix string, cfg *config.Config, cache, idea, strict bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of postgresql, but nothing found")
@@ -377,10 +385,10 @@ func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Conf
 		return errors.New("no tables matched")
 	}
 
-	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql(), gen.WithIgnoreColumns(ignoreColumns))
+	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql())
 	if err != nil {
 		return err
 	}
 
-	return generator.StartFromInformationSchema(matchTables, cache, strict)
+	return generator.StartFromInformationSchema(matchTables, cache, strict, prefix)
 }

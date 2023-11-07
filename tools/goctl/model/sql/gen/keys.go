@@ -37,12 +37,12 @@ type Key struct {
 // Join describes an alias of string slice
 type Join []string
 
-func genCacheKeys(table parser.Table) (Key, []Key) {
+func genCacheKeys(table parser.Table, prefix string) (Key, []Key) {
 	var primaryKey Key
 	var uniqueKey []Key
-	primaryKey = genCacheKey(table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field})
+	primaryKey = genCacheKey(table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field}, prefix)
 	for _, each := range table.UniqueIndex {
-		uniqueKey = append(uniqueKey, genCacheKey(table.Db, table.Name, each))
+		uniqueKey = append(uniqueKey, genCacheKey(table.Db, table.Name, each, prefix))
 	}
 	sort.Slice(uniqueKey, func(i, j int) bool {
 		return uniqueKey[i].VarLeft < uniqueKey[j].VarLeft
@@ -51,7 +51,7 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 	return primaryKey, uniqueKey
 }
 
-func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
+func genCacheKey(db, table stringx.String, in []*parser.Field, prefix string) Key {
 	var (
 		varLeftJoin, varRightJoin, fieldNameJoin Join
 		varLeft, varRight, varExpression         string
@@ -61,13 +61,17 @@ func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	)
 
 	dbName, tableName := util.SafeString(db.Source()), util.SafeString(table.Source())
+	cacheKey := "cache"
+	if strings.TrimSpace(prefix) != "" {
+		cacheKey += ":" + prefix
+	}
 	if len(dbName) > 0 {
-		varLeftJoin = append(varLeftJoin, "cache", dbName, tableName)
-		varRightJoin = append(varRightJoin, "cache", dbName, tableName)
+		varLeftJoin = append(varLeftJoin, cacheKey, dbName, tableName)
+		varRightJoin = append(varRightJoin, cacheKey, dbName, tableName)
 		keyLeftJoin = append(keyLeftJoin, dbName, tableName)
 	} else {
-		varLeftJoin = append(varLeftJoin, "cache", tableName)
-		varRightJoin = append(varRightJoin, "cache", tableName)
+		varLeftJoin = append(varLeftJoin, cacheKey, tableName)
+		varRightJoin = append(varRightJoin, cacheKey, tableName)
 		keyLeftJoin = append(keyLeftJoin, tableName)
 	}
 

@@ -109,8 +109,8 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) StartFromDDL(filename string, withCache, strict bool, database string) error {
-	modelList, err := g.genFromDDL(filename, withCache, strict, database)
+func (g *defaultGenerator) StartFromDDL(filename, prefix string, withCache, strict bool, database string) error {
+	modelList, err := g.genFromDDL(filename, prefix, withCache, strict, database)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (g *defaultGenerator) StartFromDDL(filename string, withCache, strict bool,
 	return g.createFile(modelList)
 }
 
-func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache, strict bool) error {
+func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache, strict bool, prefix string) error {
 	m := make(map[string]*codeTuple)
 	for _, each := range tables {
 		table, err := parser.ConvertDataType(each, strict)
@@ -126,7 +126,7 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 			return err
 		}
 
-		code, err := g.genModel(*table, withCache)
+		code, err := g.genModel(*table, withCache, prefix)
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(filename string, withCache, strict bool, database string) (
+func (g *defaultGenerator) genFromDDL(filename, prefix string, withCache, strict bool, database string) (
 	map[string]*codeTuple, error,
 ) {
 	m := make(map[string]*codeTuple)
@@ -218,7 +218,7 @@ func (g *defaultGenerator) genFromDDL(filename string, withCache, strict bool, d
 	}
 
 	for _, e := range tables {
-		code, err := g.genModel(*e, withCache)
+		code, err := g.genModel(*e, withCache, prefix)
 		if err != nil {
 			return nil, err
 		}
@@ -254,12 +254,12 @@ func (t Table) isIgnoreColumns(columnName string) bool {
 	return false
 }
 
-func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
+func (g *defaultGenerator) genModel(in parser.Table, withCache bool, prefix string) (string, error) {
 	if len(in.PrimaryKey.Name.Source()) == 0 {
 		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
 
-	primaryKey, uniqueKey := genCacheKeys(in)
+	primaryKey, uniqueKey := genCacheKeys(in, prefix)
 
 	var table Table
 	table.Table = in
