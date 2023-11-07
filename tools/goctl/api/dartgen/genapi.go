@@ -35,7 +35,7 @@ import '../data/{{with .Service}}{{.Name}}{{end}}.dart';
 /// {{.Name}}
 {{range $i, $Route := .Routes}}
 /// --{{.Path}}--
-///
+/// --{{.AtDoc}}--
 /// request: {{with .RequestType}}{{.Name}}{{end}}
 /// response: {{with .ResponseType}}{{.Name}}{{end}}
 Future {{normalizeHandlerName .Handler}}(
