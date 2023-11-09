@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.31.0
-	github.com/fatih/color v1.15.0
+	github.com/fatih/color v1.16.0
 	github.com/fullstorydev/grpcurl v1.8.9
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.7.1
@@ -34,8 +34,8 @@ require (
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/goleak v1.2.1
 	golang.org/x/net v0.17.0
-	golang.org/x/sys v0.13.0
-	golang.org/x/time v0.3.0
+	golang.org/x/sys v0.14.0
+	golang.org/x/time v0.4.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
