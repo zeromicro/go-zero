@@ -103,8 +103,6 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 			unimplementedServer = fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 				stringx.From(service.Name).ToCamel())
 		}
-		fmt.Println("unimplementedServer--->", unimplementedServer)
-		fmt.Println(" stringx.From(service.Name).ToCamel()--->", stringx.From(service.Name).ToCamel())
 		if err = util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]any{
 			"head":                head,
 			"unimplementedServer": unimplementedServer,
@@ -163,9 +161,6 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 		unimplementedServer = fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 			stringx.From(service.Name).ToCamel())
 	}
-	fmt.Println("unimplementedServer--->", unimplementedServer)
-	fmt.Println(" stringx.From(service.Name).ToCamel()--->", stringx.From(service.Name).ToCamel())
-
 	return util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"head":                head,
 		"unimplementedServer": unimplementedServer,
