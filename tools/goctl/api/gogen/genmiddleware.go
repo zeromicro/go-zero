@@ -2,6 +2,7 @@ package gogen
 
 import (
 	_ "embed"
+	"fmt"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -12,20 +13,21 @@ import (
 //go:embed middleware.tpl
 var middlewareImplementCode string
 
-func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec, removeSuffix bool) error {
+func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec, withoutSuffix bool) error {
 	middlewares := getMiddleware(api)
+	fmt.Println("genMiddleware--->", withoutSuffix)
 	for _, item := range middlewares {
-		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware") + "_middleware"
-		if removeSuffix {
-			middlewareFilename = strings.TrimSuffix(strings.ToLower(item), "middleware")
+		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware")
+		if !withoutSuffix {
+			middlewareFilename = strings.TrimSuffix(strings.ToLower(item), "middleware") + "_middleware"
 		}
 		filename, err := format.FileNamingFormat(cfg.NamingFormat, middlewareFilename)
 		if err != nil {
 			return err
 		}
-		name := strings.TrimSuffix(item, "Middleware") + "Middleware"
-		if removeSuffix {
-			name = strings.TrimSuffix(item, "Middleware")
+		name := strings.TrimSuffix(item, "Middleware")
+		if !withoutSuffix {
+			name = strings.TrimSuffix(item, "Middleware") + "Middleware"
 		}
 		err = genFile(fileGenConfig{
 			dir:             dir,

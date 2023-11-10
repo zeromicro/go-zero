@@ -31,8 +31,8 @@ var (
 	VarStringDir string
 	// VarStringAPI describes the API.
 	VarStringAPI string
-	// VarWithOutSuffix remove logic etc...
-	VarRemoveSuffix bool
+	// VarWithoutSuffix remove logic etc...
+	VarWithoutSuffix bool
 	// VarStringHome describes the go home.
 	VarStringHome string
 	// VarStringRemote describes the remote git repository.
@@ -47,7 +47,7 @@ var (
 func GoCommand(_ *cobra.Command, _ []string) error {
 	apiFile := VarStringAPI
 	dir := VarStringDir
-	removeSuffix := VarRemoveSuffix
+	withoutSuffix := VarWithoutSuffix
 	namingStyle := VarStringStyle
 	home := VarStringHome
 	remote := VarStringRemote
@@ -68,12 +68,11 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	if len(dir) == 0 {
 		return errors.New("missing -dir")
 	}
-
-	return DoGenProject(apiFile, dir, namingStyle, removeSuffix)
+	return DoGenProject(apiFile, dir, namingStyle, withoutSuffix)
 }
 
 // DoGenProject gen go project files with api file
-func DoGenProject(apiFile, dir, style string, removeSuffix bool) error {
+func DoGenProject(apiFile, dir, style string, withoutSuffix bool) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -99,10 +98,10 @@ func DoGenProject(apiFile, dir, style string, removeSuffix bool) error {
 	logx.Must(genMain(dir, rootPkg, cfg, api))
 	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
 	logx.Must(genTypes(dir, cfg, api))
-	logx.Must(genRoutes(dir, rootPkg, cfg, api, removeSuffix))
-	logx.Must(genHandlers(dir, rootPkg, cfg, api, removeSuffix))
-	logx.Must(genLogic(dir, rootPkg, cfg, api, removeSuffix))
-	logx.Must(genMiddleware(dir, cfg, api, removeSuffix))
+	logx.Must(genRoutes(dir, rootPkg, cfg, api, withoutSuffix))
+	logx.Must(genHandlers(dir, rootPkg, cfg, api, withoutSuffix))
+	logx.Must(genLogic(dir, rootPkg, cfg, api, withoutSuffix))
+	logx.Must(genMiddleware(dir, cfg, api, withoutSuffix))
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
