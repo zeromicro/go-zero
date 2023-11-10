@@ -32,6 +32,8 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	goOutList := VarStringSliceGoOut
 	zrpcOut := VarStringZRPCOut
 	style := VarStringStyle
+	withoutSuffix := VarWithoutSuffix
+
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
@@ -104,7 +106,7 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
 	ctx.IsGenClient = VarBoolClient
 	g := generator.NewGenerator(style, verbose)
-	return g.Generate(&ctx)
+	return g.Generate(&ctx, withoutSuffix)
 }
 
 func wrapProtocCmd(name string, args []string) []string {

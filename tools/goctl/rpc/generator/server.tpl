@@ -8,13 +8,13 @@ import (
 	{{.imports}}
 )
 
-type {{.server}}Server struct {
+type {{.server}} struct {
 	svcCtx *svc.ServiceContext
 	{{.unimplementedServer}}
 }
 
-func New{{.server}}Server(svcCtx *svc.ServiceContext) *{{.server}}Server {
-	return &{{.server}}Server{
+func New{{.server}}(svcCtx *svc.ServiceContext) *{{.server}} {
+	return &{{.server}}{
 		svcCtx: svcCtx,
 	}
 }

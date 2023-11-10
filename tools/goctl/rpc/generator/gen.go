@@ -35,7 +35,7 @@ type ZRpcContext struct {
 // Generate generates a rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
-func (g *Generator) Generate(zctx *ZRpcContext) error {
+func (g *Generator) Generate(zctx *ZRpcContext, withoutSuffix bool) error {
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx)
+	dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx, withoutSuffix)
 	if err != nil {
 		return err
 	}
@@ -87,23 +87,23 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
+	err = g.GenLogic(dirCtx, proto, g.cfg, zctx, withoutSuffix)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
+	err = g.GenServer(dirCtx, proto, g.cfg, zctx, withoutSuffix)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenMain(dirCtx, proto, g.cfg, zctx)
+	err = g.GenMain(dirCtx, proto, g.cfg, zctx, withoutSuffix)
 	if err != nil {
 		return err
 	}
 
 	if zctx.IsGenClient {
-		err = g.GenCall(dirCtx, proto, g.cfg, zctx)
+		err = g.GenCall(dirCtx, proto, g.cfg, zctx, withoutSuffix)
 	}
 
 	console.NewColorConsole().MarkDone()

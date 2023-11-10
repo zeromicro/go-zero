@@ -57,7 +57,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZRpcContext) (DirContext,
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZRpcContext, withoutSuffix bool) (DirContext,
 	error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
@@ -93,7 +93,11 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 			strings.ToLower(stringx.From(proto.Service[0].Name).ToCamel()))
 		if strings.EqualFold(proto.Service[0].Name, filepath.Base(proto.GoPackage)) {
 			var err error
-			clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name+"_client")
+			clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name)
+
+			if !withoutSuffix {
+				clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name+"_client")
+			}
 			if err != nil {
 				return nil, err
 			}

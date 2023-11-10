@@ -28,27 +28,31 @@ var logicTemplate string
 
 // GenLogic generates the logic file of the rpc service, which corresponds to the RPC definition items in proto.
 func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config,
-	c *ZRpcContext) error {
+	c *ZRpcContext, withoutSuffix bool) error {
 	if !c.Multiple {
-		return g.genLogicInCompatibility(ctx, proto, cfg)
+		return g.genLogicInCompatibility(ctx, proto, cfg, withoutSuffix)
 	}
 
-	return g.genLogicGroup(ctx, proto, cfg)
+	return g.genLogicGroup(ctx, proto, cfg, withoutSuffix)
 }
 
 func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
-	cfg *conf.Config) error {
+	cfg *conf.Config, withoutSuffix bool) error {
 	dir := ctx.GetLogic()
 	service := proto.Service[0].Service.Name
 	for _, rpc := range proto.Service[0].RPC {
-		logicName := fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
-		logicFilename, err := format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
+		logicName := fmt.Sprintf("%s", stringx.From(rpc.Name).ToCamel())
+		logicFilename, err := format.FileNamingFormat(cfg.NamingFormat, rpc.Name)
+		if !withoutSuffix {
+			logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
+			logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
+		}
 		if err != nil {
 			return err
 		}
 
 		filename := filepath.Join(dir.Filename, logicFilename+".go")
-		functions, err := g.genLogicFunction(service, proto.PbPackage, logicName, rpc)
+		functions, err := g.genLogicFunction(service, proto.PbPackage, logicName, rpc, withoutSuffix)
 		if err != nil {
 			return err
 		}
@@ -73,7 +77,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 	return nil
 }
 
-func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config, withoutSuffix bool) error {
 	dir := ctx.GetLogic()
 	for _, item := range proto.Service {
 		serviceName := item.Name
@@ -85,23 +89,31 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 				logicFilename string
 				packageName   string
 			)
-
-			logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
+			logicName = fmt.Sprintf("%s", stringx.From(rpc.Name).ToCamel())
+			if !withoutSuffix {
+				logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
+			}
 			childPkg, err := dir.GetChildPackage(serviceName)
 			if err != nil {
 				return err
 			}
 
 			serviceDir := filepath.Base(childPkg)
-			nameJoin := fmt.Sprintf("%s_logic", serviceName)
+			nameJoin := fmt.Sprintf("%s", serviceName)
+			if !withoutSuffix {
+				nameJoin = fmt.Sprintf("%s_logic", serviceName)
+			}
 			packageName = strings.ToLower(stringx.From(nameJoin).ToCamel())
-			logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
+			logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name)
+			if !withoutSuffix {
+				logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
+			}
 			if err != nil {
 				return err
 			}
 
 			filename = filepath.Join(dir.Filename, serviceDir, logicFilename+".go")
-			functions, err := g.genLogicFunction(serviceName, proto.PbPackage, logicName, rpc)
+			functions, err := g.genLogicFunction(serviceName, proto.PbPackage, logicName, rpc, withoutSuffix)
 			if err != nil {
 				return err
 			}
@@ -128,7 +140,7 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 }
 
 func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
-	rpc *parser.RPC) (string,
+	rpc *parser.RPC, withoutSuffix bool) (string,
 	error) {
 	functions := make([]string, 0)
 	text, err := pathx.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
@@ -137,8 +149,13 @@ func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
 	}
 
 	comment := parser.GetComment(rpc.Doc())
-	streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(serviceName),
-		parser.CamelCase(rpc.Name), "Server")
+	streamServer := fmt.Sprintf("%s.%s_%s", goPackage, parser.CamelCase(serviceName),
+		parser.CamelCase(rpc.Name))
+	if !withoutSuffix {
+		streamServer = fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(serviceName),
+			parser.CamelCase(rpc.Name), "Server")
+	}
+
 	buffer, err := util.With("fun").Parse(text).Execute(map[string]any{
 		"logicName":    logicName,
 		"method":       parser.CamelCase(rpc.Name),

@@ -35,7 +35,8 @@ var (
 	// VarStringSliceGoGRPCOpt describes the grpc options.
 	VarStringSliceGoGRPCOpt []string
 	// VarStringStyle describes the style of output files.
-	VarStringStyle string
+	VarStringStyle   string
+	VarWithoutSuffix bool
 	// VarStringZRPCOut describes the zRPC output.
 	VarStringZRPCOut string
 	// VarBoolIdea describes whether idea or not
@@ -57,6 +58,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
 	style := VarStringStyle
+	withoutSuffix := VarWithoutSuffix
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
@@ -103,7 +105,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	}
 
 	g := generator.NewGenerator(style, verbose)
-	return g.Generate(&ctx)
+	return g.Generate(&ctx, withoutSuffix)
 }
 
 // RPCTemplate is the entry for generate rpc template
