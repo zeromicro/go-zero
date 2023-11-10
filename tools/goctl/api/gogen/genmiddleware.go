@@ -2,6 +2,7 @@ package gogen
 
 import (
 	_ "embed"
+	"fmt"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -14,6 +15,7 @@ var middlewareImplementCode string
 
 func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec, withoutSuffix bool) error {
 	middlewares := getMiddleware(api)
+	fmt.Println("genMiddleware--->", withoutSuffix)
 	for _, item := range middlewares {
 		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware")
 		if !withoutSuffix {
