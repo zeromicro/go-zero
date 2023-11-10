@@ -246,6 +246,7 @@
         "multiple": "Generated in multiple rpc service mode",
         "zrpc_out": "The zrpc output directory",
         "style": "{{.global.style}}",
+        "without-suffix": "Remove the default suffix when generating files, such as Logic, Service",
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
