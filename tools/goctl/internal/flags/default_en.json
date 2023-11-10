@@ -37,6 +37,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "without-suffix": "Remove the default suffix when generating files, such as Logic, Handler, Middleware",
         "style": "{{.global.style}}"
       },
       "new": {

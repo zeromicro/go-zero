@@ -69,6 +69,7 @@ func init() {
 
 	goCmdFlags.StringVar(&gogen.VarStringDir, "dir")
 	goCmdFlags.StringVar(&gogen.VarStringAPI, "api")
+	goCmdFlags.BoolVarP(&gogen.VarRemoveSuffix, "remove-suffix", "r")
 	goCmdFlags.StringVar(&gogen.VarStringHome, "home")
 	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote")
 	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch")
@@ -84,6 +85,7 @@ func init() {
 	newCmdFlags.StringVar(&new.VarStringHome, "home")
 	newCmdFlags.StringVar(&new.VarStringRemote, "remote")
 	newCmdFlags.StringVar(&new.VarStringBranch, "branch")
+	//newCmdFlags.BoolVarP(&gogen.VarWithOutSuffix, "without-suffix", "w")
 	newCmdFlags.StringVarWithDefaultValue(&new.VarStringStyle, "style", config.DefaultFormat)
 
 	pluginCmdFlags.StringVarP(&plugin.VarStringPlugin, "plugin", "p")

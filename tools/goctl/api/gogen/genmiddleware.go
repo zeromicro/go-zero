@@ -12,16 +12,21 @@ import (
 //go:embed middleware.tpl
 var middlewareImplementCode string
 
-func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec, removeSuffix bool) error {
 	middlewares := getMiddleware(api)
 	for _, item := range middlewares {
 		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware") + "_middleware"
+		if removeSuffix {
+			middlewareFilename = strings.TrimSuffix(strings.ToLower(item), "middleware")
+		}
 		filename, err := format.FileNamingFormat(cfg.NamingFormat, middlewareFilename)
 		if err != nil {
 			return err
 		}
-
 		name := strings.TrimSuffix(item, "Middleware") + "Middleware"
+		if removeSuffix {
+			name = strings.TrimSuffix(item, "Middleware")
+		}
 		err = genFile(fileGenConfig{
 			dir:             dir,
 			subdir:          middlewareDir,
