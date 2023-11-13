@@ -35,8 +35,6 @@ var (
 	VarStringURL string
 	// VarStringSliceTable describes tables.
 	VarStringSliceTable []string
-	// VarStringTable describes a table of sql.
-	VarStringTable string
 	// VarStringStyle describes the style.
 	VarStringStyle string
 	// VarStringDatabase describes the database.
@@ -211,14 +209,14 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 		schema = "public"
 	}
 
-	pattern := strings.TrimSpace(VarStringTable)
+	patterns := parseTableList(VarStringSliceTable)
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
 	ignoreColumns := mergeColumns(VarStringSliceIgnoreColumns)
 
-	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea, VarBoolStrict, ignoreColumns)
+	return fromPostgreSqlDataSource(url, patterns, dir, schema, cfg, cache, idea, VarBoolStrict, ignoreColumns)
 }
 
 type ddlArg struct {
@@ -330,7 +328,7 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict)
 }
 
-func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string) error {
+func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of postgresql, but nothing found")
@@ -351,12 +349,7 @@ func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Conf
 
 	matchTables := make(map[string]*model.Table)
 	for _, item := range tables {
-		match, err := filepath.Match(pattern, item)
-		if err != nil {
-			return err
-		}
-
-		if !match {
+		if !pattern.Match(item) {
 			continue
 		}
 
