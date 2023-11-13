@@ -109,16 +109,16 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) StartFromDDL(filename, prefix string, withCache, strict bool, database string) error {
+func (g *defaultGenerator) StartFromDDL(filename, prefix string, withCache, strict, withoutSuffix bool, database string) error {
 	modelList, err := g.genFromDDL(filename, prefix, withCache, strict, database)
 	if err != nil {
 		return err
 	}
 
-	return g.createFile(modelList)
+	return g.createFile(modelList, withoutSuffix)
 }
 
-func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache, strict bool, prefix string) error {
+func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache, strict, withoutSuffix bool, prefix string) error {
 	m := make(map[string]*codeTuple)
 	for _, each := range tables {
 		table, err := parser.ConvertDataType(each, strict)
@@ -141,10 +141,10 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 		}
 	}
 
-	return g.createFile(m)
+	return g.createFile(m, withoutSuffix)
 }
 
-func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
+func (g *defaultGenerator) createFile(modelList map[string]*codeTuple, withoutSuffix bool) error {
 	dirAbs, err := filepath.Abs(g.dir)
 	if err != nil {
 		return err
@@ -160,7 +160,12 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 	for tableName, codes := range modelList {
 		tn := stringx.From(tableName)
 		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat,
-			fmt.Sprintf("%s_model", tn.Source()))
+			fmt.Sprintf("%s", tn.Source()))
+		if !withoutSuffix {
+			modelFilename, err = format.FileNamingFormat(g.cfg.NamingFormat,
+				fmt.Sprintf("%s_model", tn.Source()))
+		}
+
 		if err != nil {
 			return err
 		}

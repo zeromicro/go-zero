@@ -40,7 +40,8 @@ var (
 	// VarStringTable describes a table of sql.
 	VarStringTable string
 	// VarStringStyle describes the style.
-	VarStringStyle string
+	VarStringStyle   string
+	VarWithoutSuffix bool
 	// VarStringDatabase describes the database.
 	VarStringDatabase string
 	// VarStringSchema describes the schema of postgresql.
@@ -68,6 +69,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 	prefix := VarStringPrefix
 	idea := VarBoolIdea
 	style := VarStringStyle
+	withoutSuffix := VarWithoutSuffix
 	database := VarStringDatabase
 	home := VarStringHome
 	remote := VarStringRemote
@@ -95,6 +97,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 		idea:          idea,
 		database:      database,
 		strict:        VarBoolStrict,
+		withoutSuffix: withoutSuffix,
 		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 	}
 	return fromDDL(arg)
@@ -107,6 +110,7 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 	dir := strings.TrimSpace(VarStringDir)
 	cache := VarBoolCache
 	prefix := VarStringPrefix
+	withoutSuffix := VarWithoutSuffix
 	idea := VarBoolIdea
 	style := VarStringStyle
 	home := VarStringHome
@@ -138,6 +142,7 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 		prefix:        prefix,
 		idea:          idea,
 		strict:        VarBoolStrict,
+		withoutSuffix: withoutSuffix,
 		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 	}
 	return fromMysqlDataSource(arg)
@@ -198,6 +203,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	dir := strings.TrimSpace(VarStringDir)
 	cache := VarBoolCache
 	prefix := VarStringPrefix
+	withoutSuffix := VarWithoutSuffix
 	idea := VarBoolIdea
 	style := VarStringStyle
 	schema := VarStringSchema
@@ -224,7 +230,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return fromPostgreSqlDataSource(url, pattern, dir, schema, prefix, cfg, cache, idea, VarBoolStrict)
+	return fromPostgreSqlDataSource(url, pattern, dir, schema, prefix, cfg, cache, idea, VarBoolStrict, withoutSuffix)
 }
 
 type ddlArg struct {
@@ -232,6 +238,7 @@ type ddlArg struct {
 	cfg           *config.Config
 	cache, idea   bool
 	prefix        string
+	withoutSuffix bool
 	database      string
 	strict        bool
 	ignoreColumns []string
@@ -260,7 +267,7 @@ func fromDDL(arg ddlArg) error {
 	}
 
 	for _, file := range files {
-		err = generator.StartFromDDL(file, arg.prefix, arg.cache, arg.strict, arg.database)
+		err = generator.StartFromDDL(file, arg.prefix, arg.cache, arg.strict, arg.withoutSuffix, arg.database)
 		if err != nil {
 			return err
 		}
@@ -276,6 +283,7 @@ type dataSourceArg struct {
 	cache, idea   bool
 	prefix        string
 	strict        bool
+	withoutSuffix bool
 	ignoreColumns []string
 }
 
@@ -335,10 +343,10 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 		return err
 	}
 
-	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict, arg.prefix)
+	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict, arg.withoutSuffix, arg.prefix)
 }
 
-func fromPostgreSqlDataSource(url, pattern, dir, schema, prefix string, cfg *config.Config, cache, idea, strict bool) error {
+func fromPostgreSqlDataSource(url, pattern, dir, schema, prefix string, cfg *config.Config, cache, idea, strict, withoutSuffix bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of postgresql, but nothing found")
@@ -390,5 +398,5 @@ func fromPostgreSqlDataSource(url, pattern, dir, schema, prefix string, cfg *con
 		return err
 	}
 
-	return generator.StartFromInformationSchema(matchTables, cache, strict, prefix)
+	return generator.StartFromInformationSchema(matchTables, cache, strict, withoutSuffix, prefix)
 }
