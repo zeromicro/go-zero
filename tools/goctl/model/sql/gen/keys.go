@@ -61,17 +61,18 @@ func genCacheKey(db, table stringx.String, in []*parser.Field, prefix string) Ke
 	)
 
 	dbName, tableName := util.SafeString(db.Source()), util.SafeString(table.Source())
-	cacheKey := "cache"
+	cacheRightKey := "cache"
+	cacheLeftKey := "cache"
 	if strings.TrimSpace(prefix) != "" {
-		cacheKey += ":" + prefix
+		cacheRightKey = cacheRightKey + ":" + prefix
 	}
 	if len(dbName) > 0 {
-		varLeftJoin = append(varLeftJoin, cacheKey, dbName, tableName)
-		varRightJoin = append(varRightJoin, cacheKey, dbName, tableName)
+		varLeftJoin = append(varLeftJoin, cacheLeftKey, dbName, tableName)
+		varRightJoin = append(varRightJoin, cacheRightKey, dbName, tableName)
 		keyLeftJoin = append(keyLeftJoin, dbName, tableName)
 	} else {
-		varLeftJoin = append(varLeftJoin, cacheKey, tableName)
-		varRightJoin = append(varRightJoin, cacheKey, tableName)
+		varLeftJoin = append(varLeftJoin, cacheLeftKey, tableName)
+		varRightJoin = append(varRightJoin, cacheRightKey, tableName)
 		keyLeftJoin = append(keyLeftJoin, tableName)
 	}
 
