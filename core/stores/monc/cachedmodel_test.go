@@ -17,8 +17,6 @@ import (
 
 func TestNewModel(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		_, err := newModel("foo", mt.DB.Name(), mt.Coll.Name(), nil)
 		assert.NotNil(mt, err)
@@ -27,8 +25,6 @@ func TestNewModel(t *testing.T) {
 
 func TestModel_DelCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(t, mt)
 		assert.Nil(t, m.cache.Set("foo", "bar"))
@@ -42,8 +38,6 @@ func TestModel_DelCache(t *testing.T) {
 
 func TestModel_DeleteOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
 		m := createModel(t, mt)
@@ -65,8 +59,6 @@ func TestModel_DeleteOne(t *testing.T) {
 
 func TestModel_DeleteOneNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
 		m := createModel(t, mt)
@@ -81,8 +73,6 @@ func TestModel_DeleteOneNoCache(t *testing.T) {
 
 func TestModel_FindOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		resp := mtest.CreateCursorResponse(
 			1,
@@ -104,8 +94,6 @@ func TestModel_FindOne(t *testing.T) {
 
 func TestModel_FindOneNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		resp := mtest.CreateCursorResponse(
 			1,
@@ -126,8 +114,6 @@ func TestModel_FindOneNoCache(t *testing.T) {
 
 func TestModel_FindOneAndDelete(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -152,8 +138,6 @@ func TestModel_FindOneAndDelete(t *testing.T) {
 
 func TestModel_FindOneAndDeleteNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -169,8 +153,6 @@ func TestModel_FindOneAndDeleteNoCache(t *testing.T) {
 
 func TestModel_FindOneAndReplace(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -201,8 +183,6 @@ func TestModel_FindOneAndReplace(t *testing.T) {
 
 func TestModel_FindOneAndReplaceNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -220,8 +200,6 @@ func TestModel_FindOneAndReplaceNoCache(t *testing.T) {
 
 func TestModel_FindOneAndUpdate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -252,8 +230,6 @@ func TestModel_FindOneAndUpdate(t *testing.T) {
 
 func TestModel_FindOneAndUpdateNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -271,8 +247,6 @@ func TestModel_FindOneAndUpdateNoCache(t *testing.T) {
 
 func TestModel_GetCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(t, mt)
 		assert.NotNil(t, m.cache)
@@ -285,8 +259,6 @@ func TestModel_GetCache(t *testing.T) {
 
 func TestModel_InsertOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -318,8 +290,6 @@ func TestModel_InsertOne(t *testing.T) {
 
 func TestModel_InsertOneNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -335,8 +305,6 @@ func TestModel_InsertOneNoCache(t *testing.T) {
 
 func TestModel_ReplaceOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -368,8 +336,6 @@ func TestModel_ReplaceOne(t *testing.T) {
 
 func TestModel_ReplaceOneNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -385,8 +351,6 @@ func TestModel_ReplaceOneNoCache(t *testing.T) {
 
 func TestModel_SetCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(t, mt)
 		assert.Nil(t, m.SetCache("foo", "bar"))
@@ -398,8 +362,6 @@ func TestModel_SetCache(t *testing.T) {
 
 func TestModel_UpdateByID(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -431,8 +393,6 @@ func TestModel_UpdateByID(t *testing.T) {
 
 func TestModel_UpdateByIDNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -448,8 +408,6 @@ func TestModel_UpdateByIDNoCache(t *testing.T) {
 
 func TestModel_UpdateMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -483,8 +441,6 @@ func TestModel_UpdateMany(t *testing.T) {
 
 func TestModel_UpdateManyNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -500,8 +456,6 @@ func TestModel_UpdateManyNoCache(t *testing.T) {
 
 func TestModel_UpdateOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
@@ -533,8 +487,6 @@ func TestModel_UpdateOne(t *testing.T) {
 
 func TestModel_UpdateOneNoCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
 			{Key: "value", Value: bson.D{{Key: "foo", Value: "bar"}}},
