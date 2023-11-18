@@ -15,8 +15,8 @@ import '../data/{{with .Info}}{{getBaseName .Title}}{{end}}.dart';
 {{range .Routes}}
 /// --{{.Path}}--
 ///
-/// 请求: {{with .RequestType}}{{.Name}}{{end}}
-/// 返回: {{with .ResponseType}}{{.Name}}{{end}}
+/// request: {{with .RequestType}}{{.Name}}{{end}}
+/// response: {{with .ResponseType}}{{.Name}}{{end}}
 Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
     {Function({{with .ResponseType}}{{.Name}}{{end}}) ok,
     Function(String) fail,
@@ -35,7 +35,7 @@ import '../data/{{with .Service}}{{.Name}}{{end}}.dart';
 /// {{.Name}}
 {{range $i, $Route := .Routes}}
 /// --{{.Path}}--
-/// --{{.AtDoc}}--
+///
 /// request: {{with .RequestType}}{{.Name}}{{end}}
 /// response: {{with .ResponseType}}{{.Name}}{{end}}
 Future {{normalizeHandlerName .Handler}}(
