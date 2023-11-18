@@ -20,6 +20,7 @@ var funcMap = template.FuncMap{
 	"hasUrlPathParams":                hasUrlPathParams,
 	"extractPositionalParamsFromPath": extractPositionalParamsFromPath,
 	"makeDartRequestUrlPath":          makeDartRequestUrlPath,
+	"isMapType":                       isMapType,
 }
 
 const (
