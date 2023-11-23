@@ -1,6 +1,9 @@
 package collection
 
-import "sync"
+import (
+	"math"
+	"sync"
+)
 
 // A Ring can be used as fixed size ring.
 type Ring struct {
@@ -26,7 +29,7 @@ func (r *Ring) Add(v any) {
 	defer r.lock.Unlock()
 
 	r.elements[r.index%len(r.elements)] = v
-	r.index++
+	r.index = (r.index + 1) % math.MaxInt32 // prevent ring index overflow
 }
 
 // Take takes all items from r.
