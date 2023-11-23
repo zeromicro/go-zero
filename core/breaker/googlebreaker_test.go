@@ -95,7 +95,7 @@ func TestGoogleBreakerAcceptable(t *testing.T) {
 	assert.Equal(t, errAcceptable, b.doReq(func() error {
 		return errAcceptable
 	}, nil, func(err error) bool {
-		return err == errAcceptable
+		return errors.Is(err, errAcceptable)
 	}))
 }
 
@@ -105,7 +105,7 @@ func TestGoogleBreakerNotAcceptable(t *testing.T) {
 	assert.Equal(t, errAcceptable, b.doReq(func() error {
 		return errAcceptable
 	}, nil, func(err error) bool {
-		return err != errAcceptable
+		return !errors.Is(err, errAcceptable)
 	}))
 }
 

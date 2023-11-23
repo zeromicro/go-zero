@@ -28,7 +28,7 @@ func TestBreakerOnNotHandlingDuplicateEntry(t *testing.T) {
 
 	var found bool
 	for i := 0; i < 100; i++ {
-		if tryOnDuplicateEntryError(t, nil) == breaker.ErrServiceUnavailable {
+		if errors.Is(tryOnDuplicateEntryError(t, nil), breaker.ErrServiceUnavailable) {
 			found = true
 		}
 	}

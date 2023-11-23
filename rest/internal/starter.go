@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -42,14 +43,14 @@ func start(host string, port int, handler http.Handler, run func(svr *http.Serve
 	}
 	healthManager := health.NewHealthManager(fmt.Sprintf("%s-%s:%d", probeNamePrefix, host, port))
 
-	waitForCalled := proc.AddWrapUpListener(func() {
+	waitForCalled := proc.AddShutdownListener(func() {
 		healthManager.MarkNotReady()
 		if e := server.Shutdown(context.Background()); e != nil {
 			logx.Error(e)
 		}
 	})
 	defer func() {
-		if err == http.ErrServerClosed {
+		if errors.Is(err, http.ErrServerClosed) {
 			waitForCalled()
 		}
 	}()

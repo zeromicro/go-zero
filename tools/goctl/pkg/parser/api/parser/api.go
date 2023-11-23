@@ -31,18 +31,40 @@ func convert2API(a *ast.AST, importManager map[string]placeholder.Type) (*API, e
 	one := a.Stmts[0]
 	syntax, ok := one.(*ast.SyntaxStmt)
 	if !ok {
-		return nil, ast.SyntaxError(one.Pos(), "expected syntax statement, got <%T>", one)
+		syntax = &ast.SyntaxStmt{
+			Syntax: ast.NewTokenNode(token.Token{
+				Type: token.IDENT,
+				Text: token.Syntax,
+			}),
+			Assign: ast.NewTokenNode(token.Token{
+				Type: token.ASSIGN,
+				Text: "=",
+			}),
+			Value: ast.NewTokenNode(token.Token{
+				Type: token.STRING,
+				Text: `"v1"`,
+			}),
+		}
 	}
-	api.Syntax = syntax
 
-	for i := 1; i < len(a.Stmts); i++ {
+	api.Syntax = syntax
+	var hasSyntax, hasInfo bool
+	for i := 0; i < len(a.Stmts); i++ {
 		one := a.Stmts[i]
 		switch val := one.(type) {
 		case *ast.SyntaxStmt:
-			return nil, ast.DuplicateStmtError(val.Pos(), "duplicate syntax statement")
+			if hasSyntax {
+				return nil, ast.DuplicateStmtError(val.Pos(), "duplicate syntax statement")
+			} else {
+				hasSyntax = true
+			}
 		case *ast.InfoStmt:
 			if api.info != nil {
-				return nil, ast.DuplicateStmtError(val.Pos(), "duplicate info statement")
+				if hasInfo {
+					return nil, ast.DuplicateStmtError(val.Pos(), "duplicate info statement")
+				}
+			} else {
+				hasInfo = true
 			}
 			api.info = val
 		case ast.ImportStmt:

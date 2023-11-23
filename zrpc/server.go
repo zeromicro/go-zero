@@ -132,7 +132,7 @@ func setupInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.Metri
 
 	if c.Timeout > 0 {
 		svr.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
-			time.Duration(c.Timeout) * time.Millisecond))
+			time.Duration(c.Timeout)*time.Millisecond, c.MethodTimeouts...))
 	}
 
 	if c.Auth {

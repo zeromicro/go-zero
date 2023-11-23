@@ -2,6 +2,7 @@ package rest
 
 import (
 	"crypto/tls"
+	"errors"
 	"net/http"
 	"path"
 	"time"
@@ -307,7 +308,7 @@ func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 
 func handleError(err error) {
 	// ErrServerClosed means the server is closed manually
-	if err == nil || err == http.ErrServerClosed {
+	if err == nil || errors.Is(err, http.ErrServerClosed) {
 		return
 	}
 

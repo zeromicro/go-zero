@@ -2,11 +2,10 @@ package mon
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
@@ -502,45 +501,11 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update any,
 
 func (c *decoratedCollection) logDuration(ctx context.Context, method string,
 	startTime time.Duration, err error, docs ...any) {
-	duration := timex.Since(startTime)
-	logger := logx.WithContext(ctx).WithDuration(duration)
-
-	content, jerr := json.Marshal(docs)
-	// jerr should not be non-nil, but we don't care much on this,
-	// if non-nil, we just log without docs.
-	if jerr != nil {
-		if err != nil {
-			if duration > slowThreshold.Load() {
-				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s)", c.name, method, err.Error())
-			} else {
-				logger.Infof("mongo(%s) - %s - fail(%s)", c.name, method, err.Error())
-			}
-		} else {
-			if duration > slowThreshold.Load() {
-				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", c.name, method)
-			} else {
-				logger.Infof("mongo(%s) - %s - ok", c.name, method)
-			}
-		}
-	} else if err != nil {
-		if duration > slowThreshold.Load() {
-			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
-				c.name, method, err.Error(), string(content))
-		} else {
-			logger.Infof("mongo(%s) - %s - fail(%s) - %s",
-				c.name, method, err.Error(), string(content))
-		}
-	} else {
-		if duration > slowThreshold.Load() {
-			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
-				c.name, method, string(content))
-		} else {
-			logger.Infof("mongo(%s) - %s - ok - %s", c.name, method, string(content))
-		}
-	}
+	logDurationWithDocs(ctx, c.name, method, startTime, err, docs...)
 }
 
-func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string, startTime time.Duration, err error) {
+func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string,
+	startTime time.Duration, err error) {
 	logDuration(ctx, c.name, method, startTime, err)
 }
 
@@ -562,11 +527,19 @@ func (p keepablePromise) keep(err error) error {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == mongo.ErrNoDocuments || err == mongo.ErrNilValue ||
-		err == mongo.ErrNilDocument || err == mongo.ErrNilCursor || err == mongo.ErrEmptySlice ||
+	return err == nil ||
+		errors.Is(err, mongo.ErrNoDocuments) ||
+		errors.Is(err, mongo.ErrNilValue) ||
+		errors.Is(err, mongo.ErrNilDocument) ||
+		errors.Is(err, mongo.ErrNilCursor) ||
+		errors.Is(err, mongo.ErrEmptySlice) ||
 		// session errors
-		err == session.ErrSessionEnded || err == session.ErrNoTransactStarted ||
-		err == session.ErrTransactInProgress || err == session.ErrAbortAfterCommit ||
-		err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
-		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
+		errors.Is(err, session.ErrSessionEnded) ||
+		errors.Is(err, session.ErrNoTransactStarted) ||
+		errors.Is(err, session.ErrTransactInProgress) ||
+		errors.Is(err, session.ErrAbortAfterCommit) ||
+		errors.Is(err, session.ErrAbortTwice) ||
+		errors.Is(err, session.ErrCommitAfterAbort) ||
+		errors.Is(err, session.ErrUnackWCUnsupported) ||
+		errors.Is(err, session.ErrSnapshotTransaction)
 }
