@@ -27,14 +27,13 @@ func (r *Ring) Add(v any) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	ringLength := len(r.elements)
-
-	r.elements[r.index%ringLength] = v
+	rlen := len(r.elements)
+	r.elements[r.index%rlen] = v
 	r.index++
 
 	// prevent ring index overflow
-	if r.index/ringLength >= 2 {
-		r.index = r.index - ringLength
+	if r.index >= rlen<<1 {
+		r.index -= rlen
 	}
 }
 
@@ -45,18 +44,18 @@ func (r *Ring) Take() []any {
 
 	var size int
 	var start int
-	ringLength := len(r.elements)
+	rlen := len(r.elements)
 
-	if r.index > ringLength {
-		size = ringLength
-		start = r.index % ringLength
+	if r.index > rlen {
+		size = rlen
+		start = r.index % rlen
 	} else {
 		size = r.index
 	}
 
 	elements := make([]any, size)
 	for i := 0; i < size; i++ {
-		elements[i] = r.elements[(start+i)%ringLength]
+		elements[i] = r.elements[(start+i)%rlen]
 	}
 
 	return elements
