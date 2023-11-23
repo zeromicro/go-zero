@@ -1,7 +1,6 @@
 package collection
 
 import (
-	"math"
 	"sync"
 )
 
@@ -28,8 +27,15 @@ func (r *Ring) Add(v any) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	r.elements[r.index%len(r.elements)] = v
-	r.index = (r.index + 1) % math.MaxInt32 // prevent ring index overflow
+	ringLength := len(r.elements)
+
+	r.elements[r.index%ringLength] = v
+	r.index++
+
+	// prevent ring index overflow
+	if r.index/ringLength >= 2 {
+		r.index = r.index - ringLength
+	}
 }
 
 // Take takes all items from r.
@@ -39,16 +45,18 @@ func (r *Ring) Take() []any {
 
 	var size int
 	var start int
-	if r.index > len(r.elements) {
-		size = len(r.elements)
-		start = r.index % len(r.elements)
+	ringLength := len(r.elements)
+
+	if r.index > ringLength {
+		size = ringLength
+		start = r.index % ringLength
 	} else {
 		size = r.index
 	}
 
 	elements := make([]any, size)
 	for i := 0; i < size; i++ {
-		elements[i] = r.elements[(start+i)%len(r.elements)]
+		elements[i] = r.elements[(start+i)%ringLength]
 	}
 
 	return elements
