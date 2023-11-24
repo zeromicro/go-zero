@@ -1,8 +1,6 @@
 package collection
 
-import (
-	"sync"
-)
+import "sync"
 
 // A Ring can be used as fixed size ring.
 type Ring struct {
