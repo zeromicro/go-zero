@@ -6,18 +6,20 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-const timeFormat = "0102150405"
+const (
+	profileDuration = time.Minute
+	timeFormat      = "0102150405"
+)
 
 var done = make(chan struct{})
 
 func init() {
 	go func() {
-		var profiler Stopper
-
 		// https://golang.org/pkg/os/signal/#Notify
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM, syscall.SIGINT)
@@ -28,12 +30,11 @@ func init() {
 			case syscall.SIGUSR1:
 				dumpGoroutines(fileCreator{})
 			case syscall.SIGUSR2:
-				if profiler == nil {
-					profiler = StartProfile()
-				} else {
+				profiler := StartProfile()
+				go func() {
+					<-time.After(profileDuration)
 					profiler.Stop()
-					profiler = nil
-				}
+				}()
 			case syscall.SIGTERM:
 				stopOnSignal()
 				gracefulStop(signals, syscall.SIGTERM)
