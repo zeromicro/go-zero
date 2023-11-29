@@ -647,21 +647,21 @@ func NewScanner(filename string, src interface{}) (*Scanner, error) {
 }
 
 func readData(filename string, src interface{}) ([]byte, error) {
-	data, err := os.ReadFile(filename)
-	if err == nil {
+	if strings.HasSuffix(filename, ".api") {
+		data, err := os.ReadFile(filename)
+		if err != nil {
+			return nil, err
+		}
 		return data, nil
 	}
-
 	switch v := src.(type) {
 	case []byte:
-		data = append(data, v...)
+		return v, nil
 	case *bytes.Buffer:
-		data = v.Bytes()
+		return v.Bytes(), nil
 	case string:
-		data = []byte(v)
+		return []byte(v), nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", src)
 	}
-
-	return data, nil
 }
