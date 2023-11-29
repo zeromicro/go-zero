@@ -11,6 +11,7 @@ type ImportStack []string
 func New() *ImportStack {
 	return &ImportStack{}
 }
+
 func (s *ImportStack) Push(p string) error {
 	for _, x := range *s {
 		if x == p {
