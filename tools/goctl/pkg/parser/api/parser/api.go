@@ -5,7 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/importstack"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
@@ -18,15 +20,17 @@ type API struct {
 	importStmt    []ast.ImportStmt // ImportStmt block does not participate in code generation.
 	TypeStmt      []ast.TypeStmt
 	ServiceStmts  []*ast.ServiceStmt
-	importManager map[string]placeholder.Type
+	importManager *importstack.ImportStack
+	importSet     map[string]lang.PlaceholderType
 }
 
-func convert2API(a *ast.AST, importManager map[string]placeholder.Type) (*API, error) {
+func convert2API(a *ast.AST, importSet map[string]lang.PlaceholderType, is *importstack.ImportStack) (*API, error) {
 	var api = new(API)
-	api.importManager = make(map[string]placeholder.Type)
+	api.importManager = is
+	api.importSet = make(map[string]lang.PlaceholderType)
 	api.Filename = a.Filename
-	for k, v := range importManager {
-		api.importManager[k] = v
+	for k, v := range importSet {
+		api.importSet[k] = v
 	}
 	one := a.Stmts[0]
 	syntax, ok := one.(*ast.SyntaxStmt)
@@ -230,9 +234,6 @@ func (api *API) getAtServerValue(atServer *ast.AtServerStmt, key string) string 
 }
 
 func (api *API) mergeAPI(in *API) error {
-	for k, v := range in.importManager {
-		api.importManager[k] = v
-	}
 	if api.Syntax.Value.Format() != in.Syntax.Value.Format() {
 		return ast.SyntaxError(in.Syntax.Value.Pos(),
 			"multiple syntax value expression, expected <%s>, got <%s>",
@@ -269,11 +270,15 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 			impPath = filepath.Join(dir, impPath)
 		}
 		// import cycle check
-		if _, ok := api.importManager[impPath]; ok {
-			return nil, ast.SyntaxError(tok.Position, "import circle not allowed")
-		} else {
-			api.importManager[impPath] = placeholder.PlaceHolder
+		if err := api.importManager.Push(impPath); err != nil {
+			return nil, ast.SyntaxError(tok.Position, err.Error())
 		}
+
+		if _, ok := api.importSet[impPath]; ok {
+			api.importManager.Pop()
+			continue
+		}
+		api.importSet[impPath] = lang.Placeholder
 
 		p := New(impPath, "")
 		ast := p.Parse()
@@ -281,7 +286,7 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 			return nil, err
 		}
 
-		nestedApi, err := convert2API(ast, api.importManager)
+		nestedApi, err := convert2API(ast, api.importSet, api.importManager)
 		if err != nil {
 			return nil, err
 		}
@@ -290,6 +295,7 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 			return nil, err
 		}
 
+		api.importManager.Pop()
 		list = append(list, nestedApi)
 
 		if err != nil {

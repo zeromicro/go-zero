@@ -5,8 +5,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/importstack"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
@@ -390,9 +392,14 @@ func Parse(filename string, src interface{}) (*spec.ApiSpec, error) {
 		return nil, err
 	}
 
-	var importManager = make(map[string]placeholder.Type)
-	importManager[ast.Filename] = placeholder.PlaceHolder
-	api, err := convert2API(ast, importManager)
+	is := importstack.New()
+	err := is.Push(ast.Filename)
+	if err != nil {
+		return nil, err
+	}
+
+	importSet := map[string]lang.PlaceholderType{}
+	api, err := convert2API(ast, importSet, is)
 	if err != nil {
 		return nil, err
 	}
