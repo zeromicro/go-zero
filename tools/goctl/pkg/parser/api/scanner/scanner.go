@@ -26,7 +26,6 @@ const (
 	stringOpen
 	stringClose
 	// string mode end
-
 )
 
 var missingInput = errors.New("missing input")
@@ -268,6 +267,7 @@ func (s *Scanner) scanNanosecond(bgPos int) token.Token {
 		return s.illegalToken()
 	}
 	s.readRune()
+
 	return token.Token{
 		Type:     token.DURATION,
 		Text:     string(s.data[bgPos:s.position]),
@@ -485,6 +485,7 @@ func (s *Scanner) scanLineComment() token.Token {
 	for s.ch != '\n' && s.ch != 0 {
 		s.readRune()
 	}
+
 	return token.Token{
 		Type:     token.COMMENT,
 		Text:     string(s.data[position:s.position]),
@@ -546,6 +547,7 @@ func (s *Scanner) assertExpected(actual token.Type, expected ...token.Type) erro
 		strings.Join(expects, " | "),
 		actual.String(),
 	))
+
 	return errors.New(text)
 }
 
@@ -560,6 +562,7 @@ func (s *Scanner) assertExpectedString(actual string, expected ...string) error 
 		strings.Join(expects, " | "),
 		actual,
 	))
+
 	return errors.New(text)
 }
 
@@ -654,6 +657,7 @@ func readData(filename string, src interface{}) ([]byte, error) {
 		}
 		return data, nil
 	}
+
 	switch v := src.(type) {
 	case []byte:
 		return v, nil
