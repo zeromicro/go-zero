@@ -297,6 +297,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >93. 武侯区编程之美软件开发工作室
 >94. 西安交通大学智慧能源与碳中和研究中心
 >95. 成都创软科技有限责任公司
+>96. Sonderbase Technologies
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
