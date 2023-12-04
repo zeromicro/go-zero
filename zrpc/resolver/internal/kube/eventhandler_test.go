@@ -13,7 +13,7 @@ func TestAdd(t *testing.T) {
 	h := NewEventHandler(func(change []string) {
 		endpoints = change
 	})
-	h.OnAdd("bad")
+	h.OnAdd("bad", false)
 	h.OnAdd(&v1.Endpoints{Subsets: []v1.EndpointSubset{
 		{
 			Addresses: []v1.EndpointAddress{
@@ -28,7 +28,7 @@ func TestAdd(t *testing.T) {
 				},
 			},
 		},
-	}})
+	}}, false)
 	assert.ElementsMatch(t, []string{"0.0.0.1", "0.0.0.2", "0.0.0.3"}, endpoints)
 }
 
@@ -51,7 +51,7 @@ func TestDelete(t *testing.T) {
 				},
 			},
 		},
-	}})
+	}}, false)
 	h.OnDelete("bad")
 	h.OnDelete(&v1.Endpoints{Subsets: []v1.EndpointSubset{
 		{
@@ -167,7 +167,7 @@ func TestUpdateChangeWithDifferentVersion(t *testing.T) {
 				},
 			},
 		},
-	}})
+	}}, false)
 	h.OnUpdate(&v1.Endpoints{
 		Subsets: []v1.EndpointSubset{
 			{
@@ -220,7 +220,7 @@ func TestUpdateNoChangeWithDifferentVersion(t *testing.T) {
 				},
 			},
 		},
-	}})
+	}}, false)
 	h.OnUpdate("bad", &v1.Endpoints{Subsets: []v1.EndpointSubset{
 		{
 			Addresses: []v1.EndpointAddress{

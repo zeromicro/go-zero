@@ -16,6 +16,7 @@ import (
 )
 
 func TestFileSplitor(t *testing.T) {
+	t.Skip("skip this test because it is used to split the apiparser_parser.go file by developer.")
 	dir := "."
 	data, err := os.ReadFile(filepath.Join(dir, "apiparser_parser.go"))
 	if err != nil {

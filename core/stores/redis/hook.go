@@ -54,9 +54,10 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 	duration := timex.Since(start)
 	if duration > slowThreshold.Load() {
 		logDuration(ctx, []red.Cmder{cmd}, duration)
+		metricSlowCount.Inc(cmd.Name())
 	}
 
-	metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
+	metricReqDur.ObserveFloat(float64(duration)/float64(time.Millisecond), cmd.Name())
 	if msg := formatError(err); len(msg) > 0 {
 		metricReqErr.Inc(cmd.Name(), msg)
 	}

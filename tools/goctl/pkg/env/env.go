@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
 
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	sortedmap "github.com/zeromicro/go-zero/tools/goctl/pkg/collection"
@@ -59,7 +60,7 @@ func init() {
 		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
 			goctlEnv.SetKV(GoctlCache, value)
 		}
-		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOff)
+		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOn)
 		goctlEnv.SetKV(GoctlExperimental, experimental)
 	}
 
@@ -76,7 +77,7 @@ func init() {
 	}
 
 	if !goctlEnv.HasKey(GoctlExperimental) {
-		goctlEnv.SetKV(GoctlExperimental, ExperimentalOff)
+		goctlEnv.SetKV(GoctlExperimental, ExperimentalOn)
 	}
 
 	goctlEnv.SetKV(GoctlVersion, version.BuildVersion)
@@ -109,6 +110,14 @@ func Print(args ...string) string {
 
 func Get(key string) string {
 	return GetOr(key, "")
+}
+
+// Set sets the environment variable for testing
+func Set(t *testing.T, key, value string) {
+	goctlEnv.SetKV(key, value)
+	t.Cleanup(func() {
+		goctlEnv.Remove(key)
+	})
 }
 
 func GetOr(key, def string) string {

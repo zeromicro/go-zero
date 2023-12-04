@@ -40,6 +40,12 @@ func TestServer_setupInterceptors(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		MethodTimeouts: []MethodTimeoutConf{
+			{
+				FullMethod: "/foo",
+				Timeout:    5 * time.Second,
+			},
+		},
 	}
 	err = setupInterceptors(server, conf, new(stat.Metrics))
 	assert.Nil(t, err)
@@ -75,6 +81,12 @@ func TestServer(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		MethodTimeouts: []MethodTimeoutConf{
+			{
+				FullMethod: "/foo",
+				Timeout:    time.Second,
+			},
+		},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
@@ -105,6 +117,7 @@ func TestServerError(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		MethodTimeouts: []MethodTimeoutConf{},
 	}, func(server *grpc.Server) {
 	})
 	assert.NotNil(t, err)
@@ -131,6 +144,7 @@ func TestServer_HasEtcd(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		MethodTimeouts: []MethodTimeoutConf{},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))

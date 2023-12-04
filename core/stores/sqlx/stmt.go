@@ -158,9 +158,11 @@ func (e *realSqlGuard) start(q string, args ...any) error {
 
 func (e *realSqlGuard) finish(ctx context.Context, err error) {
 	duration := timex.Since(e.startTime)
+  
 	logger := logx.WithContext(ctx).WithDuration(duration)
 	if e.slowLog(duration) {
 		logger.Slowf("[SQL] %s: slowcall - %s", e.command, e.stmt)
+    metricSlowCount.Inc(e.command)
 	} else if e.statementLog() {
 		logger.Infof("sql %s: %s", e.command, e.stmt)
 	}
@@ -169,7 +171,7 @@ func (e *realSqlGuard) finish(ctx context.Context, err error) {
 		logSqlError(ctx, e.stmt, err)
 	}
 
-	metricReqDur.Observe(duration.Milliseconds(), e.command)
+	metricReqDur.ObserveFloat(float64(duration)/float64(time.Millisecond), e.command)
 }
 
 func (e *realSqlGuard) slowLog(duration time.Duration) bool {

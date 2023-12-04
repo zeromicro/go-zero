@@ -96,7 +96,7 @@ func (c cacheNode) Get(key string, val any) error {
 // GetCtx gets the cache with key and fills into v.
 func (c cacheNode) GetCtx(ctx context.Context, key string, val any) error {
 	err := c.doGetCache(ctx, key, val)
-	if err == errPlaceholder {
+	if errors.Is(err, errPlaceholder) {
 		return c.errNotFound
 	}
 
@@ -210,16 +210,16 @@ func (c cacheNode) doTake(ctx context.Context, v any, key string,
 	logger := logx.WithContext(ctx)
 	val, fresh, err := c.barrier.DoEx(key, func() (any, error) {
 		if err := c.doGetCache(ctx, key, v); err != nil {
-			if err == errPlaceholder {
+			if errors.Is(err, errPlaceholder) {
 				return nil, c.errNotFound
-			} else if err != c.errNotFound {
+			} else if !errors.Is(err, c.errNotFound) {
 				// why we just return the error instead of query from db,
 				// because we don't allow the disaster pass to the dbs.
 				// fail fast, in case we bring down the dbs.
 				return nil, err
 			}
 
-			if err = query(v); err == c.errNotFound {
+			if err = query(v); errors.Is(err, c.errNotFound) {
 				if err = c.setCacheWithNotFound(ctx, key); err != nil {
 					logger.Error(err)
 				}

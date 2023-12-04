@@ -3,6 +3,7 @@ package httpx
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
@@ -141,10 +142,10 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 		return
 	}
 
-	e, ok := body.(error)
-	if ok {
-		http.Error(w, e.Error(), code)
-	} else {
+	switch v := body.(type) {
+	case error:
+		http.Error(w, v.Error(), code)
+	default:
 		writeJson(w, code, body)
 	}
 }
@@ -162,7 +163,7 @@ func doWriteJson(w http.ResponseWriter, code int, v any) error {
 	if n, err := w.Write(bs); err != nil {
 		// http.ErrHandlerTimeout has been handled by http.TimeoutHandler,
 		// so it's ignored here.
-		if err != http.ErrHandlerTimeout {
+		if !errors.Is(err, http.ErrHandlerTimeout) {
 			return fmt.Errorf("write response failed, error: %w", err)
 		}
 	} else if n < len(bs) {
