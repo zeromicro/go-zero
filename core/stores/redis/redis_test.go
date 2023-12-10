@@ -224,6 +224,36 @@ func TestRedisTLS_Exists(t *testing.T) {
 	})
 }
 
+func TestRedis_ExistsMany(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		// Attempt to create a new Redis instance with an incorrect type and call ExistsMany
+		_, err := New(client.Addr, badType()).ExistsMany("key1", "key2")
+		assert.NotNil(t, err)
+
+		// Check if key1 and key2 exist, expecting that they do not
+		val, err := client.ExistsMany("key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(0), val)
+
+		// Set the value for key1 and check if key1 exists
+		assert.Nil(t, client.Set("key1", "value1"))
+		val, err = client.ExistsMany("key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+
+		// Set the value for key2 and check if key1 and key2 exist
+		assert.Nil(t, client.Set("key2", "value2"))
+		val, err = client.ExistsMany("key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(2), val)
+
+		// Check if key1, key2, and a non-existent key3 exist, expecting that key1 and key2 do
+		val, err = client.ExistsMany("key1", "key2", "key3")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(2), val)
+	})
+}
+
 func TestRedis_Eval(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := New(client.Addr, badType()).Eval(`redis.call("EXISTS", KEYS[1])`, []string{"notexist"})
