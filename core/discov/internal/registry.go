@@ -294,9 +294,9 @@ func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 		if err == nil {
 			return
 		}
-		if errors.Is(err, v3rpc.ErrCompacted) {
+		if rev != 0 && errors.Is(err, v3rpc.ErrCompacted) {
 			logx.Errorf("etcd watch stream has been compacted, try to reload, rev %v", rev)
-			c.reload(cli)
+			rev = c.load(cli, key)
 		}
 	}
 }
