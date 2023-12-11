@@ -149,6 +149,9 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 
 		for indexName, each := range uniqueKeyMap {
 			for _, columnName := range each {
+				if fieldM[columnName] == nil {
+					return nil, fmt.Errorf("table %s: unique key with error column name[%s]", e.Name, columnName)
+				}
 				uniqueIndex[indexName] = append(uniqueIndex[indexName], fieldM[columnName])
 			}
 		}
