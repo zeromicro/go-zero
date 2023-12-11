@@ -128,6 +128,8 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			return nil, fmt.Errorf("%s: unexpected join primary key", prefix)
 		}
 
+		delete(uniqueKeyMap, indexNameGen(primaryColumn, "idx"))
+		delete(uniqueKeyMap, indexNameGen(primaryColumn, "unique"))
 		primaryKey, fieldM, err := convertColumns(columns, primaryColumn, strict)
 		if err != nil {
 			return nil, err
