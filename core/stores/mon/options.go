@@ -24,7 +24,7 @@ type (
 	// Option defines the method to customize a mongo model.
 	Option func(opts *options)
 
-	// todo
+	// RegisterType A struct store With custom type and Encoder/Decoder
 	RegisterType struct {
 		ValueType reflect.Type
 		Encoder   bsoncodec.ValueEncoder
@@ -61,7 +61,7 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-// WithRegistry sets todo
+// WithRegistry set the Registry to convert custom type to mongo primitive type more easily.
 func WithRegistry(registerType ...RegisterType) Option {
 	return func(opts *options) {
 		registry := bson.NewRegistry()
