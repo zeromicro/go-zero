@@ -83,8 +83,9 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			primaryColumn    string
 			primaryColumnSet = collection.NewSet()
 			uniqueKeyMap     = make(map[string][]string)
-			normalKeyMap     = make(map[string][]string)
-			columns          = e.Columns
+			// Unused local variable
+			// normalKeyMap     = make(map[string][]string)
+			columns = e.Columns
 		)
 
 		for _, column := range columns {
@@ -144,20 +145,26 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 
 		var (
 			uniqueIndex = make(map[string][]*Field)
-			normalIndex = make(map[string][]*Field)
+			// Unused local variable
+			// normalIndex = make(map[string][]*Field)
 		)
 
 		for indexName, each := range uniqueKeyMap {
 			for _, columnName := range each {
+				// Prevent a crash if there is a unique key constraint with a nil field.
+				if fieldM[columnName] == nil {
+					return nil, fmt.Errorf("table %s: unique key with error column name[%s]", e.Name, columnName)
+				}
 				uniqueIndex[indexName] = append(uniqueIndex[indexName], fieldM[columnName])
 			}
 		}
 
-		for indexName, each := range normalKeyMap {
-			for _, columnName := range each {
-				normalIndex[indexName] = append(normalIndex[indexName], fieldM[columnName])
-			}
-		}
+		// Unused local variable
+		// for indexName, each := range normalKeyMap {
+		// 	for _, columnName := range each {
+		// 		normalIndex[indexName] = append(normalIndex[indexName], fieldM[columnName])
+		// 	}
+		// }
 
 		checkDuplicateUniqueIndex(uniqueIndex, e.Name)
 
