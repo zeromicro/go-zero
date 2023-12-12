@@ -19,8 +19,8 @@ const defaultLogicPackage = "logic"
 var handlerTemplate string
 
 type handlerInfo struct {
-	PkgName            string
 	RootPkg            string
+	PkgName            string
 	ImportPackages     string
 	ImportHttpxPackage string
 	HandlerName        string
@@ -43,8 +43,8 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	}
 	fmt.Println("rootPkg: ", rootPkg)
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		PkgName:        pkgName,
 		RootPkg:        rootPkg,
+		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
