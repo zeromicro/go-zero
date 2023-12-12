@@ -144,7 +144,7 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			}
 		}
 
-    uniqueIndex := make(map[string][]*Field)
+		uniqueIndex := make(map[string][]*Field)
 
 		for indexName, each := range uniqueKeyMap {
 			for _, columnName := range each {
