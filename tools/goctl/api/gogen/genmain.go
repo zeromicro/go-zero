@@ -36,6 +36,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		templateFile:    mainTemplateFile,
 		builtinTemplate: mainTemplate,
 		data: map[string]string{
+			"rootPkg":        rootPkg,
 			"importPackages": genMainImports(rootPkg),
 			"serviceName":    configName,
 		},
