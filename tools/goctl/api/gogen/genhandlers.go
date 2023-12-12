@@ -20,6 +20,7 @@ var handlerTemplate string
 
 type handlerInfo struct {
 	PkgName            string
+	RootPkg            string
 	ImportPackages     string
 	ImportHttpxPackage string
 	HandlerName        string
@@ -40,9 +41,10 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
-
+	fmt.Println("rootPkg: ", rootPkg)
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
+		RootPkg:        rootPkg,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
