@@ -16,5 +16,11 @@ service A-api {
     @server(
         handler: GreetHandler
     )
-    get /greet/from/:name(Request) returns (Response)
+    get /greet/from/:name (Request) returns (Response)
+
+    @doc(
+        summary: "comment comment comment"
+    )
+    @handler NoResponseHandler
+    get /greet/get (Request)
 }
