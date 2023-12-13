@@ -1,26 +1,27 @@
-package {{.PkgName}}
+package {{.pkgName}}
 
 import (
 	"net/http"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
-	{{.ImportPackages}}
+	{{.importPackages}}
 )
 
-func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
+{{if .hasDoc}}{{.doc}}{{end}}
+func {{.handlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		{{if .HasRequest}}var req types.{{.RequestType}}
+		{{if .hasRequest}}var req types.{{.requestType}}
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
-		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
-		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
+		{{end}}l := {{.logicName}}.New{{.logicType}}(r.Context(), svcCtx)
+		{{if .hasResp}}resp, {{end}}err := l.{{.call}}({{if .hasRequest}}&req{{end}})
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			{{if .HasResp}}httpx.OkJsonCtx(r.Context(), w, resp){{else}}httpx.Ok(w){{end}}
+			{{if .hasResp}}httpx.OkJsonCtx(r.Context(), w, resp){{else}}httpx.Ok(w){{end}}
 		}
 	}
 }

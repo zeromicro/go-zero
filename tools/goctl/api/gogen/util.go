@@ -181,3 +181,11 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 
 	return ""
 }
+
+func getDoc(doc string) string {
+	if len(doc) == 0 {
+		return ""
+	}
+
+	return "// " + strings.Trim(doc, "\"")
+}
