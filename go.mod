@@ -3,7 +3,7 @@ module github.com/zeromicro/go-zero
 go 1.19
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/DATA-DOG/go-sqlmock v1.5.1
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/fatih/color v1.16.0
 	github.com/fullstorydev/grpcurl v1.8.9
