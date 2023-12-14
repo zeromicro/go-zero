@@ -41,7 +41,6 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
-	fmt.Println("rootPkg: ", rootPkg)
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		RootPkg:        rootPkg,
 		PkgName:        pkgName,
