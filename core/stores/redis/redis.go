@@ -467,6 +467,33 @@ func (s *Redis) ExistsCtx(ctx context.Context, key string) (val bool, err error)
 	return
 }
 
+// ExistsMany is the implementation of redis exists command.
+// checks the existence of multiple keys in Redis using the EXISTS command.
+func (s *Redis) ExistsMany(keys ...string) (int64, error) {
+	return s.ExistsManyCtx(context.Background(), keys...)
+}
+
+// ExistsManyCtx is the implementation of redis exists command.
+// checks the existence of multiple keys in Redis using the EXISTS command.
+func (s *Redis) ExistsManyCtx(ctx context.Context, keys ...string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.Exists(ctx, keys...).Result()
+		if err != nil {
+			return err
+		}
+
+		val = v
+		return nil
+	}, acceptable)
+
+	return
+}
+
 // Expire is the implementation of redis expire command.
 func (s *Redis) Expire(key string, seconds int) error {
 	return s.ExpireCtx(context.Background(), key, seconds)
