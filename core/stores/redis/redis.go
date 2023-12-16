@@ -1993,7 +1993,13 @@ func (s *Redis) TtlCtx(ctx context.Context, key string) (val int, err error) {
 			return err
 		}
 
-		val = int(duration / time.Second)
+		if duration >= 0 {
+			val = int(duration / time.Second)
+		} else {
+			// -2 means key does not exist
+			// -1 means key exists but has no expire
+			val = int(duration)
+		}
 		return nil
 	}, acceptable)
 
