@@ -50,7 +50,7 @@ func (sg *ServiceGroup) Add(service Service) {
 // Also, quitting this method will close the logx output.
 func (sg *ServiceGroup) Start() {
 	proc.AddShutdownListener(func() {
-		logx.Info("Shutting down service in group")
+		logx.Info("Shutting down services in group")
 		sg.stopOnce()
 	})
 
