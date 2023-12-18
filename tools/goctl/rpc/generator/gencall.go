@@ -114,6 +114,7 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			"serviceName":    serviceName,
 			"functions":      strings.Join(functions, pathx.NL),
 			"interface":      strings.Join(iFunctions, pathx.NL),
+			"goModule":       ctx.GetModule(),
 		}, filename, true); err != nil {
 			return err
 		}

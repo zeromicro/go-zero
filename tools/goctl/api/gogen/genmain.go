@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -27,6 +28,11 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		filename = strings.ReplaceAll(filename, "-api", "")
 	}
 
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          "",
@@ -38,6 +44,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		data: map[string]string{
 			"importPackages": genMainImports(rootPkg),
 			"serviceName":    configName,
+			"goModule":       projectCtx.Path,
 		},
 	})
 }

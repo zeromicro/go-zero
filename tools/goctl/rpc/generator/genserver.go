@@ -97,6 +97,7 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 			"imports":   strings.Join(imports.KeysStr(), pathx.NL),
 			"funcs":     strings.Join(funcList, pathx.NL),
 			"notStream": notStream,
+			"goModule":  ctx.GetModule(),
 		}, serverFile, true); err != nil {
 			return err
 		}
@@ -148,6 +149,7 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 		"imports":   strings.Join(imports.KeysStr(), pathx.NL),
 		"funcs":     strings.Join(funcList, pathx.NL),
 		"notStream": notStream,
+		"goModule":  ctx.GetModule(),
 	}, serverFile, true)
 }
 

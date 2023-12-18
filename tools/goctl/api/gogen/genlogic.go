@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"path"
 	"strconv"
 	"strings"
@@ -54,6 +55,11 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 
 	subDir := getLogicFolderPath(group, route)
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          subDir,
@@ -70,6 +76,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"responseType": responseString,
 			"returnString": returnString,
 			"request":      requestString,
+			"goModule":     projectCtx.Path,
 		},
 	})
 }

@@ -65,6 +65,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 			"functions":   functions,
 			"packageName": "logic",
 			"imports":     strings.Join(imports.KeysStr(), pathx.NL),
+			"goModule":    ctx.GetModule(),
 		}, filename, false)
 		if err != nil {
 			return err
@@ -119,6 +120,7 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 				"functions":   functions,
 				"packageName": packageName,
 				"imports":     strings.Join(imports.KeysStr(), pathx.NL),
+				"goModule":    ctx.GetModule(),
 			}, filename, false); err != nil {
 				return err
 			}

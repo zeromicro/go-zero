@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"path"
 	"strings"
 
@@ -29,6 +30,7 @@ type handlerInfo struct {
 	Call               string
 	HasResp            bool
 	HasRequest         bool
+	GoModule           string
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
@@ -41,6 +43,10 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		logicName = pkgName
 	}
 
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
@@ -51,6 +57,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseTypeName()) > 0,
 		HasRequest:     len(route.RequestTypeName()) > 0,
+		GoModule:       projectCtx.Path,
 	})
 }
 

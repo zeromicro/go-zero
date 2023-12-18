@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"io"
 	"os"
 	"path"
@@ -53,6 +54,10 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename := path.Join(dir, typesDir, typeFilename)
 	os.Remove(filename)
 
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          typesDir,
@@ -64,6 +69,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		data: map[string]any{
 			"types":        val,
 			"containsTime": false,
+			"goModule":     projectCtx.Path,
 		},
 	})
 }

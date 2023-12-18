@@ -2,6 +2,7 @@ package gogen
 
 import (
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"os"
 	"path"
 	"sort"
@@ -158,6 +159,11 @@ rest.WithPrefix("%s"),`, g.prefix)
 			routes = strings.TrimSpace(gbuilder.String())
 		}
 
+		projectCtx, err := ctx.Prepare(dir)
+		if err != nil {
+			return err
+		}
+
 		if err := gt.Execute(&builder, map[string]string{
 			"routes":    routes,
 			"jwt":       jwt,
@@ -165,6 +171,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"prefix":    prefix,
 			"timeout":   timeout,
 			"maxBytes":  maxBytes,
+			"goModule":  projectCtx.Path,
 		}); err != nil {
 			return err
 		}

@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -48,6 +49,11 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	}
 	authImportStr := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL)
 
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          configDir,
@@ -60,6 +66,7 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			"authImport": authImportStr,
 			"auth":       strings.Join(auths, "\n"),
 			"jwtTrans":   strings.Join(jwtTransList, "\n"),
+			"goModule":   projectCtx.Path,
 		},
 	})
 }
