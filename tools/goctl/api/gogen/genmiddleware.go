@@ -2,11 +2,11 @@ package gogen
 
 import (
 	_ "embed"
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
