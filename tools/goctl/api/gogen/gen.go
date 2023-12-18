@@ -86,20 +86,20 @@ func DoGenProject(apiFile, dir, style string) error {
 	}
 
 	logx.Must(pathx.MkdirIfNotExist(dir))
-	rootPkg, err := golang.GetParentPackage(dir)
+	projectPkg, rootPkg, err := golang.GetParentPackage(dir)
 	if err != nil {
 		return err
 	}
 
 	logx.Must(genEtc(dir, cfg, api))
-	logx.Must(genConfig(dir, rootPkg, cfg, api))
-	logx.Must(genMain(dir, rootPkg, cfg, api))
-	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
-	logx.Must(genTypes(dir, rootPkg, cfg, api))
-	logx.Must(genRoutes(dir, rootPkg, cfg, api))
-	logx.Must(genHandlers(dir, rootPkg, cfg, api))
-	logx.Must(genLogic(dir, rootPkg, cfg, api))
-	logx.Must(genMiddleware(dir, rootPkg, cfg, api))
+	logx.Must(genConfig(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genMain(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genServiceContext(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genTypes(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genRoutes(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genHandlers(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genLogic(dir, projectPkg, rootPkg, cfg, api))
+	logx.Must(genMiddleware(dir, projectPkg, rootPkg, cfg, api))
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err

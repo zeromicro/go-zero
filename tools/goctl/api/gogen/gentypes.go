@@ -38,7 +38,7 @@ func BuildTypes(types []spec.Type) (string, error) {
 	return builder.String(), nil
 }
 
-func genTypes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genTypes(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	val, err := BuildTypes(api.Types)
 	if err != nil {
 		return err
@@ -62,6 +62,7 @@ func genTypes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 		templateFile:    typesTemplateFile,
 		builtinTemplate: typesTemplate,
 		data: map[string]any{
+			"projectPkg":   projectPkg,
 			"rootPkg":      rootPkg,
 			"types":        val,
 			"containsTime": false,

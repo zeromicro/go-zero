@@ -29,7 +29,7 @@ const (
 //go:embed config.tpl
 var configTemplate string
 
-func genConfig(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genConfig(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, configFile)
 	if err != nil {
 		return err
@@ -57,6 +57,7 @@ func genConfig(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		templateFile:    configTemplateFile,
 		builtinTemplate: configTemplate,
 		data: map[string]string{
+			"projectPkg": projectPkg,
 			"rootPkg":    rootPkg,
 			"authImport": authImportStr,
 			"auth":       strings.Join(auths, "\n"),

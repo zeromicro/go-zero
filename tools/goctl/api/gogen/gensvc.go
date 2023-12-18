@@ -17,7 +17,7 @@ const contextFilename = "service_context"
 //go:embed svc.tpl
 var contextTemplate string
 
-func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genServiceContext(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
@@ -50,6 +50,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		builtinTemplate: contextTemplate,
 		data: map[string]string{
 			"rootPkg":              rootPkg,
+			"projectPkg":           projectPkg,
 			"configImport":         configImport,
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
