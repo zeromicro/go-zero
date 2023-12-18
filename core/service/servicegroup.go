@@ -1,8 +1,7 @@
 package service
 
 import (
-	"log"
-
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/threading"
@@ -51,7 +50,7 @@ func (sg *ServiceGroup) Add(service Service) {
 // Also, quitting this method will close the logx output.
 func (sg *ServiceGroup) Start() {
 	proc.AddShutdownListener(func() {
-		log.Println("Shutting down...")
+		logx.Info("Shutting down services in group")
 		sg.stopOnce()
 	})
 

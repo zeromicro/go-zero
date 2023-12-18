@@ -34,7 +34,7 @@ func NewRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 	}
 
 	m := make(map[string]any)
-	if err := json.NewDecoder(body).Decode(&m); err != nil {
+	if err := json.NewDecoder(body).Decode(&m); err != nil && err != io.EOF {
 		return nil, err
 	}
 
