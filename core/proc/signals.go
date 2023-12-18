@@ -31,10 +31,7 @@ func init() {
 				dumpGoroutines(fileCreator{})
 			case syscall.SIGUSR2:
 				profiler := StartProfile()
-				go func() {
-					<-time.After(profileDuration)
-					profiler.Stop()
-				}()
+				time.AfterFunc(profileDuration, profiler.Stop)
 			case syscall.SIGTERM:
 				stopOnSignal()
 				gracefulStop(signals, syscall.SIGTERM)

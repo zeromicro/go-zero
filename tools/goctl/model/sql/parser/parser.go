@@ -8,7 +8,6 @@ import (
 
 	"github.com/zeromicro/ddl-parser/parser"
 	"github.com/zeromicro/go-zero/core/collection"
-
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/converter"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
@@ -145,11 +144,7 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			}
 		}
 
-		var (
-			uniqueIndex = make(map[string][]*Field)
-			// Unused local variable
-			// normalIndex = make(map[string][]*Field)
-		)
+		uniqueIndex := make(map[string][]*Field)
 
 		for indexName, each := range uniqueKeyMap {
 			for _, columnName := range each {
@@ -160,13 +155,6 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 				uniqueIndex[indexName] = append(uniqueIndex[indexName], fieldM[columnName])
 			}
 		}
-
-		// Unused local variable
-		// for indexName, each := range normalKeyMap {
-		// 	for _, columnName := range each {
-		// 		normalIndex[indexName] = append(normalIndex[indexName], fieldM[columnName])
-		// 	}
-		// }
 
 		checkDuplicateUniqueIndex(uniqueIndex, e.Name)
 
