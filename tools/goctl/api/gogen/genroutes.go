@@ -188,8 +188,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
 		data: map[string]any{
-			"rootPkg":         rootPkg,
 			"projectPkg":      projectPkg,
+			"rootPkg":         rootPkg,
 			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
