@@ -35,7 +35,7 @@ func (h myHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
 		}
 
 		err = next(ctx, cmd)
-		if !acceptable(err) && err != nil {
+		if err != nil {
 			return err
 		}
 
@@ -63,7 +63,7 @@ func (m myHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 func (h myHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []redis.Cmder) error {
 		err := next(ctx, cmds)
-		if !acceptable(err) && err != nil {
+		if err != nil {
 			return err
 		}
 		return nil
