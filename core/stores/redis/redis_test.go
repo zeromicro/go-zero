@@ -5,34 +5,69 @@ import (
 	"crypto/tls"
 	"errors"
 	"io"
+	"net"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 type myHook struct {
-	red.Hook
 	includePing bool
 }
 
-var _ red.Hook = myHook{}
+func (h myHook) DialHook(next redis.DialHook) redis.DialHook {
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return next(ctx, network, addr)
+	}
+}
 
-func (m myHook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
+func (h myHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		ctx, err := h.BeforeProcess(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
+		err = next(ctx, cmd)
+		if !acceptable(err) && err != nil {
+			return err
+		}
+
+		err = h.AfterProcess(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func (m myHook) BeforeProcess(ctx context.Context, cmds redis.Cmder) (context.Context, error) {
 	return ctx, nil
 }
 
-func (m myHook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
+func (m myHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 	// skip ping cmd
 	if cmd.Name() == "ping" && !m.includePing {
 		return nil
 	}
 	return errors.New("hook error")
+}
+
+func (h myHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []redis.Cmder) error {
+		err := next(ctx, cmds)
+		if !acceptable(err) && err != nil {
+			return err
+		}
+		return nil
+	}
 }
 
 func TestNewRedis(t *testing.T) {
@@ -147,7 +182,6 @@ func TestNewRedis(t *testing.T) {
 
 func TestRedis_NonBlock(t *testing.T) {
 	logx.Disable()
-
 	t.Run("nonBlock true", func(t *testing.T) {
 		s := miniredis.RunT(t)
 		// use hook to simulate redis ping error
@@ -1609,7 +1643,7 @@ func TestRedis_Pipelined(t *testing.T) {
 			func(pipe Pipeliner) error {
 				pipe.Incr(context.Background(), "pipelined_counter")
 				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
-				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
+				pipe.ZAdd(context.Background(), "zadd", Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)
@@ -1680,13 +1714,13 @@ func TestRedis_Ttl(t *testing.T) {
 }
 
 func TestRedisToPairs(t *testing.T) {
-	pairs := toPairs([]red.Z{
+	pairs := toPairs([]redis.Z{
 		{
-			Member: 1,
+			Member: "1",
 			Score:  1,
 		},
 		{
-			Member: 2,
+			Member: "2",
 			Score:  2,
 		},
 	})
@@ -1703,13 +1737,13 @@ func TestRedisToPairs(t *testing.T) {
 }
 
 func TestRedisToFloatPairs(t *testing.T) {
-	pairs := toFloatPairs([]red.Z{
+	pairs := toFloatPairs([]redis.Z{
 		{
-			Member: 1,
+			Member: "1",
 			Score:  1,
 		},
 		{
-			Member: 2,
+			Member: "2",
 			Score:  2,
 		},
 	})
@@ -1819,9 +1853,9 @@ func TestRedisGeo(t *testing.T) {
 			assert.Equal(t, int64(v3[1].Longitude), int64(15))
 			assert.Equal(t, int64(v3[1].Latitude), int64(37))
 			_, err = New(client.Addr, badType()).GeoRadius("sicily", 15, 37,
-				&red.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
+				&redis.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
 			assert.Error(t, err)
-			v4, err := client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
+			v4, err := client.GeoRadius("sicily", 15, 37, &redis.GeoRadiusQuery{
 				WithDist: true,
 				Unit:     "km", Radius: 200,
 			})
@@ -1835,10 +1869,10 @@ func TestRedisGeo(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, int64(1), v5)
 			_, err = New(client.Addr, badType()).GeoRadiusByMember("sicily", "Agrigento",
-				&red.GeoRadiusQuery{Unit: "km", Radius: 100})
+				&redis.GeoRadiusQuery{Unit: "km", Radius: 100})
 			assert.Error(t, err)
 			v6, err := client.GeoRadiusByMember("sicily", "Agrigento",
-				&red.GeoRadiusQuery{Unit: "km", Radius: 100})
+				&redis.GeoRadiusQuery{Unit: "km", Radius: 100})
 			assert.Nil(t, err)
 			assert.Equal(t, v6[0].Name, "Agrigento")
 			assert.Equal(t, v6[1].Name, "Palermo")
@@ -1857,12 +1891,12 @@ func TestRedisGeo(t *testing.T) {
 			_, err = client.GeoDist("sicily", "Palermo", "Catania", "m")
 			assert.Error(t, err)
 
-			_, err = client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
+			_, err = client.GeoRadius("sicily", 15, 37, &redis.GeoRadiusQuery{
 				WithDist: true,
 			})
 			assert.Error(t, err)
 
-			_, err = client.GeoRadiusByMember("sicily", "Agrigento", &red.GeoRadiusQuery{
+			_, err = client.GeoRadiusByMember("sicily", "Agrigento", &redis.GeoRadiusQuery{
 				Unit: "km",
 			})
 			assert.Error(t, err)
@@ -1883,6 +1917,28 @@ func TestRedis_WithPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := New(client.Addr, WithPass("any")).Ping()
 		assert.NotNil(t, err)
+	})
+}
+
+func TestRedis_Publish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Exists("a")
+		assert.NotNil(t, err)
+		_, err = client.Publish("testchannel", "1")
+		assert.Nil(t, err)
+		_, err = client.Exists("testchannel")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedis_Subscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Exists("a")
+		assert.NotNil(t, err)
+		_, err = client.Subscribe("testchannel")
+		assert.Nil(t, err)
+		_, err = client.Exists("testchannel")
+		assert.Nil(t, err)
 	})
 }
 
@@ -1936,6 +1992,6 @@ type mockedNode struct {
 	RedisNode
 }
 
-func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.StringSliceCmd {
-	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
+func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *redis.StringSliceCmd {
+	return redis.NewStringSliceCmd(context.Background(), "foo", "bar")
 }

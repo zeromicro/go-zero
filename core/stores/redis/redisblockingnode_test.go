@@ -15,10 +15,10 @@ func TestBlockingNode(t *testing.T) {
 
 		node, err := CreateBlockingNode(New(r.Addr()))
 		assert.NoError(t, err)
-		node.Close()
+		node.CloseX()
 		// close again to make sure it's safe
 		assert.NotPanics(t, func() {
-			node.Close()
+			node.CloseX()
 		})
 	})
 
@@ -29,9 +29,9 @@ func TestBlockingNode(t *testing.T) {
 
 		node, err := CreateBlockingNode(New(r.Addr(), Cluster(), WithTLS()))
 		assert.NoError(t, err)
-		node.Close()
+		node.CloseX()
 		assert.NotPanics(t, func() {
-			node.Close()
+			node.CloseX()
 		})
 	})
 

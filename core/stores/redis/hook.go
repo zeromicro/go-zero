@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -32,6 +33,32 @@ type (
 	contextKey string
 	hook       struct{}
 )
+
+func (h hook) DialHook(next redis.DialHook) redis.DialHook {
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return next(ctx, network, addr)
+	}
+}
+
+func (h hook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		ctx, err := h.BeforeProcess(context.WithValue(ctx, startTimeKey, timex.Now()), cmd)
+		if err != nil {
+			return err
+		}
+
+		err = next(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
+		err = h.AfterProcess(ctx, cmd)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+}
 
 func (h hook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
 	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now()), cmd), nil
@@ -63,6 +90,27 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 	}
 
 	return nil
+}
+
+func (h hook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []redis.Cmder) error {
+		ctx, err := h.BeforeProcessPipeline(ctx, cmds)
+		if err != nil {
+			return err
+		}
+
+		err = next(ctx, cmds)
+		if err != nil {
+			return err
+		}
+
+		err = h.AfterProcessPipeline(ctx, cmds)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
 
 func (h hook) BeforeProcessPipeline(ctx context.Context, cmds []red.Cmder) (context.Context, error) {

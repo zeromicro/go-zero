@@ -5,7 +5,7 @@ import (
 	"io"
 	"runtime"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
@@ -21,7 +21,7 @@ var (
 	nodePoolSize = 10 * runtime.GOMAXPROCS(0)
 )
 
-func getClient(r *Redis) (*red.Client, error) {
+func getClient(r *Redis) (red.UniversalClient, error) {
 	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {

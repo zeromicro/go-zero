@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -63,7 +63,7 @@ type (
 
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
-		red.Cmdable
+		red.UniversalClient
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -147,6 +147,46 @@ func newRedis(addr string, opts ...Option) *Redis {
 // NewScript returns a new Script instance.
 func NewScript(script string) *Script {
 	return red.NewScript(script)
+}
+
+// Publish is redis publish command implementation
+func (s *Redis) Publish(channel string, message any) (int64, error) {
+	return s.PublishCtx(context.Background(), channel, message)
+}
+
+// PublishCtx is redis publish command implementation.
+func (s *Redis) PublishCtx(ctx context.Context, channel string, message any) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.Publish(ctx, channel, message).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Subscribe is redis subscribe command implementation
+func (s *Redis) Subscribe(channel ...string) (*red.PubSub, error) {
+	return s.SubscribeCtx(context.Background(), channel...)
+}
+
+// SubscribeCtx is redis subscribe command implementation.
+func (s *Redis) SubscribeCtx(ctx context.Context, channel ...string) (val *red.PubSub, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val = conn.Subscribe(ctx, channel...)
+		return err
+	}, acceptable)
+
+	return
 }
 
 // BitCount is redis bitcount command implementation.
@@ -2058,7 +2098,7 @@ func (s *Redis) ZaddFloatCtx(ctx context.Context, key string, score float64, val
 			return err
 		}
 
-		v, err := conn.ZAdd(ctx, key, &red.Z{
+		v, err := conn.ZAdd(ctx, key, red.Z{
 			Score:  score,
 			Member: value,
 		}).Result()
@@ -2086,9 +2126,9 @@ func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (val int64
 			return err
 		}
 
-		var zs []*red.Z
+		var zs []red.Z
 		for _, p := range ps {
-			z := &red.Z{Score: float64(p.Score), Member: p.Key}
+			z := red.Z{Score: float64(p.Score), Member: p.Key}
 			zs = append(zs, z)
 		}
 
@@ -2899,17 +2939,9 @@ func getRedis(r *Redis) (RedisNode, error) {
 func toPairs(vals []red.Z) []Pair {
 	pairs := make([]Pair, len(vals))
 	for i, val := range vals {
-		switch member := val.Member.(type) {
-		case string:
-			pairs[i] = Pair{
-				Key:   member,
-				Score: int64(val.Score),
-			}
-		default:
-			pairs[i] = Pair{
-				Key:   mapping.Repr(val.Member),
-				Score: int64(val.Score),
-			}
+		pairs[i] = Pair{
+			Key:   val.Member,
+			Score: int64(val.Score),
 		}
 	}
 	return pairs
@@ -2919,17 +2951,9 @@ func toFloatPairs(vals []red.Z) []FloatPair {
 	pairs := make([]FloatPair, len(vals))
 
 	for i, val := range vals {
-		switch member := val.Member.(type) {
-		case string:
-			pairs[i] = FloatPair{
-				Key:   member,
-				Score: val.Score,
-			}
-		default:
-			pairs[i] = FloatPair{
-				Key:   mapping.Repr(val.Member),
-				Score: val.Score,
-			}
+		pairs[i] = FloatPair{
+			Key:   val.Member,
+			Score: val.Score,
 		}
 	}
 

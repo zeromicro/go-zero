@@ -3,14 +3,14 @@ package redis
 import (
 	"fmt"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
 // ClosableNode interface represents a closable redis node.
 type ClosableNode interface {
 	RedisNode
-	Close()
+	CloseX()
 }
 
 // CreateBlockingNode returns a ClosableNode.
@@ -54,13 +54,13 @@ type (
 	}
 )
 
-func (bridge *clientBridge) Close() {
+func (bridge *clientBridge) CloseX() {
 	if err := bridge.Client.Close(); err != nil {
 		logx.Errorf("Error occurred on close redis client: %s", err)
 	}
 }
 
-func (bridge *clusterBridge) Close() {
+func (bridge *clusterBridge) CloseX() {
 	if err := bridge.ClusterClient.Close(); err != nil {
 		logx.Errorf("Error occurred on close redis cluster: %s", err)
 	}
