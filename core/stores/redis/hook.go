@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
@@ -34,14 +33,14 @@ type (
 	hook       struct{}
 )
 
-func (h hook) DialHook(next redis.DialHook) redis.DialHook {
+func (h hook) DialHook(next red.DialHook) red.DialHook {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		return next(ctx, network, addr)
 	}
 }
 
-func (h hook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
-	return func(ctx context.Context, cmd redis.Cmder) error {
+func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+	return func(ctx context.Context, cmd red.Cmder) error {
 		ctx, err := h.BeforeProcess(context.WithValue(ctx, startTimeKey, timex.Now()), cmd)
 		if err != nil {
 			return err
@@ -92,8 +91,8 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 	return nil
 }
 
-func (h hook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
-	return func(ctx context.Context, cmds []redis.Cmder) error {
+func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []red.Cmder) error {
 		ctx, err := h.BeforeProcessPipeline(ctx, cmds)
 		if err != nil {
 			return err
