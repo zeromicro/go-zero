@@ -660,6 +660,25 @@ func TestRedis_List(t *testing.T) {
 	})
 }
 
+func TestRedis_Mset(t *testing.T) {
+	t.Run("mset", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := client.Mset("key1", "value1", "key2", "value2")
+			assert.Nil(t, err)
+			vals, err := client.Mget("key1", "key2")
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value1", "value2"}, vals)
+		})
+	})
+
+	t.Run("mset error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Mset("key1", "value1", "key2")
+			assert.Error(t, err)
+		})
+	})
+}
+
 func TestRedis_Mget(t *testing.T) {
 	t.Run("mget", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
