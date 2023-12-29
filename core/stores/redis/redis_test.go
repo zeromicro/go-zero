@@ -663,14 +663,22 @@ func TestRedis_List(t *testing.T) {
 func TestRedis_Mset(t *testing.T) {
 	t.Run("mset", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
-			_, err := client.Mset("key1", "value1", "key2", "value2")
+			// Attempt to Mget with a bad client type, expecting an error.
+			_, err := New(client.Addr, badType()).Mset("key1", "value1")
+			assert.NotNil(t, err)
+
+			// Set multiple key-value pairs using Mset and expect no error.
+			_, err = client.Mset("key1", "value1", "key2", "value2")
 			assert.Nil(t, err)
+
+			// Retrieve the values for the keys set above using Mget and expect no error.
 			vals, err := client.Mget("key1", "key2")
 			assert.Nil(t, err)
 			assert.EqualValues(t, []string{"value1", "value2"}, vals)
 		})
 	})
 
+	// Test case for Mset operation with an incorrect number of arguments, expecting an error.
 	t.Run("mset error", func(t *testing.T) {
 		runOnRedisWithError(t, func(client *Redis) {
 			_, err := client.Mset("key1", "value1", "key2")
