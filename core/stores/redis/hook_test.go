@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net"
 	"strings"
 	"testing"
@@ -15,7 +14,6 @@ import (
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 	ztrace "github.com/zeromicro/go-zero/core/trace"
-	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
 func TestHookProcessCase1(t *testing.T) {
@@ -27,19 +25,15 @@ func TestHookProcessCase1(t *testing.T) {
 	})
 	defer ztrace.StopAgent()
 
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
+	w := logtest.NewCollector(t)
+	hookFunc := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+		return nil
+	})
 
-	ctx, err := durationHook.BeforeProcess(context.Background(), red.NewCmd(context.Background()))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background())))
-	assert.False(t, strings.Contains(buf.String(), "slow"))
-	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
+	err := hookFunc(context.Background(), red.NewCmd(context.Background()))
+	assert.Nil(t, err)
+	str := w.String()
+	assert.False(t, strings.Contains(str, "slow"))
 }
 
 func TestHookProcessCase2(t *testing.T) {
@@ -52,36 +46,17 @@ func TestHookProcessCase2(t *testing.T) {
 	defer ztrace.StopAgent()
 
 	w := logtest.NewCollector(t)
-	ctx, err := durationHook.BeforeProcess(context.Background(), red.NewCmd(context.Background()))
+	hookFunc := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+		time.Sleep(slowThreshold.Load() + time.Millisecond)
+		return nil
+	})
+
+	err := hookFunc(context.Background(), red.NewCmd(context.Background(), "foo", "bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	time.Sleep(slowThreshold.Load() + time.Millisecond)
-
-	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background(), "foo", "bar")))
+	assert.Nil(t, err)
 	assert.True(t, strings.Contains(w.String(), "slow"))
-}
-
-func TestHookProcessCase3(t *testing.T) {
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
-
-	assert.Nil(t, durationHook.AfterProcess(context.Background(), red.NewCmd(context.Background())))
-	assert.True(t, buf.Len() == 0)
-}
-
-func TestHookProcessCase4(t *testing.T) {
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
-
-	ctx := context.WithValue(context.Background(), startTimeKey, "foo")
-	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background())))
-	assert.True(t, buf.Len() == 0)
 }
 
 func TestHookProcessPipelineCase1(t *testing.T) {
@@ -93,23 +68,19 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 	})
 	defer ztrace.StopAgent()
 
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
+	w := logtest.NewCollector(t)
+	hookFunc := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		return nil
+	})
 
-	_, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{})
-	assert.NoError(t, err)
-	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{
+	err := hookFunc(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	})
-	assert.NoError(t, err)
-
-	assert.NoError(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{}))
-	assert.NoError(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
-		red.NewCmd(context.Background()),
-	}))
-	assert.False(t, strings.Contains(buf.String(), "slow"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Nil(t, err)
+	assert.False(t, strings.Contains(w.String(), "slow"))
 }
 
 func TestHookProcessPipelineCase2(t *testing.T) {
@@ -122,49 +93,19 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	defer ztrace.StopAgent()
 
 	w := logtest.NewCollector(t)
-	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{
+	hookFunc := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		time.Sleep(slowThreshold.Load() + time.Millisecond)
+		return nil
+	})
+
+	err := hookFunc(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	})
-	assert.NoError(t, err)
-
-	time.Sleep(slowThreshold.Load() + time.Millisecond)
-
-	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
-		red.NewCmd(context.Background(), "foo", "bar"),
-	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Nil(t, err)
 	assert.True(t, strings.Contains(w.String(), "slow"))
-}
-
-func TestHookProcessPipelineCase3(t *testing.T) {
-	w := logtest.NewCollector(t)
-
-	assert.Nil(t, durationHook.AfterProcessPipeline(context.Background(), []red.Cmder{
-		red.NewCmd(context.Background()),
-	}))
-	assert.True(t, len(w.String()) == 0)
-}
-
-func TestHookProcessPipelineCase4(t *testing.T) {
-	w := logtest.NewCollector(t)
-
-	ctx := context.WithValue(context.Background(), startTimeKey, "foo")
-	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
-		red.NewCmd(context.Background()),
-	}))
-	assert.True(t, len(w.String()) == 0)
-}
-
-func TestHookProcessPipelineCase5(t *testing.T) {
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
-
-	ctx := context.WithValue(context.Background(), startTimeKey, "foo")
-	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
-		red.NewCmd(context.Background()),
-	}))
-	assert.True(t, buf.Len() == 0)
 }
 
 func TestLogDuration(t *testing.T) {
