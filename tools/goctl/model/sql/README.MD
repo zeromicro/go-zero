@@ -379,3 +379,4 @@ OPTIONS:
 | enum           | string          | sql.NullString                         |
 | set            | string          | sql.NullString                         |
 | json           | string          | sql.NullString                         |
+

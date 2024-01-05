@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -622,7 +621,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			return err
 		}
 
-		if fValue > math.MaxFloat32 {
+		if value.OverflowFloat(fValue) {
 			return fmt.Errorf("parsing %q as float32: value out of range", v.String())
 		}
 
