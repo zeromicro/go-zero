@@ -1,5 +1,3 @@
-//go:build !race
-
 package zrpc
 
 import (
