@@ -45,6 +45,7 @@ func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 
 		if duration > slowThreshold.Load() {
 			logDuration(ctx, []red.Cmder{cmd}, duration)
+			metricSlowCount.Inc(cmd.Name())
 		}
 
 		metricReqDur.Observe(duration.Milliseconds(), cmd.Name())

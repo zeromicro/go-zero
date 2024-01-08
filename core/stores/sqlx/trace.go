@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/trace"
 	"go.opentelemetry.io/otel/attribute"
@@ -23,7 +24,7 @@ func startSpan(ctx context.Context, method string) (context.Context, oteltrace.S
 func endSpan(span oteltrace.Span, err error) {
 	defer span.End()
 
-	if err == nil || err == sql.ErrNoRows {
+	if err == nil || errors.Is(err, sql.ErrNoRows) {
 		span.SetStatus(codes.Ok, "")
 		return
 	}

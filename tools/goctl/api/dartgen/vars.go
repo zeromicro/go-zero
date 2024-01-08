@@ -3,23 +3,24 @@ package dartgen
 import "text/template"
 
 var funcMap = template.FuncMap{
-	"getBaseName":                     getBaseName,
-	"getPropertyFromMember":           getPropertyFromMember,
-	"isDirectType":                    isDirectType,
-	"isAtomicType":                    isAtomicType,
-	"isNumberType":                    isNumberType,
-	"isClassListType":                 isClassListType,
-	"isAtomicListType":                isAtomicListType,
-	"isListItemsNullable":             isListItemsNullable,
-	"isNullableType":                  isNullableType,
 	"appendNullCoalescing":            appendNullCoalescing,
 	"appendDefaultEmptyValue":         appendDefaultEmptyValue,
-	"getCoreType":                     getCoreType,
-	"lowCamelCase":                    lowCamelCase,
-	"normalizeHandlerName":            normalizeHandlerName,
-	"hasUrlPathParams":                hasUrlPathParams,
 	"extractPositionalParamsFromPath": extractPositionalParamsFromPath,
+	"getBaseName":                     getBaseName,
+	"getCoreType":                     getCoreType,
+	"getPropertyFromMember":           getPropertyFromMember,
+	"hasUrlPathParams":                hasUrlPathParams,
+	"isAtomicListType":                isAtomicListType,
+	"isAtomicType":                    isAtomicType,
+	"isDirectType":                    isDirectType,
+	"isClassListType":                 isClassListType,
+	"isListItemsNullable":             isListItemsNullable,
+	"isMapType":                       isMapType,
+	"isNullableType":                  isNullableType,
+	"isNumberType":                    isNumberType,
+	"lowCamelCase":                    lowCamelCase,
 	"makeDartRequestUrlPath":          makeDartRequestUrlPath,
+	"normalizeHandlerName":            normalizeHandlerName,
 }
 
 const (
@@ -28,28 +29,32 @@ import 'dart:convert';
 import '../vars/kv.dart';
 import '../vars/vars.dart';
 
-/// 发送POST请求.
+/// Send GET request.
 ///
-/// data:为你要post的结构体，我们会帮你转换成json字符串;
-/// ok函数:请求成功的时候调用，fail函数：请求失败的时候会调用，eventually函数：无论成功失败都会调用
-Future apiPost(String path, dynamic data,
-    {Map<String, String> header,
-    Function(Map<String, dynamic>) ok,
-    Function(String) fail,
-    Function eventually}) async {
-  await _apiRequest('POST', path, data,
-      header: header, ok: ok, fail: fail, eventually: eventually);
-}
-
-/// 发送GET请求.
-///
-/// ok函数:请求成功的时候调用，fail函数：请求失败的时候会调用，eventually函数：无论成功失败都会调用
+/// ok: the function that will be called on success.
+/// fail：the fuction that will be called on failure.
+/// eventually：the function that will be called regardless of success or failure.
 Future apiGet(String path,
     {Map<String, String> header,
     Function(Map<String, dynamic>) ok,
     Function(String) fail,
     Function eventually}) async {
   await _apiRequest('GET', path, null,
+      header: header, ok: ok, fail: fail, eventually: eventually);
+}
+
+/// Send POST request.
+///
+/// data: the data to post, it will be marshaled to json automatically.
+/// ok: the function that will be called on success.
+/// fail：the fuction that will be called on failure.
+/// eventually：the function that will be called regardless of success or failure.
+Future apiPost(String path, dynamic data,
+    {Map<String, String> header,
+    Function(Map<String, dynamic>) ok,
+    Function(String) fail,
+    Function eventually}) async {
+  await _apiRequest('POST', path, data,
       header: header, ok: ok, fail: fail, eventually: eventually);
 }
 
@@ -212,11 +217,11 @@ Future _apiRequest(String method, String path, dynamic data,
 	}`
 
 	tokensFileContent = `class Tokens {
-  /// 用于访问的token, 每次请求都必须带在Header里面
+  /// the token used to access, it must be carried in the header of each request
   final String accessToken;
   final int accessExpire;
 
-  /// 用于刷新token
+  /// the token used to refresh
   final String refreshToken;
   final int refreshExpire;
   final int refreshAfter;
@@ -247,11 +252,11 @@ Future _apiRequest(String method, String path, dynamic data,
 `
 
 	tokensFileContentV2 = `class Tokens {
-  /// 用于访问的token, 每次请求都必须带在Header里面
+  /// the token used to access, it must be carried in the header of each request
   final String accessToken;
   final int accessExpire;
 
-  /// 用于刷新token
+  /// the token used to refresh
   final String refreshToken;
   final int refreshExpire;
   final int refreshAfter;

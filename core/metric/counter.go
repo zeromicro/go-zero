@@ -3,7 +3,6 @@ package metric
 import (
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/zeromicro/go-zero/core/proc"
-	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
 type (
@@ -47,20 +46,16 @@ func NewCounterVec(cfg *CounterVecOpts) CounterVec {
 	return cv
 }
 
-func (cv *promCounterVec) Inc(labels ...string) {
-	if !prometheus.Enabled() {
-		return
-	}
-
-	cv.counter.WithLabelValues(labels...).Inc()
+func (cv *promCounterVec) Add(v float64, labels ...string) {
+	update(func() {
+		cv.counter.WithLabelValues(labels...).Add(v)
+	})
 }
 
-func (cv *promCounterVec) Add(v float64, labels ...string) {
-	if !prometheus.Enabled() {
-		return
-	}
-
-	cv.counter.WithLabelValues(labels...).Add(v)
+func (cv *promCounterVec) Inc(labels ...string) {
+	update(func() {
+		cv.counter.WithLabelValues(labels...).Inc()
+	})
 }
 
 func (cv *promCounterVec) close() bool {

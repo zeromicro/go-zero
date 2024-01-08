@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -19,9 +18,10 @@ import (
 )
 
 const (
-	defaultKeyName = "key"
-	delimiter      = '.'
-	ignoreKey      = "-"
+	defaultKeyName   = "key"
+	delimiter        = '.'
+	ignoreKey        = "-"
+	numberTypeString = "number"
 )
 
 var (
@@ -621,7 +621,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			return err
 		}
 
-		if fValue > math.MaxFloat32 {
+		if value.OverflowFloat(fValue) {
 			return fmt.Errorf("parsing %q as float32: value out of range", v.String())
 		}
 
@@ -634,7 +634,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 
 		target.SetFloat(fValue)
 	default:
-		return newTypeMismatchErrorWithHint(fullName, typeKind.String(), value.Type().String())
+		return newTypeMismatchErrorWithHint(fullName, typeKind.String(), numberTypeString)
 	}
 
 	SetValue(fieldType, value, target)

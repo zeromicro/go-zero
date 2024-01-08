@@ -46,12 +46,12 @@ service Greeter {
 			t.Log(err)
 			return
 		}
-		pbDir, err := findPbFile(output, false)
+		pbDir, err := findPbFile(output, protoFile, false)
 		assert.Nil(t, err)
 		pbGo := filepath.Join(pbDir, "greet.pb.go")
 		assert.True(t, pathx.FileExists(pbGo))
 
-		grpcDir, err := findPbFile(output, true)
+		grpcDir, err := findPbFile(output, protoFile, true)
 		assert.Nil(t, err)
 		grpcGo := filepath.Join(grpcDir, "greet_grpc.pb.go")
 		assert.True(t, pathx.FileExists(grpcGo))
@@ -76,12 +76,12 @@ service Greeter {
 			t.Log(err)
 			return
 		}
-		pbDir, err := findPbFile(output, false)
+		pbDir, err := findPbFile(output, protoFile, false)
 		assert.Nil(t, err)
 		pbGo := filepath.Join(pbDir, "greet.pb.go")
 		assert.True(t, pathx.FileExists(pbGo))
 
-		grpcDir, err := findPbFile(output, true)
+		grpcDir, err := findPbFile(output, protoFile, true)
 		assert.Nil(t, err)
 		grpcGo := filepath.Join(grpcDir, "greet_grpc.pb.go")
 		assert.True(t, pathx.FileExists(grpcGo))
@@ -108,12 +108,12 @@ service Greeter {
 			t.Log(err)
 			return
 		}
-		pbDir, err := findPbFile(output, false)
+		pbDir, err := findPbFile(output, protoFile, false)
 		assert.Nil(t, err)
 		pbGo := filepath.Join(pbDir, "greet.pb.go")
 		assert.True(t, pathx.FileExists(pbGo))
 
-		grpcDir, err := findPbFile(output, true)
+		grpcDir, err := findPbFile(output, protoFile, true)
 		assert.Nil(t, err)
 		grpcGo := filepath.Join(grpcDir, "greet_grpc.pb.go")
 		assert.True(t, pathx.FileExists(grpcGo))
@@ -140,12 +140,12 @@ service Greeter {
 			t.Log(err)
 			return
 		}
-		pbDir, err := findPbFile(output, false)
+		pbDir, err := findPbFile(output, protoFile, false)
 		assert.Nil(t, err)
 		pbGo := filepath.Join(pbDir, "greet.pb.go")
 		assert.True(t, pathx.FileExists(pbGo))
 
-		grpcDir, err := findPbFile(output, true)
+		grpcDir, err := findPbFile(output, protoFile, true)
 		assert.Nil(t, err)
 		grpcGo := filepath.Join(grpcDir, "greet_grpc.pb.go")
 		assert.True(t, pathx.FileExists(grpcGo))
@@ -183,12 +183,12 @@ service Greeter {
 			t.Log(err)
 			return
 		}
-		pbDir, err := findPbFile(output, false)
+		pbDir, err := findPbFile(output, protoFile, false)
 		assert.Nil(t, err)
 		pbGo := filepath.Join(pbDir, "greet.pb.go")
 		assert.True(t, pathx.FileExists(pbGo))
 
-		grpcDir, err := findPbFile(output, true)
+		grpcDir, err := findPbFile(output, protoFile, true)
 		assert.Nil(t, err)
 		grpcGo := filepath.Join(grpcDir, "greet_grpc.pb.go")
 		assert.True(t, pathx.FileExists(grpcGo))

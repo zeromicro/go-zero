@@ -976,6 +976,19 @@ func TestUnmarshalFloat32WithOverflow(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
+	t.Run("float32 from string less than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float, string"`
+		}
+
+		m := map[string]any{
+			"float": "-1.79769313486231570814527423731704356798070e+300", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
 	t.Run("float32 from json.Number greater than float64", func(t *testing.T) {
 		type inner struct {
 			Value float32 `key:"float"`
@@ -996,6 +1009,19 @@ func TestUnmarshalFloat32WithOverflow(t *testing.T) {
 
 		m := map[string]any{
 			"float": json.Number("1.79769313486231570814527423731704356798070e+300"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from json number less than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float"`
+		}
+
+		m := map[string]any{
+			"float": json.Number("-1.79769313486231570814527423731704356798070e+300"), // overflow
 		}
 
 		var in inner
@@ -5490,7 +5516,7 @@ func TestUnmarshalerProcessFieldPrimitiveWithJSONNumber(t *testing.T) {
 		err := m.processFieldPrimitiveWithJSONNumber(fieldType, value.Elem(), v,
 			&fieldOptionsWithContext{}, "field")
 		assert.Error(t, err)
-		assert.Equal(t, `type mismatch for field "field", expect "string", actual "int"`, err.Error())
+		assert.Equal(t, `type mismatch for field "field", expect "string", actual "number"`, err.Error())
 	})
 
 	t.Run("right type", func(t *testing.T) {

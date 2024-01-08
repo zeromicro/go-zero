@@ -69,10 +69,10 @@ func (t *Tree) Add(route string, item any) error {
 	}
 
 	err := add(t.root, route[1:], item)
-	switch err {
-	case errDupItem:
+	switch {
+	case errors.Is(err, errDupItem):
 		return duplicatedItem(route)
-	case errDupSlash:
+	case errors.Is(err, errDupSlash):
 		return duplicatedSlash(route)
 	default:
 		return err
