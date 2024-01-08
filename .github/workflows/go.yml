@@ -37,13 +37,7 @@ jobs:
           fi
 
       - name: Test
-        run: go test -coverprofile=coverage.txt -covermode=atomic ./...
-
-      - name: Test Race
-        run: |
-          # race test ignore packages which impacted by redis v9,
-          # we can remove it after redis v9 fix race issue https://github.com/redis/go-redis/issues/2557
-          go test -race -tags=race $(go list ./... | grep -v -e /core/stores/redis -e /core/stores/sqlc -e /core/stores/monc -e /core/stores/kv -e /core/stores/cache -e /core/bloom -e /core/limit)
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
         uses: codecov/codecov-action@v3
