@@ -88,6 +88,21 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	assert.True(t, strings.Contains(w.String(), "span"))
 }
 
+func TestHookProcessPipelineCase3(t *testing.T) {
+	te := tracetest.NewInMemoryExporter(t)
+
+	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
+		return assert.AnError
+	})(context.Background(), []red.Cmder{
+		red.NewCmd(context.Background()),
+	})
+	assert.ErrorIs(t, err, assert.AnError)
+	traceLogs := te.GetSpans().Snapshots()[0]
+	assert.Equal(t, "redis", traceLogs.Name())
+	assert.Equal(t, assert.AnError.Error(), traceLogs.Events()[0].Attributes[1].Value.AsString(), "trace should record error")
+}
+
 func TestLogDuration(t *testing.T) {
 	w := logtest.NewCollector(t)
 
