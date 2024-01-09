@@ -12,6 +12,11 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
+const (
+	atServerGroupKey  = "group:"
+	atServerPrefixKey = "prefix:"
+)
+
 // API is the parsed api file.
 type API struct {
 	Filename      string
@@ -127,10 +132,13 @@ func (api *API) checkServiceStmt() error {
 		} else {
 			serviceName[name] = name
 		}
-		var group = api.getAtServerValue(v.AtServerStmt, "prefix")
+		var (
+			prefix = api.getAtServerValue(v.AtServerStmt, atServerPrefixKey)
+			group  = api.getAtServerValue(v.AtServerStmt, atServerGroupKey)
+		)
 		for _, item := range v.Routes {
-			handlerChecker.check(item.AtHandler.Name)
-			path := fmt.Sprintf("[%s]:%s", group, item.Route.Format(""))
+			handlerChecker.checkNodeWithPrefix(group, item.AtHandler.Name)
+			path := fmt.Sprintf("[%s]:%s", prefix, item.Route.Format(""))
 			pathChecker.check(ast.NewTokenNode(token.Token{
 				Text:     path,
 				Position: item.Route.Pos(),

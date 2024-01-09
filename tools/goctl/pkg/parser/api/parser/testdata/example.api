@@ -133,6 +133,20 @@ service example {
 }
 
 @server (
+	group:      path2
+	middleware: Path
+	prefix:     /v1/v3
+	timeout:    100ms
+)
+service example {
+	@doc (
+		desc: "path demo"
+	)
+	@handler postPath
+	post /example/path (PostPathReq) returns (PostPathResp)
+}
+
+@server (
 	group:    array
 	prefix:   /array
 	maxBytes: 1024
