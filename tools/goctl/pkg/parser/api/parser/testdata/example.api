@@ -93,6 +93,12 @@ type (
 	NestDemoResp2 {
 *Nest `json:"nest"`
 	}
+	RootReq{
+
+	}
+	RootResp{
+
+	}
 )
 
 @server (
@@ -130,6 +136,9 @@ service example {
 	)
 	@handler postPath
 	post /example/path (PostPathReq) returns (PostPathResp)
+
+	@handler root
+	post / (RootReq) returns (RootResp)
 }
 
 @server (
