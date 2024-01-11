@@ -93,6 +93,12 @@ type (
 	NestDemoResp2 {
 *Nest `json:"nest"`
 	}
+	RootReq{
+
+	}
+	RootResp{
+
+	}
 )
 
 @server (
@@ -122,6 +128,23 @@ service example {
 	group:      path
 	middleware: Path
 	prefix:     /v1/v2
+	timeout:    100ms
+)
+service example {
+	@doc (
+		desc: "path demo"
+	)
+	@handler postPath
+	post /example/path (PostPathReq) returns (PostPathResp)
+
+	@handler root
+	post / (RootReq) returns (RootResp)
+}
+
+@server (
+	group:      path2
+	middleware: Path
+	prefix:     /v1/v3
 	timeout:    100ms
 )
 service example {

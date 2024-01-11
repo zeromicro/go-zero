@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
 )
@@ -17,6 +19,17 @@ func (b *filterBuilder) check(nodes ...*ast.TokenNode) {
 			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
 		} else {
 			b.m[node.Token.Text] = placeholder.PlaceHolder
+		}
+	}
+}
+
+func (b *filterBuilder) checkNodeWithPrefix(prefix string, nodes ...*ast.TokenNode) {
+	for _, node := range nodes {
+		joinText:=fmt.Sprintf("%s/%s",prefix,node.Token.Text)
+		if _, ok := b.m[joinText]; ok {
+			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
+		} else {
+			b.m[joinText] = placeholder.PlaceHolder
 		}
 	}
 }
