@@ -249,6 +249,9 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 
 func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 	baseKind reflect.Kind, value any, fullName string) error {
+	if value == nil {
+		return errUnsupportedType
+	}
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case fmt.Stringer:
