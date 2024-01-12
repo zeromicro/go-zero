@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -650,7 +651,7 @@ func NewScanner(filename string, src interface{}) (*Scanner, error) {
 }
 
 func readData(filename string, src interface{}) ([]byte, error) {
-	if strings.HasSuffix(filename, ".api") {
+	if strings.HasSuffix(filename, ".api") &&pathx.FileExists(filename){
 		data, err := os.ReadFile(filename)
 		if err != nil {
 			return nil, err
