@@ -651,7 +651,7 @@ func NewScanner(filename string, src interface{}) (*Scanner, error) {
 }
 
 func readData(filename string, src interface{}) ([]byte, error) {
-	if strings.HasSuffix(filename, ".api") &&pathx.FileExists(filename){
+	if strings.HasSuffix(filename, ".api") && pathx.FileExists(filename) {
 		data, err := os.ReadFile(filename)
 		if err != nil {
 			return nil, err
