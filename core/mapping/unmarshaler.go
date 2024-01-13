@@ -625,7 +625,12 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			return err
 		}
 
-		if value.OverflowFloat(fValue) {
+		// if value is a pointer, we need to check overflow with the pointer's value.
+		overflowValidator := value
+		if overflowValidator.Type().Kind() == reflect.Ptr {
+			overflowValidator = overflowValidator.Elem()
+		}
+		if overflowValidator.OverflowFloat(fValue) {
 			return fmt.Errorf("parsing %q as float32: value out of range", v.String())
 		}
 

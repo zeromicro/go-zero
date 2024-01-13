@@ -1339,8 +1339,20 @@ func TestUnmarshalNullableSlice(t *testing.T) {
 		"slice": `[null,2]`,
 	}
 
-	ast := assert.New(t)
-	ast.Equal(UnmarshalKey(m, &v), errNilSliceElement)
+	assert.New(t).Equal(UnmarshalKey(m, &v), errNilSliceElement)
+}
+
+func TestUnmarshalWithFloatPtr(t *testing.T) {
+	var v struct {
+		WeightFloat32 *float32 `key:"weightFloat32,optional"`
+	}
+	m := map[string]any{
+		"weightFloat32": json.Number("3.2"),
+	}
+
+	if assert.NoError(t, UnmarshalKey(m, &v)) {
+		assert.Equal(t, float32(3.2), *v.WeightFloat32)
+	}
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
