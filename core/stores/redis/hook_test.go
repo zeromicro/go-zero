@@ -138,7 +138,7 @@ func TestFormatError(t *testing.T) {
 	assert.Equal(t, "context deadline", formatError(context.DeadlineExceeded))
 
 	// Test case: err is breaker.ErrServiceUnavailable
-	assert.Equal(t, "breaker", formatError(breaker.ErrServiceUnavailable))
+	assert.Equal(t, "breaker open", formatError(breaker.ErrServiceUnavailable))
 
 	// Test case: err is unknown
 	assert.Equal(t, "unexpected error", formatError(errors.New("some error")))
