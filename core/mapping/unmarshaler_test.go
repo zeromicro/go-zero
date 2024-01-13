@@ -1329,6 +1329,20 @@ func TestUnmarshalInt64Slice(t *testing.T) {
 	}
 }
 
+func TestUnmarshalNullableSlice(t *testing.T) {
+	var v struct {
+		Ages  []int64 `key:"ages"`
+		Slice []int8  `key:"slice"`
+	}
+	m := map[string]any{
+		"ages":  []int64{1, 2},
+		"slice": `[null,2]`,
+	}
+
+	ast := assert.New(t)
+	ast.Equal(UnmarshalKey(m, &v), errNilSliceElement)
+}
+
 func TestUnmarshalIntSlice(t *testing.T) {
 	var v struct {
 		Ages  []int `key:"ages"`
