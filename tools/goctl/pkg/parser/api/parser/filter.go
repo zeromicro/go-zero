@@ -25,7 +25,7 @@ func (b *filterBuilder) check(nodes ...*ast.TokenNode) {
 
 func (b *filterBuilder) checkNodeWithPrefix(prefix string, nodes ...*ast.TokenNode) {
 	for _, node := range nodes {
-		joinText:=fmt.Sprintf("%s/%s",prefix,node.Token.Text)
+		joinText := fmt.Sprintf("%s/%s", prefix, node.Token.Text)
 		if _, ok := b.m[joinText]; ok {
 			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
 		} else {
