@@ -1340,7 +1340,7 @@ func TestUnmarshalNullableSlice(t *testing.T) {
 	}
 
 	ast := assert.New(t)
-	ast.Equal(UnmarshalKey(m, &v), errUnsupportedType)
+	ast.Equal(UnmarshalKey(m, &v), errNilSliceElement)
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
