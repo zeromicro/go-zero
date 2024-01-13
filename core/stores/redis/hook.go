@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"strings"
@@ -29,7 +30,6 @@ var (
 type hook struct{}
 
 func (h hook) DialHook(next red.DialHook) red.DialHook {
-	// no need to implement
 	return next
 }
 
@@ -84,22 +84,23 @@ func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipel
 }
 
 func formatError(err error) string {
-	if err == nil || err == red.Nil {
+	if err == nil || errors.Is(err, red.Nil) {
 		return ""
 	}
 
-	opErr, ok := err.(*net.OpError)
+	var opErr *net.OpError
+	ok := errors.As(err, &opErr)
 	if ok && opErr.Timeout() {
 		return "timeout"
 	}
 
-	switch err {
-	case io.EOF:
+	switch {
+	case err == io.EOF:
 		return "eof"
-	case context.DeadlineExceeded:
+	case errors.Is(err, context.DeadlineExceeded):
 		return "context deadline"
-	case breaker.ErrServiceUnavailable:
-		return "breaker"
+	case errors.Is(err, breaker.ErrServiceUnavailable):
+		return "breaker open"
 	default:
 		return "unexpected error"
 	}
@@ -140,7 +141,7 @@ func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context
 	return ctx, func(err error) {
 		defer span.End()
 
-		if err == nil || err == red.Nil {
+		if err == nil || errors.Is(err, red.Nil) {
 			span.SetStatus(codes.Ok, "")
 			return
 		}
