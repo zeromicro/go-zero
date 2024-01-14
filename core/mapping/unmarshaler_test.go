@@ -1343,16 +1343,31 @@ func TestUnmarshalNullableSlice(t *testing.T) {
 }
 
 func TestUnmarshalWithFloatPtr(t *testing.T) {
-	var v struct {
-		WeightFloat32 *float32 `key:"weightFloat32,optional"`
-	}
-	m := map[string]any{
-		"weightFloat32": json.Number("3.2"),
-	}
+	t.Run("*float32", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 *float32 `key:"weightFloat32,optional"`
+		}
+		m := map[string]any{
+			"weightFloat32": json.Number("3.2"),
+		}
 
-	if assert.NoError(t, UnmarshalKey(m, &v)) {
-		assert.Equal(t, float32(3.2), *v.WeightFloat32)
-	}
+		if assert.NoError(t, UnmarshalKey(m, &v)) {
+			assert.Equal(t, float32(3.2), *v.WeightFloat32)
+		}
+	})
+
+	t.Run("**float32", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 **float32 `key:"weightFloat32,optional"`
+		}
+		m := map[string]any{
+			"weightFloat32": json.Number("3.2"),
+		}
+
+		if assert.NoError(t, UnmarshalKey(m, &v)) {
+			assert.Equal(t, float32(3.2), **v.WeightFloat32)
+		}
+	})
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
