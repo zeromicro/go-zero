@@ -1,10 +1,12 @@
 module github.com/zeromicro/go-zero
 
-go 1.19
+go 1.21
+
+toolchain go1.21.5
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.1
-	github.com/alicebob/miniredis/v2 v2.31.0
+	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/fatih/color v1.16.0
 	github.com/fullstorydev/grpcurl v1.8.9
 	github.com/go-sql-driver/mysql v1.7.1
@@ -17,7 +19,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/prometheus/client_golang v1.18.0
-	github.com/redis/go-redis/v9 v9.3.1
+	github.com/redis/go-redis/v9 v9.4.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/etcd/api/v3 v3.5.11
@@ -33,8 +35,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.19.0
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/goleak v1.2.1
-	golang.org/x/net v0.19.0
-	golang.org/x/sys v0.15.0
+	golang.org/x/net v0.20.0
+	golang.org/x/sys v0.16.0
 	golang.org/x/time v0.5.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b
 	google.golang.org/grpc v1.60.1
@@ -104,10 +106,10 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect

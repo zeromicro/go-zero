@@ -64,6 +64,8 @@ type (
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
 		red.UniversalClient
+		red.Cmdable
+		red.BitMapCmdable
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.

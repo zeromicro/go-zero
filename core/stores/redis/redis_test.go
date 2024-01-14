@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/redis/go-redis/v9"
+	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -21,52 +21,23 @@ type myHook struct {
 	includePing bool
 }
 
-func (h myHook) DialHook(next redis.DialHook) redis.DialHook {
-	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		return next(ctx, network, addr)
-	}
+var _ red.Hook = myHook{}
+
+func (m myHook) DialHook(next red.DialHook) red.DialHook {
+	return next
 }
 
-func (h myHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
-	return func(ctx context.Context, cmd redis.Cmder) error {
-		ctx, err := h.BeforeProcess(ctx, cmd)
-		if err != nil {
-			return err
-		}
-
-		err = next(ctx, cmd)
-		if err != nil {
-			return err
-		}
-
-		err = h.AfterProcess(ctx, cmd)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
+func (m myHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+	return next
 }
 
-func (m myHook) BeforeProcess(ctx context.Context, cmds redis.Cmder) (context.Context, error) {
-	return ctx, nil
-}
-
-func (m myHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
-	// skip ping cmd
-	if cmd.Name() == "ping" && !m.includePing {
-		return nil
-	}
-	return errors.New("hook error")
-}
-
-func (h myHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
-	return func(ctx context.Context, cmds []redis.Cmder) error {
-		err := next(ctx, cmds)
-		if err != nil {
-			return err
+func (m myHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+	return func(ctx context.Context, cmd red.Cmder) error {
+		// skip ping cmd
+		if cmd.Name() == "ping" && !m.includePing {
+			return next(ctx, cmd)
 		}
-		return nil
+		return errors.New("hook error")
 	}
 }
 

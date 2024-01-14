@@ -3,7 +3,7 @@ module github.com/zeromicro/go-zero/tools/goctl
 go 1.19
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.1
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/emicklei/proto v1.13.0
 	github.com/fatih/structtag v1.2.0
 	github.com/go-sql-driver/mysql v1.7.1

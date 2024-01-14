@@ -13,99 +13,94 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
-	ztrace "github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/core/trace/tracetest"
+	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
 func TestHookProcessCase1(t *testing.T) {
-	ztrace.StartAgent(ztrace.Config{
-		Name:     "go-zero-test",
-		Endpoint: "http://localhost:14268/api/traces",
-		Batcher:  "jaeger",
-		Sampler:  1.0,
-	})
-	defer ztrace.StopAgent()
-
+	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
-	hookFunc := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
-		return nil
-	})
 
-	err := hookFunc(context.Background(), red.NewCmd(context.Background()))
-	assert.Nil(t, err)
-	str := w.String()
-	assert.False(t, strings.Contains(str, "slow"))
+	err := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
+		return nil
+	})(context.Background(), red.NewCmd(context.Background()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.False(t, strings.Contains(w.String(), "slow"))
 }
 
 func TestHookProcessCase2(t *testing.T) {
-	ztrace.StartAgent(ztrace.Config{
-		Name:     "go-zero-test",
-		Endpoint: "http://localhost:14268/api/traces",
-		Batcher:  "jaeger",
-		Sampler:  1.0,
-	})
-	defer ztrace.StopAgent()
-
+	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
-	hookFunc := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+
+	err := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		time.Sleep(slowThreshold.Load() + time.Millisecond)
 		return nil
-	})
-
-	err := hookFunc(context.Background(), red.NewCmd(context.Background(), "foo", "bar"))
+	})(context.Background(), red.NewCmd(context.Background()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Nil(t, err)
+
 	assert.True(t, strings.Contains(w.String(), "slow"))
+	assert.True(t, strings.Contains(w.String(), "trace"))
+	assert.True(t, strings.Contains(w.String(), "span"))
 }
 
 func TestHookProcessPipelineCase1(t *testing.T) {
-	ztrace.StartAgent(ztrace.Config{
-		Name:     "go-zero-test",
-		Endpoint: "http://localhost:14268/api/traces",
-		Batcher:  "jaeger",
-		Sampler:  1.0,
-	})
-	defer ztrace.StopAgent()
-
+	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
-	hookFunc := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
-		return nil
-	})
 
-	err := hookFunc(context.Background(), []red.Cmder{
+	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		return nil
+	})(context.Background(), nil)
+	assert.NoError(t, err)
+
+	err = durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
+		return nil
+	})(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Nil(t, err)
+	assert.NoError(t, err)
+
 	assert.False(t, strings.Contains(w.String(), "slow"))
 }
 
 func TestHookProcessPipelineCase2(t *testing.T) {
-	ztrace.StartAgent(ztrace.Config{
-		Name:     "go-zero-test",
-		Endpoint: "http://localhost:14268/api/traces",
-		Batcher:  "jaeger",
-		Sampler:  1.0,
-	})
-	defer ztrace.StopAgent()
-
+	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
-	hookFunc := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+
+	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		time.Sleep(slowThreshold.Load() + time.Millisecond)
 		return nil
-	})
-
-	err := hookFunc(context.Background(), []red.Cmder{
+	})(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Nil(t, err)
+	assert.NoError(t, err)
+
 	assert.True(t, strings.Contains(w.String(), "slow"))
+	assert.True(t, strings.Contains(w.String(), "trace"))
+	assert.True(t, strings.Contains(w.String(), "span"))
+}
+
+func TestHookProcessPipelineCase3(t *testing.T) {
+	te := tracetest.NewInMemoryExporter(t)
+
+	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
+		return assert.AnError
+	})(context.Background(), []red.Cmder{
+		red.NewCmd(context.Background()),
+	})
+	assert.ErrorIs(t, err, assert.AnError)
+	traceLogs := te.GetSpans().Snapshots()[0]
+	assert.Equal(t, "redis", traceLogs.Name())
+	assert.Equal(t, assert.AnError.Error(), traceLogs.Events()[0].Attributes[1].Value.AsString(), "trace should record error")
 }
 
 func TestLogDuration(t *testing.T) {
@@ -143,7 +138,7 @@ func TestFormatError(t *testing.T) {
 	assert.Equal(t, "context deadline", formatError(context.DeadlineExceeded))
 
 	// Test case: err is breaker.ErrServiceUnavailable
-	assert.Equal(t, "breaker", formatError(breaker.ErrServiceUnavailable))
+	assert.Equal(t, "breaker open", formatError(breaker.ErrServiceUnavailable))
 
 	// Test case: err is unknown
 	assert.Equal(t, "unexpected error", formatError(errors.New("some error")))
