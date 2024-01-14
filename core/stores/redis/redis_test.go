@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"io"
-	"net"
 	"strconv"
 	"testing"
 	"time"
@@ -1685,7 +1684,7 @@ func TestRedis_Ttl(t *testing.T) {
 }
 
 func TestRedisToPairs(t *testing.T) {
-	pairs := toPairs([]redis.Z{
+	pairs := toPairs([]red.Z{
 		{
 			Member: "1",
 			Score:  1,
@@ -1708,7 +1707,7 @@ func TestRedisToPairs(t *testing.T) {
 }
 
 func TestRedisToFloatPairs(t *testing.T) {
-	pairs := toFloatPairs([]redis.Z{
+	pairs := toFloatPairs([]red.Z{
 		{
 			Member: "1",
 			Score:  1,
@@ -1824,9 +1823,9 @@ func TestRedisGeo(t *testing.T) {
 			assert.Equal(t, int64(v3[1].Longitude), int64(15))
 			assert.Equal(t, int64(v3[1].Latitude), int64(37))
 			_, err = New(client.Addr, badType()).GeoRadius("sicily", 15, 37,
-				&redis.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
+				&red.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
 			assert.Error(t, err)
-			v4, err := client.GeoRadius("sicily", 15, 37, &redis.GeoRadiusQuery{
+			v4, err := client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
 				WithDist: true,
 				Unit:     "km", Radius: 200,
 			})
@@ -1840,10 +1839,10 @@ func TestRedisGeo(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, int64(1), v5)
 			_, err = New(client.Addr, badType()).GeoRadiusByMember("sicily", "Agrigento",
-				&redis.GeoRadiusQuery{Unit: "km", Radius: 100})
+				&red.GeoRadiusQuery{Unit: "km", Radius: 100})
 			assert.Error(t, err)
 			v6, err := client.GeoRadiusByMember("sicily", "Agrigento",
-				&redis.GeoRadiusQuery{Unit: "km", Radius: 100})
+				&red.GeoRadiusQuery{Unit: "km", Radius: 100})
 			assert.Nil(t, err)
 			assert.Equal(t, v6[0].Name, "Agrigento")
 			assert.Equal(t, v6[1].Name, "Palermo")
@@ -1862,12 +1861,12 @@ func TestRedisGeo(t *testing.T) {
 			_, err = client.GeoDist("sicily", "Palermo", "Catania", "m")
 			assert.Error(t, err)
 
-			_, err = client.GeoRadius("sicily", 15, 37, &redis.GeoRadiusQuery{
+			_, err = client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
 				WithDist: true,
 			})
 			assert.Error(t, err)
 
-			_, err = client.GeoRadiusByMember("sicily", "Agrigento", &redis.GeoRadiusQuery{
+			_, err = client.GeoRadiusByMember("sicily", "Agrigento", &red.GeoRadiusQuery{
 				Unit: "km",
 			})
 			assert.Error(t, err)
@@ -1963,6 +1962,6 @@ type mockedNode struct {
 	RedisNode
 }
 
-func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *redis.StringSliceCmd {
-	return redis.NewStringSliceCmd(context.Background(), "foo", "bar")
+func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.StringSliceCmd {
+	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
 }

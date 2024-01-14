@@ -2937,13 +2937,20 @@ func getRedis(r *Redis) (RedisNode, error) {
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
 }
-
 func toPairs(vals []red.Z) []Pair {
 	pairs := make([]Pair, len(vals))
 	for i, val := range vals {
-		pairs[i] = Pair{
-			Key:   val.Member,
-			Score: int64(val.Score),
+		switch member := val.Member.(type) {
+		case string:
+			pairs[i] = Pair{
+				Key:   member,
+				Score: int64(val.Score),
+			}
+		default:
+			pairs[i] = Pair{
+				Key:   mapping.Repr(val.Member),
+				Score: int64(val.Score),
+			}
 		}
 	}
 	return pairs
@@ -2953,9 +2960,17 @@ func toFloatPairs(vals []red.Z) []FloatPair {
 	pairs := make([]FloatPair, len(vals))
 
 	for i, val := range vals {
-		pairs[i] = FloatPair{
-			Key:   val.Member,
-			Score: val.Score,
+		switch member := val.Member.(type) {
+		case string:
+			pairs[i] = FloatPair{
+				Key:   member,
+				Score: val.Score,
+			}
+		default:
+			pairs[i] = FloatPair{
+				Key:   mapping.Repr(val.Member),
+				Score: val.Score,
+			}
 		}
 	}
 
