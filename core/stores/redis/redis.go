@@ -63,8 +63,8 @@ type (
 
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
+		red.UniversalClient
 		red.Cmdable
-		red.BitMapCmdable
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -148,6 +148,46 @@ func newRedis(addr string, opts ...Option) *Redis {
 // NewScript returns a new Script instance.
 func NewScript(script string) *Script {
 	return red.NewScript(script)
+}
+
+// Publish is redis publish command implementation
+func (s *Redis) Publish(channel string, message any) (int64, error) {
+	return s.PublishCtx(context.Background(), channel, message)
+}
+
+// PublishCtx is redis publish command implementation.
+func (s *Redis) PublishCtx(ctx context.Context, channel string, message any) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.Publish(ctx, channel, message).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Subscribe is redis subscribe command implementation
+func (s *Redis) Subscribe(channel ...string) (*red.PubSub, error) {
+	return s.SubscribeCtx(context.Background(), channel...)
+}
+
+// SubscribeCtx is redis subscribe command implementation.
+func (s *Redis) SubscribeCtx(ctx context.Context, channel ...string) (val *red.PubSub, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val = conn.Subscribe(ctx, channel...)
+		return err
+	}, acceptable)
+
+	return
 }
 
 // BitCount is redis bitcount command implementation.
@@ -2960,7 +3000,6 @@ func getRedis(r *Redis) (RedisNode, error) {
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
 }
-
 func toPairs(vals []red.Z) []Pair {
 	pairs := make([]Pair, len(vals))
 	for i, val := range vals {

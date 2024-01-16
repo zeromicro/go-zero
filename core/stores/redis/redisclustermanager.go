@@ -18,7 +18,7 @@ var (
 	clusterPoolSize = 5 * runtime.GOMAXPROCS(0)
 )
 
-func getCluster(r *Redis) (*red.ClusterClient, error) {
+func getCluster(r *Redis) (red.UniversalClient, error) {
 	val, err := clusterManager.GetResource(r.Addr, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {

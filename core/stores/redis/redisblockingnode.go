@@ -10,7 +10,7 @@ import (
 // ClosableNode interface represents a closable redis node.
 type ClosableNode interface {
 	RedisNode
-	Close()
+	CloseNode()
 }
 
 // CreateBlockingNode returns a ClosableNode.
@@ -54,13 +54,13 @@ type (
 	}
 )
 
-func (bridge *clientBridge) Close() {
+func (bridge *clientBridge) CloseNode() {
 	if err := bridge.Client.Close(); err != nil {
 		logx.Errorf("Error occurred on close redis client: %s", err)
 	}
 }
 
-func (bridge *clusterBridge) Close() {
+func (bridge *clusterBridge) CloseNode() {
 	if err := bridge.ClusterClient.Close(); err != nil {
 		logx.Errorf("Error occurred on close redis cluster: %s", err)
 	}

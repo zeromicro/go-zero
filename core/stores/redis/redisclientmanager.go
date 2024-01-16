@@ -21,7 +21,7 @@ var (
 	nodePoolSize = 10 * runtime.GOMAXPROCS(0)
 )
 
-func getClient(r *Redis) (*red.Client, error) {
+func getClient(r *Redis) (red.UniversalClient, error) {
 	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {

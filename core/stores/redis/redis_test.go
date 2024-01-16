@@ -152,7 +152,6 @@ func TestNewRedis(t *testing.T) {
 
 func TestRedis_NonBlock(t *testing.T) {
 	logx.Disable()
-
 	t.Run("nonBlock true", func(t *testing.T) {
 		s := miniredis.RunT(t)
 		// use hook to simulate redis ping error
@@ -1740,11 +1739,11 @@ func TestRedis_Ttl(t *testing.T) {
 func TestRedisToPairs(t *testing.T) {
 	pairs := toPairs([]red.Z{
 		{
-			Member: 1,
+			Member: "1",
 			Score:  1,
 		},
 		{
-			Member: 2,
+			Member: "2",
 			Score:  2,
 		},
 	})
@@ -1763,11 +1762,11 @@ func TestRedisToPairs(t *testing.T) {
 func TestRedisToFloatPairs(t *testing.T) {
 	pairs := toFloatPairs([]red.Z{
 		{
-			Member: 1,
+			Member: "1",
 			Score:  1,
 		},
 		{
-			Member: 2,
+			Member: "2",
 			Score:  2,
 		},
 	})
@@ -1941,6 +1940,28 @@ func TestRedis_WithPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := newRedis(client.Addr, WithPass("any")).Ping()
 		assert.NotNil(t, err)
+	})
+}
+
+func TestRedis_Publish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Exists("a")
+		assert.NotNil(t, err)
+		_, err = client.Publish("testchannel", "1")
+		assert.Nil(t, err)
+		_, err = client.Exists("testchannel")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedis_Subscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Exists("a")
+		assert.NotNil(t, err)
+		_, err = client.Subscribe("testchannel")
+		assert.Nil(t, err)
+		_, err = client.Exists("testchannel")
+		assert.Nil(t, err)
 	})
 }
 
