@@ -170,7 +170,7 @@ func (s *Redis) PublishCtx(ctx context.Context, channel string, message any) (va
 	return
 }
 
-// Subscribe is redis subscribe command implementation
+// Subscribe is redis subscribe command implementation.
 func (s *Redis) Subscribe(channel ...string) (*red.PubSub, error) {
 	return s.SubscribeCtx(context.Background(), channel...)
 }
