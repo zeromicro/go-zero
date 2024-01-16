@@ -10,29 +10,34 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 type myHook struct {
-	red.Hook
 	includePing bool
 }
 
 var _ red.Hook = myHook{}
 
-func (m myHook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
-	return ctx, nil
+func (m myHook) DialHook(next red.DialHook) red.DialHook {
+	return next
 }
 
-func (m myHook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
-	// skip ping cmd
-	if cmd.Name() == "ping" && !m.includePing {
-		return nil
+func (m myHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+	return next
+}
+
+func (m myHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+	return func(ctx context.Context, cmd red.Cmder) error {
+		// skip ping cmd
+		if cmd.Name() == "ping" && !m.includePing {
+			return next(ctx, cmd)
+		}
+		return errors.New("hook error")
 	}
-	return errors.New("hook error")
 }
 
 func TestNewRedis(t *testing.T) {
@@ -1609,7 +1614,7 @@ func TestRedis_Pipelined(t *testing.T) {
 			func(pipe Pipeliner) error {
 				pipe.Incr(context.Background(), "pipelined_counter")
 				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
-				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
+				pipe.ZAdd(context.Background(), "zadd", Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)

@@ -524,6 +524,19 @@ func TestParser_Parse_service(t *testing.T) {
 					{
 						AtHandler: &ast.AtHandlerStmt{
 							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "root"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{Value: ast.NewTokenNode(token.Token{
+								Type: token.PATH,
+								Text: "/",
+							})},
+						},
+					},
+					{
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
 							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "bar"}),
 						},
 						Route: &ast.RouteStmt{
@@ -557,6 +570,93 @@ func TestParser_Parse_service(t *testing.T) {
 				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
 				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 				Routes: []*ast.ServiceItemStmt{
+					{
+						AtDoc: &ast.AtDocLiteralStmt{
+							AtDoc: ast.NewTokenNode(token.Token{Type: token.AT_DOC, Text: "@doc"}),
+							Value: ast.NewTokenNode(token.Token{Type: token.STRING, Text: `"bar"`}),
+						},
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "root"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/",
+								}),
+							},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
+					{
+						AtDoc: &ast.AtDocLiteralStmt{
+							AtDoc: ast.NewTokenNode(token.Token{Type: token.AT_DOC, Text: "@doc"}),
+							Value: ast.NewTokenNode(token.Token{Type: token.STRING, Text: `"bar"`}),
+						},
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "root2"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/",
+								}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
+					{
+						AtDoc: &ast.AtDocLiteralStmt{
+							AtDoc: ast.NewTokenNode(token.Token{Type: token.AT_DOC, Text: "@doc"}),
+							Value: ast.NewTokenNode(token.Token{Type: token.STRING, Text: `"bar"`}),
+						},
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "root3"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/",
+								}),
+							},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
 					{
 						AtDoc: &ast.AtDocLiteralStmt{
 							AtDoc: ast.NewTokenNode(token.Token{Type: token.AT_DOC, Text: "@doc"}),

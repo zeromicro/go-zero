@@ -192,7 +192,10 @@ func Test_genPublicModel(t *testing.T) {
 	code, err := g.genModelCustom(*tables[0], false)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(code, "package model"))
-	assert.True(t, strings.Contains(code, "TestUserModel interface {\n\t\ttestUserModel\n\t}\n"))
+	assert.True(t, strings.Contains(code, `	TestUserModel interface {
+		testUserModel
+		withSession(session sqlx.Session) TestUserModel
+	}`))
 	assert.True(t, strings.Contains(code, "customTestUserModel struct {\n\t\t*defaultTestUserModel\n\t}\n"))
 	assert.True(t, strings.Contains(code, "func NewTestUserModel(conn sqlx.SqlConn) TestUserModel {"))
 }
