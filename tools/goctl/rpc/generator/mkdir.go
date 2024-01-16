@@ -1,9 +1,10 @@
 package generator
 
 import (
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"path/filepath"
 	"strings"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -39,6 +40,7 @@ type (
 		GetProtoGo() Dir
 		GetMain() Dir
 		GetServiceName() stringx.String
+		GetPath() stringx.String
 		SetPbDir(pbDir, grpcDir string)
 	}
 
@@ -91,7 +93,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	if !c.Multiple {
 		callDir := filepath.Join(ctx.WorkDir,
 			strings.ToLower(stringx.From(proto.Service[0].Name).ToCamel()))
-		if strings.EqualFold(proto.Service[0].Name, filepath.Base(proto.GoPackage)) {
+		if strings.EqualFold(proto.Service[0].Name, stringx.From(filepath.Base(proto.GoPackage)).ToCamel()) {
 			var err error
 			clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name+"_client")
 			if err != nil {
@@ -264,6 +266,10 @@ func (d *defaultDirContext) GetMain() Dir {
 
 func (d *defaultDirContext) GetServiceName() stringx.String {
 	return d.serviceName
+}
+
+func (d *defaultDirContext) GetPath() stringx.String {
+	return stringx.From(d.ctx.Path)
 }
 
 // Valid returns true if the directory is valid

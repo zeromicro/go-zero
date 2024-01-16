@@ -20,7 +20,7 @@ var handlerTemplate string
 
 type handlerInfo struct {
 	ProjectPkg         string
-	RootPkg            string
+	ServicePkg         string
 	PkgName            string
 	ImportPackages     string
 	ImportHttpxPackage string
@@ -44,7 +44,7 @@ func genHandler(dir, projectPkg, rootPkg string, cfg *config.Config, group spec.
 	}
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		ProjectPkg:     projectPkg,
-		RootPkg:        rootPkg,
+		ServicePkg:     rootPkg,
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,

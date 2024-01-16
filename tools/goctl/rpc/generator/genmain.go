@@ -30,6 +30,9 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 		return err
 	}
 
+	projectPkg := ctx.GetPath().Source()
+	servicePkg := ctx.GetMain().Package
+
 	fileName := filepath.Join(ctx.GetMain().Filename, fmt.Sprintf("%v.go", mainFilename))
 	imports := make([]string, 0)
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
@@ -74,6 +77,8 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 	}
 
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]any{
+		"projectPkg":   projectPkg,
+		"servicePkg":   servicePkg,
 		"serviceName":  etcFileName,
 		"imports":      strings.Join(imports, pathx.NL),
 		"pkg":          proto.PbPackage,

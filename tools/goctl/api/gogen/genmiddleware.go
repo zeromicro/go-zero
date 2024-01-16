@@ -32,7 +32,7 @@ func genMiddleware(dir, projectPkg, rootPkg string, cfg *config.Config, api *spe
 			builtinTemplate: middlewareImplementCode,
 			data: map[string]string{
 				"projectPkg": projectPkg,
-				"rootPkg":    rootPkg,
+				"servicePkg": rootPkg,
 				"name":       strings.Title(name),
 			},
 		})

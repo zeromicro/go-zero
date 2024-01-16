@@ -37,7 +37,7 @@ func genMain(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.ApiS
 		builtinTemplate: mainTemplate,
 		data: map[string]string{
 			"projectPkg":     projectPkg,
-			"rootPkg":        rootPkg,
+			"servicePkg":     rootPkg,
 			"importPackages": genMainImports(rootPkg),
 			"serviceName":    configName,
 		},

@@ -63,7 +63,7 @@ func genTypes(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.Api
 		builtinTemplate: typesTemplate,
 		data: map[string]any{
 			"projectPkg":   projectPkg,
-			"rootPkg":      rootPkg,
+			"servicePkg":   rootPkg,
 			"types":        val,
 			"containsTime": false,
 		},

@@ -45,6 +45,9 @@ func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config
 }
 
 func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+	projectPkg := ctx.GetPath().Source()
+	servicePkg := ctx.GetMain().Package
+
 	dir := ctx.GetCall()
 	head := util.GetHead(proto.Name)
 	for _, service := range proto.Service {
@@ -105,6 +108,8 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 		aliasKeys := alias.KeysStr()
 		sort.Strings(aliasKeys)
 		if err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]any{
+			"projectPkg":     projectPkg,
+			"servicePkg":     servicePkg,
 			"name":           callFilename,
 			"alias":          strings.Join(aliasKeys, pathx.NL),
 			"head":           head,

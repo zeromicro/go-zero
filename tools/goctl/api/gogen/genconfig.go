@@ -58,7 +58,7 @@ func genConfig(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.Ap
 		builtinTemplate: configTemplate,
 		data: map[string]string{
 			"projectPkg": projectPkg,
-			"rootPkg":    rootPkg,
+			"servicePkg": rootPkg,
 			"authImport": authImportStr,
 			"auth":       strings.Join(auths, "\n"),
 			"jwtTrans":   strings.Join(jwtTransList, "\n"),
