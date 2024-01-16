@@ -395,6 +395,21 @@ func TestParsePathWithDot(t *testing.T) {
 	assert.Equal(t, 18, v.Age)
 }
 
+func TestParseWithFloatPtr(t *testing.T) {
+	t.Run("has float32 pointer", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 *float32 `json:"weightFloat32,optional"`
+		}
+		body := `{"weightFloat32": 3.2}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
+
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, float32(3.2), *v.WeightFloat32)
+		}
+	})
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
