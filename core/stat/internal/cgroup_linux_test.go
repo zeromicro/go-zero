@@ -23,6 +23,16 @@ func TestCgroupV1(t *testing.T) {
 		_, err = cg.cpuUsage()
 		assert.Error(t, err)
 	}
+
+	// test cgroup v2
+	cg, err := currentCgroupV2()
+	assert.NoError(t, err)
+	_, err = cg.effectiveCpus()
+	assert.Error(t, err)
+	_, err = cg.cpuQuota()
+	assert.Error(t, err)
+	_, err = cg.cpuUsage()
+	assert.Error(t, err)
 }
 
 func TestParseUint(t *testing.T) {
