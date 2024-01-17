@@ -94,10 +94,10 @@ func cpuQuota() (float64, error) {
 	return cg.cpuQuota()
 }
 
-func cpuUsage() (usage uint64, err error) {
-	var cg cgroup
-	if cg, err = currentCgroup(); err != nil {
-		return
+func cpuUsage() (uint64, error) {
+	cg, err := currentCgroup()
+	if err != nil {
+		return 0, err
 	}
 
 	return cg.cpuUsage()
