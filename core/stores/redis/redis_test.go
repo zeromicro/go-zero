@@ -1944,24 +1944,35 @@ func TestRedis_WithPass(t *testing.T) {
 }
 
 func TestRedis_Publish(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		_, err := New(client.Addr, badType()).Exists("a")
-		assert.NotNil(t, err)
-		_, err = client.Publish("testchannel", "1")
-		assert.Nil(t, err)
-		_, err = client.Exists("testchannel")
-		assert.Nil(t, err)
+	t.Run("publish", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := client.Publish("testchannel", "1")
+			assert.Nil(t, err)
+			_, err = New(client.Addr, badType()).Publish("testchannel", "1")
+			assert.NotNil(t, err)
+			_, err = client.Exists("testchannel")
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("publish error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Publish("testchannel", "1")
+			assert.Error(t, err)
+		})
 	})
 }
 
 func TestRedis_Subscribe(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		_, err := New(client.Addr, badType()).Exists("a")
-		assert.NotNil(t, err)
-		_, err = client.Subscribe("testchannel")
-		assert.Nil(t, err)
-		_, err = client.Exists("testchannel")
-		assert.Nil(t, err)
+	t.Run("subscribe", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := New(client.Addr, badType()).Exists("a")
+			assert.NotNil(t, err)
+			_, err = client.Subscribe("testchannel")
+			assert.Nil(t, err)
+			_, err = New(client.Addr, badType()).Subscribe("testchannel")
+			assert.NotNil(t, err)
+		})
 	})
 }
 
