@@ -15,40 +15,31 @@ const (
 	cpuTicks  = 100
 	cpuFields = 8
 	cpuMax    = 1000
-	statDir   = "/proc/stat"
+	statFile  = "/proc/stat"
 )
 
 var (
 	preSystem uint64
 	preTotal  uint64
-	quota     float64
+	limit     float64
 	cores     uint64
 	initOnce  sync.Once
 )
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func initialize() {
-	cpus, err := cpuSets()
+	cpus, err := effectiveCpus()
 	if err != nil {
 		logx.Error(err)
 		return
 	}
 
-	cores = uint64(len(cpus))
-	quota = float64(len(cpus))
-	cq, err := cpuQuota()
-	if err == nil {
-		if cq != -1 {
-			period, err := cpuPeriod()
-			if err != nil {
-				logx.Error(err)
-				return
-			}
-
-			limit := float64(cq) / float64(period)
-			if limit < quota {
-				quota = limit
-			}
+	cores = uint64(cpus)
+	limit = float64(cpus)
+	quota, err := cpuQuota()
+	if err == nil && quota > 0 {
+		if quota < limit {
+			limit = quota
 		}
 	}
 
@@ -58,7 +49,7 @@ func initialize() {
 		return
 	}
 
-	preTotal, err = totalCpuUsage()
+	preTotal, err = cpuUsage()
 	if err != nil {
 		logx.Error(err)
 		return
@@ -69,7 +60,7 @@ func initialize() {
 func RefreshCpu() uint64 {
 	initOnce.Do(initialize)
 
-	total, err := totalCpuUsage()
+	total, err := cpuUsage()
 	if err != nil {
 		return 0
 	}
@@ -83,7 +74,7 @@ func RefreshCpu() uint64 {
 	cpuDelta := total - preTotal
 	systemDelta := system - preSystem
 	if cpuDelta > 0 && systemDelta > 0 {
-		usage = uint64(float64(cpuDelta*cores*cpuMax) / (float64(systemDelta) * quota))
+		usage = uint64(float64(cpuDelta*cores*cpuMax) / (float64(systemDelta) * limit))
 		if usage > cpuMax {
 			usage = cpuMax
 		}
@@ -94,35 +85,35 @@ func RefreshCpu() uint64 {
 	return usage
 }
 
-func cpuQuota() (int64, error) {
+func cpuQuota() (float64, error) {
 	cg, err := currentCgroup()
 	if err != nil {
 		return 0, err
 	}
 
-	return cg.cpuQuotaUs()
+	return cg.cpuQuota()
 }
 
-func cpuPeriod() (uint64, error) {
+func cpuUsage() (uint64, error) {
 	cg, err := currentCgroup()
 	if err != nil {
 		return 0, err
 	}
 
-	return cg.cpuPeriodUs()
+	return cg.cpuUsage()
 }
 
-func cpuSets() ([]uint64, error) {
+func effectiveCpus() (int, error) {
 	cg, err := currentCgroup()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return cg.cpus()
+	return cg.effectiveCpus()
 }
 
 func systemCpuUsage() (uint64, error) {
-	lines, err := iox.ReadTextLines(statDir, iox.WithoutBlank())
+	lines, err := iox.ReadTextLines(statFile, iox.WithoutBlank())
 	if err != nil {
 		return 0, err
 	}
@@ -149,13 +140,4 @@ func systemCpuUsage() (uint64, error) {
 	}
 
 	return 0, errors.New("bad stats format")
-}
-
-func totalCpuUsage() (usage uint64, err error) {
-	var cg cgroup
-	if cg, err = currentCgroup(); err != nil {
-		return
-	}
-
-	return cg.usageAllCpus()
 }
