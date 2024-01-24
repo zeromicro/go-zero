@@ -68,7 +68,6 @@ func TestKeepPromise_keep(t *testing.T) {
 
 func TestNewCollection(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 	mt.Run("test", func(mt *mtest.T) {
 		coll := mt.Coll
 		assert.NotNil(t, coll)
@@ -79,7 +78,6 @@ func TestNewCollection(t *testing.T) {
 
 func TestCollection_Aggregate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 	mt.Run("test", func(mt *mtest.T) {
 		coll := mt.Coll
 		assert.NotNil(t, coll)
@@ -96,8 +94,6 @@ func TestCollection_Aggregate(t *testing.T) {
 
 func TestCollection_BulkWrite(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -119,8 +115,6 @@ func TestCollection_BulkWrite(t *testing.T) {
 
 func TestCollection_CountDocuments(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -145,8 +139,6 @@ func TestCollection_CountDocuments(t *testing.T) {
 
 func TestDecoratedCollection_DeleteMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -165,8 +157,6 @@ func TestDecoratedCollection_DeleteMany(t *testing.T) {
 
 func TestCollection_Distinct(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -185,8 +175,6 @@ func TestCollection_Distinct(t *testing.T) {
 
 func TestCollection_EstimatedDocumentCount(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -205,8 +193,6 @@ func TestCollection_EstimatedDocumentCount(t *testing.T) {
 
 func TestCollection_Find(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -253,8 +239,6 @@ func TestCollection_Find(t *testing.T) {
 
 func TestCollection_FindOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -297,8 +281,6 @@ func TestCollection_FindOne(t *testing.T) {
 
 func TestCollection_FindOneAndDelete(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -328,8 +310,6 @@ func TestCollection_FindOneAndDelete(t *testing.T) {
 
 func TestCollection_FindOneAndReplace(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -360,8 +340,6 @@ func TestCollection_FindOneAndReplace(t *testing.T) {
 
 func TestCollection_FindOneAndUpdate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -393,8 +371,6 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 
 func TestCollection_InsertOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -413,8 +389,6 @@ func TestCollection_InsertOne(t *testing.T) {
 
 func TestCollection_InsertMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -437,8 +411,6 @@ func TestCollection_InsertMany(t *testing.T) {
 
 func TestCollection_DeleteOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -457,8 +429,6 @@ func TestCollection_DeleteOne(t *testing.T) {
 
 func TestCollection_DeleteMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -477,8 +447,6 @@ func TestCollection_DeleteMany(t *testing.T) {
 
 func TestCollection_ReplaceOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -500,8 +468,6 @@ func TestCollection_ReplaceOne(t *testing.T) {
 
 func TestCollection_UpdateOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -522,8 +488,6 @@ func TestCollection_UpdateOne(t *testing.T) {
 
 func TestCollection_UpdateByID(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -544,8 +508,6 @@ func TestCollection_UpdateByID(t *testing.T) {
 
 func TestCollection_UpdateMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -566,7 +528,6 @@ func TestCollection_UpdateMany(t *testing.T) {
 
 func TestDecoratedCollection_LogDuration(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 	c := decoratedCollection{
 		Collection: mt.Coll,
 		brk:        breaker.NewBreaker(),

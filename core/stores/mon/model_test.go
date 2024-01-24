@@ -12,8 +12,6 @@ import (
 
 func TestModel_StartSession(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		sess, err := m.StartSession()
@@ -34,8 +32,6 @@ func TestModel_StartSession(t *testing.T) {
 
 func TestModel_Aggregate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		find := mtest.CreateCursorResponse(
@@ -71,8 +67,6 @@ func TestModel_Aggregate(t *testing.T) {
 
 func TestModel_DeleteMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
@@ -88,8 +82,6 @@ func TestModel_DeleteMany(t *testing.T) {
 
 func TestModel_DeleteOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
@@ -105,8 +97,6 @@ func TestModel_DeleteOne(t *testing.T) {
 
 func TestModel_Find(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		find := mtest.CreateCursorResponse(
@@ -142,8 +132,6 @@ func TestModel_Find(t *testing.T) {
 
 func TestModel_FindOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		find := mtest.CreateCursorResponse(
@@ -170,8 +158,6 @@ func TestModel_FindOne(t *testing.T) {
 
 func TestModel_FindOneAndDelete(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
@@ -189,8 +175,6 @@ func TestModel_FindOneAndDelete(t *testing.T) {
 
 func TestModel_FindOneAndReplace(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
@@ -212,8 +196,6 @@ func TestModel_FindOneAndReplace(t *testing.T) {
 
 func TestModel_FindOneAndUpdate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{

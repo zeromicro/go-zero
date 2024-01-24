@@ -11,8 +11,6 @@ import (
 
 func TestBulkInserter(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "ok", Value: 1}}...))
 		bulk, err := NewBulkInserter(createModel(mt).Collection)

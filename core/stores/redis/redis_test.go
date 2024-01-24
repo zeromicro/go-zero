@@ -10,29 +10,34 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 type myHook struct {
-	red.Hook
 	includePing bool
 }
 
 var _ red.Hook = myHook{}
 
-func (m myHook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
-	return ctx, nil
+func (m myHook) DialHook(next red.DialHook) red.DialHook {
+	return next
 }
 
-func (m myHook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
-	// skip ping cmd
-	if cmd.Name() == "ping" && !m.includePing {
-		return nil
+func (m myHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+	return next
+}
+
+func (m myHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+	return func(ctx context.Context, cmd red.Cmder) error {
+		// skip ping cmd
+		if cmd.Name() == "ping" && !m.includePing {
+			return next(ctx, cmd)
+		}
+		return errors.New("hook error")
 	}
-	return errors.New("hook error")
 }
 
 func TestNewRedis(t *testing.T) {
@@ -221,6 +226,36 @@ func TestRedisTLS_Exists(t *testing.T) {
 		ok, err = client.Exists("a")
 		assert.NotNil(t, err)
 		assert.False(t, ok)
+	})
+}
+
+func TestRedis_ExistsMany(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		// Attempt to create a new Redis instance with an incorrect type and call ExistsMany
+		_, err := New(client.Addr, badType()).ExistsMany("key1", "key2")
+		assert.NotNil(t, err)
+
+		// Check if key1 and key2 exist, expecting that they do not
+		val, err := client.ExistsMany("key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(0), val)
+
+		// Set the value for key1 and check if key1 exists
+		assert.Nil(t, client.Set("key1", "value1"))
+		val, err = client.ExistsMany("key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+
+		// Set the value for key2 and check if key1 and key2 exist
+		assert.Nil(t, client.Set("key2", "value2"))
+		val, err = client.ExistsMany("key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(2), val)
+
+		// Check if key1, key2, and a non-existent key3 exist, expecting that key1 and key2 do
+		val, err = client.ExistsMany("key1", "key2", "key3")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(2), val)
 	})
 }
 
@@ -1579,7 +1614,7 @@ func TestRedis_Pipelined(t *testing.T) {
 			func(pipe Pipeliner) error {
 				pipe.Incr(context.Background(), "pipelined_counter")
 				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
-				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
+				pipe.ZAdd(context.Background(), "zadd", Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)

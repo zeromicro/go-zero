@@ -136,7 +136,7 @@ func (as *adaptiveShedder) addFlying(delta int64) {
 	// update avgFlying when the request is finished.
 	// this strategy makes avgFlying have a little bit lag against flying, and smoother.
 	// when the flying requests increase rapidly, avgFlying increase slower, accept more requests.
-	// when the flying requests drop rapidly, avgFlying drop slower, accept less requests.
+	// when the flying requests drop rapidly, avgFlying drop slower, accept fewer requests.
 	// it makes the service to serve as more requests as possible.
 	if delta < 0 {
 		as.avgFlyingLock.Lock()

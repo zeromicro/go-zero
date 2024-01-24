@@ -976,6 +976,19 @@ func TestUnmarshalFloat32WithOverflow(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
+	t.Run("float32 from string less than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float, string"`
+		}
+
+		m := map[string]any{
+			"float": "-1.79769313486231570814527423731704356798070e+300", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
 	t.Run("float32 from json.Number greater than float64", func(t *testing.T) {
 		type inner struct {
 			Value float32 `key:"float"`
@@ -996,6 +1009,19 @@ func TestUnmarshalFloat32WithOverflow(t *testing.T) {
 
 		m := map[string]any{
 			"float": json.Number("1.79769313486231570814527423731704356798070e+300"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from json number less than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float"`
+		}
+
+		m := map[string]any{
+			"float": json.Number("-1.79769313486231570814527423731704356798070e+300"), // overflow
 		}
 
 		var in inner
@@ -1301,6 +1327,47 @@ func TestUnmarshalInt64Slice(t *testing.T) {
 		ast.ElementsMatch([]int64{1, 2}, v.Ages)
 		ast.Equal([]int64{}, v.Slice)
 	}
+}
+
+func TestUnmarshalNullableSlice(t *testing.T) {
+	var v struct {
+		Ages  []int64 `key:"ages"`
+		Slice []int8  `key:"slice"`
+	}
+	m := map[string]any{
+		"ages":  []int64{1, 2},
+		"slice": `[null,2]`,
+	}
+
+	assert.New(t).Equal(UnmarshalKey(m, &v), errNilSliceElement)
+}
+
+func TestUnmarshalWithFloatPtr(t *testing.T) {
+	t.Run("*float32", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 *float32 `key:"weightFloat32,optional"`
+		}
+		m := map[string]any{
+			"weightFloat32": json.Number("3.2"),
+		}
+
+		if assert.NoError(t, UnmarshalKey(m, &v)) {
+			assert.Equal(t, float32(3.2), *v.WeightFloat32)
+		}
+	})
+
+	t.Run("**float32", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 **float32 `key:"weightFloat32,optional"`
+		}
+		m := map[string]any{
+			"weightFloat32": json.Number("3.2"),
+		}
+
+		if assert.NoError(t, UnmarshalKey(m, &v)) {
+			assert.Equal(t, float32(3.2), **v.WeightFloat32)
+		}
+	})
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {

@@ -3,8 +3,8 @@ package redis
 import (
 	"sync"
 
-	red "github.com/go-redis/redis/v8"
 	"github.com/prometheus/client_golang/prometheus"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/metric"
 )
 
