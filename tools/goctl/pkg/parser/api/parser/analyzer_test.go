@@ -43,7 +43,7 @@ func Test_Parse(t *testing.T) {
 		assertx.Error(t, err)
 	})
 	t.Run("link_import", func(t *testing.T) {
-		_, err := Parse("./testdata/example2.api", nil)
+		_, err := Parse("./testdata/link_import.api", nil)
 		assert.Nil(t, err)
 	})
 }
