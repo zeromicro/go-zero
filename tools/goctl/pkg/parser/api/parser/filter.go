@@ -8,6 +8,7 @@ import (
 )
 
 type filterBuilder struct {
+	filename      string
 	m             map[string]placeholder.Type
 	checkExprName string
 	errorManager  *errorManager
@@ -15,10 +16,11 @@ type filterBuilder struct {
 
 func (b *filterBuilder) check(nodes ...*ast.TokenNode) {
 	for _, node := range nodes {
-		if _, ok := b.m[node.Token.Text]; ok {
+		fileNodeText := fmt.Sprintf("%s/%s", b.filename, node.Token.Text)
+		if _, ok := b.m[fileNodeText]; ok {
 			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
 		} else {
-			b.m[node.Token.Text] = placeholder.PlaceHolder
+			b.m[fileNodeText] = placeholder.PlaceHolder
 		}
 	}
 }
@@ -46,8 +48,9 @@ func newFilter() *filter {
 	return &filter{}
 }
 
-func (f *filter) addCheckItem(checkExprName string) *filterBuilder {
+func (f *filter) addCheckItem(filename, checkExprName string) *filterBuilder {
 	b := &filterBuilder{
+		filename:      filename,
 		m:             make(map[string]placeholder.Type),
 		checkExprName: checkExprName,
 		errorManager:  newErrorManager(),

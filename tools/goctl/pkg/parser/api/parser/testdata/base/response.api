@@ -1,0 +1,11 @@
+syntax = "v1"
+
+import "request.api"
+// 结构体组
+type Bar {
+    Foo int `json:"foo"`
+    Bar bool `json:"bar"`
+    Baz
+    Qux map[string]string `json:"qux"`
+}
+

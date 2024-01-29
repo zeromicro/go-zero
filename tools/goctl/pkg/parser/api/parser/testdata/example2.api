@@ -1,0 +1,13 @@
+syntax = "v1"
+
+import "base/request.api"
+import "base/response.api"
+
+// 空结构体
+type Foo {}
+
+service demo {
+    @handler handlerName
+    get /users/id/:userId (Baz) returns (Bar)
+}
+
