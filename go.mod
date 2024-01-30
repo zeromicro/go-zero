@@ -13,7 +13,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.2
-	github.com/jhump/protoreflect v1.15.5
+	github.com/jhump/protoreflect v1.15.6
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/prometheus/client_golang v1.18.0
