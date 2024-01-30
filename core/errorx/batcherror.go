@@ -1,6 +1,9 @@
 package errorx
 
-import "bytes"
+import (
+	"bytes"
+	"errors"
+)
 
 type (
 	// A BatchError is an error that can hold multiple errors.
@@ -49,4 +52,8 @@ func (ea errorArray) Error() string {
 	}
 
 	return buf.String()
+}
+
+func (ea errorArray) Unwrap() error {
+	return errors.Join(ea...)
 }
