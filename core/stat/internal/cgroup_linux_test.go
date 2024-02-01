@@ -32,7 +32,7 @@ func TestCgroups(t *testing.T) {
 		_, err = cg.effectiveCpus()
 		assert.NoError(t, err)
 		_, err = cg.cpuQuota()
-		assert.NoError(t, err)
+		assert.Error(t, err)
 		_, err = cg.cpuUsage()
 		assert.NoError(t, err)
 	}
