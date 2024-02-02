@@ -410,6 +410,18 @@ func TestParseWithFloatPtr(t *testing.T) {
 	})
 }
 
+func TestParseWithEscapedParams(t *testing.T) {
+	t.Run("escaped", func(t *testing.T) {
+		var v struct {
+			Dev string `form:"dev"`
+		}
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/api/v2/dev/test?dev=se205%5fy1205%5fj109%26verRelease=v01%26iid1=863494061186673%26iid2=863494061186681%26mcc=636%26mnc=1", http.NoBody)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, "se205_y1205_j109&verRelease=v01&iid1=863494061186673&iid2=863494061186681&mcc=636&mnc=1", v.Dev)
+		}
+	})
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
