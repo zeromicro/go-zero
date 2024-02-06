@@ -39,7 +39,7 @@ func TestTaskRunner_ScheduleImmediately(t *testing.T) {
 		if i < cpus {
 			assert.Nil(t, err)
 		} else {
-			assert.NotNil(t, err)
+			assert.ErrorIs(t, err, ErrTaskRunnerBusy)
 		}
 	}
 
