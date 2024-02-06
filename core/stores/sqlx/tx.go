@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	beginnable func(*sql.DB) (trans, error)
+	beginnable func(ctx context.Context, logOpt logOption, db *sql.DB) (trans, error)
 
 	trans interface {
 		Session
@@ -21,6 +21,7 @@ type (
 
 	txSession struct {
 		*sql.Tx
+		logOpt logOption
 	}
 )
 
@@ -52,7 +53,7 @@ func (t txSession) ExecCtx(ctx context.Context, q string, args ...any) (result s
 		endSpan(span, err)
 	}()
 
-	result, err = exec(ctx, t.Tx, q, args...)
+	result, err = exec(ctx, t.logOpt, t.Tx, q, args...)
 
 	return
 }
@@ -67,14 +68,19 @@ func (t txSession) PrepareCtx(ctx context.Context, q string) (stmtSession StmtSe
 		endSpan(span, err)
 	}()
 
+	guard := newGuard(t.logOpt, "prepare")
+	_ = guard.start(q)
+
 	stmt, err := t.Tx.PrepareContext(ctx, q)
+	guard.finish(ctx, err)
 	if err != nil {
 		return nil, err
 	}
 
 	return statement{
-		query: q,
-		stmt:  stmt,
+		query:     q,
+		stmt:      stmt,
+		logOption: t.logOpt,
 	}, nil
 }
 
@@ -88,7 +94,7 @@ func (t txSession) QueryRowCtx(ctx context.Context, v any, q string, args ...any
 		endSpan(span, err)
 	}()
 
-	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.logOpt, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
 }
@@ -104,7 +110,7 @@ func (t txSession) QueryRowPartialCtx(ctx context.Context, v any, q string,
 		endSpan(span, err)
 	}()
 
-	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.logOpt, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
 }
@@ -119,7 +125,7 @@ func (t txSession) QueryRowsCtx(ctx context.Context, v any, q string, args ...an
 		endSpan(span, err)
 	}()
 
-	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.logOpt, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
 }
@@ -135,23 +141,66 @@ func (t txSession) QueryRowsPartialCtx(ctx context.Context, v any, q string,
 		endSpan(span, err)
 	}()
 
-	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.logOpt, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
 }
 
-func begin(db *sql.DB) (trans, error) {
-	tx, err := db.Begin()
+func commit(ctx context.Context, logOpt logOption, tx trans) (err error) {
+	ctx, span := startSpan(ctx, "Commit")
+	defer func() {
+		endSpan(span, err)
+	}()
+
+	guard := newGuard(logOpt, "transact")
+	_ = guard.start("COMMIT")
+
+	err = tx.Commit()
+	guard.finish(ctx, err)
+
+	return
+}
+
+func rollback(ctx context.Context, logOpt logOption, tx trans) (err error) {
+	ctx, span := startSpan(ctx, "Rollback")
+	defer func() {
+		endSpan(span, err)
+	}()
+
+	guard := newGuard(logOpt, "transact")
+	_ = guard.start("ROLLBACK")
+
+	err = tx.Rollback()
+	guard.finish(ctx, err)
+
+	return
+}
+
+func begin(ctx context.Context, logOpt logOption, db *sql.DB) (t trans, err error) {
+	ctx, span := startSpan(ctx, "Begin")
+	defer func() {
+		endSpan(span, err)
+	}()
+
+	guard := newGuard(logOpt, "transact")
+	_ = guard.start("BEGIN")
+
+	var tx *sql.Tx
+	tx, err = db.Begin()
+
+	guard.finish(ctx, err)
+
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	return txSession{
-		Tx: tx,
+		Tx:     tx,
+		logOpt: logOpt,
 	}, nil
 }
 
-func transact(ctx context.Context, db *commonSqlConn, b beginnable,
+func transact(ctx context.Context, logOpt logOption, db *commonSqlConn, b beginnable,
 	fn func(context.Context, Session) error) (err error) {
 	conn, err := db.connProv()
 	if err != nil {
@@ -159,30 +208,30 @@ func transact(ctx context.Context, db *commonSqlConn, b beginnable,
 		return err
 	}
 
-	return transactOnConn(ctx, conn, b, fn)
+	return transactOnConn(ctx, logOpt, conn, b, fn)
 }
 
-func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
+func transactOnConn(ctx context.Context, logOpt logOption, conn *sql.DB, b beginnable,
 	fn func(context.Context, Session) error) (err error) {
 	var tx trans
-	tx, err = b(conn)
+	tx, err = b(ctx, logOpt, conn)
 	if err != nil {
 		return
 	}
 
 	defer func() {
 		if p := recover(); p != nil {
-			if e := tx.Rollback(); e != nil {
+			if e := rollback(ctx, logOpt, tx); e != nil {
 				err = fmt.Errorf("recover from %#v, rollback failed: %w", p, e)
 			} else {
 				err = fmt.Errorf("recover from %#v", p)
 			}
 		} else if err != nil {
-			if e := tx.Rollback(); e != nil {
+			if e := rollback(ctx, logOpt, tx); e != nil {
 				err = fmt.Errorf("transaction failed: %s, rollback failed: %w", err, e)
 			}
 		} else {
-			err = tx.Commit()
+			err = commit(ctx, logOpt, tx)
 		}
 	}()
 

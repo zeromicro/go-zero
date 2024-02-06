@@ -57,15 +57,21 @@ type (
 		QueryRowsPartialCtx(ctx context.Context, v any, args ...any) error
 	}
 
+	logOption struct {
+		EnableStatement nullBool
+		EnableSlow      nullBool
+	}
+
 	// thread-safe
 	// Because CORBA doesn't support PREPARE, so we need to combine the
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
-		connProv connProvider
-		onError  func(context.Context, error)
-		beginTx  beginnable
-		brk      breaker.Breaker
-		accept   func(error) bool
+		connProv  connProvider
+		onError   func(context.Context, error)
+		beginTx   beginnable
+		brk       breaker.Breaker
+		accept    func(error) bool
+		logOption logOption
 	}
 
 	connProvider func() (*sql.DB, error)
@@ -78,8 +84,9 @@ type (
 	}
 
 	statement struct {
-		query string
-		stmt  *sql.Stmt
+		query     string
+		stmt      *sql.Stmt
+		logOption logOption
 	}
 
 	stmtConn interface {
@@ -155,7 +162,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 			return err
 		}
 
-		result, err = exec(ctx, conn, q, args...)
+		result, err = exec(ctx, db.logOption, conn, q, args...)
 		return err
 	}, db.acceptable)
 	if errors.Is(err, breaker.ErrServiceUnavailable) {
@@ -183,14 +190,19 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 			return err
 		}
 
+		guard := newGuard(db.logOption, "prepare")
+		_ = guard.start(query)
+
 		st, err := conn.PrepareContext(ctx, query)
+		guard.finish(ctx, err)
 		if err != nil {
 			return err
 		}
 
 		stmt = statement{
-			query: query,
-			stmt:  st,
+			query:     query,
+			stmt:      st,
+			logOption: db.logOption,
 		}
 		return nil
 	}, db.acceptable)
@@ -282,7 +294,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 	}()
 
 	err = db.brk.DoWithAcceptable(func() error {
-		return transact(ctx, db, db.beginTx, fn)
+		return transact(ctx, db.logOption, db, db.beginTx, fn)
 	}, db.acceptable)
 	if errors.Is(err, breaker.ErrServiceUnavailable) {
 		metricReqErr.Inc("Transact", "breaker")
@@ -319,7 +331,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 			return err
 		}
 
-		return query(ctx, conn, func(rows *sql.Rows) error {
+		return query(ctx, db.logOption, conn, func(rows *sql.Rows) error {
 			qerr = scanner(rows)
 			return qerr
 		}, q, args...)
@@ -347,7 +359,7 @@ func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result,
 		endSpan(span, err)
 	}()
 
-	return execStmt(ctx, s.stmt, s.query, args...)
+	return execStmt(ctx, s.logOption, s.stmt, s.query, args...)
 }
 
 func (s statement) QueryRow(v any, args ...any) error {
@@ -360,7 +372,7 @@ func (s statement) QueryRowCtx(ctx context.Context, v any, args ...any) (err err
 		endSpan(span, err)
 	}()
 
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, s.query, args...)
 }
@@ -375,7 +387,7 @@ func (s statement) QueryRowPartialCtx(ctx context.Context, v any, args ...any) (
 		endSpan(span, err)
 	}()
 
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, s.query, args...)
 }
@@ -390,7 +402,7 @@ func (s statement) QueryRowsCtx(ctx context.Context, v any, args ...any) (err er
 		endSpan(span, err)
 	}()
 
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, s.query, args...)
 }
@@ -405,7 +417,7 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 		endSpan(span, err)
 	}()
 
-	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.logOption, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
 }
@@ -415,5 +427,25 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 func WithAcceptable(acceptable func(err error) bool) SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.accept = acceptable
+	}
+}
+
+// WithStatementLog returns a SqlOption to set whether to output SQL statements in the log.
+func WithStatementLog(enable bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.logOption.EnableStatement = nullBool{
+			value: enable,
+			valid: true,
+		}
+	}
+}
+
+// WithSlowLog returns a SqlOption to set whether to output slow SQL statements in the log.
+func WithSlowLog(enable bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.logOption.EnableSlow = nullBool{
+			value: enable,
+			valid: true,
+		}
 	}
 }

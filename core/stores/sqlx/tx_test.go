@@ -80,24 +80,23 @@ func (mt *mockTx) Rollback() error {
 }
 
 func beginMock(mock *mockTx) beginnable {
-	return func(*sql.DB) (trans, error) {
+	return func(context.Context, logOption, *sql.DB) (trans, error) {
 		return mock, nil
 	}
 }
 
 func TestTransactCommit(t *testing.T) {
 	mock := &mockTx{}
-	err := transactOnConn(context.Background(), nil, beginMock(mock),
-		func(context.Context, Session) error {
-			return nil
-		})
+	err := transactOnConn(context.Background(), logOption{}, nil, beginMock(mock), func(context.Context, Session) error {
+		return nil
+	})
 	assert.Equal(t, mockCommit, mock.status)
 	assert.Nil(t, err)
 }
 
 func TestTransactRollback(t *testing.T) {
 	mock := &mockTx{}
-	err := transactOnConn(context.Background(), nil, beginMock(mock),
+	err := transactOnConn(context.Background(), logOption{}, nil, beginMock(mock),
 		func(context.Context, Session) error {
 			return errors.New("rollback")
 		})
