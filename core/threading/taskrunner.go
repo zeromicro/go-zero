@@ -8,6 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/core/rescue"
 )
 
+// ErrTaskRunnerBusy is the error that indicates the runner is busy.
 var ErrTaskRunnerBusy = errors.New("task runner is busy")
 
 // A TaskRunner is used to control the concurrency of goroutines.
