@@ -79,6 +79,7 @@ func (b *googleBreaker) doReq(req func() error, fallback func(err error) error, 
 	}()
 
 	err := req()
+	// mark req() finished without panic
 	done = true
 	if acceptable(err) {
 		b.markSuccess()
