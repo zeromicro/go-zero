@@ -60,7 +60,7 @@ func (b *googleBreaker) allow() (internalPromise, error) {
 	}, nil
 }
 
-func (b *googleBreaker) doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error {
+func (b *googleBreaker) doReq(req func() error, fallback Fallback, acceptable Acceptable) error {
 	if err := b.accept(); err != nil {
 		b.markFailure()
 		if fallback != nil {
