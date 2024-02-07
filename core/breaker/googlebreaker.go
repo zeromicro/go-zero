@@ -61,27 +61,25 @@ func (b *googleBreaker) allow() (internalPromise, error) {
 }
 
 func (b *googleBreaker) doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error {
-	defer func() {
-		if e := recover(); e != nil {
-			b.markFailure()
-			panic(e)
-		}
-	}()
-
 	if err := b.accept(); err != nil {
+		b.markFailure()
 		if fallback != nil {
-			e := fallback(err)
-			// fallback may return nil, but we still need to call markFailure to count requests.
-			// fallback might panic, in this case, markFailure will be called in defer.
-			b.markFailure()
-			return e
+			return fallback(err)
 		}
 
-		b.markFailure()
 		return err
 	}
 
+	var done bool
+	defer func() {
+		// if req() panic, we need to mark it as failure
+		if !done {
+			b.markFailure()
+		}
+	}()
+
 	err := req()
+	done = true
 	if acceptable(err) {
 		b.markSuccess()
 	} else {
