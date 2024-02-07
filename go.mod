@@ -34,7 +34,7 @@ require (
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/goleak v1.2.1
 	golang.org/x/net v0.20.0
-	golang.org/x/sys v0.16.0
+	golang.org/x/sys v0.17.0
 	golang.org/x/time v0.5.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17
 	google.golang.org/grpc v1.61.0
