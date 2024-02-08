@@ -70,21 +70,19 @@ func (b *googleBreaker) doReq(req func() error, fallback Fallback, acceptable Ac
 		return err
 	}
 
-	var done bool
+	var success bool
 	defer func() {
-		// if req() panic, we need to mark it as failure
-		if !done {
+		// if req() panic, success is false, mark as failure
+		if success {
+			b.markSuccess()
+		} else {
 			b.markFailure()
 		}
 	}()
 
 	err := req()
-	// mark req() finished without panic
-	done = true
 	if acceptable(err) {
-		b.markSuccess()
-	} else {
-		b.markFailure()
+		success = true
 	}
 
 	return err
