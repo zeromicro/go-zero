@@ -118,7 +118,7 @@ func TestAdaptiveShedderMaxFlight(t *testing.T) {
 		windowScale:     windowFactor,
 		droppedRecently: syncx.NewAtomicBool(),
 	}
-	assert.Equal(t, int64(54), shedder.maxFlight())
+	assert.Equal(t, float64(54), shedder.maxFlight())
 }
 
 func TestAdaptiveShedderShouldDrop(t *testing.T) {
