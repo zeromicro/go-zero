@@ -9,6 +9,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -162,11 +163,7 @@ func (as *adaptiveShedder) maxFlight() float64 {
 	// minRT = min average response time in milliseconds
 	// allowedFlying = maxQPS * minRT / milliseconds_per_second
 	maxFlight := float64(as.maxPass()) * as.minRt() * as.windowScale
-	if maxFlight < 1 {
-		return 1
-	}
-
-	return maxFlight
+	return mathx.AtLeast(maxFlight, 1)
 }
 
 func (as *adaptiveShedder) maxPass() int64 {
@@ -203,14 +200,7 @@ func (as *adaptiveShedder) minRt() float64 {
 func (as *adaptiveShedder) overloadFactor() float64 {
 	factor := (cpuMax - float64(stat.CpuUsage())) / (cpuMax - float64(as.cpuThreshold))
 	// at least accept 10% of acceptable requests even cpu is highly overloaded.
-	if factor < overloadFactorLowerBound {
-		return overloadFactorLowerBound
-	}
-	if factor > 1 {
-		return 1
-	}
-
-	return factor
+	return mathx.Between(factor, overloadFactorLowerBound, 1)
 }
 
 func (as *adaptiveShedder) shouldDrop() bool {
