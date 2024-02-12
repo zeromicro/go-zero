@@ -21,10 +21,11 @@ const (
 	defaultCpuThreshold = 900
 	defaultMinRt        = float64(time.Second / time.Millisecond)
 	// moving average hyperparameter beta for calculating requests on the fly
-	flyingBeta            = 0.9
-	coolOffDuration       = time.Second
-	cpuMax                = 1000 // millicpu
-	millisecondsPerSecond = 1000
+	flyingBeta               = 0.9
+	coolOffDuration          = time.Second
+	cpuMax                   = 1000 // millicpu
+	millisecondsPerSecond    = 1000
+	overloadFactorLowerBound = 0.1
 )
 
 var (
@@ -160,7 +161,12 @@ func (as *adaptiveShedder) maxFlight() float64 {
 	// maxQPS = maxPASS * windows
 	// minRT = min average response time in milliseconds
 	// allowedFlying = maxQPS * minRT / milliseconds_per_second
-	return math.Max(1, float64(as.maxPass())*as.minRt()*as.windowScale)
+	maxFlight := float64(as.maxPass()) * as.minRt() * as.windowScale
+	if maxFlight < 1 {
+		return 1
+	}
+
+	return maxFlight
 }
 
 func (as *adaptiveShedder) maxPass() int64 {
@@ -196,7 +202,15 @@ func (as *adaptiveShedder) minRt() float64 {
 
 func (as *adaptiveShedder) overloadFactor() float64 {
 	factor := (cpuMax - float64(stat.CpuUsage())) / (cpuMax - float64(as.cpuThreshold))
-	return math.Max(1, factor)
+	// at least accept 10% of acceptable requests even cpu is highly overloaded.
+	if factor <= overloadFactorLowerBound {
+		return overloadFactorLowerBound
+	}
+	if factor > 1 {
+		return 1
+	}
+
+	return factor
 }
 
 func (as *adaptiveShedder) shouldDrop() bool {
