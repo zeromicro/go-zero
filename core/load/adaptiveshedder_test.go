@@ -19,6 +19,7 @@ import (
 const (
 	buckets        = 10
 	bucketDuration = time.Millisecond * 50
+	windowFactor   = 0.01
 )
 
 func init() {
@@ -114,7 +115,7 @@ func TestAdaptiveShedderMaxFlight(t *testing.T) {
 	shedder := &adaptiveShedder{
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
-		windows:         buckets,
+		windowScale:     windowFactor,
 		droppedRecently: syncx.NewAtomicBool(),
 	}
 	assert.Equal(t, int64(54), shedder.maxFlight())
@@ -136,7 +137,7 @@ func TestAdaptiveShedderShouldDrop(t *testing.T) {
 	shedder := &adaptiveShedder{
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
-		windows:         buckets,
+		windowScale:     windowFactor,
 		overloadTime:    syncx.NewAtomicDuration(),
 		droppedRecently: syncx.NewAtomicBool(),
 	}
@@ -190,7 +191,7 @@ func TestAdaptiveShedderStillHot(t *testing.T) {
 	shedder := &adaptiveShedder{
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
-		windows:         buckets,
+		windowScale:     windowFactor,
 		overloadTime:    syncx.NewAtomicDuration(),
 		droppedRecently: syncx.ForAtomicBool(true),
 	}
@@ -237,6 +238,30 @@ func BenchmarkAdaptiveShedder_Allow(b *testing.B) {
 		return false
 	}
 	b.Run("low load", bench)
+}
+
+func BenchmarkMaxFlight(b *testing.B) {
+	passCounter := newRollingWindow()
+	rtCounter := newRollingWindow()
+	for i := 0; i < 10; i++ {
+		if i > 0 {
+			time.Sleep(bucketDuration)
+		}
+		passCounter.Add(float64((i + 1) * 100))
+		for j := i*10 + 1; j <= i*10+10; j++ {
+			rtCounter.Add(float64(j))
+		}
+	}
+	shedder := &adaptiveShedder{
+		passCounter:     passCounter,
+		rtCounter:       rtCounter,
+		windowScale:     windowFactor,
+		droppedRecently: syncx.NewAtomicBool(),
+	}
+
+	for i := 0; i < b.N; i++ {
+		_ = shedder.maxFlight()
+	}
 }
 
 func newRollingWindow() *collection.RollingWindow {

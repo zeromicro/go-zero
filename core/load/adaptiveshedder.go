@@ -21,8 +21,9 @@ const (
 	defaultCpuThreshold = 900
 	defaultMinRt        = float64(time.Second / time.Millisecond)
 	// moving average hyperparameter beta for calculating requests on the fly
-	flyingBeta      = 0.9
-	coolOffDuration = time.Second
+	flyingBeta            = 0.9
+	coolOffDuration       = time.Second
+	millisecondsPerSecond = 1000
 )
 
 var (
@@ -66,7 +67,7 @@ type (
 
 	adaptiveShedder struct {
 		cpuThreshold    int64
-		windows         int64
+		windowScale     float64
 		flying          int64
 		avgFlying       float64
 		avgFlyingLock   syncx.SpinLock
@@ -105,7 +106,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 	bucketDuration := options.window / time.Duration(options.buckets)
 	return &adaptiveShedder{
 		cpuThreshold:    options.cpuThreshold,
-		windows:         int64(time.Second / bucketDuration),
+		windowScale:     float64(time.Second) / float64(bucketDuration) / millisecondsPerSecond,
 		overloadTime:    syncx.NewAtomicDuration(),
 		droppedRecently: syncx.NewAtomicBool(),
 		passCounter: collection.NewRollingWindow(options.buckets, bucketDuration,
@@ -158,7 +159,7 @@ func (as *adaptiveShedder) maxFlight() int64 {
 	// maxQPS = maxPASS * windows
 	// minRT = min average response time in milliseconds
 	// maxQPS * minRT / milliseconds_per_second
-	return int64(math.Max(1, float64(as.maxPass()*as.windows)*(as.minRt()/1e3)))
+	return int64(math.Max(1, float64(as.maxPass())*as.minRt()*as.windowScale))
 }
 
 func (as *adaptiveShedder) maxPass() int64 {
