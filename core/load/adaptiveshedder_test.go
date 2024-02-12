@@ -150,7 +150,8 @@ func TestAdaptiveShedderShouldDrop(t *testing.T) {
 
 	// cpu >=  800, inflight > maxPass
 	shedder.avgFlying = 80
-	shedder.flying = 50
+	// because of the overloadFactor, so we need to make sure maxFlight is greater than flying
+	shedder.flying = int64(shedder.maxFlight()*shedder.overloadFactor()) - 5
 	assert.False(t, shedder.shouldDrop())
 
 	// cpu >=  800, inflight > maxPass

@@ -203,7 +203,7 @@ func (as *adaptiveShedder) minRt() float64 {
 func (as *adaptiveShedder) overloadFactor() float64 {
 	factor := (cpuMax - float64(stat.CpuUsage())) / (cpuMax - float64(as.cpuThreshold))
 	// at least accept 10% of acceptable requests even cpu is highly overloaded.
-	if factor <= overloadFactorLowerBound {
+	if factor < overloadFactorLowerBound {
 		return overloadFactorLowerBound
 	}
 	if factor > 1 {
