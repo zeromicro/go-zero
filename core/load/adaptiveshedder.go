@@ -198,6 +198,7 @@ func (as *adaptiveShedder) minRt() float64 {
 }
 
 func (as *adaptiveShedder) overloadFactor() float64 {
+	// as.cpuThreshold must be less than cpuMax
 	factor := (cpuMax - float64(stat.CpuUsage())) / (cpuMax - float64(as.cpuThreshold))
 	// at least accept 10% of acceptable requests even cpu is highly overloaded.
 	return mathx.Between(factor, overloadFactorLowerBound, 1)
