@@ -15,6 +15,8 @@ const (
 	ErrorLevel
 	// SevereLevel only log severe messages
 	SevereLevel
+	// disableLevel doesn't log any messages
+	disableLevel = 0xff
 )
 
 const (
