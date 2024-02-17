@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -11,24 +12,21 @@ import (
 // spanName is used to identify the span name for the SQL execution.
 const spanName = "sql"
 
-// ErrNotFound is an alias of sql.ErrNoRows
-var ErrNotFound = sql.ErrNoRows
-
 type (
 	// Session stands for raw connections or transaction sessions
 	Session interface {
-		Exec(query string, args ...interface{}) (sql.Result, error)
-		ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+		Exec(query string, args ...any) (sql.Result, error)
+		ExecCtx(ctx context.Context, query string, args ...any) (sql.Result, error)
 		Prepare(query string) (StmtSession, error)
 		PrepareCtx(ctx context.Context, query string) (StmtSession, error)
-		QueryRow(v interface{}, query string, args ...interface{}) error
-		QueryRowCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error
-		QueryRowPartial(v interface{}, query string, args ...interface{}) error
-		QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error
-		QueryRows(v interface{}, query string, args ...interface{}) error
-		QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error
-		QueryRowsPartial(v interface{}, query string, args ...interface{}) error
-		QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error
+		QueryRow(v any, query string, args ...any) error
+		QueryRowCtx(ctx context.Context, v any, query string, args ...any) error
+		QueryRowPartial(v any, query string, args ...any) error
+		QueryRowPartialCtx(ctx context.Context, v any, query string, args ...any) error
+		QueryRows(v any, query string, args ...any) error
+		QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error
+		QueryRowsPartial(v any, query string, args ...any) error
+		QueryRowsPartialCtx(ctx context.Context, v any, query string, args ...any) error
 	}
 
 	// SqlConn only stands for raw connections, so Transact method can be called.
@@ -47,16 +45,16 @@ type (
 	// StmtSession interface represents a session that can be used to execute statements.
 	StmtSession interface {
 		Close() error
-		Exec(args ...interface{}) (sql.Result, error)
-		ExecCtx(ctx context.Context, args ...interface{}) (sql.Result, error)
-		QueryRow(v interface{}, args ...interface{}) error
-		QueryRowCtx(ctx context.Context, v interface{}, args ...interface{}) error
-		QueryRowPartial(v interface{}, args ...interface{}) error
-		QueryRowPartialCtx(ctx context.Context, v interface{}, args ...interface{}) error
-		QueryRows(v interface{}, args ...interface{}) error
-		QueryRowsCtx(ctx context.Context, v interface{}, args ...interface{}) error
-		QueryRowsPartial(v interface{}, args ...interface{}) error
-		QueryRowsPartialCtx(ctx context.Context, v interface{}, args ...interface{}) error
+		Exec(args ...any) (sql.Result, error)
+		ExecCtx(ctx context.Context, args ...any) (sql.Result, error)
+		QueryRow(v any, args ...any) error
+		QueryRowCtx(ctx context.Context, v any, args ...any) error
+		QueryRowPartial(v any, args ...any) error
+		QueryRowPartialCtx(ctx context.Context, v any, args ...any) error
+		QueryRows(v any, args ...any) error
+		QueryRowsCtx(ctx context.Context, v any, args ...any) error
+		QueryRowsPartial(v any, args ...any) error
+		QueryRowsPartialCtx(ctx context.Context, v any, args ...any) error
 	}
 
 	// thread-safe
@@ -64,7 +62,7 @@ type (
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
 		connProv connProvider
-		onError  func(error)
+		onError  func(context.Context, error)
 		beginTx  beginnable
 		brk      breaker.Breaker
 		accept   func(error) bool
@@ -73,10 +71,10 @@ type (
 	connProvider func() (*sql.DB, error)
 
 	sessionConn interface {
-		Exec(query string, args ...interface{}) (sql.Result, error)
-		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-		Query(query string, args ...interface{}) (*sql.Rows, error)
-		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+		Exec(query string, args ...any) (sql.Result, error)
+		ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+		Query(query string, args ...any) (*sql.Rows, error)
+		QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 	}
 
 	statement struct {
@@ -85,10 +83,10 @@ type (
 	}
 
 	stmtConn interface {
-		Exec(args ...interface{}) (sql.Result, error)
-		ExecContext(ctx context.Context, args ...interface{}) (sql.Result, error)
-		Query(args ...interface{}) (*sql.Rows, error)
-		QueryContext(ctx context.Context, args ...interface{}) (*sql.Rows, error)
+		Exec(args ...any) (sql.Result, error)
+		ExecContext(ctx context.Context, args ...any) (sql.Result, error)
+		Query(args ...any) (*sql.Rows, error)
+		QueryContext(ctx context.Context, args ...any) (*sql.Rows, error)
 	}
 )
 
@@ -98,8 +96,8 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 		connProv: func() (*sql.DB, error) {
 			return getSqlConn(driverName, datasource)
 		},
-		onError: func(err error) {
-			logInstanceError(datasource, err)
+		onError: func(ctx context.Context, err error) {
+			logInstanceError(ctx, datasource, err)
 		},
 		beginTx: begin,
 		brk:     breaker.NewBreaker(),
@@ -118,8 +116,8 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 		connProv: func() (*sql.DB, error) {
 			return db, nil
 		},
-		onError: func(err error) {
-			logx.Errorf("Error on getting sql instance: %v", err)
+		onError: func(ctx context.Context, err error) {
+			logx.WithContext(ctx).Errorf("Error on getting sql instance: %v", err)
 		},
 		beginTx: begin,
 		brk:     breaker.NewBreaker(),
@@ -131,11 +129,18 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	return conn
 }
 
-func (db *commonSqlConn) Exec(q string, args ...interface{}) (result sql.Result, err error) {
+// NewSqlConnFromSession returns a SqlConn with the given session.
+func NewSqlConnFromSession(session Session) SqlConn {
+	return txConn{
+		Session: session,
+	}
+}
+
+func (db *commonSqlConn) Exec(q string, args ...any) (result sql.Result, err error) {
 	return db.ExecCtx(context.Background(), q, args...)
 }
 
-func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...interface{}) (
+func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 	result sql.Result, err error) {
 	ctx, span := startSpan(ctx, "Exec")
 	defer func() {
@@ -146,13 +151,16 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...interfac
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
-			db.onError(err)
+			db.onError(ctx, err)
 			return err
 		}
 
 		result, err = exec(ctx, conn, q, args...)
 		return err
 	}, db.acceptable)
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		metricReqErr.Inc("Exec", "breaker")
+	}
 
 	return
 }
@@ -171,7 +179,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
-			db.onError(err)
+			db.onError(ctx, err)
 			return err
 		}
 
@@ -186,16 +194,19 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		}
 		return nil
 	}, db.acceptable)
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		metricReqErr.Inc("Prepare", "breaker")
+	}
 
 	return
 }
 
-func (db *commonSqlConn) QueryRow(v interface{}, q string, args ...interface{}) error {
+func (db *commonSqlConn) QueryRow(v any, q string, args ...any) error {
 	return db.QueryRowCtx(context.Background(), v, q, args...)
 }
 
-func (db *commonSqlConn) QueryRowCtx(ctx context.Context, v interface{}, q string,
-	args ...interface{}) (err error) {
+func (db *commonSqlConn) QueryRowCtx(ctx context.Context, v any, q string,
+	args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRow")
 	defer func() {
 		endSpan(span, err)
@@ -206,12 +217,12 @@ func (db *commonSqlConn) QueryRowCtx(ctx context.Context, v interface{}, q strin
 	}, q, args...)
 }
 
-func (db *commonSqlConn) QueryRowPartial(v interface{}, q string, args ...interface{}) error {
+func (db *commonSqlConn) QueryRowPartial(v any, q string, args ...any) error {
 	return db.QueryRowPartialCtx(context.Background(), v, q, args...)
 }
 
-func (db *commonSqlConn) QueryRowPartialCtx(ctx context.Context, v interface{},
-	q string, args ...interface{}) (err error) {
+func (db *commonSqlConn) QueryRowPartialCtx(ctx context.Context, v any,
+	q string, args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRowPartial")
 	defer func() {
 		endSpan(span, err)
@@ -222,12 +233,12 @@ func (db *commonSqlConn) QueryRowPartialCtx(ctx context.Context, v interface{},
 	}, q, args...)
 }
 
-func (db *commonSqlConn) QueryRows(v interface{}, q string, args ...interface{}) error {
+func (db *commonSqlConn) QueryRows(v any, q string, args ...any) error {
 	return db.QueryRowsCtx(context.Background(), v, q, args...)
 }
 
-func (db *commonSqlConn) QueryRowsCtx(ctx context.Context, v interface{}, q string,
-	args ...interface{}) (err error) {
+func (db *commonSqlConn) QueryRowsCtx(ctx context.Context, v any, q string,
+	args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRows")
 	defer func() {
 		endSpan(span, err)
@@ -238,12 +249,12 @@ func (db *commonSqlConn) QueryRowsCtx(ctx context.Context, v interface{}, q stri
 	}, q, args...)
 }
 
-func (db *commonSqlConn) QueryRowsPartial(v interface{}, q string, args ...interface{}) error {
+func (db *commonSqlConn) QueryRowsPartial(v any, q string, args ...any) error {
 	return db.QueryRowsPartialCtx(context.Background(), v, q, args...)
 }
 
-func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{},
-	q string, args ...interface{}) (err error) {
+func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v any,
+	q string, args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRowsPartial")
 	defer func() {
 		endSpan(span, err)
@@ -270,27 +281,41 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	return db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptable(func() error {
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		metricReqErr.Inc("Transact", "breaker")
+	}
+
+	return
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone || err == context.Canceled
-	if db.accept == nil {
-		return ok
+	if err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone) ||
+		errors.Is(err, context.Canceled) {
+		return true
 	}
 
-	return ok || db.accept(err)
+	var e acceptableError
+	if errors.As(err, &e) {
+		return true
+	}
+
+	if db.accept == nil {
+		return false
+	}
+
+	return db.accept(err)
 }
 
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
-	q string, args ...interface{}) (err error) {
+	q string, args ...any) (err error) {
 	var qerr error
-	return db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
 		if err != nil {
-			db.onError(err)
+			db.onError(ctx, err)
 			return err
 		}
 
@@ -299,19 +324,24 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 			return qerr
 		}, q, args...)
 	}, func(err error) bool {
-		return qerr == err || db.acceptable(err)
+		return errors.Is(err, qerr) || db.acceptable(err)
 	})
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		metricReqErr.Inc("queryRows", "breaker")
+	}
+
+	return
 }
 
 func (s statement) Close() error {
 	return s.stmt.Close()
 }
 
-func (s statement) Exec(args ...interface{}) (sql.Result, error) {
+func (s statement) Exec(args ...any) (sql.Result, error) {
 	return s.ExecCtx(context.Background(), args...)
 }
 
-func (s statement) ExecCtx(ctx context.Context, args ...interface{}) (result sql.Result, err error) {
+func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result, err error) {
 	ctx, span := startSpan(ctx, "Exec")
 	defer func() {
 		endSpan(span, err)
@@ -320,11 +350,11 @@ func (s statement) ExecCtx(ctx context.Context, args ...interface{}) (result sql
 	return execStmt(ctx, s.stmt, s.query, args...)
 }
 
-func (s statement) QueryRow(v interface{}, args ...interface{}) error {
+func (s statement) QueryRow(v any, args ...any) error {
 	return s.QueryRowCtx(context.Background(), v, args...)
 }
 
-func (s statement) QueryRowCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
+func (s statement) QueryRowCtx(ctx context.Context, v any, args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRow")
 	defer func() {
 		endSpan(span, err)
@@ -335,11 +365,11 @@ func (s statement) QueryRowCtx(ctx context.Context, v interface{}, args ...inter
 	}, s.query, args...)
 }
 
-func (s statement) QueryRowPartial(v interface{}, args ...interface{}) error {
+func (s statement) QueryRowPartial(v any, args ...any) error {
 	return s.QueryRowPartialCtx(context.Background(), v, args...)
 }
 
-func (s statement) QueryRowPartialCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
+func (s statement) QueryRowPartialCtx(ctx context.Context, v any, args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRowPartial")
 	defer func() {
 		endSpan(span, err)
@@ -350,11 +380,11 @@ func (s statement) QueryRowPartialCtx(ctx context.Context, v interface{}, args .
 	}, s.query, args...)
 }
 
-func (s statement) QueryRows(v interface{}, args ...interface{}) error {
+func (s statement) QueryRows(v any, args ...any) error {
 	return s.QueryRowsCtx(context.Background(), v, args...)
 }
 
-func (s statement) QueryRowsCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
+func (s statement) QueryRowsCtx(ctx context.Context, v any, args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRows")
 	defer func() {
 		endSpan(span, err)
@@ -365,11 +395,11 @@ func (s statement) QueryRowsCtx(ctx context.Context, v interface{}, args ...inte
 	}, s.query, args...)
 }
 
-func (s statement) QueryRowsPartial(v interface{}, args ...interface{}) error {
+func (s statement) QueryRowsPartial(v any, args ...any) error {
 	return s.QueryRowsPartialCtx(context.Background(), v, args...)
 }
 
-func (s statement) QueryRowsPartialCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
+func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) (err error) {
 	ctx, span := startSpan(ctx, "QueryRowsPartial")
 	defer func() {
 		endSpan(span, err)
@@ -378,4 +408,12 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v interface{}, args 
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
+}
+
+// WithAcceptable returns a SqlOption that setting the acceptable function.
+// acceptable is the func to check if the error can be accepted.
+func WithAcceptable(acceptable func(err error) bool) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.accept = acceptable
+	}
 }

@@ -2,11 +2,12 @@ package env
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
 
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	sortedmap "github.com/zeromicro/go-zero/tools/goctl/pkg/collection"
@@ -25,11 +26,14 @@ const (
 	GoctlDebug             = "GOCTL_DEBUG"
 	GoctlCache             = "GOCTL_CACHE"
 	GoctlVersion           = "GOCTL_VERSION"
+	GoctlExperimental      = "GOCTL_EXPERIMENTAL"
 	ProtocVersion          = "PROTOC_VERSION"
 	ProtocGenGoVersion     = "PROTOC_GEN_GO_VERSION"
 	ProtocGenGoGRPCVersion = "PROTO_GEN_GO_GRPC_VERSION"
 
-	envFileDir = "env"
+	envFileDir      = "env"
+	ExperimentalOn  = "on"
+	ExperimentalOff = "off"
 )
 
 // init initializes the goctl environment variables, the environment variables of the function are set in order,
@@ -56,7 +60,10 @@ func init() {
 		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
 			goctlEnv.SetKV(GoctlCache, value)
 		}
+		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOn)
+		goctlEnv.SetKV(GoctlExperimental, experimental)
 	}
+
 	if !goctlEnv.HasKey(GoctlHome) {
 		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
 	}
@@ -69,7 +76,12 @@ func init() {
 		goctlEnv.SetKV(GoctlCache, cacheDir)
 	}
 
+	if !goctlEnv.HasKey(GoctlExperimental) {
+		goctlEnv.SetKV(GoctlExperimental, ExperimentalOn)
+	}
+
 	goctlEnv.SetKV(GoctlVersion, version.BuildVersion)
+
 	protocVer, _ := protoc.Version()
 	goctlEnv.SetKV(ProtocVersion, protocVer)
 
@@ -80,21 +92,45 @@ func init() {
 	goctlEnv.SetKV(ProtocGenGoGRPCVersion, protocGenGoGrpcVer)
 }
 
-func Print() string {
-	return strings.Join(goctlEnv.Format(), "\n")
+func Print(args ...string) string {
+	if len(args) == 0 {
+		return strings.Join(goctlEnv.Format(), "\n")
+	}
+
+	var values []string
+	for _, key := range args {
+		value, ok := goctlEnv.GetString(key)
+		if !ok {
+			value = fmt.Sprintf("%s=%%not found%%", key)
+		}
+		values = append(values, fmt.Sprintf("%s=%s", key, value))
+	}
+	return strings.Join(values, "\n")
 }
 
 func Get(key string) string {
 	return GetOr(key, "")
 }
 
+// Set sets the environment variable for testing
+func Set(t *testing.T, key, value string) {
+	goctlEnv.SetKV(key, value)
+	t.Cleanup(func() {
+		goctlEnv.Remove(key)
+	})
+}
+
 func GetOr(key, def string) string {
 	return goctlEnv.GetStringOr(key, def)
 }
 
+func UseExperimental() bool {
+	return GetOr(GoctlExperimental, ExperimentalOff) == ExperimentalOn
+}
+
 func readEnv(goctlHome string) *sortedmap.SortedMap {
 	envFile := filepath.Join(goctlHome, envFileDir)
-	data, err := ioutil.ReadFile(envFile)
+	data, err := os.ReadFile(envFile)
 	if err != nil {
 		return nil
 	}
@@ -122,7 +158,7 @@ func WriteEnv(kv []string) error {
 			return err
 		}
 	}
-	data.RangeIf(func(key, value interface{}) bool {
+	data.RangeIf(func(key, value any) bool {
 		switch key.(string) {
 		case GoctlHome, GoctlCache:
 			path := value.(string)
@@ -143,5 +179,5 @@ func WriteEnv(kv []string) error {
 		return err
 	}
 	envFile := filepath.Join(defaultGoctlHome, envFileDir)
-	return ioutil.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0o777)
+	return os.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0o777)
 }

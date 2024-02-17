@@ -23,7 +23,7 @@ func TestBaseRpcServer_AddStreamInterceptors(t *testing.T) {
 	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
 	server.SetName("bar")
 	var vals []int
-	f := func(_ interface{}, _ grpc.ServerStream, _ *grpc.StreamServerInfo, _ grpc.StreamHandler) error {
+	f := func(_ any, _ grpc.ServerStream, _ *grpc.StreamServerInfo, _ grpc.StreamHandler) error {
 		vals = append(vals, 1)
 		return nil
 	}
@@ -39,8 +39,8 @@ func TestBaseRpcServer_AddUnaryInterceptors(t *testing.T) {
 	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
 	server.SetName("bar")
 	var vals []int
-	f := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
-		resp interface{}, err error) {
+	f := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
+		resp any, err error) {
 		vals = append(vals, 1)
 		return nil, nil
 	}

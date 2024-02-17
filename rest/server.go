@@ -2,7 +2,7 @@ package rest
 
 import (
 	"crypto/tls"
-	"log"
+	"errors"
 	"net/http"
 	"path"
 	"time"
@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
 	"github.com/zeromicro/go-zero/rest/router"
 )
@@ -18,6 +19,9 @@ import (
 type (
 	// RunOption defines the method to customize a Server.
 	RunOption func(*Server)
+
+	// StartOption defines the method to customize http server.
+	StartOption = internal.StartOption
 
 	// A Server is a http server.
 	Server struct {
@@ -32,7 +36,7 @@ type (
 func MustNewServer(c RestConf, opts ...RunOption) *Server {
 	server, err := NewServer(c, opts...)
 	if err != nil {
-		log.Fatal(err)
+		logx.Must(err)
 	}
 
 	return server
@@ -79,11 +83,48 @@ func (s *Server) PrintRoutes() {
 	s.ngin.print()
 }
 
+// Routes returns the HTTP routers that registered in the server.
+func (s *Server) Routes() []Route {
+	var routes []Route
+
+	for _, r := range s.ngin.routes {
+		routes = append(routes, r.routes...)
+	}
+
+	return routes
+}
+
+// ServeHTTP is for test purpose, allow developer to do a unit test with
+// all defined router without starting an HTTP Server.
+//
+// For example:
+//
+//	server := MustNewServer(...)
+//	server.addRoute(...) // router a
+//	server.addRoute(...) // router b
+//	server.addRoute(...) // router c
+//
+//	r, _ := http.NewRequest(...)
+//	w := httptest.NewRecorder(...)
+//	server.ServeHTTP(w, r)
+//	// verify the response
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.ngin.bindRoutes(s.router)
+	s.router.ServeHTTP(w, r)
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) Start() {
 	handleError(s.ngin.start(s.router))
+}
+
+// StartWithOpts starts the Server.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
+func (s *Server) StartWithOpts(opts ...StartOption) {
+	handleError(s.ngin.start(s.router, opts...))
 }
 
 // Stop stops the Server.
@@ -115,7 +156,7 @@ func WithChain(chn chain.Chain) RunOption {
 func WithCors(origin ...string) RunOption {
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(nil, origin...))
-		server.Use(cors.Middleware(nil, origin...))
+		server.router = newCorsRouter(server.router, nil, origin...)
 	}
 }
 
@@ -125,7 +166,7 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 	origin ...string) RunOption {
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(notAllowedFn, origin...))
-		server.Use(cors.Middleware(middlewareFn, origin...))
+		server.router = newCorsRouter(server.router, middlewareFn, origin...)
 	}
 }
 
@@ -267,7 +308,7 @@ func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 
 func handleError(err error) {
 	// ErrServerClosed means the server is closed manually
-	if err == nil || err == http.ErrServerClosed {
+	if err == nil || errors.Is(err, http.ErrServerClosed) {
 		return
 	}
 
@@ -279,4 +320,20 @@ func validateSecret(secret string) {
 	if len(secret) < 8 {
 		panic("secret's length can't be less than 8")
 	}
+}
+
+type corsRouter struct {
+	httpx.Router
+	middleware Middleware
+}
+
+func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...string) httpx.Router {
+	return &corsRouter{
+		Router:     router,
+		middleware: cors.Middleware(headerFn, origins...),
+	}
+}
+
+func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	c.middleware(c.Router.ServeHTTP)(w, r)
 }

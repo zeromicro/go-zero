@@ -2,53 +2,40 @@ package cmd
 
 import (
 	"fmt"
-	"runtime"
 
-	"github.com/logrusorgru/aurora"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
+	"github.com/gookit/color"
 )
 
-var colorRender = []func(v interface{}) string{
-	func(v interface{}) string {
-		return aurora.BrightRed(v).String()
+var colorRender = []func(v any) string{
+	func(v any) string {
+		return color.LightRed.Render(v)
 	},
-	func(v interface{}) string {
-		return aurora.BrightGreen(v).String()
+	func(v any) string {
+		return color.LightGreen.Render(v)
 	},
-	func(v interface{}) string {
-		return aurora.BrightYellow(v).String()
+	func(v any) string {
+		return color.LightYellow.Render(v)
 	},
-	func(v interface{}) string {
-		return aurora.BrightBlue(v).String()
+	func(v any) string {
+		return color.LightBlue.Render(v)
 	},
-	func(v interface{}) string {
-		return aurora.BrightMagenta(v).String()
+	func(v any) string {
+		return color.LightMagenta.Render(v)
 	},
-	func(v interface{}) string {
-		return aurora.BrightCyan(v).String()
+	func(v any) string {
+		return color.LightCyan.Render(v)
 	},
 }
 
 func blue(s string) string {
-	if runtime.GOOS == vars.OsWindows {
-		return s
-	}
-
-	return aurora.BrightBlue(s).String()
+	return color.LightBlue.Render(s)
 }
 
 func green(s string) string {
-	if runtime.GOOS == vars.OsWindows {
-		return s
-	}
-
-	return aurora.BrightGreen(s).String()
+	return color.LightGreen.Render(s)
 }
 
 func rainbow(s string) string {
-	if runtime.GOOS == vars.OsWindows {
-		return s
-	}
 	s0 := s[0]
 	return colorRender[int(s0)%(len(colorRender)-1)](s)
 }

@@ -95,7 +95,7 @@ func TestGoogleBreakerAcceptable(t *testing.T) {
 	assert.Equal(t, errAcceptable, b.doReq(func() error {
 		return errAcceptable
 	}, nil, func(err error) bool {
-		return err == errAcceptable
+		return errors.Is(err, errAcceptable)
 	}))
 }
 
@@ -105,7 +105,7 @@ func TestGoogleBreakerNotAcceptable(t *testing.T) {
 	assert.Equal(t, errAcceptable, b.doReq(func() error {
 		return errAcceptable
 	}, nil, func(err error) bool {
-		return err != errAcceptable
+		return !errors.Is(err, errAcceptable)
 	}))
 }
 
@@ -206,12 +206,22 @@ func BenchmarkGoogleBreakerAllow(b *testing.B) {
 	breaker := getGoogleBreaker()
 	b.ResetTimer()
 	for i := 0; i <= b.N; i++ {
-		breaker.accept()
+		_ = breaker.accept()
 		if i%2 == 0 {
 			breaker.markSuccess()
 		} else {
 			breaker.markFailure()
 		}
+	}
+}
+
+func BenchmarkGoogleBreakerDoReq(b *testing.B) {
+	breaker := getGoogleBreaker()
+	b.ResetTimer()
+	for i := 0; i <= b.N; i++ {
+		_ = breaker.doReq(func() error {
+			return nil
+		}, nil, defaultAcceptable)
 	}
 }
 

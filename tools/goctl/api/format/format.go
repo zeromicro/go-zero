@@ -7,7 +7,6 @@ import (
 	"go/format"
 	"go/scanner"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +15,8 @@ import (
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
+	apiF "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -76,7 +77,7 @@ func GoFormatApi(_ *cobra.Command, _ []string) error {
 // apiFormatReader
 // filename is needed when there are `import` literals.
 func apiFormatReader(reader io.Reader, filename string, skipCheckDeclare bool) error {
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}
@@ -91,7 +92,11 @@ func apiFormatReader(reader io.Reader, filename string, skipCheckDeclare bool) e
 
 // ApiFormatByPath format api from file path
 func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
-	data, err := ioutil.ReadFile(apiFilePath)
+	if env.UseExperimental() {
+		return apiF.File(apiFilePath)
+	}
+
+	data, err := os.ReadFile(apiFilePath)
 	if err != nil {
 		return err
 	}
@@ -111,7 +116,7 @@ func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
 		return err
 	}
 
-	return ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm)
+	return os.WriteFile(apiFilePath, []byte(result), os.ModePerm)
 }
 
 func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, error) {
@@ -145,12 +150,12 @@ func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, 
 		}
 
 		if tapCount == 0 {
-			format, err := formatGoTypeDef(line, s, &builder)
+			ft, err := formatGoTypeDef(line, s, &builder)
 			if err != nil {
 				return "", err
 			}
 
-			if format {
+			if ft {
 				continue
 			}
 		}
@@ -166,7 +171,9 @@ func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, 
 				tapCount++
 			}
 		}
-		util.WriteIndent(&builder, tapCount)
+		if line != "" {
+			util.WriteIndent(&builder, tapCount)
+		}
 		builder.WriteString(line + pathx.NL)
 		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
 			tapCount++

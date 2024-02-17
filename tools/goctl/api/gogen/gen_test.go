@@ -3,7 +3,6 @@ package gogen
 import (
 	_ "embed"
 	goformat "go/format"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -52,9 +52,12 @@ var (
 
 func TestParser(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
+	err := os.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
 	assert.Nil(t, err)
-	defer os.Remove(filename)
+	env.Set(t, env.GoctlExperimental, "off")
+	t.Cleanup(func() {
+		os.Remove(filename)
+	})
 
 	api, err := parser.Parse(filename)
 	assert.Nil(t, err)
@@ -73,7 +76,7 @@ func TestParser(t *testing.T) {
 
 func TestMultiService(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(testMultiServiceTemplate), os.ModePerm)
+	err := os.WriteFile(filename, []byte(testMultiServiceTemplate), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -88,7 +91,7 @@ func TestMultiService(t *testing.T) {
 
 func TestApiNoInfo(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(apiNoInfo), os.ModePerm)
+	err := os.WriteFile(filename, []byte(apiNoInfo), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -100,7 +103,7 @@ func TestApiNoInfo(t *testing.T) {
 
 func TestInvalidApiFile(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(invalidApiFile), os.ModePerm)
+	err := os.WriteFile(filename, []byte(invalidApiFile), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -110,7 +113,7 @@ func TestInvalidApiFile(t *testing.T) {
 
 func TestAnonymousAnnotation(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(anonymousAnnotation), os.ModePerm)
+	err := os.WriteFile(filename, []byte(anonymousAnnotation), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -125,7 +128,7 @@ func TestAnonymousAnnotation(t *testing.T) {
 
 func TestApiHasMiddleware(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(apiHasMiddleware), os.ModePerm)
+	err := os.WriteFile(filename, []byte(apiHasMiddleware), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -137,7 +140,7 @@ func TestApiHasMiddleware(t *testing.T) {
 
 func TestApiHasJwt(t *testing.T) {
 	filename := "jwt.api"
-	err := ioutil.WriteFile(filename, []byte(apiJwt), os.ModePerm)
+	err := os.WriteFile(filename, []byte(apiJwt), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -149,7 +152,7 @@ func TestApiHasJwt(t *testing.T) {
 
 func TestApiHasJwtAndMiddleware(t *testing.T) {
 	filename := "jwt.api"
-	err := ioutil.WriteFile(filename, []byte(apiJwtWithMiddleware), os.ModePerm)
+	err := os.WriteFile(filename, []byte(apiJwtWithMiddleware), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -161,7 +164,7 @@ func TestApiHasJwtAndMiddleware(t *testing.T) {
 
 func TestApiHasNoRequestBody(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(apiHasNoRequest), os.ModePerm)
+	err := os.WriteFile(filename, []byte(apiHasNoRequest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -171,7 +174,7 @@ func TestApiHasNoRequestBody(t *testing.T) {
 
 func TestApiRoutes(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(apiRouteTest), os.ModePerm)
+	err := os.WriteFile(filename, []byte(apiRouteTest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -183,7 +186,7 @@ func TestApiRoutes(t *testing.T) {
 
 func TestHasCommentRoutes(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(hasCommentApiTest), os.ModePerm)
+	err := os.WriteFile(filename, []byte(hasCommentApiTest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -195,7 +198,7 @@ func TestHasCommentRoutes(t *testing.T) {
 
 func TestInlineTypeNotExist(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(hasInlineNoExistTest), os.ModePerm)
+	err := os.WriteFile(filename, []byte(hasInlineNoExistTest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -205,12 +208,12 @@ func TestInlineTypeNotExist(t *testing.T) {
 
 func TestHasImportApi(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(hasImportApi), os.ModePerm)
+	err := os.WriteFile(filename, []byte(hasImportApi), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
 	importApiName := "importApi.api"
-	err = ioutil.WriteFile(importApiName, []byte(importApi), os.ModePerm)
+	err = os.WriteFile(importApiName, []byte(importApi), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(importApiName)
 
@@ -231,7 +234,7 @@ func TestHasImportApi(t *testing.T) {
 
 func TestNoStructApi(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(noStructTagApi), os.ModePerm)
+	err := os.WriteFile(filename, []byte(noStructTagApi), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -244,7 +247,7 @@ func TestNoStructApi(t *testing.T) {
 
 func TestNestTypeApi(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(nestTypeApi), os.ModePerm)
+	err := os.WriteFile(filename, []byte(nestTypeApi), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -254,7 +257,7 @@ func TestNestTypeApi(t *testing.T) {
 
 func TestCamelStyle(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
+	err := os.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
@@ -281,7 +284,7 @@ func validateWithCamel(t *testing.T, api, camel string) {
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".go") {
-			code, err := ioutil.ReadFile(path)
+			code, err := os.ReadFile(path)
 			assert.Nil(t, err)
 			assert.Nil(t, validateCode(string(code)))
 		}

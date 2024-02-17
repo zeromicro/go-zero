@@ -11,7 +11,7 @@ import (
 
 func TestExclusiveCallDo(t *testing.T) {
 	g := NewSingleFlight()
-	v, err := g.Do("key", func() (interface{}, error) {
+	v, err := g.Do("key", func() (any, error) {
 		return "bar", nil
 	})
 	if got, want := fmt.Sprintf("%v (%T)", v, v), "bar (string)"; got != want {
@@ -25,10 +25,10 @@ func TestExclusiveCallDo(t *testing.T) {
 func TestExclusiveCallDoErr(t *testing.T) {
 	g := NewSingleFlight()
 	someErr := errors.New("some error")
-	v, err := g.Do("key", func() (interface{}, error) {
+	v, err := g.Do("key", func() (any, error) {
 		return nil, someErr
 	})
-	if err != someErr {
+	if !errors.Is(err, someErr) {
 		t.Errorf("Do error = %v; want someErr", err)
 	}
 	if v != nil {
@@ -40,7 +40,7 @@ func TestExclusiveCallDoDupSuppress(t *testing.T) {
 	g := NewSingleFlight()
 	c := make(chan string)
 	var calls int32
-	fn := func() (interface{}, error) {
+	fn := func() (any, error) {
 		atomic.AddInt32(&calls, 1)
 		return <-c, nil
 	}
@@ -79,7 +79,7 @@ func TestExclusiveCallDoDiffDupSuppress(t *testing.T) {
 		wg.Add(1)
 		go func(k string) {
 			<-broadcast // get all goroutines ready
-			_, err := g.Do(k, func() (interface{}, error) {
+			_, err := g.Do(k, func() (any, error) {
 				atomic.AddInt32(&calls, 1)
 				time.Sleep(10 * time.Millisecond)
 				return nil, nil
@@ -105,7 +105,7 @@ func TestExclusiveCallDoExDupSuppress(t *testing.T) {
 	g := NewSingleFlight()
 	c := make(chan string)
 	var calls int32
-	fn := func() (interface{}, error) {
+	fn := func() (any, error) {
 		atomic.AddInt32(&calls, 1)
 		return <-c, nil
 	}

@@ -12,15 +12,13 @@ import (
 
 func TestModel_StartSession(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		sess, err := m.StartSession()
 		assert.Nil(t, err)
 		defer sess.EndSession(context.Background())
 
-		_, err = sess.WithTransaction(context.Background(), func(sessCtx mongo.SessionContext) (interface{}, error) {
+		_, err = sess.WithTransaction(context.Background(), func(sessCtx mongo.SessionContext) (any, error) {
 			_ = sessCtx.StartTransaction()
 			sessCtx.Client().Database("1")
 			sessCtx.EndSession(context.Background())
@@ -34,8 +32,6 @@ func TestModel_StartSession(t *testing.T) {
 
 func TestModel_Aggregate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		find := mtest.CreateCursorResponse(
@@ -57,7 +53,7 @@ func TestModel_Aggregate(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch)
 		mt.AddMockResponses(find, getMore, killCursors)
-		var result []interface{}
+		var result []any
 		err := m.Aggregate(context.Background(), &result, mongo.Pipeline{})
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(result))
@@ -71,8 +67,6 @@ func TestModel_Aggregate(t *testing.T) {
 
 func TestModel_DeleteMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
@@ -88,8 +82,6 @@ func TestModel_DeleteMany(t *testing.T) {
 
 func TestModel_DeleteOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
@@ -105,8 +97,6 @@ func TestModel_DeleteOne(t *testing.T) {
 
 func TestModel_Find(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		find := mtest.CreateCursorResponse(
@@ -128,7 +118,7 @@ func TestModel_Find(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch)
 		mt.AddMockResponses(find, getMore, killCursors)
-		var result []interface{}
+		var result []any
 		err := m.Find(context.Background(), &result, bson.D{})
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(result))
@@ -142,8 +132,6 @@ func TestModel_Find(t *testing.T) {
 
 func TestModel_FindOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		find := mtest.CreateCursorResponse(
@@ -170,8 +158,6 @@ func TestModel_FindOne(t *testing.T) {
 
 func TestModel_FindOneAndDelete(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
@@ -189,8 +175,6 @@ func TestModel_FindOneAndDelete(t *testing.T) {
 
 func TestModel_FindOneAndReplace(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{
@@ -212,8 +196,6 @@ func TestModel_FindOneAndReplace(t *testing.T) {
 
 func TestModel_FindOneAndUpdate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		m := createModel(mt)
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{

@@ -8,13 +8,15 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/withfig/autocomplete-tools/integrations/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api"
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
+	"github.com/zeromicro/go-zero/tools/goctl/gateway"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
@@ -35,21 +37,14 @@ const (
 var (
 	//go:embed usage.tpl
 	usageTpl string
-
-	rootCmd = &cobra.Command{
-		Use:   "goctl",
-		Short: "A cli tool to generate go-zero code",
-		Long: "A cli tool to generate api, zrpc, model code\n\n" +
-			"GitHub: https://github.com/zeromicro/go-zero\n" +
-			"Site:   https://go-zero.dev",
-	}
+	rootCmd  = cobrax.NewCommand("goctl")
 )
 
 // Execute executes the given command
 func Execute() {
 	os.Args = supportGoStdFlag(os.Args)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(aurora.Red(err.Error()))
+		fmt.Println(color.Red.Render(err.Error()))
 		os.Exit(codeFailure)
 	}
 }
@@ -117,16 +112,8 @@ func init() {
 		runtime.GOOS, runtime.GOARCH)
 
 	rootCmd.SetUsageTemplate(usageTpl)
-	rootCmd.AddCommand(api.Cmd)
-	rootCmd.AddCommand(bug.Cmd)
-	rootCmd.AddCommand(docker.Cmd)
-	rootCmd.AddCommand(kube.Cmd)
-	rootCmd.AddCommand(env.Cmd)
-	rootCmd.AddCommand(model.Cmd)
-	rootCmd.AddCommand(migrate.Cmd)
-	rootCmd.AddCommand(quickstart.Cmd)
-	rootCmd.AddCommand(rpc.Cmd)
-	rootCmd.AddCommand(tpl.Cmd)
-	rootCmd.AddCommand(upgrade.Cmd)
-	rootCmd.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, gateway.Cmd, model.Cmd)
+	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd)
+	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.MustInit()
 }

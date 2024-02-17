@@ -9,9 +9,9 @@ import (
 )
 
 func TestWithCodeResponseWriter(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cw := &WithCodeResponseWriter{Writer: w}
+		cw := NewWithCodeResponseWriter(w)
 
 		cw.Header().Set("X-Test", "test")
 		cw.WriteHeader(http.StatusServiceUnavailable)
@@ -34,9 +34,7 @@ func TestWithCodeResponseWriter(t *testing.T) {
 
 func TestWithCodeResponseWriter_Hijack(t *testing.T) {
 	resp := httptest.NewRecorder()
-	writer := &WithCodeResponseWriter{
-		Writer: resp,
-	}
+	writer := NewWithCodeResponseWriter(NewWithCodeResponseWriter(resp))
 	assert.NotPanics(t, func() {
 		writer.Hijack()
 	})

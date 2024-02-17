@@ -1,7 +1,6 @@
 package kube
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -32,18 +31,18 @@ func ParseTarget(target resolver.Target) (Service, error) {
 	}
 
 	endpoints := targets.GetEndpoints(target)
-	segs := strings.SplitN(endpoints, colon, 2)
-	if len(segs) < 2 {
-		return emptyService, fmt.Errorf("bad endpoint: %s", endpoints)
-	}
+	if strings.Contains(endpoints, colon) {
+		segs := strings.SplitN(endpoints, colon, 2)
+		service.Name = segs[0]
+		port, err := strconv.Atoi(segs[1])
+		if err != nil {
+			return emptyService, err
+		}
 
-	service.Name = segs[0]
-	port, err := strconv.Atoi(segs[1])
-	if err != nil {
-		return emptyService, err
+		service.Port = port
+	} else {
+		service.Name = endpoints
 	}
-
-	service.Port = port
 
 	return service, nil
 }

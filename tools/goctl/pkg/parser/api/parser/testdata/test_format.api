@@ -1,0 +1,50 @@
+// format api demo
+syntax ="v1" // dd
+
+info()
+info(foo:"")
+info(foo:""
+bar: ""
+quux: "")
+info(foo:""
+    bar: ""
+    quux: ""
+)
+// info statement
+// info statement
+info (// Info bloack
+    title:   "type title here" // title comment
+    desc:    "type desc here"
+    author:  "type author here"
+/*aaa*/
+/*
+bbb
+*/
+email:   "type email here" // eamil comment
+/*aaa*/version:/*bbb*/ "type version here"// version comment
+)
+
+import ""
+import "aaa"
+import"bb"
+import    "cc"
+import()
+import(
+)
+import (
+
+)
+import ("aa")
+import ("aa" "bb")
+import ("aa"
+"bb"
+)
+import ("aa"
+    "bb")
+import (
+
+    "aa"
+
+    "bb"
+
+)

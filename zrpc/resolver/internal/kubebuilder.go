@@ -40,6 +40,14 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
+	if svc.Port == 0 {
+		endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		svc.Port = int(endpoints.Subsets[0].Ports[0].Port)
+	}
+
 	handler := kube.NewEventHandler(func(endpoints []string) {
 		var addrs []resolver.Address
 		for _, val := range subset(endpoints, subsetSize) {
@@ -60,11 +68,14 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			options.FieldSelector = nameSelector + svc.Name
 		}))
 	in := inf.Core().V1().Endpoints()
-	in.Informer().AddEventHandler(handler)
+	_, err = in.Informer().AddEventHandler(handler)
+	if err != nil {
+		return nil, err
+	}
+
 	threading.GoSafe(func() {
 		inf.Start(proc.Done())
 	})
-
 	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
 	if err != nil {
 		return nil, err

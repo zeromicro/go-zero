@@ -1,98 +1,78 @@
 package model
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/model/mongo"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command"
 )
 
 var (
 	// Cmd describes a model command.
-	Cmd = &cobra.Command{
-		Use:   "model",
-		Short: "Generate model code",
-	}
-
-	mysqlCmd = &cobra.Command{
-		Use:   "mysql",
-		Short: "Generate mysql model",
-	}
-
-	ddlCmd = &cobra.Command{
-		Use:   "ddl",
-		Short: "Generate mysql model from ddl",
-		RunE:  command.MysqlDDL,
-	}
-
-	datasourceCmd = &cobra.Command{
-		Use:   "datasource",
-		Short: "Generate model from datasource",
-		RunE:  command.MySqlDataSource,
-	}
-
-	pgCmd = &cobra.Command{
-		Use:   "pg",
-		Short: "Generate postgresql model",
-		RunE:  command.PostgreSqlDataSource,
-	}
-
-	pgDatasourceCmd = &cobra.Command{
-		Use:   "datasource",
-		Short: "Generate model from datasource",
-		RunE:  command.PostgreSqlDataSource,
-	}
-
-	mongoCmd = &cobra.Command{
-		Use:   "mongo",
-		Short: "Generate mongo model",
-		RunE:  mongo.Action,
-	}
+	Cmd             = cobrax.NewCommand("model")
+	mysqlCmd        = cobrax.NewCommand("mysql")
+	ddlCmd          = cobrax.NewCommand("ddl", cobrax.WithRunE(command.MysqlDDL))
+	datasourceCmd   = cobrax.NewCommand("datasource", cobrax.WithRunE(command.MySqlDataSource))
+	pgCmd           = cobrax.NewCommand("pg", cobrax.WithRunE(command.PostgreSqlDataSource))
+	pgDatasourceCmd = cobrax.NewCommand("datasource", cobrax.WithRunE(command.PostgreSqlDataSource))
+	mongoCmd        = cobrax.NewCommand("mongo", cobrax.WithRunE(mongo.Action))
 )
 
 func init() {
-	ddlCmd.Flags().StringVarP(&command.VarStringSrc, "src", "s", "", "The path or path globbing patterns of the ddl")
-	ddlCmd.Flags().StringVarP(&command.VarStringDir, "dir", "d", "", "The target dir")
-	ddlCmd.Flags().StringVar(&command.VarStringStyle, "style", "", "The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
-	ddlCmd.Flags().BoolVarP(&command.VarBoolCache, "cache", "c", false, "Generate code with cache [optional]")
-	ddlCmd.Flags().BoolVar(&command.VarBoolIdea, "idea", false, "For idea plugin [optional]")
-	ddlCmd.Flags().StringVar(&command.VarStringDatabase, "database", "", "The name of database [optional]")
-	ddlCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	ddlCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	ddlCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	var (
+		ddlCmdFlags          = ddlCmd.Flags()
+		datasourceCmdFlags   = datasourceCmd.Flags()
+		pgDatasourceCmdFlags = pgDatasourceCmd.Flags()
+		mongoCmdFlags        = mongoCmd.Flags()
+	)
 
-	datasourceCmd.Flags().StringVar(&command.VarStringURL, "url", "", `The data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`)
-	datasourceCmd.Flags().StringSliceVarP(&command.VarStringSliceTable, "table", "t", nil, "The table or table globbing patterns in the database")
-	datasourceCmd.Flags().BoolVarP(&command.VarBoolCache, "cache", "c", false, "Generate code with cache [optional]")
-	datasourceCmd.Flags().StringVarP(&command.VarStringDir, "dir", "d", "", "The target dir")
-	datasourceCmd.Flags().StringVar(&command.VarStringStyle, "style", "", "The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
-	datasourceCmd.Flags().BoolVar(&command.VarBoolIdea, "idea", false, "For idea plugin [optional]")
-	datasourceCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	datasourceCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	datasourceCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	ddlCmdFlags.StringVarP(&command.VarStringSrc, "src", "s")
+	ddlCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
+	ddlCmdFlags.StringVar(&command.VarStringStyle, "style")
+	ddlCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
+	ddlCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
+	ddlCmdFlags.StringVar(&command.VarStringDatabase, "database")
+	ddlCmdFlags.StringVar(&command.VarStringHome, "home")
+	ddlCmdFlags.StringVar(&command.VarStringRemote, "remote")
+	ddlCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	pgDatasourceCmd.Flags().StringVar(&command.VarStringURL, "url", "", `The data source of database,like "postgres://root:password@127.0.0.1:5432/database?sslmode=disable"`)
-	pgDatasourceCmd.Flags().StringVarP(&command.VarStringTable, "table", "t", "", "The table or table globbing patterns in the database")
-	pgDatasourceCmd.Flags().StringVarP(&command.VarStringSchema, "schema", "s", "public", "The table schema")
-	pgDatasourceCmd.Flags().BoolVarP(&command.VarBoolCache, "cache", "c", false, "Generate code with cache [optional]")
-	pgDatasourceCmd.Flags().StringVarP(&command.VarStringDir, "dir", "d", "", "The target dir")
-	pgDatasourceCmd.Flags().StringVar(&command.VarStringStyle, "style", "", "The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
-	pgDatasourceCmd.Flags().BoolVar(&command.VarBoolIdea, "idea", false, "For idea plugin [optional]")
-	pgDatasourceCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	pgDatasourceCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	pgDatasourceCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	datasourceCmdFlags.StringVar(&command.VarStringURL, "url")
+	datasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
+	datasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
+	datasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
+	datasourceCmdFlags.StringVar(&command.VarStringStyle, "style")
+	datasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
+	datasourceCmdFlags.StringVar(&command.VarStringHome, "home")
+	datasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
+	datasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	mongoCmd.Flags().StringSliceVarP(&mongo.VarStringSliceType, "type", "t", nil, "Specified model type name")
-	mongoCmd.Flags().BoolVarP(&mongo.VarBoolCache, "cache", "c", false, "Generate code with cache [optional]")
-	mongoCmd.Flags().StringVarP(&mongo.VarStringDir, "dir", "d", "", "The target dir")
-	mongoCmd.Flags().StringVar(&mongo.VarStringStyle, "style", "", "The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
-	mongoCmd.Flags().StringVar(&mongo.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	mongoCmd.Flags().StringVar(&mongo.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	mongoCmd.Flags().StringVar(&mongo.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringURL, "url")
+	pgDatasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
+	pgDatasourceCmdFlags.StringVarPWithDefaultValue(&command.VarStringSchema, "schema", "s", "public")
+	pgDatasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
+	pgDatasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringStyle, "style")
+	pgDatasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
+	pgDatasourceCmdFlags.BoolVar(&command.VarBoolStrict, "strict")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringHome, "home")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
+	pgCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns,
+		"ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
 
-	mysqlCmd.AddCommand(datasourceCmd)
-	mysqlCmd.AddCommand(ddlCmd)
+	mongoCmdFlags.StringSliceVarP(&mongo.VarStringSliceType, "type", "t")
+	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c")
+	mongoCmdFlags.BoolVarP(&mongo.VarBoolEasy, "easy", "e")
+	mongoCmdFlags.StringVarP(&mongo.VarStringDir, "dir", "d")
+	mongoCmdFlags.StringVar(&mongo.VarStringStyle, "style")
+	mongoCmdFlags.StringVar(&mongo.VarStringHome, "home")
+	mongoCmdFlags.StringVar(&mongo.VarStringRemote, "remote")
+	mongoCmdFlags.StringVar(&mongo.VarStringBranch, "branch")
+
+	mysqlCmd.PersistentFlags().BoolVar(&command.VarBoolStrict, "strict")
+	mysqlCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns,
+		"ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
+
+	mysqlCmd.AddCommand(datasourceCmd, ddlCmd)
 	pgCmd.AddCommand(pgDatasourceCmd)
-	Cmd.AddCommand(mysqlCmd)
-	Cmd.AddCommand(mongoCmd)
-	Cmd.AddCommand(pgCmd)
+	Cmd.AddCommand(mysqlCmd, mongoCmd, pgCmd)
 }

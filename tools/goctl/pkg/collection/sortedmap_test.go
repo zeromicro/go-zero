@@ -142,7 +142,7 @@ func Test_SortedMap(t *testing.T) {
 
 	t.Run("Range", func(t *testing.T) {
 		var keys, values []string
-		sm.Range(func(key, value interface{}) {
+		sm.Range(func(key, value any) {
 			keys = append(keys, key.(string))
 			values = append(values, value.(string))
 		})
@@ -153,7 +153,7 @@ func Test_SortedMap(t *testing.T) {
 		for _, key := range expected {
 			sm.SetKV(key, key)
 		}
-		sm.Range(func(key, value interface{}) {
+		sm.Range(func(key, value any) {
 			keys = append(keys, key.(string))
 			values = append(values, value.(string))
 		})
@@ -164,7 +164,7 @@ func Test_SortedMap(t *testing.T) {
 
 	t.Run("RangeIf", func(t *testing.T) {
 		var keys, values []string
-		sm.RangeIf(func(key, value interface{}) bool {
+		sm.RangeIf(func(key, value any) bool {
 			keys = append(keys, key.(string))
 			values = append(values, value.(string))
 			return true
@@ -176,7 +176,7 @@ func Test_SortedMap(t *testing.T) {
 		for _, key := range expected {
 			sm.SetKV(key, key)
 		}
-		sm.RangeIf(func(key, value interface{}) bool {
+		sm.RangeIf(func(key, value any) bool {
 			keys = append(keys, key.(string))
 			values = append(values, value.(string))
 			if key.(string) == "foo1" {

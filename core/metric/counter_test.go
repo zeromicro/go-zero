@@ -5,6 +5,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
+	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
 func TestNewCounterVec(t *testing.T) {
@@ -16,11 +18,15 @@ func TestNewCounterVec(t *testing.T) {
 	})
 	defer counterVec.close()
 	counterVecNil := NewCounterVec(nil)
+	counterVec.Inc("path", "code")
+	counterVec.Add(1, "path", "code")
+	proc.Shutdown()
 	assert.NotNil(t, counterVec)
 	assert.Nil(t, counterVecNil)
 }
 
 func TestCounterIncr(t *testing.T) {
+	startAgent()
 	counterVec := NewCounterVec(&CounterVecOpts{
 		Namespace: "http_client",
 		Subsystem: "call",
@@ -37,6 +43,7 @@ func TestCounterIncr(t *testing.T) {
 }
 
 func TestCounterAdd(t *testing.T) {
+	startAgent()
 	counterVec := NewCounterVec(&CounterVecOpts{
 		Namespace: "rpc_server",
 		Subsystem: "requests",
@@ -50,4 +57,12 @@ func TestCounterAdd(t *testing.T) {
 	cv.Add(22, "/Users", "500")
 	r := testutil.ToFloat64(cv.counter)
 	assert.Equal(t, float64(33), r)
+}
+
+func startAgent() {
+	prometheus.StartAgent(prometheus.Config{
+		Host: "127.0.0.1",
+		Port: 9101,
+		Path: "/metrics",
+	})
 }

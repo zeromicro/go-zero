@@ -26,9 +26,14 @@ type (
 )
 
 // NewBulkInserter returns a BulkInserter.
-func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkInserter {
+func NewBulkInserter(coll Collection, interval ...time.Duration) (*BulkInserter, error) {
+	cloneColl, err := coll.Clone()
+	if err != nil {
+		return nil, err
+	}
+
 	inserter := &dbInserter{
-		collection: coll,
+		collection: cloneColl,
 	}
 
 	duration := flushInterval
@@ -39,7 +44,7 @@ func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkIns
 	return &BulkInserter{
 		executor: executors.NewPeriodicalExecutor(duration, inserter),
 		inserter: inserter,
-	}
+	}, nil
 }
 
 // Flush flushes the inserter, writes all pending records.
@@ -48,7 +53,7 @@ func (bi *BulkInserter) Flush() {
 }
 
 // Insert inserts doc.
-func (bi *BulkInserter) Insert(doc interface{}) {
+func (bi *BulkInserter) Insert(doc any) {
 	bi.executor.Add(doc)
 }
 
@@ -61,17 +66,17 @@ func (bi *BulkInserter) SetResultHandler(handler ResultHandler) {
 
 type dbInserter struct {
 	collection    *mongo.Collection
-	documents     []interface{}
+	documents     []any
 	resultHandler ResultHandler
 }
 
-func (in *dbInserter) AddTask(doc interface{}) bool {
+func (in *dbInserter) AddTask(doc any) bool {
 	in.documents = append(in.documents, doc)
 	return len(in.documents) >= maxBulkRows
 }
 
-func (in *dbInserter) Execute(objs interface{}) {
-	docs := objs.([]interface{})
+func (in *dbInserter) Execute(objs any) {
+	docs := objs.([]any)
 	if len(docs) == 0 {
 		return
 	}
@@ -84,7 +89,7 @@ func (in *dbInserter) Execute(objs interface{}) {
 	}
 }
 
-func (in *dbInserter) RemoveAll() interface{} {
+func (in *dbInserter) RemoveAll() any {
 	documents := in.documents
 	in.documents = nil
 	return documents

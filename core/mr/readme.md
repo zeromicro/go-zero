@@ -59,20 +59,19 @@ import (
 )
 
 func main() {
-    val, err := mr.MapReduce(func(source chan<- interface{}) {
+    val, err := mr.MapReduce(func(source chan<- int) {
         // generator
         for i := 0; i < 10; i++ {
             source <- i
         }
-    }, func(item interface{}, writer mr.Writer, cancel func(error)) {
+    }, func(i int, writer mr.Writer[int], cancel func(error)) {
         // mapper
-        i := item.(int)
         writer.Write(i * i)
-    }, func(pipe <-chan interface{}, writer mr.Writer, cancel func(error)) {
+    }, func(pipe <-chan int, writer mr.Writer[int], cancel func(error)) {
         // reducer
         var sum int
         for i := range pipe {
-            sum += i.(int)
+            sum += i
         }
         writer.Write(sum)
     })

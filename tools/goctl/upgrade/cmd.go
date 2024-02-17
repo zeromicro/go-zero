@@ -1,10 +1,6 @@
 package upgrade
 
-import "github.com/spf13/cobra"
+import "github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 
-// Cmd describes a upgrade command.
-var Cmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "Upgrade goctl to latest version",
-	RunE:  upgrade,
-}
+// Cmd describes an upgrade command.
+var Cmd = cobrax.NewCommand("upgrade", cobrax.WithRunE(upgrade))

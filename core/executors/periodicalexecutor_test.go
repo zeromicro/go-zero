@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
@@ -16,22 +17,22 @@ const threshold = 10
 type container struct {
 	interval time.Duration
 	tasks    []int
-	execute  func(tasks interface{})
+	execute  func(tasks any)
 }
 
-func newContainer(interval time.Duration, execute func(tasks interface{})) *container {
+func newContainer(interval time.Duration, execute func(tasks any)) *container {
 	return &container{
 		interval: interval,
 		execute:  execute,
 	}
 }
 
-func (c *container) AddTask(task interface{}) bool {
+func (c *container) AddTask(task any) bool {
 	c.tasks = append(c.tasks, task.(int))
 	return len(c.tasks) > threshold
 }
 
-func (c *container) Execute(tasks interface{}) {
+func (c *container) Execute(tasks any) {
 	if c.execute != nil {
 		c.execute(tasks)
 	} else {
@@ -39,7 +40,7 @@ func (c *container) Execute(tasks interface{}) {
 	}
 }
 
-func (c *container) RemoveAll() interface{} {
+func (c *container) RemoveAll() any {
 	tasks := c.tasks
 	c.tasks = nil
 	return tasks
@@ -67,6 +68,7 @@ func TestPeriodicalExecutor_QuitGoroutine(t *testing.T) {
 	ticker.Tick()
 	ticker.Wait(time.Millisecond * idleRound)
 	assert.Equal(t, routines, runtime.NumGoroutine())
+	proc.Shutdown()
 }
 
 func TestPeriodicalExecutor_Bulk(t *testing.T) {
@@ -74,7 +76,7 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	var vals []int
 	// avoid data race
 	var lock sync.Mutex
-	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks interface{}) {
+	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
 		t := tasks.([]int)
 		for _, each := range t {
 			lock.Lock()
@@ -106,25 +108,83 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	lock.Unlock()
 }
 
+func TestPeriodicalExecutor_Panic(t *testing.T) {
+	// avoid data race
+	var lock sync.Mutex
+	ticker := timex.NewFakeTicker()
+
+	var (
+		executedTasks []int
+		expected      []int
+	)
+	executor := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
+		tt := tasks.([]int)
+		lock.Lock()
+		executedTasks = append(executedTasks, tt...)
+		lock.Unlock()
+		if tt[0] == 0 {
+			panic("test")
+		}
+	}))
+	executor.newTicker = func(duration time.Duration) timex.Ticker {
+		return ticker
+	}
+	for i := 0; i < 30; i++ {
+		executor.Add(i)
+		expected = append(expected, i)
+	}
+	ticker.Tick()
+	ticker.Tick()
+	time.Sleep(time.Millisecond)
+	lock.Lock()
+	assert.Equal(t, expected, executedTasks)
+	lock.Unlock()
+}
+
+func TestPeriodicalExecutor_FlushPanic(t *testing.T) {
+	var (
+		executedTasks []int
+		expected      []int
+		lock          sync.Mutex
+	)
+	executor := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
+		tt := tasks.([]int)
+		lock.Lock()
+		executedTasks = append(executedTasks, tt...)
+		lock.Unlock()
+		if tt[0] == 0 {
+			panic("flush panic")
+		}
+	}))
+	for i := 0; i < 8; i++ {
+		executor.Add(i)
+		expected = append(expected, i)
+	}
+	executor.Flush()
+	lock.Lock()
+	assert.Equal(t, expected, executedTasks)
+	lock.Unlock()
+}
+
 func TestPeriodicalExecutor_Wait(t *testing.T) {
 	var lock sync.Mutex
-	executer := NewBulkExecutor(func(tasks []interface{}) {
+	executor := NewBulkExecutor(func(tasks []any) {
 		lock.Lock()
 		defer lock.Unlock()
 		time.Sleep(10 * time.Millisecond)
 	}, WithBulkTasks(1), WithBulkInterval(time.Second))
 	for i := 0; i < 10; i++ {
-		executer.Add(1)
+		executor.Add(1)
 	}
-	executer.Flush()
-	executer.Wait()
+	executor.Flush()
+	executor.Wait()
 }
 
 func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 	const total = 3
 	var cnt int
 	var lock sync.Mutex
-	executer := NewBulkExecutor(func(tasks []interface{}) {
+	executor := NewBulkExecutor(func(tasks []any) {
 		defer func() {
 			cnt++
 		}()
@@ -133,15 +193,15 @@ func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}, WithBulkTasks(1), WithBulkInterval(10*time.Millisecond))
 	for i := 0; i < total; i++ {
-		executer.Add(2)
+		executor.Add(2)
 	}
-	executer.Flush()
-	executer.Wait()
+	executor.Flush()
+	executor.Wait()
 	assert.Equal(t, total, cnt)
 }
 
 func TestPeriodicalExecutor_Deadlock(t *testing.T) {
-	executor := NewBulkExecutor(func(tasks []interface{}) {
+	executor := NewBulkExecutor(func(tasks []any) {
 	}, WithBulkTasks(1), WithBulkInterval(time.Millisecond))
 	for i := 0; i < 1e5; i++ {
 		executor.Add(1)
@@ -149,13 +209,7 @@ func TestPeriodicalExecutor_Deadlock(t *testing.T) {
 }
 
 func TestPeriodicalExecutor_hasTasks(t *testing.T) {
-	ticker := timex.NewFakeTicker()
-	defer ticker.Stop()
-
 	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, nil))
-	exec.newTicker = func(d time.Duration) timex.Ticker {
-		return ticker
-	}
 	assert.False(t, exec.hasTasks(nil))
 	assert.True(t, exec.hasTasks(1))
 }

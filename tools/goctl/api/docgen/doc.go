@@ -5,20 +5,25 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
+	"io"
 	"strconv"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/api/util"
+	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 //go:embed markdown.tpl
 var markdownTemplate string
 
 func genDoc(api *spec.ApiSpec, dir, filename string) error {
-	fp, _, err := util.MaybeCreateFile(dir, "", filename)
+	if len(api.Service.Routes()) == 0 {
+		return nil
+	}
+
+	fp, _, err := apiutil.MaybeCreateFile(dir, "", filename)
 	if err != nil {
 		return err
 	}
@@ -31,12 +36,12 @@ func genDoc(api *spec.ApiSpec, dir, filename string) error {
 			routeComment = "N/A"
 		}
 
-		requestContent, err := buildDoc(route.RequestType)
+		requestContent, err := buildDoc(route.RequestType, api.Types)
 		if err != nil {
 			return err
 		}
 
-		responseContent, err := buildDoc(route.ResponseType)
+		responseContent, err := buildDoc(route.ResponseType, api.Types)
 		if err != nil {
 			return err
 		}
@@ -59,11 +64,12 @@ func genDoc(api *spec.ApiSpec, dir, filename string) error {
 
 		builder.Write(tmplBytes.Bytes())
 	}
+
 	_, err = fp.WriteString(strings.Replace(builder.String(), "&#34;", `"`, -1))
 	return err
 }
 
-func buildDoc(route spec.Type) (string, error) {
+func buildDoc(route spec.Type, types []spec.Type) (string, error) {
 	if route == nil || len(route.Name()) == 0 {
 		return "", nil
 	}
@@ -73,7 +79,7 @@ func buildDoc(route spec.Type) (string, error) {
 	if definedType, ok := route.(spec.DefineStruct); ok {
 		associatedTypes(definedType, &tps)
 	}
-	value, err := gogen.BuildTypes(tps)
+	value, err := buildTypes(tps, types)
 	if err != nil {
 		return "", err
 	}
@@ -98,4 +104,83 @@ func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {
 			associatedTypes(definedType, tps)
 		}
 	}
+}
+
+// buildTypes gen types to string
+func buildTypes(types, all []spec.Type) (string, error) {
+	var builder strings.Builder
+	first := true
+	for _, tp := range types {
+		if first {
+			first = false
+		} else {
+			builder.WriteString("\n\n")
+		}
+		if err := writeType(&builder, tp, all); err != nil {
+			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
+		}
+	}
+
+	return builder.String(), nil
+}
+
+func writeType(writer io.Writer, tp spec.Type, all []spec.Type) error {
+	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
+	if err := writerMembers(writer, tp, all); err != nil {
+		return err
+	}
+	fmt.Fprintf(writer, "}")
+	return nil
+}
+
+func writerMembers(writer io.Writer, tp spec.Type, all []spec.Type) error {
+	structType, ok := tp.(spec.DefineStruct)
+	if !ok {
+		return fmt.Errorf("unspport struct type: %s", tp.Name())
+	}
+
+	getTargetType := func(tp string) spec.Type {
+		for _, v := range all {
+			if v.Name() == tp {
+				return v
+			}
+		}
+		return nil
+	}
+	for _, member := range structType.Members {
+		if member.IsInline {
+			inlineType := getTargetType(member.Type.Name())
+			if inlineType == nil {
+				if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type.Name())); err != nil {
+					return err
+				}
+			} else {
+				if err := writerMembers(writer, inlineType, all); err != nil {
+					return err
+				}
+			}
+
+			continue
+		}
+
+		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+	apiutil.WriteIndent(writer, indent)
+	var err error
+	if len(comment) > 0 {
+		comment = strings.TrimPrefix(comment, "//")
+		comment = "//" + comment
+		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tp.Name(), tag, comment)
+	} else {
+		_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
+	}
+
+	return err
 }

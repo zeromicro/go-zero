@@ -45,9 +45,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 		},
 	}
 
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -65,7 +63,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 			stream := mockedStream{ctx: ctx}
-			err = interceptor(nil, stream, nil, func(_ interface{}, _ grpc.ServerStream) error {
+			err = interceptor(nil, stream, nil, func(_ any, _ grpc.ServerStream) error {
 				return nil
 			})
 			if test.hasError {
@@ -111,9 +109,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 		},
 	}
 
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -131,7 +127,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 			_, err = interceptor(ctx, nil, nil,
-				func(ctx context.Context, req interface{}) (interface{}, error) {
+				func(ctx context.Context, req any) (any, error) {
 					return nil, nil
 				})
 			if test.hasError {
@@ -141,7 +137,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 			}
 			if test.strict {
 				_, err = interceptor(context.Background(), nil, nil,
-					func(ctx context.Context, req interface{}) (interface{}, error) {
+					func(ctx context.Context, req any) (any, error) {
 						return nil, nil
 					})
 				assert.NotNil(t, err)
@@ -149,7 +145,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 				var md metadata.MD
 				ctx := metadata.NewIncomingContext(context.Background(), md)
 				_, err = interceptor(ctx, nil, nil,
-					func(ctx context.Context, req interface{}) (interface{}, error) {
+					func(ctx context.Context, req any) (any, error) {
 						return nil, nil
 					})
 				assert.NotNil(t, err)
@@ -160,7 +156,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 				})
 				ctx = metadata.NewIncomingContext(context.Background(), md)
 				_, err = interceptor(ctx, nil, nil,
-					func(ctx context.Context, req interface{}) (interface{}, error) {
+					func(ctx context.Context, req any) (any, error) {
 						return nil, nil
 					})
 				assert.NotNil(t, err)
@@ -188,10 +184,10 @@ func (m mockedStream) Context() context.Context {
 	return m.ctx
 }
 
-func (m mockedStream) SendMsg(v interface{}) error {
+func (m mockedStream) SendMsg(v any) error {
 	return nil
 }
 
-func (m mockedStream) RecvMsg(v interface{}) error {
+func (m mockedStream) RecvMsg(v any) error {
 	return nil
 }

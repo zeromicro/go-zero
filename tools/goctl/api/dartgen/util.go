@@ -11,6 +11,18 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 )
 
+const (
+	formTagKey   = "form"
+	pathTagKey   = "path"
+	headerTagKey = "header"
+)
+
+func normalizeHandlerName(handlerName string) string {
+	handler := strings.Replace(handlerName, "Handler", "", 1)
+	handler = lowCamelCase(handler)
+	return handler
+}
+
 func lowCamelCase(s string) string {
 	if len(s) < 1 {
 		return ""
@@ -18,21 +30,6 @@ func lowCamelCase(s string) string {
 
 	s = util.ToCamelCase(util.ToSnakeCase(s))
 	return util.ToLower(s[:1]) + s[1:]
-}
-
-func pathToFuncName(path string) string {
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	if !strings.HasPrefix(path, "/api") {
-		path = "/api" + path
-	}
-
-	path = strings.Replace(path, "/", "_", -1)
-	path = strings.Replace(path, "-", "_", -1)
-
-	camel := util.ToCamelCase(path)
-	return util.ToLower(camel[:1]) + camel[1:]
 }
 
 func getBaseName(str string) string {
@@ -60,12 +57,75 @@ func isAtomicType(s string) bool {
 	}
 }
 
+func isNumberType(s string) bool {
+	switch s {
+	case "int", "double":
+		return true
+	default:
+		return false
+	}
+}
+
 func isListType(s string) bool {
 	return strings.HasPrefix(s, "List<")
 }
 
 func isClassListType(s string) bool {
-	return strings.HasPrefix(s, "List<") && !isAtomicType(getCoreType(s))
+	return isListType(s) && !isAtomicType(getCoreType(s))
+}
+
+func isAtomicListType(s string) bool {
+	return isListType(s) && isAtomicType(getCoreType(s))
+}
+
+func isListItemsNullable(s string) bool {
+	return isListType(s) && isNullableType(getCoreType(s))
+}
+
+func isMapType(s string) bool {
+	return strings.HasPrefix(s, "Map<")
+}
+
+// Only interface types are nullable
+func isNullableType(s string) bool {
+	return strings.HasSuffix(s, "?")
+}
+
+func appendNullCoalescing(member spec.Member) string {
+	if isNullableType(member.Type.Name()) {
+		return "m['" + getPropertyFromMember(member) + "'] == null ? null : "
+	}
+	return ""
+}
+
+// To be compatible with omitempty tags in Golang
+// Only set default value for non-nullable types
+func appendDefaultEmptyValue(s string) string {
+	if isNullableType(s) {
+		return ""
+	}
+
+	if isAtomicType(s) {
+		switch s {
+		case "String":
+			return `?? ""`
+		case "int":
+			return "?? 0"
+		case "double":
+			return "?? 0.0"
+		case "bool":
+			return "?? false"
+		default:
+			panic(errors.New("unknown atomic type"))
+		}
+	}
+	if isListType(s) {
+		return "?? []"
+	}
+	if isMapType(s) {
+		return "?? {}"
+	}
+	return ""
 }
 
 func getCoreType(s string) string {
@@ -133,9 +193,13 @@ func specTypeToDart(tp spec.Type) (string, error) {
 		}
 		return fmt.Sprintf("List<%s>", valueType), nil
 	case spec.InterfaceType:
-		return "Object", nil
+		return "Object?", nil
 	case spec.PointerType:
-		return specTypeToDart(v.Type)
+		valueType, err := specTypeToDart(v.Type)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s?", valueType), nil
 	}
 
 	return "", errors.New("unsupported primitive type " + tp.Name())
@@ -169,4 +233,47 @@ func primitiveType(tp string) (string, bool) {
 	}
 
 	return "", false
+}
+
+func hasUrlPathParams(route spec.Route) bool {
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return false
+	}
+
+	return len(route.RequestTypeName()) > 0 && len(ds.GetTagMembers(pathTagKey)) > 0
+}
+
+func extractPositionalParamsFromPath(route spec.Route) string {
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return ""
+	}
+
+	var params []string
+	for _, member := range ds.GetTagMembers(pathTagKey) {
+		dartType := member.Type.Name()
+		params = append(params, fmt.Sprintf("%s %s", dartType, getPropertyFromMember(member)))
+	}
+
+	return strings.Join(params, ", ")
+}
+
+func makeDartRequestUrlPath(route spec.Route) string {
+	path := route.Path
+	if route.RequestType == nil {
+		return `"` + path + `"`
+	}
+
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return path
+	}
+
+	for _, member := range ds.GetTagMembers(pathTagKey) {
+		paramName := member.Tags()[0].Name
+		path = strings.ReplaceAll(path, ":"+paramName, "${"+getPropertyFromMember(member)+"}")
+	}
+
+	return `"` + path + `"`
 }

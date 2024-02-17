@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"path/filepath"
 	"strings"
 
@@ -43,9 +44,10 @@ type (
 
 	// Dir defines a directory
 	Dir struct {
-		Base     string
-		Filename string
-		Package  string
+		Base            string
+		Filename        string
+		Package         string
+		GetChildPackage func(childPath string) (string, error)
 	}
 
 	defaultDirContext struct {
@@ -55,9 +57,11 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcContext) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZRpcContext) (DirContext,
+	error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
+	clientDir := filepath.Join(ctx.WorkDir, "client")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")
 	configDir := filepath.Join(internalDir, "config")
 	logicDir := filepath.Join(internalDir, "logic")
@@ -70,64 +74,125 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		protoGoDir = c.ProtoGenGoDir
 	}
 
-	callDir := filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name).ToCamel()))
-	if strings.EqualFold(proto.Service.Name, proto.GoPackage) {
-		callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
+	getChildPackage := func(parent, childPath string) (string, error) {
+		child := strings.TrimPrefix(childPath, parent)
+		abs := filepath.Join(parent, strings.ToLower(child))
+		if c.Multiple {
+			if err := pathx.MkdirIfNotExist(abs); err != nil {
+				return "", err
+			}
+		}
+		childPath = strings.TrimPrefix(abs, ctx.Dir)
+		pkg := filepath.Join(ctx.Path, childPath)
+		return filepath.ToSlash(pkg), nil
+	}
+
+	var callClientDir string
+	if !c.Multiple {
+		callDir := filepath.Join(ctx.WorkDir,
+			strings.ToLower(stringx.From(proto.Service[0].Name).ToCamel()))
+		if strings.EqualFold(proto.Service[0].Name, filepath.Base(proto.GoPackage)) {
+			var err error
+			clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name+"_client")
+			if err != nil {
+				return nil, err
+			}
+			callDir = filepath.Join(ctx.WorkDir, clientDir)
+		}
+		callClientDir = callDir
+	} else {
+		callClientDir = clientDir
+	}
+	if c.IsGenClient {
+		inner[call] = Dir{
+			Filename: callClientDir,
+			Package: filepath.ToSlash(filepath.Join(ctx.Path,
+				strings.TrimPrefix(callClientDir, ctx.Dir))),
+			Base: filepath.Base(callClientDir),
+			GetChildPackage: func(childPath string) (string, error) {
+				return getChildPackage(callClientDir, childPath)
+			},
+		}
 	}
 
 	inner[wd] = Dir{
 		Filename: ctx.WorkDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(ctx.WorkDir, ctx.Dir))),
-		Base:     filepath.Base(ctx.WorkDir),
+		Package: filepath.ToSlash(filepath.Join(ctx.Path,
+			strings.TrimPrefix(ctx.WorkDir, ctx.Dir))),
+		Base: filepath.Base(ctx.WorkDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(ctx.WorkDir, childPath)
+		},
 	}
 	inner[etc] = Dir{
 		Filename: etcDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(etcDir, ctx.Dir))),
 		Base:     filepath.Base(etcDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(etcDir, childPath)
+		},
 	}
 	inner[internal] = Dir{
 		Filename: internalDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(internalDir, ctx.Dir))),
-		Base:     filepath.Base(internalDir),
+		Package: filepath.ToSlash(filepath.Join(ctx.Path,
+			strings.TrimPrefix(internalDir, ctx.Dir))),
+		Base: filepath.Base(internalDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(internalDir, childPath)
+		},
 	}
 	inner[config] = Dir{
 		Filename: configDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(configDir, ctx.Dir))),
 		Base:     filepath.Base(configDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(configDir, childPath)
+		},
 	}
 	inner[logic] = Dir{
 		Filename: logicDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(logicDir, ctx.Dir))),
 		Base:     filepath.Base(logicDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(logicDir, childPath)
+		},
 	}
 	inner[server] = Dir{
 		Filename: serverDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(serverDir, ctx.Dir))),
 		Base:     filepath.Base(serverDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(serverDir, childPath)
+		},
 	}
 	inner[svc] = Dir{
 		Filename: svcDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(svcDir, ctx.Dir))),
 		Base:     filepath.Base(svcDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(svcDir, childPath)
+		},
 	}
 
 	inner[pb] = Dir{
 		Filename: pbDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
 		Base:     filepath.Base(pbDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(pbDir, childPath)
+		},
 	}
 
 	inner[protoGo] = Dir{
 		Filename: protoGoDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(protoGoDir, ctx.Dir))),
-		Base:     filepath.Base(protoGoDir),
+		Package: filepath.ToSlash(filepath.Join(ctx.Path,
+			strings.TrimPrefix(protoGoDir, ctx.Dir))),
+		Base: filepath.Base(protoGoDir),
+		GetChildPackage: func(childPath string) (string, error) {
+			return getChildPackage(protoGoDir, childPath)
+		},
 	}
 
-	inner[call] = Dir{
-		Filename: callDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(callDir, ctx.Dir))),
-		Base:     filepath.Base(callDir),
-	}
 	for _, v := range inner {
 		err := pathx.MkdirIfNotExist(v.Filename)
 		if err != nil {
@@ -151,8 +216,9 @@ func (d *defaultDirContext) SetPbDir(pbDir, grpcDir string) {
 
 	d.inner[protoGo] = Dir{
 		Filename: grpcDir,
-		Package:  filepath.ToSlash(filepath.Join(d.ctx.Path, strings.TrimPrefix(grpcDir, d.ctx.Dir))),
-		Base:     filepath.Base(grpcDir),
+		Package: filepath.ToSlash(filepath.Join(d.ctx.Path,
+			strings.TrimPrefix(grpcDir, d.ctx.Dir))),
+		Base: filepath.Base(grpcDir),
 	}
 }
 

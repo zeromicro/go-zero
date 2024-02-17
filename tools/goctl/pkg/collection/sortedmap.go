@@ -11,24 +11,24 @@ import (
 
 var (
 	ErrInvalidKVExpression = errors.New(`invalid key-value expression`)
-	ErrInvalidKVS          = errors.New("the length of kv must be a even number")
+	ErrInvalidKVS          = errors.New("the length of kv must be an even number")
 )
 
-type KV []interface{}
+type KV []any
 
 type SortedMap struct {
 	kv   *list.List
-	keys map[interface{}]*list.Element
+	keys map[any]*list.Element
 }
 
 func New() *SortedMap {
 	return &SortedMap{
 		kv:   list.New(),
-		keys: make(map[interface{}]*list.Element),
+		keys: make(map[any]*list.Element),
 	}
 }
 
-func (m *SortedMap) SetExpression(expression string) (key, value interface{}, err error) {
+func (m *SortedMap) SetExpression(expression string) (key, value any, err error) {
 	idx := strings.Index(expression, "=")
 	if idx == -1 {
 		return "", "", ErrInvalidKVExpression
@@ -53,7 +53,7 @@ func (m *SortedMap) SetExpression(expression string) (key, value interface{}, er
 	return
 }
 
-func (m *SortedMap) SetKV(key, value interface{}) {
+func (m *SortedMap) SetKV(key, value any) {
 	e, ok := m.keys[key]
 	if !ok {
 		e = m.kv.PushBack(KV{
@@ -78,7 +78,7 @@ func (m *SortedMap) Set(kv KV) error {
 	return nil
 }
 
-func (m *SortedMap) Get(key interface{}) (interface{}, bool) {
+func (m *SortedMap) Get(key any) (any, bool) {
 	e, ok := m.keys[key]
 	if !ok {
 		return nil, false
@@ -86,7 +86,7 @@ func (m *SortedMap) Get(key interface{}) (interface{}, bool) {
 	return e.Value.(KV)[1], true
 }
 
-func (m *SortedMap) GetOr(key, dft interface{}) interface{} {
+func (m *SortedMap) GetOr(key, dft any) any {
 	e, ok := m.keys[key]
 	if !ok {
 		return dft
@@ -94,7 +94,7 @@ func (m *SortedMap) GetOr(key, dft interface{}) interface{} {
 	return e.Value.(KV)[1]
 }
 
-func (m *SortedMap) GetString(key interface{}) (string, bool) {
+func (m *SortedMap) GetString(key any) (string, bool) {
 	value, ok := m.Get(key)
 	if !ok {
 		return "", false
@@ -103,7 +103,7 @@ func (m *SortedMap) GetString(key interface{}) (string, bool) {
 	return vs, ok
 }
 
-func (m *SortedMap) GetStringOr(key interface{}, dft string) string {
+func (m *SortedMap) GetStringOr(key any, dft string) string {
 	value, ok := m.GetString(key)
 	if !ok {
 		return dft
@@ -111,14 +111,14 @@ func (m *SortedMap) GetStringOr(key interface{}, dft string) string {
 	return value
 }
 
-func (m *SortedMap) HasKey(key interface{}) bool {
+func (m *SortedMap) HasKey(key any) bool {
 	_, ok := m.keys[key]
 	return ok
 }
 
-func (m *SortedMap) HasValue(value interface{}) bool {
+func (m *SortedMap) HasValue(value any) bool {
 	var contains bool
-	m.RangeIf(func(key, v interface{}) bool {
+	m.RangeIf(func(key, v any) bool {
 		if value == v {
 			contains = true
 			return false
@@ -128,8 +128,8 @@ func (m *SortedMap) HasValue(value interface{}) bool {
 	return contains
 }
 
-func (m *SortedMap) Keys() []interface{} {
-	keys := make([]interface{}, 0)
+func (m *SortedMap) Keys() []any {
+	keys := make([]any, 0)
 	next := m.kv.Front()
 	for next != nil {
 		keys = append(keys, next.Value.(KV)[0])
@@ -138,16 +138,16 @@ func (m *SortedMap) Keys() []interface{} {
 	return keys
 }
 
-func (m *SortedMap) Values() []interface{} {
+func (m *SortedMap) Values() []any {
 	keys := m.Keys()
-	values := make([]interface{}, len(keys))
+	values := make([]any, len(keys))
 	for idx, key := range keys {
 		values[idx] = m.keys[key].Value.(KV)[1]
 	}
 	return values
 }
 
-func (m *SortedMap) Range(iterator func(key, value interface{})) {
+func (m *SortedMap) Range(iterator func(key, value any)) {
 	next := m.kv.Front()
 	for next != nil {
 		value := next.Value.(KV)
@@ -156,7 +156,7 @@ func (m *SortedMap) Range(iterator func(key, value interface{})) {
 	}
 }
 
-func (m *SortedMap) RangeIf(iterator func(key, value interface{}) bool) {
+func (m *SortedMap) RangeIf(iterator func(key, value any) bool) {
 	next := m.kv.Front()
 	for next != nil {
 		value := next.Value.(KV)
@@ -168,7 +168,7 @@ func (m *SortedMap) RangeIf(iterator func(key, value interface{}) bool) {
 	}
 }
 
-func (m *SortedMap) Remove(key interface{}) (value interface{}, ok bool) {
+func (m *SortedMap) Remove(key any) (value any, ok bool) {
 	v, ok := m.keys[key]
 	if !ok {
 		return nil, false
@@ -181,14 +181,14 @@ func (m *SortedMap) Remove(key interface{}) (value interface{}, ok bool) {
 }
 
 func (m *SortedMap) Insert(sm *SortedMap) {
-	sm.Range(func(key, value interface{}) {
+	sm.Range(func(key, value any) {
 		m.SetKV(key, value)
 	})
 }
 
 func (m *SortedMap) Copy() *SortedMap {
 	sm := New()
-	m.Range(func(key, value interface{}) {
+	m.Range(func(key, value any) {
 		sm.SetKV(key, value)
 	})
 	return sm
@@ -196,7 +196,7 @@ func (m *SortedMap) Copy() *SortedMap {
 
 func (m *SortedMap) Format() []string {
 	format := make([]string, 0)
-	m.Range(func(key, value interface{}) {
+	m.Range(func(key, value any) {
 		format = append(format, fmt.Sprintf("%s=%s", key, value))
 	})
 	return format

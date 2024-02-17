@@ -12,7 +12,7 @@ func TestBulkExecutor(t *testing.T) {
 	var values []int
 	var lock sync.Mutex
 
-	executor := NewBulkExecutor(func(items []interface{}) {
+	executor := NewBulkExecutor(func(items []any) {
 		lock.Lock()
 		values = append(values, len(items))
 		lock.Unlock()
@@ -40,7 +40,7 @@ func TestBulkExecutorFlushInterval(t *testing.T) {
 	var wait sync.WaitGroup
 
 	wait.Add(1)
-	executor := NewBulkExecutor(func(items []interface{}) {
+	executor := NewBulkExecutor(func(items []any) {
 		assert.Equal(t, size, len(items))
 		wait.Done()
 	}, WithBulkTasks(caches), WithBulkInterval(time.Millisecond*100))
@@ -53,7 +53,7 @@ func TestBulkExecutorFlushInterval(t *testing.T) {
 }
 
 func TestBulkExecutorEmpty(t *testing.T) {
-	NewBulkExecutor(func(items []interface{}) {
+	NewBulkExecutor(func(items []any) {
 		assert.Fail(t, "should not called")
 	}, WithBulkTasks(10), WithBulkInterval(time.Millisecond))
 	time.Sleep(time.Millisecond * 100)
@@ -67,7 +67,7 @@ func TestBulkExecutorFlush(t *testing.T) {
 
 	var wait sync.WaitGroup
 	wait.Add(1)
-	be := NewBulkExecutor(func(items []interface{}) {
+	be := NewBulkExecutor(func(items []any) {
 		assert.Equal(t, tasks, len(items))
 		wait.Done()
 	}, WithBulkTasks(caches), WithBulkInterval(time.Minute))
@@ -78,11 +78,11 @@ func TestBulkExecutorFlush(t *testing.T) {
 	wait.Wait()
 }
 
-func TestBuldExecutorFlushSlowTasks(t *testing.T) {
+func TestBulkExecutorFlushSlowTasks(t *testing.T) {
 	const total = 1500
 	lock := new(sync.Mutex)
-	result := make([]interface{}, 0, 10000)
-	exec := NewBulkExecutor(func(tasks []interface{}) {
+	result := make([]any, 0, 10000)
+	exec := NewBulkExecutor(func(tasks []any) {
 		time.Sleep(time.Millisecond * 100)
 		lock.Lock()
 		defer lock.Unlock()
@@ -100,7 +100,7 @@ func TestBuldExecutorFlushSlowTasks(t *testing.T) {
 func BenchmarkBulkExecutor(b *testing.B) {
 	b.ReportAllocs()
 
-	be := NewBulkExecutor(func(tasks []interface{}) {
+	be := NewBulkExecutor(func(tasks []any) {
 		time.Sleep(time.Millisecond * time.Duration(len(tasks)))
 	})
 	for i := 0; i < b.N; i++ {

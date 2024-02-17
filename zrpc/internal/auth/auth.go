@@ -57,7 +57,7 @@ func (a *Authenticator) Authenticate(ctx context.Context) error {
 }
 
 func (a *Authenticator) validate(app, token string) error {
-	expect, err := a.cache.Take(app, func() (interface{}, error) {
+	expect, err := a.cache.Take(app, func() (any, error) {
 		return a.store.Hget(a.key, app)
 	})
 	if err != nil {

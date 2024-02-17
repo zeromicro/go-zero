@@ -13,8 +13,8 @@ var headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValu
 	mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
 
 // ParseHeaders parses the headers request.
-func ParseHeaders(header http.Header, v interface{}) error {
-	m := map[string]interface{}{}
+func ParseHeaders(header http.Header, v any) error {
+	m := map[string]any{}
 	for k, v := range header {
 		if len(v) == 1 {
 			m[k] = v[0]

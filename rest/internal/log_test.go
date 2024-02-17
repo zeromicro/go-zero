@@ -8,13 +8,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestInfo(t *testing.T) {
 	collector := new(LogCollector)
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req = req.WithContext(context.WithValue(req.Context(), LogContext, collector))
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	req = req.WithContext(WithLogCollector(req.Context(), collector))
 	Info(req, "first")
 	Infof(req, "second %s", "third")
 	val := collector.Flush()
@@ -25,26 +25,20 @@ func TestInfo(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	var buf strings.Builder
-	w := logx.NewWriter(&buf)
-	o := logx.Reset()
-	logx.SetWriter(w)
-
-	defer func() {
-		logx.Reset()
-		logx.SetWriter(o)
-	}()
-
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	c := logtest.NewCollector(t)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	Error(req, "first")
 	Errorf(req, "second %s", "third")
-	val := buf.String()
+	val := c.String()
 	assert.True(t, strings.Contains(val, "first"))
 	assert.True(t, strings.Contains(val, "second"))
 	assert.True(t, strings.Contains(val, "third"))
 }
 
-func TestContextKey_String(t *testing.T) {
-	val := contextKey("foo")
-	assert.True(t, strings.Contains(val.String(), "foo"))
+func TestLogCollectorContext(t *testing.T) {
+	ctx := context.Background()
+	assert.Nil(t, LogCollectorFromContext(ctx))
+	collector := new(LogCollector)
+	ctx = WithLogCollector(ctx, collector)
+	assert.Equal(t, collector, LogCollectorFromContext(ctx))
 }

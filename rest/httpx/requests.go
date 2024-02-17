@@ -4,8 +4,10 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/core/validation"
 	"github.com/zeromicro/go-zero/rest/internal/encoding"
 	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/pathvar"
@@ -21,12 +23,19 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	validator       atomic.Value
 )
 
+// Validator defines the interface for validating the request.
+type Validator interface {
+	// Validate validates the request and parsed data.
+	Validate(r *http.Request, data any) error
+}
+
 // Parse parses the request.
-func Parse(r *http.Request, v interface{}) error {
+func Parse(r *http.Request, v any) error {
 	if err := ParsePath(r, v); err != nil {
 		return err
 	}
@@ -39,32 +48,29 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	return ParseJsonBody(r, v)
+	if err := ParseJsonBody(r, v); err != nil {
+		return err
+	}
+
+	if valid, ok := v.(validation.Validator); ok {
+		return valid.Validate()
+	} else if val := validator.Load(); val != nil {
+		return val.(Validator).Validate(r, v)
+	}
+
+	return nil
 }
 
 // ParseHeaders parses the headers request.
-func ParseHeaders(r *http.Request, v interface{}) error {
+func ParseHeaders(r *http.Request, v any) error {
 	return encoding.ParseHeaders(r.Header, v)
 }
 
 // ParseForm parses the form request.
-func ParseForm(r *http.Request, v interface{}) error {
-	if err := r.ParseForm(); err != nil {
+func ParseForm(r *http.Request, v any) error {
+	params, err := GetFormValues(r)
+	if err != nil {
 		return err
-	}
-
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		if err != http.ErrNotMultipart {
-			return err
-		}
-	}
-
-	params := make(map[string]interface{}, len(r.Form))
-	for name := range r.Form {
-		formValue := r.Form.Get(name)
-		if len(formValue) > 0 {
-			params[name] = formValue
-		}
 	}
 
 	return formUnmarshaler.Unmarshal(params, v)
@@ -93,7 +99,7 @@ func ParseHeader(headerValue string) map[string]string {
 }
 
 // ParseJsonBody parses the post request which contains json in body.
-func ParseJsonBody(r *http.Request, v interface{}) error {
+func ParseJsonBody(r *http.Request, v any) error {
 	if withJsonBody(r) {
 		reader := io.LimitReader(r.Body, maxBodyLen)
 		return mapping.UnmarshalJsonReader(reader, v)
@@ -104,14 +110,21 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 
 // ParsePath parses the symbols reside in url path.
 // Like http://localhost/bag/:name
-func ParsePath(r *http.Request, v interface{}) error {
+func ParsePath(r *http.Request, v any) error {
 	vars := pathvar.Vars(r)
-	m := make(map[string]interface{}, len(vars))
+	m := make(map[string]any, len(vars))
 	for k, v := range vars {
 		m[k] = v
 	}
 
 	return pathUnmarshaler.Unmarshal(m, v)
+}
+
+// SetValidator sets the validator.
+// The validator is used to validate the request, only called in Parse,
+// not in ParseHeaders, ParseForm, ParseHeader, ParseJsonBody, ParsePath.
+func SetValidator(val Validator) {
+	validator.Store(val)
 }
 
 func withJsonBody(r *http.Request) bool {

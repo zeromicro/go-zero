@@ -12,7 +12,7 @@ func TestChunkExecutor(t *testing.T) {
 	var values []int
 	var lock sync.Mutex
 
-	executor := NewChunkExecutor(func(items []interface{}) {
+	executor := NewChunkExecutor(func(items []any) {
 		lock.Lock()
 		values = append(values, len(items))
 		lock.Unlock()
@@ -40,7 +40,7 @@ func TestChunkExecutorFlushInterval(t *testing.T) {
 	var wait sync.WaitGroup
 
 	wait.Add(1)
-	executor := NewChunkExecutor(func(items []interface{}) {
+	executor := NewChunkExecutor(func(items []any) {
 		assert.Equal(t, size, len(items))
 		wait.Done()
 	}, WithChunkBytes(caches), WithFlushInterval(time.Millisecond*100))
@@ -53,10 +53,11 @@ func TestChunkExecutorFlushInterval(t *testing.T) {
 }
 
 func TestChunkExecutorEmpty(t *testing.T) {
-	NewChunkExecutor(func(items []interface{}) {
+	executor := NewChunkExecutor(func(items []any) {
 		assert.Fail(t, "should not called")
 	}, WithChunkBytes(10), WithFlushInterval(time.Millisecond))
 	time.Sleep(time.Millisecond * 100)
+	executor.Wait()
 }
 
 func TestChunkExecutorFlush(t *testing.T) {
@@ -67,7 +68,7 @@ func TestChunkExecutorFlush(t *testing.T) {
 
 	var wait sync.WaitGroup
 	wait.Add(1)
-	be := NewChunkExecutor(func(items []interface{}) {
+	be := NewChunkExecutor(func(items []any) {
 		assert.Equal(t, tasks, len(items))
 		wait.Done()
 	}, WithChunkBytes(caches), WithFlushInterval(time.Minute))
@@ -81,7 +82,7 @@ func TestChunkExecutorFlush(t *testing.T) {
 func BenchmarkChunkExecutor(b *testing.B) {
 	b.ReportAllocs()
 
-	be := NewChunkExecutor(func(tasks []interface{}) {
+	be := NewChunkExecutor(func(tasks []any) {
 		time.Sleep(time.Millisecond * time.Duration(len(tasks)))
 	})
 	for i := 0; i < b.N; i++ {

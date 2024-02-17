@@ -31,7 +31,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	var count int
 	for _, field := range table.Fields {
 		camel := util.SafeString(field.Name.ToCamel())
-		if camel == "CreateTime" || camel == "UpdateTime" {
+		if table.isIgnoreColumns(field.Name.Source()) {
 			continue
 		}
 
@@ -58,7 +58,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 
 	output, err := util.With("insert").
 		Parse(text).
-		Execute(map[string]interface{}{
+		Execute(map[string]any{
 			"withCache":             withCache,
 			"upperStartCamelObject": camel,
 			"lowerStartCamelObject": stringx.From(camel).Untitle(),
@@ -78,7 +78,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 		return "", "", err
 	}
 
-	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]interface{}{
+	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]any{
 		"upperStartCamelObject": camel,
 		"data":                  table,
 	})

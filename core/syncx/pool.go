@@ -12,7 +12,7 @@ type (
 	PoolOption func(*Pool)
 
 	node struct {
-		item     interface{}
+		item     any
 		next     *node
 		lastUsed time.Duration
 	}
@@ -29,13 +29,13 @@ type (
 		lock    sync.Locker
 		cond    *sync.Cond
 		head    *node
-		create  func() interface{}
-		destroy func(interface{})
+		create  func() any
+		destroy func(any)
 	}
 )
 
 // NewPool returns a Pool.
-func NewPool(n int, create func() interface{}, destroy func(interface{}), opts ...PoolOption) *Pool {
+func NewPool(n int, create func() any, destroy func(any), opts ...PoolOption) *Pool {
 	if n <= 0 {
 		panic("pool size can't be negative or zero")
 	}
@@ -57,7 +57,7 @@ func NewPool(n int, create func() interface{}, destroy func(interface{}), opts .
 }
 
 // Get gets a resource.
-func (p *Pool) Get() interface{} {
+func (p *Pool) Get() any {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
@@ -84,7 +84,7 @@ func (p *Pool) Get() interface{} {
 }
 
 // Put puts a resource back.
-func (p *Pool) Put(x interface{}) {
+func (p *Pool) Put(x any) {
 	if x == nil {
 		return
 	}

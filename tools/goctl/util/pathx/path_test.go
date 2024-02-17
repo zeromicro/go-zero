@@ -1,7 +1,6 @@
 package pathx
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,7 +9,7 @@ import (
 )
 
 func TestReadLink(t *testing.T) {
-	dir, err := ioutil.TempDir("", "go-zero")
+	dir, err := os.MkdirTemp("", "go-zero")
 	assert.Nil(t, err)
 	symLink := filepath.Join(dir, "test")
 	pwd, err := os.Getwd()

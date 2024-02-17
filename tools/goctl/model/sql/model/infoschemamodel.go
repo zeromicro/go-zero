@@ -24,13 +24,14 @@ type (
 
 	// DbColumn defines column info of columns
 	DbColumn struct {
-		Name            string      `db:"COLUMN_NAME"`
-		DataType        string      `db:"DATA_TYPE"`
-		Extra           string      `db:"EXTRA"`
-		Comment         string      `db:"COLUMN_COMMENT"`
-		ColumnDefault   interface{} `db:"COLUMN_DEFAULT"`
-		IsNullAble      string      `db:"IS_NULLABLE"`
-		OrdinalPosition int         `db:"ORDINAL_POSITION"`
+		Name            string `db:"COLUMN_NAME"`
+		DataType        string `db:"DATA_TYPE"`
+		ColumnType      string `db:"COLUMN_TYPE"`
+		Extra           string `db:"EXTRA"`
+		Comment         string `db:"COLUMN_COMMENT"`
+		ColumnDefault   any    `db:"COLUMN_DEFAULT"`
+		IsNullAble      string `db:"IS_NULLABLE"`
+		OrdinalPosition int    `db:"ORDINAL_POSITION"`
 	}
 
 	// DbIndex defines index of columns in information_schema.statistic
@@ -87,7 +88,7 @@ func (m *InformationSchemaModel) GetAllTables(database string) ([]string, error)
 
 // FindColumns return columns in specified database and table
 func (m *InformationSchemaModel) FindColumns(db, table string) (*ColumnData, error) {
-	querySql := `SELECT c.COLUMN_NAME,c.DATA_TYPE,EXTRA,c.COLUMN_COMMENT,c.COLUMN_DEFAULT,c.IS_NULLABLE,c.ORDINAL_POSITION from COLUMNS c WHERE c.TABLE_SCHEMA = ? and c.TABLE_NAME = ? `
+	querySql := `SELECT c.COLUMN_NAME,c.DATA_TYPE,c.COLUMN_TYPE,EXTRA,c.COLUMN_COMMENT,c.COLUMN_DEFAULT,c.IS_NULLABLE,c.ORDINAL_POSITION from COLUMNS c WHERE c.TABLE_SCHEMA = ? and c.TABLE_NAME = ? `
 	var reply []*DbColumn
 	err := m.conn.QueryRowsPartial(&reply, querySql, db, table)
 	if err != nil {

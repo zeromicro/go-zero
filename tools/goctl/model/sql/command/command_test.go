@@ -2,7 +2,6 @@ package command
 
 import (
 	_ "embed"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -10,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -27,12 +27,25 @@ func TestFromDDl(t *testing.T) {
 	err := gen.Clean()
 	assert.Nil(t, err)
 
-	err = fromDDL("./user.sql", pathx.MustTempDir(), cfg, true, false, "go_zero")
+	err = fromDDL(ddlArg{
+		src:      "./user.sql",
+		dir:      pathx.MustTempDir(),
+		cfg:      cfg,
+		cache:    true,
+		database: "go-zero",
+		strict:   false,
+	})
 	assert.Equal(t, errNotMatched, err)
 
 	// case dir is not exists
 	unknownDir := filepath.Join(pathx.MustTempDir(), "test", "user.sql")
-	err = fromDDL(unknownDir, pathx.MustTempDir(), cfg, true, false, "go_zero")
+	err = fromDDL(ddlArg{
+		src:      unknownDir,
+		dir:      pathx.MustTempDir(),
+		cfg:      cfg,
+		cache:    true,
+		database: "go_zero",
+	})
 	assert.True(t, func() bool {
 		switch err.(type) {
 		case *os.PathError:
@@ -43,7 +56,12 @@ func TestFromDDl(t *testing.T) {
 	}())
 
 	// case empty src
-	err = fromDDL("", pathx.MustTempDir(), cfg, true, false, "go_zero")
+	err = fromDDL(ddlArg{
+		dir:      pathx.MustTempDir(),
+		cfg:      cfg,
+		cache:    true,
+		database: "go_zero",
+	})
 	if err != nil {
 		assert.Equal(t, "expected path or path globbing patterns, but nothing found", err.Error())
 	}
@@ -57,12 +75,12 @@ func TestFromDDl(t *testing.T) {
 	user1Sql := filepath.Join(tempDir, "user1.sql")
 	user2Sql := filepath.Join(tempDir, "user2.sql")
 
-	err = ioutil.WriteFile(user1Sql, []byte(sql), os.ModePerm)
+	err = os.WriteFile(user1Sql, []byte(sql), os.ModePerm)
 	if err != nil {
 		return
 	}
 
-	err = ioutil.WriteFile(user2Sql, []byte(sql), os.ModePerm)
+	err = os.WriteFile(user2Sql, []byte(sql), os.ModePerm)
 	if err != nil {
 		return
 	}
@@ -75,7 +93,13 @@ func TestFromDDl(t *testing.T) {
 
 	filename := filepath.Join(tempDir, "usermodel.go")
 	fromDDL := func(db string) {
-		err = fromDDL(filepath.Join(tempDir, "user*.sql"), tempDir, cfg, true, false, db)
+		err = fromDDL(ddlArg{
+			src:      filepath.Join(tempDir, "user*.sql"),
+			dir:      tempDir,
+			cfg:      cfg,
+			cache:    true,
+			database: db,
+		})
 		assert.Nil(t, err)
 
 		_, err = os.Stat(filename)

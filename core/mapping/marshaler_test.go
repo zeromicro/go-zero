@@ -227,7 +227,7 @@ func TestMarshal_Range(t *testing.T) {
 }
 
 func TestMarshal_RangeOut(t *testing.T) {
-	tests := []interface{}{
+	tests := []any{
 		struct {
 			Int int `json:"int,range=[1:3]"`
 		}{
@@ -258,6 +258,78 @@ func TestMarshal_RangeOut(t *testing.T) {
 	for _, test := range tests {
 		_, err := Marshal(test)
 		assert.NotNil(t, err)
+	}
+}
+
+func TestMarshal_RangeIllegal(t *testing.T) {
+	tests := []any{
+		struct {
+			Int int `json:"int,range=[3:1]"`
+		}{
+			Int: 2,
+		},
+		struct {
+			Int int `json:"int,range=(3:1]"`
+		}{
+			Int: 2,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := Marshal(test)
+		assert.Equal(t, err, errNumberRange)
+	}
+}
+
+func TestMarshal_RangeLeftEqualsToRight(t *testing.T) {
+	tests := []struct {
+		name  string
+		value any
+		err   error
+	}{
+		{
+			name: "left inclusive, right inclusive",
+			value: struct {
+				Int int `json:"int,range=[2:2]"`
+			}{
+				Int: 2,
+			},
+		},
+		{
+			name: "left inclusive, right exclusive",
+			value: struct {
+				Int int `json:"int,range=[2:2)"`
+			}{
+				Int: 2,
+			},
+			err: errNumberRange,
+		},
+		{
+			name: "left exclusive, right inclusive",
+			value: struct {
+				Int int `json:"int,range=(2:2]"`
+			}{
+				Int: 2,
+			},
+			err: errNumberRange,
+		},
+		{
+			name: "left exclusive, right exclusive",
+			value: struct {
+				Int int `json:"int,range=(2:2)"`
+			}{
+				Int: 2,
+			},
+			err: errNumberRange,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			_, err := Marshal(test.value)
+			assert.Equal(t, test.err, err)
+		})
 	}
 }
 

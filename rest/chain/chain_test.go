@@ -23,7 +23,7 @@ func tagMiddleware(tag string) Middleware {
 
 // Not recommended (https://golang.org/pkg/reflect/#Value.Pointer),
 // but the best we can do.
-func funcsEqual(f1, f2 interface{}) bool {
+func funcsEqual(f1, f2 any) bool {
 	val1 := reflect.ValueOf(f1)
 	val2 := reflect.ValueOf(f2)
 	return val1.Pointer() == val2.Pointer()
@@ -86,7 +86,7 @@ func TestThenOrdersHandlersCorrectly(t *testing.T) {
 	chained := New(t1, t2, t3).Then(testApp)
 
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "/", nil)
+	r, err := http.NewRequest("GET", "/", http.NoBody)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestAppendAddsHandlersCorrectly(t *testing.T) {
 	h := c.Then(testApp)
 
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "/", nil)
+	r, err := http.NewRequest("GET", "/", http.NoBody)
 	assert.Nil(t, err)
 
 	h.ServeHTTP(w, r)

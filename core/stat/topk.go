@@ -16,11 +16,11 @@ func (h *taskHeap) Swap(i, j int) {
 	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
 }
 
-func (h *taskHeap) Push(x interface{}) {
+func (h *taskHeap) Push(x any) {
 	*h = append(*h, x.(Task))
 }
 
-func (h *taskHeap) Pop() interface{} {
+func (h *taskHeap) Pop() any {
 	old := *h
 	n := len(old)
 	x := old[n-1]

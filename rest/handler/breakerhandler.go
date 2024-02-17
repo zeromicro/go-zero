@@ -28,7 +28,7 @@ func BreakerHandler(method, path string, metrics *stat.Metrics) func(http.Handle
 				return
 			}
 
-			cw := &response.WithCodeResponseWriter{Writer: w}
+			cw := response.NewWithCodeResponseWriter(w)
 			defer func() {
 				if cw.Code < http.StatusInternalServerError {
 					promise.Accept()

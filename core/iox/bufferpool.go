@@ -16,7 +16,7 @@ func NewBufferPool(capability int) *BufferPool {
 	return &BufferPool{
 		capability: capability,
 		pool: &sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return new(bytes.Buffer)
 			},
 		},
@@ -32,6 +32,10 @@ func (bp *BufferPool) Get() *bytes.Buffer {
 
 // Put returns buf into bp.
 func (bp *BufferPool) Put(buf *bytes.Buffer) {
+	if buf == nil {
+		return
+	}
+
 	if buf.Cap() < bp.capability {
 		bp.pool.Put(buf)
 	}

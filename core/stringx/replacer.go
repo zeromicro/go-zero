@@ -1,6 +1,13 @@
 package stringx
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
+
+// replace more than once to avoid overlapped keywords after replace.
+// only try 2 times to avoid too many or infinite loops.
+const replaceTimes = 2
 
 type (
 	// Replacer interface wraps the Replace method.
@@ -30,68 +37,48 @@ func NewReplacer(mapping map[string]string) Replacer {
 
 // Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
-	var builder strings.Builder
-	var start int
-	chars := []rune(text)
-	size := len(chars)
-
-	for start < size {
-		cur := r.node
-
-		if start > 0 {
-			builder.WriteString(string(chars[:start]))
-		}
-
-		for i := start; i < size; i++ {
-			child, ok := cur.children[chars[i]]
-			if ok {
-				cur = child
-			} else if cur == r.node {
-				builder.WriteRune(chars[i])
-				// cur already points to root, set start only
-				start = i + 1
-				continue
-			} else {
-				curDepth := cur.depth
-				cur = cur.fail
-				child, ok = cur.children[chars[i]]
-				if !ok {
-					// write this path
-					builder.WriteString(string(chars[i-curDepth : i+1]))
-					// go to root
-					cur = r.node
-					start = i + 1
-					continue
-				}
-
-				failDepth := cur.depth
-				// write path before jump
-				builder.WriteString(string(chars[start : start+curDepth-failDepth]))
-				start += curDepth - failDepth
-				cur = child
-			}
-
-			if cur.end {
-				val := string(chars[i+1-cur.depth : i+1])
-				builder.WriteString(r.mapping[val])
-				builder.WriteString(string(chars[i+1:]))
-				// only matching this path, all previous paths are done
-				if start >= i+1-cur.depth && i+1 >= size {
-					return builder.String()
-				}
-
-				chars = []rune(builder.String())
-				size = len(chars)
-				builder.Reset()
-				break
-			}
-		}
-
-		if !cur.end {
-			builder.WriteString(string(chars[start:]))
-			return builder.String()
+	for i := 0; i < replaceTimes; i++ {
+		var replaced bool
+		if text, replaced = r.doReplace(text); !replaced {
+			return text
 		}
 	}
 
-	return string(chars)
+	return text
+}
+
+func (r *replacer) doReplace(text string) (string, bool) {
+	chars := []rune(text)
+	scopes := r.find(chars)
+	if len(scopes) == 0 {
+		return text, false
+	}
+
+	sort.Slice(scopes, func(i, j int) bool {
+		if scopes[i].start < scopes[j].start {
+			return true
+		}
+		if scopes[i].start == scopes[j].start {
+			return scopes[i].stop > scopes[j].stop
+		}
+		return false
+	})
+
+	var buf strings.Builder
+	var index int
+	for i := 0; i < len(scopes); i++ {
+		scp := &scopes[i]
+		if scp.start < index {
+			continue
+		}
+
+		buf.WriteString(string(chars[index:scp.start]))
+		buf.WriteString(r.mapping[string(chars[scp.start:scp.stop])])
+		index = scp.stop
+	}
+	if index < len(chars) {
+		buf.WriteString(string(chars[index:]))
+	}
+
+	return buf.String(), true
 }

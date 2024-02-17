@@ -29,7 +29,7 @@ var (
 )
 
 type (
-	// A AuthorizeOptions is authorize options.
+	// An AuthorizeOptions is authorize options.
 	AuthorizeOptions struct {
 		PrevSecret string
 		Callback   UnauthorizedCallback

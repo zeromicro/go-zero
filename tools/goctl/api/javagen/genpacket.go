@@ -65,7 +65,7 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 
 	t := template.Must(template.New("packetTemplate").Parse(packetTemplate))
 	var tmplBytes bytes.Buffer
-	err = t.Execute(&tmplBytes, map[string]interface{}{
+	err = t.Execute(&tmplBytes, map[string]any{
 		"packetName":        packet,
 		"method":            strings.ToUpper(route.Method),
 		"uri":               processUri(route),

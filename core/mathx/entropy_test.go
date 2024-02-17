@@ -9,7 +9,7 @@ import (
 func TestCalcEntropy(t *testing.T) {
 	const total = 1000
 	const count = 100
-	m := make(map[interface{}]int, total)
+	m := make(map[any]int, total)
 	for i := 0; i < total; i++ {
 		m[i] = count
 	}

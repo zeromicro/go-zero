@@ -1,29 +1,27 @@
 package mapping
 
 import (
-	"bytes"
-	"encoding/json"
 	"io"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
 // UnmarshalTomlBytes unmarshals TOML bytes into the given v.
-func UnmarshalTomlBytes(content []byte, v interface{}) error {
-	return UnmarshalTomlReader(bytes.NewReader(content), v)
+func UnmarshalTomlBytes(content []byte, v any, opts ...UnmarshalOption) error {
+	b, err := encoding.TomlToJson(content)
+	if err != nil {
+		return err
+	}
+
+	return UnmarshalJsonBytes(b, v, opts...)
 }
 
 // UnmarshalTomlReader unmarshals TOML from the given io.Reader into the given v.
-func UnmarshalTomlReader(r io.Reader, v interface{}) error {
-	var val interface{}
-	if err := toml.NewDecoder(r).Decode(&val); err != nil {
+func UnmarshalTomlReader(r io.Reader, v any, opts ...UnmarshalOption) error {
+	b, err := io.ReadAll(r)
+	if err != nil {
 		return err
 	}
 
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		return err
-	}
-
-	return UnmarshalJsonReader(&buf, v)
+	return UnmarshalTomlBytes(b, v, opts...)
 }

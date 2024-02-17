@@ -31,8 +31,8 @@ func TestTokenParser(t *testing.T) {
 	}
 
 	for _, pair := range keys {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-		token, err := buildToken(key, map[string]interface{}{
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+		token, err := buildToken(key, map[string]any{
 			"key": "value",
 		}, 3600)
 		assert.Nil(t, err)
@@ -50,8 +50,8 @@ func TestTokenParser_Expired(t *testing.T) {
 		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
 		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
 	)
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	token, err := buildToken(key, map[string]interface{}{
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	token, err := buildToken(key, map[string]any{
 		"key": "value",
 	}, 3600)
 	assert.Nil(t, err)
@@ -70,7 +70,7 @@ func TestTokenParser_Expired(t *testing.T) {
 	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
 }
 
-func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
+func buildToken(secretKey string, payloads map[string]any, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
 	claims["exp"] = now + seconds

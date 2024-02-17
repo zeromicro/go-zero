@@ -2,7 +2,6 @@ package migrationnotes
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,15 +17,15 @@ func Test_needShow1_3_4(t *testing.T) {
 
 	dir1 := path.Join(root, "dir1")
 	require.NoError(t, os.Mkdir(dir1, fs.ModePerm))
-	ioutil.WriteFile(filepath.Join(dir1, "foo_gen.go"), nil, fs.ModePerm)
+	os.WriteFile(filepath.Join(dir1, "foo_gen.go"), nil, fs.ModePerm)
 
 	dir2 := path.Join(root, "dir2")
 	require.NoError(t, os.Mkdir(dir2, fs.ModePerm))
-	ioutil.WriteFile(filepath.Join(dir2, "foomodel.go"), nil, fs.ModePerm)
+	os.WriteFile(filepath.Join(dir2, "foomodel.go"), nil, fs.ModePerm)
 
 	dir3 := path.Join(root, "dir3")
 	require.NoError(t, os.Mkdir(dir3, fs.ModePerm))
-	ioutil.WriteFile(filepath.Join(dir3, "irrelevant.go"), nil, fs.ModePerm)
+	os.WriteFile(filepath.Join(dir3, "irrelevant.go"), nil, fs.ModePerm)
 
 	type args struct {
 		dir   string

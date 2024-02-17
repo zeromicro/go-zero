@@ -2,16 +2,18 @@ package redis
 
 import (
 	"context"
+	"errors"
+	"io"
+	"net"
 	"strings"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
-	"github.com/zeromicro/go-zero/core/errorx"
+	red "github.com/redis/go-redis/v9"
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/core/trace"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	oteltrace "go.opentelemetry.io/otel/trace"
@@ -21,99 +23,111 @@ import (
 const spanName = "redis"
 
 var (
-	startTimeKey          = contextKey("startTime")
-	durationHook          = hook{tracer: otel.GetTracerProvider().Tracer(trace.TraceName)}
+	durationHook          = hook{}
 	redisCmdsAttributeKey = attribute.Key("redis.cmds")
 )
 
-type (
-	contextKey string
-	hook       struct {
-		tracer oteltrace.Tracer
-	}
-)
+type hook struct{}
 
-func (h hook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
-	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now()), cmd), nil
+func (h hook) DialHook(next red.DialHook) red.DialHook {
+	return next
 }
 
-func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
-	err := cmd.Err()
-	h.endSpan(ctx, err)
+func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+	return func(ctx context.Context, cmd red.Cmder) error {
+		start := timex.Now()
+		ctx, endSpan := h.startSpan(ctx, cmd)
 
-	val := ctx.Value(startTimeKey)
-	if val == nil {
-		return nil
-	}
+		err := next(ctx, cmd)
 
-	start, ok := val.(time.Duration)
-	if !ok {
-		return nil
-	}
+		endSpan(err)
+		duration := timex.Since(start)
 
-	duration := timex.Since(start)
-	if duration > slowThreshold.Load() {
-		logDuration(ctx, cmd, duration)
-	}
-
-	return nil
-}
-
-func (h hook) BeforeProcessPipeline(ctx context.Context, cmds []red.Cmder) (context.Context, error) {
-	if len(cmds) == 0 {
-		return ctx, nil
-	}
-
-	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now()), cmds...), nil
-}
-
-func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error {
-	if len(cmds) == 0 {
-		return nil
-	}
-
-	batchError := errorx.BatchError{}
-	for _, cmd := range cmds {
-		err := cmd.Err()
-		if err == nil {
-			continue
+		if duration > slowThreshold.Load() {
+			logDuration(ctx, []red.Cmder{cmd}, duration)
+			metricSlowCount.Inc(cmd.Name())
 		}
 
-		batchError.Add(err)
-	}
-	h.endSpan(ctx, batchError.Err())
+		metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
+		if msg := formatError(err); len(msg) > 0 {
+			metricReqErr.Inc(cmd.Name(), msg)
+		}
 
-	val := ctx.Value(startTimeKey)
-	if val == nil {
-		return nil
+		return err
 	}
-
-	start, ok := val.(time.Duration)
-	if !ok {
-		return nil
-	}
-
-	duration := timex.Since(start)
-	if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
-		logDuration(ctx, cmds[0], duration)
-	}
-
-	return nil
 }
 
-func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {
+func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []red.Cmder) error {
+		if len(cmds) == 0 {
+			return next(ctx, cmds)
+		}
+
+		start := timex.Now()
+		ctx, endSpan := h.startSpan(ctx, cmds...)
+
+		err := next(ctx, cmds)
+
+		endSpan(err)
+		duration := timex.Since(start)
+		if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
+			logDuration(ctx, cmds, duration)
+		}
+
+		metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
+		if msg := formatError(err); len(msg) > 0 {
+			metricReqErr.Inc("Pipeline", msg)
+		}
+
+		return err
+	}
+}
+
+func formatError(err error) string {
+	if err == nil || errors.Is(err, red.Nil) {
+		return ""
+	}
+
+	var opErr *net.OpError
+	ok := errors.As(err, &opErr)
+	if ok && opErr.Timeout() {
+		return "timeout"
+	}
+
+	switch {
+	case err == io.EOF:
+		return "eof"
+	case errors.Is(err, context.DeadlineExceeded):
+		return "context deadline"
+	case errors.Is(err, breaker.ErrServiceUnavailable):
+		return "breaker open"
+	default:
+		return "unexpected error"
+	}
+}
+
+func logDuration(ctx context.Context, cmds []red.Cmder, duration time.Duration) {
 	var buf strings.Builder
-	for i, arg := range cmd.Args() {
-		if i > 0 {
-			buf.WriteByte(' ')
+	for k, cmd := range cmds {
+		if k > 0 {
+			buf.WriteByte('\n')
 		}
-		buf.WriteString(mapping.Repr(arg))
+		var build strings.Builder
+		for i, arg := range cmd.Args() {
+			if i > 0 {
+				build.WriteByte(' ')
+			}
+			build.WriteString(mapping.Repr(arg))
+		}
+		buf.WriteString(build.String())
 	}
 	logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())
 }
 
-func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) context.Context {
-	ctx, span := h.tracer.Start(ctx,
+func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
+	tracer := trace.TracerFromContext(ctx)
+
+	ctx, span := tracer.Start(ctx,
 		spanName,
 		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
 	)
@@ -124,18 +138,15 @@ func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) context.Context 
 	}
 	span.SetAttributes(redisCmdsAttributeKey.StringSlice(cmdStrs))
 
-	return ctx
-}
+	return ctx, func(err error) {
+		defer span.End()
 
-func (h hook) endSpan(ctx context.Context, err error) {
-	span := oteltrace.SpanFromContext(ctx)
-	defer span.End()
+		if err == nil || errors.Is(err, red.Nil) {
+			span.SetStatus(codes.Ok, "")
+			return
+		}
 
-	if err == nil || err == red.Nil {
-		span.SetStatus(codes.Ok, "")
-		return
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
 	}
-
-	span.SetStatus(codes.Error, err.Error())
-	span.RecordError(err)
 }

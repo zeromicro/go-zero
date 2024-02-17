@@ -8,18 +8,21 @@ import (
 type (
 	// A HistogramVecOpts is a histogram vector options.
 	HistogramVecOpts struct {
-		Namespace string
-		Subsystem string
-		Name      string
-		Help      string
-		Labels    []string
-		Buckets   []float64
+		Namespace   string
+		Subsystem   string
+		Name        string
+		Help        string
+		Labels      []string
+		Buckets     []float64
+		ConstLabels map[string]string
 	}
 
 	// A HistogramVec interface represents a histogram vector.
 	HistogramVec interface {
 		// Observe adds observation v to labels.
 		Observe(v int64, labels ...string)
+		// ObserveFloat allow to observe float64 values.
+		ObserveFloat(v float64, labels ...string)
 		close() bool
 	}
 
@@ -35,11 +38,12 @@ func NewHistogramVec(cfg *HistogramVecOpts) HistogramVec {
 	}
 
 	vec := prom.NewHistogramVec(prom.HistogramOpts{
-		Namespace: cfg.Namespace,
-		Subsystem: cfg.Subsystem,
-		Name:      cfg.Name,
-		Help:      cfg.Help,
-		Buckets:   cfg.Buckets,
+		Namespace:   cfg.Namespace,
+		Subsystem:   cfg.Subsystem,
+		Name:        cfg.Name,
+		Help:        cfg.Help,
+		Buckets:     cfg.Buckets,
+		ConstLabels: cfg.ConstLabels,
 	}, cfg.Labels)
 	prom.MustRegister(vec)
 	hv := &promHistogramVec{
@@ -53,7 +57,15 @@ func NewHistogramVec(cfg *HistogramVecOpts) HistogramVec {
 }
 
 func (hv *promHistogramVec) Observe(v int64, labels ...string) {
-	hv.histogram.WithLabelValues(labels...).Observe(float64(v))
+	update(func() {
+		hv.histogram.WithLabelValues(labels...).Observe(float64(v))
+	})
+}
+
+func (hv *promHistogramVec) ObserveFloat(v float64, labels ...string) {
+	update(func() {
+		hv.histogram.WithLabelValues(labels...).Observe(v)
+	})
 }
 
 func (hv *promHistogramVec) close() bool {

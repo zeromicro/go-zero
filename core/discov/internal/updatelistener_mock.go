@@ -40,7 +40,7 @@ func (m *MockUpdateListener) OnAdd(kv KV) {
 }
 
 // OnAdd indicates an expected call of OnAdd
-func (mr *MockUpdateListenerMockRecorder) OnAdd(kv interface{}) *gomock.Call {
+func (mr *MockUpdateListenerMockRecorder) OnAdd(kv any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnAdd", reflect.TypeOf((*MockUpdateListener)(nil).OnAdd), kv)
 }
@@ -52,7 +52,7 @@ func (m *MockUpdateListener) OnDelete(kv KV) {
 }
 
 // OnDelete indicates an expected call of OnDelete
-func (mr *MockUpdateListenerMockRecorder) OnDelete(kv interface{}) *gomock.Call {
+func (mr *MockUpdateListenerMockRecorder) OnDelete(kv any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnDelete", reflect.TypeOf((*MockUpdateListener)(nil).OnDelete), kv)
 }

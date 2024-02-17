@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package stat
 
@@ -12,6 +11,8 @@ import (
 )
 
 func TestReport(t *testing.T) {
+	t.Setenv(clusterNameKey, "test-cluster")
+
 	var count int32
 	SetReporter(func(s string) {
 		atomic.AddInt32(&count, 1)

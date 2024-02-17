@@ -15,8 +15,8 @@ import '../data/{{with .Info}}{{getBaseName .Title}}{{end}}.dart';
 {{range .Routes}}
 /// --{{.Path}}--
 ///
-/// 请求: {{with .RequestType}}{{.Name}}{{end}}
-/// 返回: {{with .ResponseType}}{{.Name}}{{end}}
+/// request: {{with .RequestType}}{{.Name}}{{end}}
+/// response: {{with .ResponseType}}{{.Name}}{{end}}
 Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
     {Function({{with .ResponseType}}{{.Name}}{{end}}) ok,
     Function(String) fail,
@@ -30,19 +30,21 @@ Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.
 {{end}}`
 
 const apiTemplateV2 = `import 'api.dart';
-import '../data/{{with .Info}}{{getBaseName .Title}}{{end}}.dart';
+import '../data/{{with .Service}}{{.Name}}{{end}}.dart';
 {{with .Service}}
 /// {{.Name}}
-{{range .Routes}}
+{{range $i, $Route := .Routes}}
 /// --{{.Path}}--
 ///
 /// request: {{with .RequestType}}{{.Name}}{{end}}
 /// response: {{with .ResponseType}}{{.Name}}{{end}}
-Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
+Future {{normalizeHandlerName .Handler}}(
+	{{if hasUrlPathParams $Route}}{{extractPositionalParamsFromPath $Route}},{{end}}
+	{{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
     {Function({{with .ResponseType}}{{.Name}}{{end}})? ok,
     Function(String)? fail,
     Function? eventually}) async {
-  await api{{if eq .Method "get"}}Get{{else}}Post{{end}}('{{.Path}}',{{if ne .Method "get"}}request,{{end}}
+  await api{{if eq .Method "get"}}Get{{else}}Post{{end}}({{makeDartRequestUrlPath $Route}},{{if ne .Method "get"}}request,{{end}}
   	 ok: (data) {
     if (ok != null) ok({{with .ResponseType}}{{.Name}}.fromJson(data){{end}});
   }, fail: fail, eventually: eventually);

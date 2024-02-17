@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -15,15 +15,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/fx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/dbtest"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 func init() {
@@ -33,15 +36,13 @@ func init() {
 
 func TestCachedConn_GetCache(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 	var value string
-	err = c.GetCache("any", &value)
+	err := c.GetCache("any", &value)
 	assert.Equal(t, ErrNotFound, err)
-	r.Set("any", `"value"`)
+	_ = r.Set("any", `"value"`)
 	err = c.GetCache("any", &value)
 	assert.Nil(t, err)
 	assert.Equal(t, "value", value)
@@ -49,15 +50,13 @@ func TestCachedConn_GetCache(t *testing.T) {
 
 func TestStat(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
 	for i := 0; i < 10; i++ {
 		var str string
-		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			*v.(*string) = "zero"
 			return nil
 		})
@@ -72,9 +71,7 @@ func TestStat(t *testing.T) {
 
 func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewConn(dummySqlConn{}, cache.CacheConf{
 		{
@@ -87,24 +84,24 @@ func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 	}, cache.WithExpiry(time.Second*10))
 
 	var str string
-	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+	err := c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
-	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		*v.(*string) = "zero"
 		return "primary", errors.New("foo")
-	}, func(conn sqlx.SqlConn, v, pri interface{}) error {
+	}, func(conn sqlx.SqlConn, v, pri any) error {
 		assert.Equal(t, "primary", pri)
 		*v.(*string) = "xin"
 		return nil
 	})
 	assert.NotNil(t, err)
 
-	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+	err = c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
-	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		*v.(*string) = "zero"
 		return "primary", nil
-	}, func(conn sqlx.SqlConn, v, pri interface{}) error {
+	}, func(conn sqlx.SqlConn, v, pri any) error {
 		assert.Equal(t, "primary", pri)
 		*v.(*string) = "xin"
 		return nil
@@ -121,21 +118,19 @@ func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 
 func TestCachedConn_QueryRowIndex_HasCache(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
 		cache.WithNotFoundExpiry(time.Second))
 
 	var str string
 	r.Set("index", `"primary"`)
-	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+	err := c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
-	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		assert.Fail(t, "should not go here")
 		return "primary", nil
-	}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+	}, func(conn sqlx.SqlConn, v, primary any) error {
 		*v.(*string) = "xin"
 		assert.Equal(t, "primary", primary)
 		return nil
@@ -163,7 +158,7 @@ func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
 	)
 	tests := []struct {
 		name         string
-		primary      interface{}
+		primary      any
 		primaryCache string
 	}{
 		{
@@ -211,21 +206,19 @@ func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resetStats()
-			r, clean, err := redistest.CreateRedis()
-			assert.Nil(t, err)
-			defer clean()
+			r := redistest.CreateRedis(t)
 
 			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
 				cache.WithNotFoundExpiry(time.Second))
 
 			var str string
 			r.Set("index", test.primaryCache)
-			err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+			err := c.QueryRowIndex(&str, "index", func(s any) string {
 				return fmt.Sprintf("%v/1234", s)
-			}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+			}, func(conn sqlx.SqlConn, v any) (any, error) {
 				assert.Fail(t, "should not go here")
 				return test.primary, nil
-			}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+			}, func(conn sqlx.SqlConn, v, primary any) error {
 				*v.(*string) = "xin"
 				assert.Equal(t, primary, primary)
 				return nil
@@ -251,21 +244,19 @@ func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 	for k, v := range caches {
 		t.Run(k+"/"+v, func(t *testing.T) {
 			resetStats()
-			r, clean, err := redistest.CreateRedis()
-			assert.Nil(t, err)
-			defer clean()
+			r := redistest.CreateRedis(t)
 
 			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
 				cache.WithNotFoundExpiry(time.Second))
 
 			var str string
 			r.Set(k, v)
-			err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+			err := c.QueryRowIndex(&str, "index", func(s any) string {
 				return fmt.Sprintf("%s/1234", s)
-			}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+			}, func(conn sqlx.SqlConn, v any) (any, error) {
 				*v.(*string) = "xin"
 				return "primary", nil
-			}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+			}, func(conn sqlx.SqlConn, v, primary any) error {
 				*v.(*string) = "xin"
 				assert.Equal(t, "primary", primary)
 				return nil
@@ -284,7 +275,7 @@ func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 
 func TestStatCacheFails(t *testing.T) {
 	resetStats()
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stdout)
 
 	r := redis.New("localhost:59999")
@@ -292,7 +283,7 @@ func TestStatCacheFails(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		var str string
-		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			return errors.New("db failed")
 		})
 		assert.NotNil(t, err)
@@ -306,15 +297,13 @@ func TestStatCacheFails(t *testing.T) {
 
 func TestStatDbFails(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
 	for i := 0; i < 20; i++ {
 		var str string
-		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			return errors.New("db failed")
 		})
 		assert.NotNil(t, err)
@@ -327,9 +316,7 @@ func TestStatDbFails(t *testing.T) {
 
 func TestStatFromMemory(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
@@ -339,7 +326,7 @@ func TestStatFromMemory(t *testing.T) {
 	wait.Add(4)
 	go func() {
 		var str string
-		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			*v.(*string) = "zero"
 			return nil
 		})
@@ -355,7 +342,7 @@ func TestStatFromMemory(t *testing.T) {
 		go func() {
 			var str string
 			wait.Done()
-			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 				*v.(*string) = "zero"
 				return nil
 			})
@@ -368,7 +355,7 @@ func TestStatFromMemory(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go func() {
 			var str string
-			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 				*v.(*string) = "zero"
 				return nil
 			})
@@ -384,10 +371,26 @@ func TestStatFromMemory(t *testing.T) {
 	assert.Equal(t, uint64(9), atomic.LoadUint64(&stats.Hit))
 }
 
-func TestCachedConnQueryRow(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
+func TestCachedConn_DelCache(t *testing.T) {
+	r := redistest.CreateRedis(t)
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	assert.NoError(t, r.Set(key, value))
+
+	c := NewNodeConn(&trackedConn{}, r, cache.WithExpiry(time.Second*30))
+	err := c.DelCache(key)
 	assert.Nil(t, err)
-	defer clean()
+
+	val, err := r.Get(key)
+	assert.Nil(t, err)
+	assert.Empty(t, val)
+}
+
+func TestCachedConnQueryRow(t *testing.T) {
+	r := redistest.CreateRedis(t)
 
 	const (
 		key   = "user"
@@ -397,7 +400,7 @@ func TestCachedConnQueryRow(t *testing.T) {
 	var user string
 	var ran bool
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
-	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v interface{}) error {
+	err := c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 		ran = true
 		user = value
 		return nil
@@ -413,9 +416,7 @@ func TestCachedConnQueryRow(t *testing.T) {
 }
 
 func TestCachedConnQueryRowFromCache(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const (
 		key   = "user"
@@ -426,7 +427,7 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 	var ran bool
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	assert.Nil(t, c.SetCache(key, value))
-	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v interface{}) error {
+	err := c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 		ran = true
 		user = value
 		return nil
@@ -442,9 +443,7 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 }
 
 func TestQueryRowNotFound(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const key = "user"
 	var conn trackedConn
@@ -452,7 +451,7 @@ func TestQueryRowNotFound(t *testing.T) {
 	var ran int
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	for i := 0; i < 20; i++ {
-		err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 			ran++
 			return sql.ErrNoRows
 		})
@@ -462,18 +461,46 @@ func TestQueryRowNotFound(t *testing.T) {
 }
 
 func TestCachedConnExec(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
-	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
+	_, err := c.ExecNoCache("delete from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.execValue)
 }
 
 func TestCachedConnExecDropCache(t *testing.T) {
+	t.Run("drop cache", func(t *testing.T) {
+		r, err := miniredis.Run()
+		assert.Nil(t, err)
+		defer fx.DoWithTimeout(func() error {
+			r.Close()
+			return nil
+		}, time.Second)
+
+		const (
+			key   = "user"
+			value = "any"
+		)
+		var conn trackedConn
+		c := NewNodeConn(&conn, redis.New(r.Addr()), cache.WithExpiry(time.Second*30))
+		assert.Nil(t, c.SetCache(key, value))
+		_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
+			return conn.Exec("delete from user_table where id='kevin'")
+		}, key)
+		assert.Nil(t, err)
+		assert.True(t, conn.execValue)
+		_, err = r.Get(key)
+		assert.Exactly(t, miniredis.ErrKeyNotFound, err)
+		_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
+			return nil, errors.New("foo")
+		}, key)
+		assert.NotNil(t, err)
+	})
+}
+
+func TestCachedConn_SetCacheWithExpire(t *testing.T) {
 	r, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer fx.DoWithTimeout(func() error {
@@ -487,18 +514,13 @@ func TestCachedConnExecDropCache(t *testing.T) {
 	)
 	var conn trackedConn
 	c := NewNodeConn(&conn, redis.New(r.Addr()), cache.WithExpiry(time.Second*30))
-	assert.Nil(t, c.SetCache(key, value))
-	_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
-		return conn.Exec("delete from user_table where id='kevin'")
-	}, key)
-	assert.Nil(t, err)
-	assert.True(t, conn.execValue)
-	_, err = r.Get(key)
-	assert.Exactly(t, miniredis.ErrKeyNotFound, err)
-	_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
-		return nil, errors.New("foo")
-	}, key)
-	assert.NotNil(t, err)
+	assert.Nil(t, c.SetCacheWithExpire(key, value, time.Minute))
+	val, err := r.Get(key)
+	if assert.NoError(t, err) {
+		ttl := r.TTL(key)
+		assert.True(t, ttl > 0 && ttl <= time.Minute)
+		assert.Equal(t, fmt.Sprintf("%q", value), val)
+	}
 }
 
 func TestCachedConnExecDropCacheFailed(t *testing.T) {
@@ -514,26 +536,22 @@ func TestCachedConnExecDropCacheFailed(t *testing.T) {
 }
 
 func TestCachedConnQueryRows(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
 	var users []string
-	err = c.QueryRowsNoCache(&users, "select user from user_table where id='kevin'")
+	err := c.QueryRowsNoCache(&users, "select user from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.queryRowsValue)
 }
 
 func TestCachedConnTransact(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
-	err = c.Transact(func(session sqlx.Session) error {
+	err := c.Transact(func(session sqlx.Session) error {
 		return nil
 	})
 	assert.Nil(t, err)
@@ -541,9 +559,7 @@ func TestCachedConnTransact(t *testing.T) {
 }
 
 func TestQueryRowNoCache(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const (
 		key   = "user"
@@ -551,28 +567,145 @@ func TestQueryRowNoCache(t *testing.T) {
 	)
 	var user string
 	var ran bool
-	conn := dummySqlConn{queryRow: func(v interface{}, q string, args ...interface{}) error {
+	conn := dummySqlConn{queryRow: func(v any, q string, args ...any) error {
 		user = value
 		ran = true
 		return nil
 	}}
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
-	err = c.QueryRowNoCache(&user, key)
+	err := c.QueryRowNoCache(&user, key)
 	assert.Nil(t, err)
 	assert.Equal(t, value, user)
 	assert.True(t, ran)
 }
 
 func TestNewConnWithCache(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewConnWithCache(&conn, cache.NewNode(r, singleFlights, stats, sql.ErrNoRows))
-	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
+	_, err := c.ExecNoCache("delete from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.execValue)
+}
+
+func TestCachedConn_WithSession(t *testing.T) {
+	dbtest.RunTxTest(t, func(tx *sql.Tx, mock sqlmock.Sqlmock) {
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+
+		r := redistest.CreateRedis(t)
+		conn := CachedConn{
+			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
+		}
+		conn = conn.WithSession(sqlx.NewSessionFromTx(tx))
+		res, err := conn.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+			return conn.Exec("any")
+		}, "foo")
+		assert.NoError(t, err)
+		last, err := res.LastInsertId()
+		assert.NoError(t, err)
+		assert.Equal(t, int64(2), last)
+		affected, err := res.RowsAffected()
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3), affected)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+		mock.ExpectCommit()
+
+		r := redistest.CreateRedis(t)
+		conn := CachedConn{
+			db:    sqlx.NewSqlConnFromDB(db),
+			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
+		}
+		assert.NoError(t, conn.Transact(func(session sqlx.Session) error {
+			conn = conn.WithSession(session)
+			res, err := conn.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+				return conn.Exec("any")
+			}, "foo")
+			assert.NoError(t, err)
+			last, err := res.LastInsertId()
+			assert.NoError(t, err)
+			assert.Equal(t, int64(2), last)
+			affected, err := res.RowsAffected()
+			assert.NoError(t, err)
+			assert.Equal(t, int64(3), affected)
+			return nil
+		}))
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectExec("any").WillReturnError(errors.New("foo"))
+		mock.ExpectRollback()
+
+		r := redistest.CreateRedis(t)
+		conn := CachedConn{
+			db:    sqlx.NewSqlConnFromDB(db),
+			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
+		}
+		assert.Error(t, conn.Transact(func(session sqlx.Session) error {
+			conn = conn.WithSession(session)
+			_, err := conn.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+				return conn.Exec("any")
+			}, "bar")
+			return err
+		}))
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
+		mock.ExpectCommit()
+
+		r := redistest.CreateRedis(t)
+		conn := CachedConn{
+			db:    sqlx.NewSqlConnFromDB(db),
+			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
+		}
+		assert.NoError(t, conn.Transact(func(session sqlx.Session) error {
+			var val string
+			conn = conn.WithSession(session)
+			err := conn.QueryRow(&val, "foo", func(conn sqlx.SqlConn, v interface{}) error {
+				return conn.QueryRow(v, "any")
+			})
+			assert.Equal(t, "2", val)
+			return err
+		}))
+		val, err := r.Get("foo")
+		assert.NoError(t, err)
+		assert.Equal(t, `"2"`, val)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+		mock.ExpectCommit()
+
+		r := redistest.CreateRedis(t)
+		conn := CachedConn{
+			db:    sqlx.NewSqlConnFromDB(db),
+			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
+		}
+		assert.NoError(t, conn.Transact(func(session sqlx.Session) error {
+			var val string
+			conn = conn.WithSession(session)
+			assert.NoError(t, conn.QueryRow(&val, "foo", func(conn sqlx.SqlConn, v interface{}) error {
+				return conn.QueryRow(v, "any")
+			}))
+			assert.Equal(t, "2", val)
+			_, err := conn.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+				return conn.Exec("any")
+			}, "foo")
+			return err
+		}))
+		val, err := r.Get("foo")
+		assert.NoError(t, err)
+		assert.Empty(t, val)
+	})
 }
 
 func resetStats() {
@@ -583,61 +716,61 @@ func resetStats() {
 }
 
 type dummySqlConn struct {
-	queryRow func(interface{}, string, ...interface{}) error
+	queryRow func(any, string, ...any) error
 }
 
-func (d dummySqlConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (d dummySqlConn) ExecCtx(_ context.Context, _ string, _ ...any) (sql.Result, error) {
 	return nil, nil
 }
 
-func (d dummySqlConn) PrepareCtx(ctx context.Context, query string) (sqlx.StmtSession, error) {
+func (d dummySqlConn) PrepareCtx(_ context.Context, _ string) (sqlx.StmtSession, error) {
 	return nil, nil
 }
 
-func (d dummySqlConn) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowPartialCtx(_ context.Context, _ any, _ string, _ ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowsCtx(_ context.Context, _ any, _ string, _ ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowsPartialCtx(_ context.Context, _ any, _ string, _ ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
+func (d dummySqlConn) TransactCtx(_ context.Context, _ func(context.Context, sqlx.Session) error) error {
 	return nil
 }
 
-func (d dummySqlConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (d dummySqlConn) Exec(_ string, _ ...any) (sql.Result, error) {
 	return nil, nil
 }
 
-func (d dummySqlConn) Prepare(query string) (sqlx.StmtSession, error) {
+func (d dummySqlConn) Prepare(_ string) (sqlx.StmtSession, error) {
 	return nil, nil
 }
 
-func (d dummySqlConn) QueryRow(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRow(v any, query string, args ...any) error {
 	return d.QueryRowCtx(context.Background(), v, query, args...)
 }
 
-func (d dummySqlConn) QueryRowCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowCtx(_ context.Context, v any, query string, args ...any) error {
 	if d.queryRow != nil {
 		return d.queryRow(v, query, args...)
 	}
 	return nil
 }
 
-func (d dummySqlConn) QueryRowPartial(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowPartial(_ any, _ string, _ ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRows(_ any, _ string, _ ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsPartial(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowsPartial(_ any, _ string, _ ...any) error {
 	return nil
 }
 
@@ -656,20 +789,20 @@ type trackedConn struct {
 	transactValue  bool
 }
 
-func (c *trackedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (c *trackedConn) Exec(query string, args ...any) (sql.Result, error) {
 	return c.ExecCtx(context.Background(), query, args...)
 }
 
-func (c *trackedConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (c *trackedConn) ExecCtx(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	c.execValue = true
 	return c.dummySqlConn.ExecCtx(ctx, query, args...)
 }
 
-func (c *trackedConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+func (c *trackedConn) QueryRows(v any, query string, args ...any) error {
 	return c.QueryRowsCtx(context.Background(), v, query, args...)
 }
 
-func (c *trackedConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (c *trackedConn) QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error {
 	c.queryRowsValue = true
 	return c.dummySqlConn.QueryRowsCtx(ctx, v, query, args...)
 }

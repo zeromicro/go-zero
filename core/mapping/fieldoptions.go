@@ -8,10 +8,12 @@ type (
 	// use context and OptionalDep option to determine the value of Optional
 	// nothing to do with context.Context
 	fieldOptionsWithContext struct {
+		Inherit    bool
 		FromString bool
 		Optional   bool
 		Options    []string
 		Default    string
+		EnvVar     string
 		Range      *numberRange
 	}
 
@@ -38,6 +40,10 @@ func (o *fieldOptionsWithContext) getDefault() (string, bool) {
 	}
 
 	return o.Default, len(o.Default) > 0
+}
+
+func (o *fieldOptionsWithContext) inherit() bool {
+	return o != nil && o.Inherit
 }
 
 func (o *fieldOptionsWithContext) optional() bool {
@@ -101,5 +107,6 @@ func (o *fieldOptions) toOptionsWithContext(key string, m Valuer, fullName strin
 		Optional:   optional,
 		Options:    o.Options,
 		Default:    o.Default,
+		EnvVar:     o.EnvVar,
 	}, nil
 }

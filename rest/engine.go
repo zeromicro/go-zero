@@ -25,8 +25,10 @@ const topCpuUsage = 1000
 var ErrSignatureConfig = errors.New("bad config for Signature")
 
 type engine struct {
-	conf                 RestConf
-	routes               []featuredRoutes
+	conf   RestConf
+	routes []featuredRoutes
+	// timeout is the max timeout of all routes
+	timeout              time.Duration
 	unauthorizedCallback handler.UnauthorizedCallback
 	unsignedCallback     handler.UnsignedCallback
 	chain                chain.Chain
@@ -38,8 +40,10 @@ type engine struct {
 
 func newEngine(c RestConf) *engine {
 	svr := &engine{
-		conf: c,
+		conf:    c,
+		timeout: time.Duration(c.Timeout) * time.Millisecond,
 	}
+
 	if c.CpuThreshold > 0 {
 		svr.shedder = load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
 		svr.priorityShedder = load.NewAdaptiveShedder(load.WithCpuThreshold(
@@ -51,6 +55,12 @@ func newEngine(c RestConf) *engine {
 
 func (ng *engine) addRoutes(r featuredRoutes) {
 	ng.routes = append(ng.routes, r)
+
+	// need to guarantee the timeout is the max of all routes
+	// otherwise impossible to set http.Server.ReadTimeout & WriteTimeout
+	if r.timeout > ng.timeout {
+		ng.timeout = r.timeout
+	}
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
@@ -88,19 +98,7 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 	route Route, verifier func(chain.Chain) chain.Chain) error {
 	chn := ng.chain
 	if chn == nil {
-		chn = chain.New(
-			handler.TracingHandler(ng.conf.Name, route.Path),
-			ng.getLogHandler(),
-			handler.PrometheusHandler(route.Path),
-			handler.MaxConns(ng.conf.MaxConns),
-			handler.BreakerHandler(route.Method, route.Path, metrics),
-			handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
-			handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
-			handler.RecoverHandler,
-			handler.MetricHandler(metrics),
-			handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
-			handler.GunzipHandler,
-		)
+		chn = ng.buildChainWithNativeMiddlewares(fr, route, metrics)
 	}
 
 	chn = ng.appendAuthHandler(fr, chn, verifier)
@@ -123,6 +121,49 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 	}
 
 	return nil
+}
+
+func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route,
+	metrics *stat.Metrics) chain.Chain {
+	chn := chain.New()
+
+	if ng.conf.Middlewares.Trace {
+		chn = chn.Append(handler.TraceHandler(ng.conf.Name,
+			route.Path,
+			handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)))
+	}
+	if ng.conf.Middlewares.Log {
+		chn = chn.Append(ng.getLogHandler())
+	}
+	if ng.conf.Middlewares.Prometheus {
+		chn = chn.Append(handler.PrometheusHandler(route.Path, route.Method))
+	}
+	if ng.conf.Middlewares.MaxConns {
+		chn = chn.Append(handler.MaxConnsHandler(ng.conf.MaxConns))
+	}
+	if ng.conf.Middlewares.Breaker {
+		chn = chn.Append(handler.BreakerHandler(route.Method, route.Path, metrics))
+	}
+	if ng.conf.Middlewares.Shedding {
+		chn = chn.Append(handler.SheddingHandler(ng.getShedder(fr.priority), metrics))
+	}
+	if ng.conf.Middlewares.Timeout {
+		chn = chn.Append(handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)))
+	}
+	if ng.conf.Middlewares.Recover {
+		chn = chn.Append(handler.RecoverHandler)
+	}
+	if ng.conf.Middlewares.Metrics {
+		chn = chn.Append(handler.MetricHandler(metrics))
+	}
+	if ng.conf.Middlewares.MaxBytes {
+		chn = chn.Append(handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)))
+	}
+	if ng.conf.Middlewares.Gunzip {
+		chn = chn.Append(handler.GunzipHandler)
+	}
+
+	return chn
 }
 
 func (ng *engine) checkedMaxBytes(bytes int64) int64 {
@@ -173,7 +214,9 @@ func (ng *engine) getShedder(priority bool) load.Shedder {
 func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chn := chain.New(
-			handler.TracingHandler(ng.conf.Name, ""),
+			handler.TraceHandler(ng.conf.Name,
+				"",
+				handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)),
 			ng.getLogHandler(),
 		)
 
@@ -249,30 +292,39 @@ func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chai
 	}
 
 	return func(chn chain.Chain) chain.Chain {
-		if ng.unsignedCallback != nil {
-			return chn.Append(handler.ContentSecurityHandler(
-				decrypters, signature.Expiry, signature.Strict, ng.unsignedCallback))
+		if ng.unsignedCallback == nil {
+			return chn.Append(handler.LimitContentSecurityHandler(ng.conf.MaxBytes,
+				decrypters, signature.Expiry, signature.Strict))
 		}
 
-		return chn.Append(handler.ContentSecurityHandler(decrypters, signature.Expiry, signature.Strict))
+		return chn.Append(handler.LimitContentSecurityHandler(ng.conf.MaxBytes,
+			decrypters, signature.Expiry, signature.Strict, ng.unsignedCallback))
 	}, nil
 }
 
-func (ng *engine) start(router httpx.Router) error {
+func (ng *engine) start(router httpx.Router, opts ...StartOption) error {
 	if err := ng.bindRoutes(router); err != nil {
 		return err
 	}
 
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{ng.withTimeout()}, opts...)
+
 	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
-		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, ng.withTimeout())
+		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, opts...)
 	}
 
-	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
-		ng.conf.KeyFile, router, func(svr *http.Server) {
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{
+		func(svr *http.Server) {
 			if ng.tlsConfig != nil {
 				svr.TLSConfig = ng.tlsConfig
 			}
-		}, ng.withTimeout())
+		},
+	}, opts...)
+
+	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
+		ng.conf.KeyFile, router, opts...)
 }
 
 func (ng *engine) use(middleware Middleware) {
@@ -281,16 +333,15 @@ func (ng *engine) use(middleware Middleware) {
 
 func (ng *engine) withTimeout() internal.StartOption {
 	return func(svr *http.Server) {
-		timeout := ng.conf.Timeout
+		timeout := ng.timeout
 		if timeout > 0 {
 			// factor 0.8, to avoid clients send longer content-length than the actual content,
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
-			svr.ReadTimeout = 4 * time.Duration(timeout) * time.Millisecond / 5
-			// factor 0.9, to avoid clients not reading the response
-			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
-			// which triggers the circuit breaker.
-			svr.WriteTimeout = 9 * time.Duration(timeout) * time.Millisecond / 10
+			svr.ReadTimeout = 4 * timeout / 5
+			// factor 1.1, to avoid servers don't have enough time to write responses.
+			// setting the factor less than 1.0 may lead clients not receiving the responses.
+			svr.WriteTimeout = 11 * timeout / 10
 		}
 	}
 }

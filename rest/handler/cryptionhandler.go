@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 
@@ -20,6 +19,11 @@ var errContentLengthExceeded = errors.New("content length exceeded")
 
 // CryptionHandler returns a middleware to handle cryption.
 func CryptionHandler(key []byte) func(http.Handler) http.Handler {
+	return LimitCryptionHandler(maxBytes, key)
+}
+
+// LimitCryptionHandler returns a middleware to handle cryption.
+func LimitCryptionHandler(limitBytes int64, key []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cw := newCryptionResponseWriter(w)
@@ -30,7 +34,7 @@ func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 				return
 			}
 
-			if err := decryptBody(key, r); err != nil {
+			if err := decryptBody(limitBytes, key, r); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -40,8 +44,8 @@ func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 	}
 }
 
-func decryptBody(key []byte, r *http.Request) error {
-	if r.ContentLength > maxBytes {
+func decryptBody(limitBytes int64, key []byte, r *http.Request) error {
+	if limitBytes > 0 && r.ContentLength > limitBytes {
 		return errContentLengthExceeded
 	}
 
@@ -51,7 +55,7 @@ func decryptBody(key []byte, r *http.Request) error {
 		content = make([]byte, r.ContentLength)
 		_, err = io.ReadFull(r.Body, content)
 	} else {
-		content, err = ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))
+		content, err = io.ReadAll(io.LimitReader(r.Body, maxBytes))
 	}
 	if err != nil {
 		return err
@@ -69,7 +73,7 @@ func decryptBody(key []byte, r *http.Request) error {
 
 	var buf bytes.Buffer
 	buf.Write(output)
-	r.Body = ioutil.NopCloser(&buf)
+	r.Body = io.NopCloser(&buf)
 
 	return nil
 }
@@ -128,7 +132,7 @@ func (w *cryptionResponseWriter) flush(key []byte) {
 	body := base64.StdEncoding.EncodeToString(content)
 	if n, err := io.WriteString(w.ResponseWriter, body); err != nil {
 		logx.Errorf("write response failed, error: %s", err)
-	} else if n < len(content) {
-		logx.Errorf("actual bytes: %d, written bytes: %d", len(content), n)
+	} else if n < len(body) {
+		logx.Errorf("actual bytes: %d, written bytes: %d", len(body), n)
 	}
 }
