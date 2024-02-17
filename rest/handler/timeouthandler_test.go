@@ -172,6 +172,7 @@ func TestTimeoutSSE(t *testing.T) {
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
 func TestTimeoutWebsocket(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
