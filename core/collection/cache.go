@@ -96,6 +96,14 @@ func (c *Cache) Get(key string) (any, bool) {
 	return value, ok
 }
 
+// GetAll return the item all.
+func (c *Cache) GetAll() map[string]any {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	return c.data
+}
+
 // Set sets value into c with key.
 func (c *Cache) Set(key string, value any) {
 	c.SetWithExpire(key, value, c.expire)

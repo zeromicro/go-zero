@@ -136,6 +136,42 @@ func TestCacheWithLruEvicts(t *testing.T) {
 	assert.Equal(t, "fourth element", value)
 }
 
+func TestCacheGetAll(t *testing.T) {
+	cache, err := NewCache(time.Minute, WithLimit(3))
+	assert.Nil(t, err)
+
+	cache.Set("first", "first element")
+	cache.Set("second", "second element")
+	cache.Set("third", "third element")
+	cache.Set("fourth", "fourth element")
+
+	datax := cache.GetAll()
+	for k, v := range datax {
+		switch k {
+		case "first":
+			assert.Equal(t, "first element", v)
+		case "second":
+			assert.Equal(t, "second element", v)
+		case "third":
+			assert.Equal(t, "third element", v)
+		case "fourth":
+			assert.Equal(t, "fourth element", v)
+		}
+	}
+
+	_, ok := cache.Get("first")
+	assert.False(t, ok)
+	value, ok := cache.Get("second")
+	assert.True(t, ok)
+	assert.Equal(t, "second element", value)
+	value, ok = cache.Get("third")
+	assert.True(t, ok)
+	assert.Equal(t, "third element", value)
+	value, ok = cache.Get("fourth")
+	assert.True(t, ok)
+	assert.Equal(t, "fourth element", value)
+}
+
 func TestCacheWithLruEvicted(t *testing.T) {
 	cache, err := NewCache(time.Minute, WithLimit(3))
 	assert.Nil(t, err)
