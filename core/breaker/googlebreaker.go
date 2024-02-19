@@ -1,7 +1,6 @@
 package breaker
 
 import (
-	"math"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
@@ -38,7 +37,8 @@ func (b *googleBreaker) accept() error {
 	accepts, total := b.history()
 	weightedAccepts := b.k * float64(accepts)
 	// https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101
-	dropRatio := math.Max(0, (float64(total-protection)-weightedAccepts)/float64(total+1))
+	// for better performance, no need to care about negative ratio
+	dropRatio := (float64(total-protection) - weightedAccepts) / float64(total+1)
 	if dropRatio <= 0 {
 		return nil
 	}
