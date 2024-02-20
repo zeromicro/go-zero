@@ -17,7 +17,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/prometheus/client_golang v1.18.0
-	github.com/redis/go-redis/v9 v9.4.0
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/etcd/api/v3 v3.5.12
