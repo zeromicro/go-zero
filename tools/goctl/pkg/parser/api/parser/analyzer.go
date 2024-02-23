@@ -130,7 +130,7 @@ func (a *Analyzer) convert2Spec() error {
 		groups = append(groups, v)
 	}
 	sort.SliceStable(groups, func(i, j int) bool {
-		return groups[i].Annotation.Properties["group"] < groups[j].Annotation.Properties["group"]
+		return groups[i].Annotation.Properties[groupKeyText] < groups[j].Annotation.Properties[groupKeyText]
 	})
 	a.spec.Service.Groups = groups
 
@@ -152,7 +152,7 @@ func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 	var ret = map[string]string{}
 	for _, v := range kv {
 		key := strings.TrimSuffix(v.Key.Token.Text, ":")
-		if key == "summary" {
+		if key == summaryKeyText {
 			ret[key] = v.Value.RawText()
 		} else {
 			ret[key] = v.Value.Token.Text

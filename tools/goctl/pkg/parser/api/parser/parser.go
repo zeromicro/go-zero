@@ -12,7 +12,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-const idAPI = "api"
+const (
+	idAPI              = "api"
+	summaryKeyExprText = "summary:"
+	summaryKeyText     = "summary"
+	groupKeyText       = "group"
+)
 
 // Parser is the parser for api file.
 type Parser struct {
@@ -1188,6 +1193,11 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		expr.Value = node
 		return expr
 	} else if p.peekTokenIs(token.STRING) {
+		if expr.Key.Token.Text != summaryKeyExprText {
+			if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT) {
+				return nil
+			}
+		}
 		if !p.nextToken() {
 			return nil
 		}
