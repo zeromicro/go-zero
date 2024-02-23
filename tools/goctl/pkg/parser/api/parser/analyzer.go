@@ -108,6 +108,8 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 }
 
 func (a *Analyzer) convert2Spec() error {
+	a.fillInfo()
+
 	if err := a.fillTypes(); err != nil {
 		return err
 	}
@@ -150,7 +152,11 @@ func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 	var ret = map[string]string{}
 	for _, v := range kv {
 		key := strings.TrimSuffix(v.Key.Token.Text, ":")
-		ret[key] = v.Value.Token.Text
+		if key == "summary" {
+			ret[key] = v.Value.RawText()
+		} else {
+			ret[key] = v.Value.Token.Text
+		}
 	}
 	return ret
 }
@@ -268,6 +274,27 @@ func (a *Analyzer) fillService() error {
 
 	a.spec.Service.Groups = groups
 	return nil
+}
+
+func (a *Analyzer) fillInfo() {
+	properties := make(map[string]string)
+	if a.api.info != nil {
+		for _, kv := range a.api.info.Values {
+			key := kv.Key.Token.Text
+			properties[strings.TrimSuffix(key, ":")] = kv.Value.RawText()
+		}
+	}
+	a.spec.Info.Properties = properties
+	infoKeyValue := make(map[string]string)
+	for key, value := range properties {
+		titleKey := strings.Title(strings.TrimSuffix(key, ":"))
+		infoKeyValue[titleKey] = value
+	}
+	a.spec.Info.Title = infoKeyValue["Title"]
+	a.spec.Info.Desc = infoKeyValue["Desc"]
+	a.spec.Info.Version = infoKeyValue["Version"]
+	a.spec.Info.Author = infoKeyValue["Author"]
+	a.spec.Info.Email = infoKeyValue["Email"]
 }
 
 func (a *Analyzer) fillTypes() error {

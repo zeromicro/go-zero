@@ -1134,7 +1134,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 
 	var valueTok token.Token
 	var leadingCommentGroup ast.CommentGroup
-	if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT) {
+	if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT, token.STRING) {
 		return nil
 	}
 
@@ -1177,6 +1177,17 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		expr.Value = node
 		return expr
 	} else if p.peekTokenIs(token.INT) {
+		if !p.nextToken() {
+			return nil
+		}
+
+		valueTok = p.curTok
+		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+		node := ast.NewTokenNode(valueTok)
+		node.SetLeadingCommentGroup(leadingCommentGroup)
+		expr.Value = node
+		return expr
+	} else if p.peekTokenIs(token.STRING) {
 		if !p.nextToken() {
 			return nil
 		}
