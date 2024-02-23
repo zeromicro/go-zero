@@ -290,11 +290,11 @@ func (a *Analyzer) fillInfo() {
 		titleKey := strings.Title(strings.TrimSuffix(key, ":"))
 		infoKeyValue[titleKey] = value
 	}
-	a.spec.Info.Title = infoKeyValue["Title"]
-	a.spec.Info.Desc = infoKeyValue["Desc"]
-	a.spec.Info.Version = infoKeyValue["Version"]
-	a.spec.Info.Author = infoKeyValue["Author"]
-	a.spec.Info.Email = infoKeyValue["Email"]
+	a.spec.Info.Title = infoKeyValue[infoTitleKey]
+	a.spec.Info.Desc = infoKeyValue[infoDescKey]
+	a.spec.Info.Version = infoKeyValue[infoVersionKey]
+	a.spec.Info.Author = infoKeyValue[infoAuthorKey]
+	a.spec.Info.Email = infoKeyValue[infoEmailKey]
 }
 
 func (a *Analyzer) fillTypes() error {

@@ -17,6 +17,11 @@ const (
 	summaryKeyExprText = "summary:"
 	summaryKeyText     = "summary"
 	groupKeyText       = "group"
+	infoTitleKey       = "Title"
+	infoDescKey        = "Desc"
+	infoVersionKey     = "Version"
+	infoAuthorKey      = "Author"
+	infoEmailKey       = "Email"
 )
 
 // Parser is the parser for api file.
