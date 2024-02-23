@@ -1,6 +1,8 @@
 module github.com/zeromicro/go-zero/tools/goctl
 
-go 1.19
+go 1.21
+
+toolchain go1.22.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
