@@ -1,0 +1,8 @@
+syntax = "v1"
+
+type Example{
+    A string
+}
+type Example{
+    B string
+}

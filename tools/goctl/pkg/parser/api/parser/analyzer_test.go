@@ -3,11 +3,12 @@ package parser
 import (
 	"bytes"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/assertx"
@@ -70,5 +71,10 @@ func Test_Parse(t *testing.T) {
 	t.Run("link_import", func(t *testing.T) {
 		_, err := Parse("./testdata/link_import.api", nil)
 		assert.Nil(t, err)
+	})
+	
+	t.Run("duplicate_types", func(t *testing.T) {
+		_, err := Parse("./testdata/duplicate_type.api", nil)
+		assertx.Error(t, err)
 	})
 }
