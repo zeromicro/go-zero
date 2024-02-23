@@ -1144,13 +1144,24 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		}
 
 		slashTok := p.curTok
+		var pathText = slashTok.Text
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
+		pathText += p.curTok.Text
+		if p.peekTokenIs(token.SUB) { //  解析 abc-efg 格式
+			if !p.nextToken() {
+				return nil
+			}
+			pathText += p.curTok.Text
+			if !p.advanceIfPeekTokenIs(token.IDENT) {
+				return nil
+			}
+			pathText += p.curTok.Text
+		}
 
-		idTok := p.curTok
 		valueTok = token.Token{
-			Text:     slashTok.Text + idTok.Text,
+			Text:     pathText,
 			Position: slashTok.Position,
 		}
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
@@ -1221,13 +1232,25 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			}
 
 			slashTok := p.curTok
+			var pathText = valueTok.Text
+			pathText += slashTok.Text
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
+			pathText += p.curTok.Text
+			if p.peekTokenIs(token.SUB) { //  解析 abc-efg 格式
+				if !p.nextToken() {
+					return nil
+				}
+				pathText += p.curTok.Text
+				if !p.advanceIfPeekTokenIs(token.IDENT) {
+					return nil
+				}
+				pathText += p.curTok.Text
+			}
 
-			idTok := p.curTok
 			valueTok = token.Token{
-				Text:     valueTok.Text + slashTok.Text + idTok.Text,
+				Text:     pathText,
 				Position: valueTok.Position,
 			}
 			leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
