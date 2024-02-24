@@ -385,6 +385,9 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 		}
 
 		values = append(values, p.curTok)
+		if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
+			break
+		}
 		if p.notExpectPeekTokenGotComment(p.curTokenNode().PeekFirstLeadingComment(), token.COLON, token.IDENT, token.INT) {
 			return nil
 		}

@@ -1,11 +1,13 @@
 package stat
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestMetrics(t *testing.T) {
@@ -30,6 +32,34 @@ func TestMetrics(t *testing.T) {
 	}
 }
 
+func TestTopDurationWithEmpty(t *testing.T) {
+	assert.Equal(t, float32(0), getTopDuration(nil))
+	assert.Equal(t, float32(0), getTopDuration([]Task{}))
+}
+
+func TestLogAndReport(t *testing.T) {
+	buf := logtest.NewCollector(t)
+	old := logEnabled.True()
+	logEnabled.Set(true)
+	t.Cleanup(func() {
+		logEnabled.Set(old)
+	})
+
+	log(&StatReport{})
+	assert.NotEmpty(t, buf.String())
+
+	writerLock.Lock()
+	writer := reportWriter
+	writerLock.Unlock()
+	buf = logtest.NewCollector(t)
+	t.Cleanup(func() {
+		SetReportWriter(writer)
+	})
+	SetReportWriter(&badWriter{})
+	writeReport(&StatReport{})
+	assert.NotEmpty(t, buf.String())
+}
+
 type mockedWriter struct {
 	report *StatReport
 }
@@ -37,4 +67,10 @@ type mockedWriter struct {
 func (m *mockedWriter) Write(report *StatReport) error {
 	m.report = report
 	return nil
+}
+
+type badWriter struct{}
+
+func (b *badWriter) Write(report *StatReport) error {
+	return errors.New("bad")
 }

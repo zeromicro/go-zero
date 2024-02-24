@@ -53,15 +53,18 @@ type (
 		// DoWithFallback runs the fallback if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
-		DoWithFallback(req func() error, fallback func(err error) error) error
+		DoWithFallback(req func() error, fallback Fallback) error
 
 		// DoWithFallbackAcceptable runs the given request if the Breaker accepts it.
 		// DoWithFallbackAcceptable runs the fallback if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		// acceptable checks if it's a successful call, even if the error is not nil.
-		DoWithFallbackAcceptable(req func() error, fallback func(err error) error, acceptable Acceptable) error
+		DoWithFallbackAcceptable(req func() error, fallback Fallback, acceptable Acceptable) error
 	}
+
+	// Fallback is the func to be called if the request is rejected.
+	Fallback func(err error) error
 
 	// Option defines the method to customize a Breaker.
 	Option func(breaker *circuitBreaker)
@@ -86,12 +89,12 @@ type (
 
 	internalThrottle interface {
 		allow() (internalPromise, error)
-		doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error
+		doReq(req func() error, fallback Fallback, acceptable Acceptable) error
 	}
 
 	throttle interface {
 		allow() (Promise, error)
-		doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error
+		doReq(req func() error, fallback Fallback, acceptable Acceptable) error
 	}
 )
 
@@ -122,11 +125,11 @@ func (cb *circuitBreaker) DoWithAcceptable(req func() error, acceptable Acceptab
 	return cb.throttle.doReq(req, nil, acceptable)
 }
 
-func (cb *circuitBreaker) DoWithFallback(req func() error, fallback func(err error) error) error {
+func (cb *circuitBreaker) DoWithFallback(req func() error, fallback Fallback) error {
 	return cb.throttle.doReq(req, fallback, defaultAcceptable)
 }
 
-func (cb *circuitBreaker) DoWithFallbackAcceptable(req func() error, fallback func(err error) error,
+func (cb *circuitBreaker) DoWithFallbackAcceptable(req func() error, fallback Fallback,
 	acceptable Acceptable) error {
 	return cb.throttle.doReq(req, fallback, acceptable)
 }
@@ -168,7 +171,7 @@ func (lt loggedThrottle) allow() (Promise, error) {
 	}, lt.logError(err)
 }
 
-func (lt loggedThrottle) doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error {
+func (lt loggedThrottle) doReq(req func() error, fallback Fallback, acceptable Acceptable) error {
 	return lt.logError(lt.internalThrottle.doReq(req, fallback, func(err error) bool {
 		accept := acceptable(err)
 		if !accept && err != nil {

@@ -403,6 +403,9 @@ func Parse(filename string, src interface{}) (*spec.ApiSpec, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := api.SelfCheck(); err != nil {
+		return nil, err
+	}
 
 	var result = new(spec.ApiSpec)
 	analyzer := Analyzer{

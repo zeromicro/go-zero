@@ -156,6 +156,23 @@ func TestTimeoutPanic(t *testing.T) {
 	})
 }
 
+func TestTimeoutSSE(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Millisecond)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Millisecond * 10)
+		r.Header.Set("Content-Type", "text/event-stream")
+		r.Header.Set("Cache-Control", "no-cache")
+		r.Header.Set("Connection", "keep-alive")
+		r.Header.Set("Transfer-Encoding", "chunked")
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.Header.Set(headerAccept, valueSSE)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
 func TestTimeoutWebsocket(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

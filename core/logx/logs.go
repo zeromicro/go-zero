@@ -17,14 +17,13 @@ import (
 const callerDepth = 4
 
 var (
-	timeFormat = "2006-01-02T15:04:05.000Z07:00"
-	logLevel   uint32
+	timeFormat        = "2006-01-02T15:04:05.000Z07:00"
 	encoding   uint32 = jsonEncodingType
 	// maxContentLength is used to truncate the log content, 0 for not truncating.
 	maxContentLength uint32
 	// use uint32 for atomic operations
-	disableLog  uint32
 	disableStat uint32
+	logLevel    uint32
 	options     logOptions
 	writer      = new(atomicWriter)
 	setupOnce   sync.Once
@@ -96,7 +95,7 @@ func Debugw(msg string, fields ...LogField) {
 
 // Disable disables the logging.
 func Disable() {
-	atomic.StoreUint32(&disableLog, 1)
+	atomic.StoreUint32(&logLevel, disableLevel)
 	writer.Store(nopWriter{})
 }
 
@@ -250,7 +249,7 @@ func SetLevel(level uint32) {
 
 // SetWriter sets the logging writer. It can be used to customize the logging.
 func SetWriter(w Writer) {
-	if atomic.LoadUint32(&disableLog) == 0 {
+	if atomic.LoadUint32(&logLevel) != disableLevel {
 		writer.Store(w)
 	}
 }

@@ -12,18 +12,29 @@ func TestRunningInUserNS(t *testing.T) {
 	assert.False(t, runningInUserNS())
 }
 
-func TestCgroupV1(t *testing.T) {
-	if isCgroup2UnifiedMode() {
+func TestCgroups(t *testing.T) {
+	// test cgroup legacy(v1) & hybrid
+	if !isCgroup2UnifiedMode() {
 		cg, err := currentCgroupV1()
 		assert.NoError(t, err)
-		_, err = cg.cpus()
+		_, err = cg.effectiveCpus()
+		assert.NoError(t, err)
+		_, err = cg.cpuQuota()
+		assert.NoError(t, err)
+		_, err = cg.cpuUsage()
+		assert.NoError(t, err)
+	}
+
+	// test cgroup v2
+	if isCgroup2UnifiedMode() {
+		cg, err := currentCgroupV2()
+		assert.NoError(t, err)
+		_, err = cg.effectiveCpus()
+		assert.NoError(t, err)
+		_, err = cg.cpuQuota()
 		assert.Error(t, err)
-		_, err = cg.cpuPeriodUs()
-		assert.Error(t, err)
-		_, err = cg.cpuQuotaUs()
-		assert.Error(t, err)
-		_, err = cg.usageAllCpus()
-		assert.Error(t, err)
+		_, err = cg.cpuUsage()
+		assert.NoError(t, err)
 	}
 }
 

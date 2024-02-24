@@ -1,4 +1,7 @@
 service foo {
+    @handler root
+    get /
+
     @handler bar
     get /ping
 
@@ -7,6 +10,18 @@ service foo {
 }
 
 service bar {
+    @doc "bar"
+    @handler root
+    get / (Foo)
+
+    @doc "bar"
+    @handler root2
+    get / returns (Foo)
+
+    @doc "bar"
+    @handler root3
+    get / (Foo) returns (Bar)
+
     @doc "bar"
     @handler foo
     get /foo/:bar (Foo)

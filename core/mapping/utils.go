@@ -36,6 +36,7 @@ const (
 var (
 	errUnsupportedType  = errors.New("unsupported type on setting field value")
 	errNumberRange      = errors.New("wrong number range setting")
+	errNilSliceElement  = errors.New("null element for slice")
 	optionsCache        = make(map[string]optionsCacheValue)
 	cacheLock           sync.RWMutex
 	structRequiredCache = make(map[reflect.Type]requiredCacheValue)

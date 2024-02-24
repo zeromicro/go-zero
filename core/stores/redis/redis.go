@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -64,6 +64,7 @@ type (
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
 		red.Cmdable
+		red.BitMapCmdable
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -2058,7 +2059,7 @@ func (s *Redis) ZaddFloatCtx(ctx context.Context, key string, score float64, val
 			return err
 		}
 
-		v, err := conn.ZAdd(ctx, key, &red.Z{
+		v, err := conn.ZAdd(ctx, key, red.Z{
 			Score:  score,
 			Member: value,
 		}).Result()
@@ -2086,9 +2087,9 @@ func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (val int64
 			return err
 		}
 
-		var zs []*red.Z
+		var zs []red.Z
 		for _, p := range ps {
-			z := &red.Z{Score: float64(p.Score), Member: p.Key}
+			z := red.Z{Score: float64(p.Score), Member: p.Key}
 			zs = append(zs, z)
 		}
 

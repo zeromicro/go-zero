@@ -53,7 +53,7 @@ type (
 		MaxBytes int64  `json:",default=1048576"`
 		// milliseconds
 		Timeout      int64         `json:",default=3000"`
-		CpuThreshold int64         `json:",default=900,range=[0:1000]"`
+		CpuThreshold int64         `json:",default=900,range=[0:1000)"`
 		Signature    SignatureConf `json:",optional"`
 		// There are default values for all the items in Middlewares.
 		Middlewares MiddlewaresConf
