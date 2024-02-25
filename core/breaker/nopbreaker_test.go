@@ -8,7 +8,7 @@ import (
 )
 
 func TestNopBreaker(t *testing.T) {
-	b := newNopBreaker()
+	b := NopBreaker()
 	assert.Equal(t, nopBreakerName, b.Name())
 	p, err := b.Allow()
 	assert.Nil(t, err)

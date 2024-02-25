@@ -603,11 +603,11 @@ func (d *dropBreaker) DoWithAcceptable(_ func() error, _ breaker.Acceptable) err
 	return errDummy
 }
 
-func (d *dropBreaker) DoWithFallback(_ func() error, _ func(err error) error) error {
+func (d *dropBreaker) DoWithFallback(_ func() error, _ breaker.Fallback) error {
 	return nil
 }
 
-func (d *dropBreaker) DoWithFallbackAcceptable(_ func() error, _ func(err error) error,
+func (d *dropBreaker) DoWithFallbackAcceptable(_ func() error, _ breaker.Fallback,
 	_ breaker.Acceptable) error {
 	return nil
 }

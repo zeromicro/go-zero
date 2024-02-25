@@ -1,0 +1,10 @@
+syntax = "v1"
+
+import "request.api"
+type Bar {
+    Foo int `json:"foo"`
+    Bar bool `json:"bar"`
+    Baz
+    Qux map[string]string `json:"qux"`
+}
+
