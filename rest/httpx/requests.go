@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -23,9 +24,10 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	validator       atomic.Value
+	formUnmarshaler     = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	pathUnmarshaler     = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
+	validator           atomic.Value
+	customFieldUnsetErr func(ctx context.Context, key string) error
 )
 
 // Validator defines the interface for validating the request.
@@ -72,8 +74,8 @@ func ParseForm(r *http.Request, v any) error {
 	if err != nil {
 		return err
 	}
-
-	return formUnmarshaler.Unmarshal(params, v)
+	unmarshaler := mapping.WithOpts(formUnmarshaler, getUnmarshalOptions(r)...)
+	return unmarshaler.Unmarshal(params, v)
 }
 
 // ParseHeader parses the request header and returns a map.
@@ -100,12 +102,13 @@ func ParseHeader(headerValue string) map[string]string {
 
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v any) error {
+	opts := getUnmarshalOptions(r)
 	if withJsonBody(r) {
 		reader := io.LimitReader(r.Body, maxBodyLen)
-		return mapping.UnmarshalJsonReader(reader, v)
+		return mapping.UnmarshalJsonReader(reader, v, opts...)
 	}
 
-	return mapping.UnmarshalJsonMap(nil, v)
+	return mapping.UnmarshalJsonMap(nil, v, opts...)
 }
 
 // ParsePath parses the symbols reside in url path.
@@ -116,8 +119,8 @@ func ParsePath(r *http.Request, v any) error {
 	for k, v := range vars {
 		m[k] = v
 	}
-
-	return pathUnmarshaler.Unmarshal(m, v)
+	unmarshaler := mapping.WithOpts(pathUnmarshaler, getUnmarshalOptions(r)...)
+	return unmarshaler.Unmarshal(m, v)
 }
 
 // SetValidator sets the validator.
@@ -129,4 +132,21 @@ func SetValidator(val Validator) {
 
 func withJsonBody(r *http.Request) bool {
 	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
+}
+
+func getUnmarshalOptions(r *http.Request) []mapping.UnmarshalOption {
+	var opts []mapping.UnmarshalOption
+	if customFieldUnsetErr != nil {
+		unsetErrFun := func(key string) error {
+			return customFieldUnsetErr(r.Context(), key)
+		}
+		opts = append(opts, mapping.WithCustomFieldUnsetErr(unsetErrFun))
+	}
+	return opts
+}
+
+func SetCustomUnsetError(f func(ctx context.Context, fullName string) error) {
+	customFieldUnsetErr = f
+	//formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithCustomFieldUnsetErr(f))
+	//pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithCustomFieldUnsetErr(f))
 }

@@ -49,10 +49,11 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fillDefault  bool
-		fromString   bool
-		opaqueKeys   bool
-		canonicalKey func(key string) string
+		fillDefault         bool
+		fromString          bool
+		opaqueKeys          bool
+		canonicalKey        func(key string) string
+		customFieldUnsetErr func(key string) error
 	}
 )
 
@@ -67,6 +68,17 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	}
 
 	return &unmarshaler
+}
+
+func WithOpts(u *Unmarshaler, opts ...UnmarshalOption) *Unmarshaler {
+	if u == nil {
+		return u
+	}
+	for _, opt := range opts {
+		opt(&u.opts)
+	}
+
+	return u
 }
 
 // UnmarshalKey unmarshals m into v with tag key.
@@ -878,6 +890,9 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 			}
 
 			if required {
+				if u.opts.customFieldUnsetErr != nil {
+					return u.opts.customFieldUnsetErr(fullName)
+				}
 				return fmt.Errorf("%q is not set", fullName)
 			}
 
@@ -887,6 +902,9 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	default:
 		if !opts.optional() {
+			if u.opts.customFieldUnsetErr != nil {
+				return u.opts.customFieldUnsetErr(fullName)
+			}
 			return newInitError(fullName)
 		}
 	}
@@ -936,6 +954,13 @@ func WithStringValues() UnmarshalOption {
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
+	}
+}
+
+// WithCustomFieldUnsetErr customizes an Unmarshaler with custom field unset error.
+func WithCustomFieldUnsetErr(f func(fullName string) error) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.customFieldUnsetErr = f
 	}
 }
 
