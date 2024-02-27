@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -5409,6 +5410,16 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "a", st.A)
 		assert.Equal(t, "c", st.C)
+	})
+
+	t.Run("optional !", func(t *testing.T) {
+		type St struct {
+			A string `json:",optional"`
+			B string `json:",optional=!A"`
+		}
+		var st = St{}
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		assert.NoError(t, err)
 	})
 
 	t.Run("has value", func(t *testing.T) {

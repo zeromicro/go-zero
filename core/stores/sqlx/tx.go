@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/zeromicro/go-zero/core/breaker"
 )
 
 type (
@@ -75,6 +77,7 @@ func (t txSession) PrepareCtx(ctx context.Context, q string) (stmtSession StmtSe
 	return statement{
 		query: q,
 		stmt:  stmt,
+		brk:   breaker.NopBreaker(),
 	}, nil
 }
 

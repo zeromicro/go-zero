@@ -4,7 +4,8 @@ const nopBreakerName = "nopBreaker"
 
 type nopBreaker struct{}
 
-func newNopBreaker() Breaker {
+// NopBreaker returns a breaker that never trigger breaker circuit.
+func NopBreaker() Breaker {
 	return nopBreaker{}
 }
 

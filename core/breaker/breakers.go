@@ -59,7 +59,7 @@ func GetBreaker(name string) Breaker {
 // NoBreakerFor disables the circuit breaker for the given name.
 func NoBreakerFor(name string) {
 	lock.Lock()
-	breakers[name] = newNopBreaker()
+	breakers[name] = NopBreaker()
 	lock.Unlock()
 }
 

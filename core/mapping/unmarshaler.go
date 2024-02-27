@@ -428,6 +428,10 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 		}
 	}
 
+	if u.opts.fillDefault {
+		return key, &options.fieldOptionsWithContext, nil
+	}
+
 	optsWithContext, err := options.toOptionsWithContext(key, m, fullName)
 	if err != nil {
 		return "", nil, err
