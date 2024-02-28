@@ -81,13 +81,13 @@ func BenchmarkStableRunner(b *testing.B) {
 		return float64(v) + 0.5
 	})
 
-	go func() {
-		for i := 0; ; i++ {
-			_, _ = runner.Get()
-		}
-	}()
+	// go func() {
+	// 	for i := 0; ; i++ {
+	// 	}
+	// }()
 
 	for i := 0; i < b.N; i++ {
 		_ = runner.Push(i)
+		_, _ = runner.Get()
 	}
 }
