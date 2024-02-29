@@ -142,7 +142,7 @@ func (m Member) IsFormMember() bool {
 // IsTagMember returns true if contains given tag
 func (m Member) IsTagMember(tagKey string) bool {
 	if m.IsInline {
-		return true
+		return false
 	}
 
 	tags := m.Tags()

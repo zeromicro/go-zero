@@ -106,7 +106,7 @@ function api<T>(
 }
 
 export const webapi = {
-    get<T>(url: string, req: unknown, config?: unknown): Promise<T> {
+    get<T>(url: string, req?: unknown, config?: unknown): Promise<T> {
         return api<T>('get', url, req, config);
     },
     delete<T>(url: string, req: unknown, config?: unknown): Promise<T> {
