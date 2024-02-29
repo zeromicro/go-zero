@@ -3,6 +3,7 @@ package threading
 import (
 	"errors"
 	"runtime"
+	"sync"
 	"sync/atomic"
 )
 
@@ -22,6 +23,7 @@ type StableRunner[I, O any] struct {
 	writtenIndex  uint64
 	ring          []*struct {
 		value chan O
+		lock  sync.Mutex
 	}
 	runner *TaskRunner
 	done   chan struct{}
@@ -31,10 +33,12 @@ type StableRunner[I, O any] struct {
 func NewStableRunner[I, O any](fn func(I) O) *StableRunner[I, O] {
 	ring := make([]*struct {
 		value chan O
+		lock  sync.Mutex
 	}, bufSize)
 	for i := 0; i < bufSize; i++ {
 		ring[i] = &struct {
 			value chan O
+			lock  sync.Mutex
 		}{
 			value: make(chan O, 1),
 		}
@@ -78,10 +82,12 @@ func (r *StableRunner[I, O]) Push(v I) error {
 		return ErrRunnerClosed
 	default:
 		index := atomic.AddUint64(&r.writtenIndex, 1)
+		offset := (index - 1) % uint64(bufSize)
+		holder := r.ring[offset]
+		holder.lock.Lock()
 		r.runner.Schedule(func() {
+			defer holder.lock.Unlock()
 			o := r.handle(v)
-			offset := (index - 1) % uint64(bufSize)
-			holder := r.ring[offset]
 			holder.value <- o
 		})
 
