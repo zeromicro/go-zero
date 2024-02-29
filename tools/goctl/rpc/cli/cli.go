@@ -84,6 +84,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	}
 
 	var ctx generator.ZRpcContext
+	ctx.Multiple = VarBoolMultiple
 	ctx.Src = src
 	ctx.GoOutput = filepath.Dir(src)
 	ctx.GrpcOutput = filepath.Dir(src)
