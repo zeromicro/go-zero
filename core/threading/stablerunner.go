@@ -51,24 +51,23 @@ func NewStableRunner[I, O any](fn func(I) O) *StableRunner[I, O] {
 // Get returns the next processed message in order.
 // This method should be called in one goroutine.
 func (r *StableRunner[I, O]) Get() (O, error) {
-	select {
-	case <-r.done:
-		if atomic.LoadUint64(&r.consumedIndex) == atomic.LoadUint64(&r.writtenIndex) {
-			var o O
-			return o, ErrRunnerClosed
-		}
-	default:
-	}
-
-	defer func() {
-		atomic.AddUint64(&r.consumedIndex, 1)
-	}()
+	defer atomic.AddUint64(&r.consumedIndex, 1)
 
 	index := atomic.LoadUint64(&r.consumedIndex)
 	offset := index % uint64(bufSize)
 	holder := r.ring[offset]
 
-	return <-holder.value, nil
+	select {
+	case o := <-holder.value:
+		return o, nil
+	case <-r.done:
+		if atomic.LoadUint64(&r.consumedIndex) < atomic.LoadUint64(&r.writtenIndex) {
+			return <-holder.value, nil
+		}
+
+		var o O
+		return o, ErrRunnerClosed
+	}
 }
 
 // Push pushes the message v into the runner and to be processed concurrently,
