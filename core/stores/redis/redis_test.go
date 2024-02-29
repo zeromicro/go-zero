@@ -1584,6 +1584,24 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 	})
 }
 
+func TestRedis_Zaddnx(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		ok, err := client.Zadd("key", 1, "value1")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+		ok, err = client.Zaddnx("key", 2, "value1")
+		assert.Nil(t, err)
+		assert.False(t, ok)
+
+		ok, err = client.ZaddFloat("key", 1.1, "value2")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+		ok, err = client.ZaddnxFloat("key", 1.1, "value3")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+	})
+}
+
 func TestRedis_IncrbyFloat(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		incrVal, err := client.IncrbyFloat("key", 0.002)

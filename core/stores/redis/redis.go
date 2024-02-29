@@ -2074,6 +2074,45 @@ func (s *Redis) ZaddFloatCtx(ctx context.Context, key string, score float64, val
 	return
 }
 
+// Zaddnx is the implementation of redis zadd nx command.
+func (s *Redis) Zaddnx(key string, score int64, value string) (val bool, err error) {
+	return s.ZaddnxCtx(context.Background(), key, score, value)
+}
+
+// ZaddnxCtx is the implementation of redis zadd nx command.
+func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value string) (val bool, err error) {
+	return s.ZaddnxFloatCtx(ctx, key, float64(score), value)
+}
+
+// ZaddnxFloat is the implementation of redis zaddnx command.
+func (s *Redis) ZaddnxFloat(key string, score float64, value string) (bool, error) {
+	return s.ZaddFloatCtx(context.Background(), key, score, value)
+}
+
+// ZaddnxFloatCtx is the implementation of redis zaddnx command.
+func (s *Redis) ZaddnxFloatCtx(ctx context.Context, key string, score float64, value string) (
+	val bool, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.ZAddNX(ctx, key, red.Z{
+			Score:  score,
+			Member: value,
+		}).Result()
+		if err != nil {
+			return err
+		}
+
+		val = v == 1
+		return nil
+	}, acceptable)
+
+	return
+}
+
 // Zadds is the implementation of redis zadds command.
 func (s *Redis) Zadds(key string, ps ...Pair) (int64, error) {
 	return s.ZaddsCtx(context.Background(), key, ps...)
