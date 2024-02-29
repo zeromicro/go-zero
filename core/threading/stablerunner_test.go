@@ -33,6 +33,7 @@ func TestStableRunner(t *testing.T) {
 		var err error
 		values[i], err = runner.Get()
 		assert.NoError(t, err)
+		time.Sleep(time.Millisecond)
 	}
 
 	assert.True(t, sort.Float64sAreSorted(values))

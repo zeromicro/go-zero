@@ -93,7 +93,7 @@ func (r *StableRunner[I, O]) Push(v I) error {
 func (r *StableRunner[I, O]) Wait() {
 	close(r.done)
 	r.runner.Wait()
-	for atomic.LoadUint64(&r.consumedIndex) != atomic.LoadUint64(&r.writtenIndex) {
+	for atomic.LoadUint64(&r.consumedIndex) < atomic.LoadUint64(&r.writtenIndex) {
 		runtime.Gosched()
 	}
 }
