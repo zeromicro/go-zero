@@ -3,6 +3,7 @@ package errorx
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,4 +46,22 @@ func TestBatchErrorWithErrors(t *testing.T) {
 	assert.NotNil(t, batch)
 	assert.Equal(t, fmt.Sprintf("%s\n%s", err1, err2), batch.Err().Error())
 	assert.True(t, batch.NotNil())
+}
+
+func TestBatchErrorConcurrentAdd(t *testing.T) {
+	const count = 10000
+	var batch BatchError
+	var wg sync.WaitGroup
+
+	wg.Add(count)
+	for i := 0; i < count; i++ {
+		go func() {
+			batch.Add(errors.New(err1))
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, count, len(batch.errs))
+
 }
