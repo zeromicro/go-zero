@@ -27,42 +27,9 @@ var (
 	initOnce  sync.Once
 )
 
-// if /proc not present, ignore the cpu calculation, like wsl linux
-func initialize() {
-	cpus, err := effectiveCpus()
-	if err != nil {
-		noCgroup = true
-		logx.Error(err)
-		return
-	}
-
-	cores = uint64(cpus)
-	limit = float64(cpus)
-	quota, err := cpuQuota()
-	if err == nil && quota > 0 {
-		if quota < limit {
-			limit = quota
-		}
-	}
-
-	preSystem, err = systemCpuUsage()
-	if err != nil {
-		noCgroup = true
-		logx.Error(err)
-		return
-	}
-
-	preTotal, err = cpuUsage()
-	if err != nil {
-		noCgroup = true
-		logx.Error(err)
-		return
-	}
-}
-
 // RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
-	initOnce.Do(initialize)
+	initializeOnce()
 
 	if noCgroup {
 		return 0
@@ -118,6 +85,51 @@ func effectiveCpus() (int, error) {
 	}
 
 	return cg.effectiveCpus()
+}
+
+// if /proc not present, ignore the cpu calculation, like wsl linux
+func initialize() error {
+	cpus, err := effectiveCpus()
+	if err != nil {
+		return err
+	}
+
+	cores = uint64(cpus)
+	limit = float64(cpus)
+	quota, err := cpuQuota()
+	if err == nil && quota > 0 {
+		if quota < limit {
+			limit = quota
+		}
+	}
+
+	preSystem, err = systemCpuUsage()
+	if err != nil {
+		return err
+	}
+
+	preTotal, err = cpuUsage()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initializeOnce() {
+	initOnce.Do(func() {
+		defer func() {
+			if p := recover(); p != nil {
+				noCgroup = true
+				logx.Error(p)
+			}
+		}()
+
+		if err := initialize(); err != nil {
+			noCgroup = true
+			logx.Error(err)
+		}
+	})
 }
 
 func systemCpuUsage() (uint64, error) {
