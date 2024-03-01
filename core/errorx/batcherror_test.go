@@ -34,7 +34,7 @@ func TestBatchErrorNilFromFunc(t *testing.T) {
 func TestBatchErrorOneError(t *testing.T) {
 	var batch BatchError
 	batch.Add(errors.New(err1))
-	assert.NotNil(t, batch)
+	assert.NotNil(t, batch.Err())
 	assert.Equal(t, err1, batch.Err().Error())
 	assert.True(t, batch.NotNil())
 }
@@ -43,7 +43,7 @@ func TestBatchErrorWithErrors(t *testing.T) {
 	var batch BatchError
 	batch.Add(errors.New(err1))
 	batch.Add(errors.New(err2))
-	assert.NotNil(t, batch)
+	assert.NotNil(t, batch.Err())
 	assert.Equal(t, fmt.Sprintf("%s\n%s", err1, err2), batch.Err().Error())
 	assert.True(t, batch.NotNil())
 }
@@ -56,12 +56,13 @@ func TestBatchErrorConcurrentAdd(t *testing.T) {
 	wg.Add(count)
 	for i := 0; i < count; i++ {
 		go func() {
+			defer wg.Done()
 			batch.Add(errors.New(err1))
-			wg.Done()
 		}()
 	}
 	wg.Wait()
 
+	assert.NotNil(t, batch.Err())
 	assert.Equal(t, count, len(batch.errs))
-
+	assert.True(t, batch.NotNil())
 }
