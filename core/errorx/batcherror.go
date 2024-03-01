@@ -1,10 +1,14 @@
 package errorx
 
-import "bytes"
+import (
+	"bytes"
+	"sync"
+)
 
 type (
 	// A BatchError is an error that can hold multiple errors.
 	BatchError struct {
+		mu   sync.Mutex
 		errs errorArray
 	}
 
@@ -13,6 +17,9 @@ type (
 
 // Add adds errs to be, nil errors are ignored.
 func (be *BatchError) Add(errs ...error) {
+	be.mu.Lock()
+	defer be.mu.Unlock()
+
 	for _, err := range errs {
 		if err != nil {
 			be.errs = append(be.errs, err)
