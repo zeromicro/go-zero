@@ -1,3 +1,5 @@
+//go:build !nocgroup
+
 package internal
 
 import (
