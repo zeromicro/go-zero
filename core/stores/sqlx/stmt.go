@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -70,6 +71,9 @@ func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result,
 	}, func(err error) bool {
 		return s.accept(err)
 	})
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		metricReqErr.Inc("stmt_exec", "breaker")
+	}
 
 	return
 }
@@ -137,7 +141,8 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) error,
 	v any, args ...any) error {
 	var scanFailed bool
-	return s.brk.DoWithAcceptable(func() error {
+
+	err := s.brk.DoWithAcceptable(func() error {
 		return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 			err := scanFn(v, rows)
 			if err != nil {
@@ -148,6 +153,11 @@ func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) 
 	}, func(err error) bool {
 		return scanFailed || s.accept(err)
 	})
+	if errors.Is(err, breaker.ErrServiceUnavailable) {
+		metricReqErr.Inc("stmt_queryRows", "breaker")
+	}
+
+	return err
 }
 
 // DisableLog disables logging of sql statements, includes info and slow logs.
