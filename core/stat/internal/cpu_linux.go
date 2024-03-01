@@ -109,11 +109,7 @@ func initialize() error {
 	}
 
 	preTotal, err = cpuUsage()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func initializeOnce() {
