@@ -1,5 +1,3 @@
-//go:build !nocgroup
-
 package internal
 
 import (
@@ -25,6 +23,7 @@ var (
 	preTotal  uint64
 	limit     float64
 	cores     uint64
+	noCgroup  bool
 	initOnce  sync.Once
 )
 
@@ -32,6 +31,7 @@ var (
 func initialize() {
 	cpus, err := effectiveCpus()
 	if err != nil {
+		noCgroup = true
 		logx.Error(err)
 		return
 	}
@@ -47,12 +47,14 @@ func initialize() {
 
 	preSystem, err = systemCpuUsage()
 	if err != nil {
+		noCgroup = true
 		logx.Error(err)
 		return
 	}
 
 	preTotal, err = cpuUsage()
 	if err != nil {
+		noCgroup = true
 		logx.Error(err)
 		return
 	}
@@ -61,6 +63,10 @@ func initialize() {
 // RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
 	initOnce.Do(initialize)
+
+	if noCgroup {
+		return 0
+	}
 
 	total, err := cpuUsage()
 	if err != nil {

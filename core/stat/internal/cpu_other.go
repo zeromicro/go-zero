@@ -1,4 +1,4 @@
-//go:build !linux || nocgroup
+//go:build !linux
 
 package internal
 
