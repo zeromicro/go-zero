@@ -307,8 +307,8 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 ## 10. CNCF 云原生技术全景图
 
 <p float="left">
-<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
-<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+<img src="https://www.cncf.io/wp-content/uploads/2023/04/cncf-main-site-logo.svg" width="200"/>
+<img src="https://landscape.cncf.io/images/cncf-landscape-horizontal-color.svg" width="150"/>&nbsp;&nbsp;&nbsp;
 </p>
 
 go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
