@@ -79,16 +79,16 @@ func TestWithRegistryForTimestampRegisterType(t *testing.T) {
 		return nil
 	}
 
-	registerType := []RegisterType{
+	codecs := []TypeCodec{
 		{
 			ValueType: reflect.TypeOf(time.Time{}),
 			Encoder:   mongoDateTimeEncoder,
 			Decoder:   mongoDateTimeDecoder,
 		},
 	}
-	WithRegistry(registerType...)(opts)
+	WithTypeCodec(codecs...)(opts)
 
-	for _, v := range registerType {
+	for _, v := range codecs {
 		// Validate Encoder
 		enc, err := opts.Registry.LookupEncoder(v.ValueType)
 		if err != nil {
