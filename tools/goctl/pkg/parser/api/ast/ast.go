@@ -94,6 +94,7 @@ func (t *TokenNode) RawText() string {
 		text = strings.TrimPrefix(text, `"`)
 		text = strings.TrimSuffix(text, `"`)
 	}
+
 	return text
 }
 
