@@ -5,6 +5,14 @@
 
 version: 2
 updates:
+  - package-ecosystem: "docker" # Update image tags in Dockerfile
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions" # Update GitHub Actions
+    directory: "/"
+    schedule:
+      interval: "weekly"
   - package-ecosystem: "gomod" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:

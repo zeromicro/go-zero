@@ -127,12 +127,12 @@ go get -u github.com/zeromicro/go-zero
    # docker for amd64 architecture
    docker pull kevinwan/goctl
    # run goctl like
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
+   docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
    
    # docker for arm64(Mac) architecture
    docker pull kevinwan/goctl:latest-arm64
    # run goctl like
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
+   docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 --help
    ```
    
    make sure goctl is executable.

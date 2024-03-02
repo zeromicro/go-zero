@@ -1,5 +1,6 @@
-**/.git
+test/
 .dockerignore
+.go-version
 Dockerfile
 goctl
 Makefile
