@@ -1339,6 +1339,30 @@ func (s *Redis) MgetCtx(ctx context.Context, keys ...string) (val []string, err 
 	return
 }
 
+// Mset is the implementation of redis mset command.
+func (s *Redis) Mset(fieldsAndValues ...any) (string, error) {
+	return s.MsetCtx(context.Background(), fieldsAndValues...)
+}
+
+// MsetCtx is the implementation of redis mset command.
+func (s *Redis) MsetCtx(ctx context.Context, fieldsAndValues ...any) (val string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.MSet(ctx, fieldsAndValues...).Result()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}, acceptable)
+
+	return
+}
+
 // Persist is the implementation of redis persist command.
 func (s *Redis) Persist(key string) (bool, error) {
 	return s.PersistCtx(context.Background(), key)
