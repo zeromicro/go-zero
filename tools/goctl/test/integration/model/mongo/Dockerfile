@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine
+FROM golang:1.22-alpine
 
 ENV TZ Asia/Shanghai
 ENV GOPROXY https://goproxy.cn,direct
