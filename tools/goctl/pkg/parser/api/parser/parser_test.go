@@ -299,6 +299,11 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"timeout6:":   "10ns",
 			"timeout7:":   "1h10m10s10ms10µs10ns",
 			"maxBytes:":   `1024`,
+			"prefix:":     "/v1",
+			"prefix1:":    "/v1/v2_test/v2-beta",
+			"prefix2:":    "v1/v2_test/v2-beta",
+			"prefix3:":    "v1/v2_",
+			"summary:":    `"test"`,
 		}
 
 		p := New("foo.api", atServerTestAPI)
@@ -349,6 +354,8 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server(foo:/v1/v2`,
 			`@server(foo: m1,`,
 			`@server(foo: m1,)`,
+			`@server(foo: v1/v2-)`,
+			`@server(foo:"test")`,
 		}
 		for _, v := range testData {
 			p := New("foo.api", v)
