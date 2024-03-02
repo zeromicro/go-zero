@@ -158,6 +158,7 @@ func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 			ret[key] = v.Value.Token.Text
 		}
 	}
+
 	return ret
 }
 

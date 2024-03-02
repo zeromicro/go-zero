@@ -12,7 +12,7 @@ import (
 
 func TestStableRunner(t *testing.T) {
 	size := bufSize * 2
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	runner := NewStableRunner(func(v int) float64 {
 		if v == 0 {
 			time.Sleep(time.Millisecond * 100)
@@ -49,7 +49,7 @@ func TestStableRunner(t *testing.T) {
 }
 
 func FuzzStableRunner(f *testing.F) {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	f.Add(uint64(bufSize))
 	f.Fuzz(func(t *testing.T, n uint64) {
 		runner := NewStableRunner(func(v int) float64 {

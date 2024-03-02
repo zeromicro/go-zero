@@ -1158,15 +1158,18 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
+
 		pathText += p.curTok.Text
-		if p.peekTokenIs(token.SUB) { //  解析 abc-efg 格式
+		if p.peekTokenIs(token.SUB) { //  parse abc-efg format
 			if !p.nextToken() {
 				return nil
 			}
+
 			pathText += p.curTok.Text
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
+
 			pathText += p.curTok.Text
 		}
 
@@ -1203,6 +1206,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 				return nil
 			}
 		}
+
 		if !p.nextToken() {
 			return nil
 		}
@@ -1263,15 +1267,18 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
+
 			pathText += p.curTok.Text
-			if p.peekTokenIs(token.SUB) { //  解析 abc-efg 格式
+			if p.peekTokenIs(token.SUB) { //  parse abc-efg format
 				if !p.nextToken() {
 					return nil
 				}
+
 				pathText += p.curTok.Text
 				if !p.advanceIfPeekTokenIs(token.IDENT) {
 					return nil
 				}
+
 				pathText += p.curTok.Text
 			}
 
