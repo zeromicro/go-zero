@@ -2080,7 +2080,8 @@ func (s *Redis) Zaddnx(key string, score int64, value string) (val bool, err err
 }
 
 // ZaddnxCtx is the implementation of redis zadd nx command.
-func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value string) (val bool, err error) {
+func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value string) (
+	val bool, err error) {
 	return s.ZaddnxFloatCtx(ctx, key, float64(score), value)
 }
 
