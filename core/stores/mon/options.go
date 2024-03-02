@@ -1,9 +1,12 @@
 package mon
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -20,6 +23,13 @@ type (
 
 	// Option defines the method to customize a mongo model.
 	Option func(opts *options)
+
+	// RegisterType A struct store With custom type and Encoder/Decoder
+	RegisterType struct {
+		ValueType reflect.Type
+		Encoder   bsoncodec.ValueEncoder
+		Decoder   bsoncodec.ValueDecoder
+	}
 )
 
 // DisableLog disables logging of mongo commands, includes info and slow logs.
@@ -48,5 +58,17 @@ func defaultTimeoutOption() Option {
 func WithTimeout(timeout time.Duration) Option {
 	return func(opts *options) {
 		opts.SetTimeout(timeout)
+	}
+}
+
+// WithRegistry set the Registry to convert custom type to mongo primitive type more easily.
+func WithRegistry(registerType ...RegisterType) Option {
+	return func(opts *options) {
+		registry := bson.NewRegistry()
+		for _, v := range registerType {
+			registry.RegisterTypeEncoder(v.ValueType, v.Encoder)
+			registry.RegisterTypeDecoder(v.ValueType, v.Decoder)
+		}
+		opts.SetRegistry(registry)
 	}
 }
