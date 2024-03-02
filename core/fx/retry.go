@@ -2,6 +2,7 @@ package fx
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/errorx"
@@ -14,9 +15,10 @@ type (
 	RetryOption func(*retryOptions)
 
 	retryOptions struct {
-		times    int
-		interval time.Duration
-		timeout  time.Duration
+		times        int
+		interval     time.Duration
+		timeout      time.Duration
+		IgnoreErrors []error
 	}
 )
 
@@ -62,6 +64,11 @@ func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opt
 		select {
 		case err := <-errChan:
 			if err != nil {
+				for _, ignoreErr := range options.IgnoreErrors {
+					if errors.Is(err, ignoreErr) {
+						return nil
+					}
+				}
 				berr.Add(err)
 			} else {
 				return nil
@@ -100,6 +107,13 @@ func WithInterval(interval time.Duration) RetryOption {
 func WithTimeout(timeout time.Duration) RetryOption {
 	return func(options *retryOptions) {
 		options.timeout = timeout
+	}
+}
+
+// WithIgnoreErrors Ignore the specified errors
+func WithIgnoreErrors(IgnoreErrors []error) RetryOption {
+	return func(options *retryOptions) {
+		options.IgnoreErrors = IgnoreErrors
 	}
 }
 
