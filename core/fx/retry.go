@@ -18,7 +18,7 @@ type (
 		times        int
 		interval     time.Duration
 		timeout      time.Duration
-		IgnoreErrors []error
+		ignoreErrors []error
 	}
 )
 
@@ -64,7 +64,7 @@ func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opt
 		select {
 		case err := <-errChan:
 			if err != nil {
-				for _, ignoreErr := range options.IgnoreErrors {
+				for _, ignoreErr := range options.ignoreErrors {
 					if errors.Is(err, ignoreErr) {
 						return nil
 					}
@@ -91,29 +91,31 @@ func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opt
 	return berr.Err()
 }
 
-// WithRetry customize a DoWithRetry call with given retry times.
-func WithRetry(times int) RetryOption {
+// WithIgnoreErrors Ignore the specified errors
+func WithIgnoreErrors(ignoreErrors []error) RetryOption {
 	return func(options *retryOptions) {
-		options.times = times
+		options.ignoreErrors = ignoreErrors
 	}
 }
 
+// WithInterval customizes a DoWithRetry call with given interval.
 func WithInterval(interval time.Duration) RetryOption {
 	return func(options *retryOptions) {
 		options.interval = interval
 	}
 }
 
-func WithTimeout(timeout time.Duration) RetryOption {
+// WithRetry customizes a DoWithRetry call with given retry times.
+func WithRetry(times int) RetryOption {
 	return func(options *retryOptions) {
-		options.timeout = timeout
+		options.times = times
 	}
 }
 
-// WithIgnoreErrors Ignore the specified errors
-func WithIgnoreErrors(IgnoreErrors []error) RetryOption {
+// WithTimeout customizes a DoWithRetry call with given timeout.
+func WithTimeout(timeout time.Duration) RetryOption {
 	return func(options *retryOptions) {
-		options.IgnoreErrors = IgnoreErrors
+		options.timeout = timeout
 	}
 }
 
