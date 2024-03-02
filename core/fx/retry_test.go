@@ -97,6 +97,24 @@ func TestRetryWithInterval(t *testing.T) {
 
 }
 
+func TestRetryWithWithIgnoreErrors(t *testing.T) {
+	ignoreErr1 := errors.New("ignore error1")
+	ignoreErr2 := errors.New("ignore error2")
+	ignoreErrs := []error{ignoreErr1, ignoreErr2}
+
+	assert.Nil(t, DoWithRetry(func() error {
+		return ignoreErr1
+	}, WithIgnoreErrors(ignoreErrs)))
+
+	assert.Nil(t, DoWithRetry(func() error {
+		return ignoreErr2
+	}, WithIgnoreErrors(ignoreErrs)))
+
+	assert.NotNil(t, DoWithRetry(func() error {
+		return errors.New("any")
+	}))
+}
+
 func TestRetryCtx(t *testing.T) {
 	t.Run("with timeout", func(t *testing.T) {
 		assert.NotNil(t, DoWithRetryCtx(context.Background(), func(ctx context.Context, retryCount int) error {

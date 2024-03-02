@@ -41,7 +41,7 @@ type RedisLock struct {
 }
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 }
 
 // NewRedisLock returns a RedisLock.

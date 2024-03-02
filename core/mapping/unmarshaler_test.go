@@ -5411,6 +5411,15 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		assert.Equal(t, "c", st.C)
 	})
 
+	t.Run("optional !", func(t *testing.T) {
+		var st struct {
+			A string `json:",optional"`
+			B string `json:",optional=!A"`
+		}
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		assert.NoError(t, err)
+	})
+
 	t.Run("has value", func(t *testing.T) {
 		type St struct {
 			A string `json:",default=a"`

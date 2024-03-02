@@ -222,7 +222,7 @@ func TestNilGuard(t *testing.T) {
 	assert.Equal(t, nilGuard{}, guard)
 }
 
-func TestStmtScanFailed(t *testing.T) {
+func TestStmtBreaker(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectPrepare("any")
 
@@ -241,6 +241,52 @@ func TestStmtScanFailed(t *testing.T) {
 			assert.Error(t, err)
 			assert.NotErrorIs(t, err, breaker.ErrServiceUnavailable)
 		}
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectPrepare("any")
+		conn := NewSqlConnFromDB(db)
+		stmt, err := conn.Prepare("any")
+		assert.NoError(t, err)
+
+		for i := 0; i < 1000; i++ {
+			assert.Error(t, conn.Transact(func(session Session) error {
+				return nil
+			}))
+		}
+
+		var breakerTriggered bool
+		for i := 0; i < 1000; i++ {
+			_, err = stmt.Exec("any")
+			if errors.Is(err, breaker.ErrServiceUnavailable) {
+				breakerTriggered = true
+				break
+			}
+		}
+		assert.True(t, breakerTriggered)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectPrepare("any")
+		conn := NewSqlConnFromDB(db)
+		stmt, err := conn.Prepare("any")
+		assert.NoError(t, err)
+
+		for i := 0; i < 1000; i++ {
+			assert.Error(t, conn.Transact(func(session Session) error {
+				return nil
+			}))
+		}
+
+		var breakerTriggered bool
+		for i := 0; i < 1000; i++ {
+			err = stmt.QueryRows(&struct{}{}, "any")
+			if errors.Is(err, breaker.ErrServiceUnavailable) {
+				breakerTriggered = true
+				break
+			}
+		}
+		assert.True(t, breakerTriggered)
 	})
 }
 

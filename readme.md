@@ -248,8 +248,8 @@ Join the chat via https://discord.gg/4JQvC5A4Fe
 ##  Cloud Native Landscape
 
 <p float="left">
-<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
-<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-landscape-logo.svg" width="150"/>
 </p>
 
 go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/?selected=go-zero).

@@ -188,3 +188,17 @@ service example {
 	post /example/nest2 (NestDemoReq2) returns (NestDemoResp2)
 }
 
+@server (
+	group:    /g1/g2_test/g2_beta
+	prefix:   /v1/v2_test/v2-beta
+	summary: "test"
+)
+service example {
+	@handler nestDemo1
+	post /a/b_c/d-e/:f/123/g (NestDemoReq1) returns (NestDemoResp1)
+
+	@handler nestDemo2
+	post /example/nest2 (NestDemoReq2) returns (NestDemoResp2)
+}
+
+

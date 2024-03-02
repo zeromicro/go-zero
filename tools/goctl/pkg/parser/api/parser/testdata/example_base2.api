@@ -1,5 +1,7 @@
 syntax = "v1"
 
+import "example_base.api"
+
 info(
     title: "type title here"
     desc: "type desc here"

@@ -12,7 +12,17 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-const idAPI = "api"
+const (
+	idAPI              = "api"
+	summaryKeyExprText = "summary:"
+	summaryKeyText     = "summary"
+	groupKeyText       = "group"
+	infoTitleKey       = "Title"
+	infoDescKey        = "Desc"
+	infoVersionKey     = "Version"
+	infoAuthorKey      = "Author"
+	infoEmailKey       = "Email"
+)
 
 // Parser is the parser for api file.
 type Parser struct {
@@ -1134,7 +1144,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 
 	var valueTok token.Token
 	var leadingCommentGroup ast.CommentGroup
-	if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT) {
+	if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT, token.STRING) {
 		return nil
 	}
 
@@ -1144,13 +1154,27 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		}
 
 		slashTok := p.curTok
+		var pathText = slashTok.Text
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
 
-		idTok := p.curTok
+		pathText += p.curTok.Text
+		if p.peekTokenIs(token.SUB) { //  parse abc-efg format
+			if !p.nextToken() {
+				return nil
+			}
+
+			pathText += p.curTok.Text
+			if !p.advanceIfPeekTokenIs(token.IDENT) {
+				return nil
+			}
+
+			pathText += p.curTok.Text
+		}
+
 		valueTok = token.Token{
-			Text:     slashTok.Text + idTok.Text,
+			Text:     pathText,
 			Position: slashTok.Position,
 		}
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
@@ -1166,6 +1190,23 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		expr.Value = node
 		return expr
 	} else if p.peekTokenIs(token.INT) {
+		if !p.nextToken() {
+			return nil
+		}
+
+		valueTok = p.curTok
+		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+		node := ast.NewTokenNode(valueTok)
+		node.SetLeadingCommentGroup(leadingCommentGroup)
+		expr.Value = node
+		return expr
+	} else if p.peekTokenIs(token.STRING) {
+		if expr.Key.Token.Text != summaryKeyExprText {
+			if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT) {
+				return nil
+			}
+		}
+
 		if !p.nextToken() {
 			return nil
 		}
@@ -1221,13 +1262,28 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			}
 
 			slashTok := p.curTok
+			var pathText = valueTok.Text
+			pathText += slashTok.Text
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
 
-			idTok := p.curTok
+			pathText += p.curTok.Text
+			if p.peekTokenIs(token.SUB) { //  parse abc-efg format
+				if !p.nextToken() {
+					return nil
+				}
+
+				pathText += p.curTok.Text
+				if !p.advanceIfPeekTokenIs(token.IDENT) {
+					return nil
+				}
+
+				pathText += p.curTok.Text
+			}
+
 			valueTok = token.Token{
-				Text:     valueTok.Text + slashTok.Text + idTok.Text,
+				Text:     pathText,
 				Position: valueTok.Position,
 			}
 			leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
