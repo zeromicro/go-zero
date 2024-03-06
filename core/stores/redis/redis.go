@@ -8,7 +8,6 @@ import (
 	"time"
 
 	red "github.com/redis/go-redis/v9"
-
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
