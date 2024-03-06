@@ -83,6 +83,33 @@ func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipel
 	}
 }
 
+func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
+	tracer := trace.TracerFromContext(ctx)
+
+	ctx, span := tracer.Start(ctx,
+		spanName,
+		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
+	)
+
+	cmdStrs := make([]string, 0, len(cmds))
+	for _, cmd := range cmds {
+		cmdStrs = append(cmdStrs, cmd.Name())
+	}
+	span.SetAttributes(redisCmdsAttributeKey.StringSlice(cmdStrs))
+
+	return ctx, func(err error) {
+		defer span.End()
+
+		if err == nil || errors.Is(err, red.Nil) {
+			span.SetStatus(codes.Ok, "")
+			return
+		}
+
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
+	}
+}
+
 func formatError(err error) string {
 	if err == nil || errors.Is(err, red.Nil) {
 		return ""
@@ -122,31 +149,4 @@ func logDuration(ctx context.Context, cmds []red.Cmder, duration time.Duration) 
 		buf.WriteString(build.String())
 	}
 	logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())
-}
-
-func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
-	tracer := trace.TracerFromContext(ctx)
-
-	ctx, span := tracer.Start(ctx,
-		spanName,
-		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
-	)
-
-	cmdStrs := make([]string, 0, len(cmds))
-	for _, cmd := range cmds {
-		cmdStrs = append(cmdStrs, cmd.Name())
-	}
-	span.SetAttributes(redisCmdsAttributeKey.StringSlice(cmdStrs))
-
-	return ctx, func(err error) {
-		defer span.End()
-
-		if err == nil || errors.Is(err, red.Nil) {
-			span.SetStatus(codes.Ok, "")
-			return
-		}
-
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-	}
 }

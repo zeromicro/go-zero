@@ -22,14 +22,14 @@ func DoWithAcceptable(name string, req func() error, acceptable Acceptable) erro
 }
 
 // DoWithFallback calls Breaker.DoWithFallback on the Breaker with given name.
-func DoWithFallback(name string, req func() error, fallback func(err error) error) error {
+func DoWithFallback(name string, req func() error, fallback Fallback) error {
 	return do(name, func(b Breaker) error {
 		return b.DoWithFallback(req, fallback)
 	})
 }
 
 // DoWithFallbackAcceptable calls Breaker.DoWithFallbackAcceptable on the Breaker with given name.
-func DoWithFallbackAcceptable(name string, req func() error, fallback func(err error) error,
+func DoWithFallbackAcceptable(name string, req func() error, fallback Fallback,
 	acceptable Acceptable) error {
 	return do(name, func(b Breaker) error {
 		return b.DoWithFallbackAcceptable(req, fallback, acceptable)
@@ -59,7 +59,7 @@ func GetBreaker(name string) Breaker {
 // NoBreakerFor disables the circuit breaker for the given name.
 func NoBreakerFor(name string) {
 	lock.Lock()
-	breakers[name] = newNopBreaker()
+	breakers[name] = NopBreaker()
 	lock.Unlock()
 }
 

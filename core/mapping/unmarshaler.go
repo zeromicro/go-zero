@@ -223,11 +223,11 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 	switch v := mapValue.(type) {
 	case fmt.Stringer:
 		if err := jsonx.UnmarshalFromString(v.String(), &slice); err != nil {
-			return err
+			return fmt.Errorf("fullName: `%s`, error: `%w`", fullName, err)
 		}
 	case string:
 		if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
-			return err
+			return fmt.Errorf("fullName: `%s`, error: `%w`", fullName, err)
 		}
 	default:
 		return errUnsupportedType
@@ -426,6 +426,10 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 				OptionalDep: u.opts.canonicalKey(options.OptionalDep),
 			}
 		}
+	}
+
+	if u.opts.fillDefault {
+		return key, &options.fieldOptionsWithContext, nil
 	}
 
 	optsWithContext, err := options.toOptionsWithContext(key, m, fullName)

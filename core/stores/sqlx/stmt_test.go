@@ -7,7 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/stores/dbtest"
 )
 
 var errMockedPlaceholder = errors.New("placeholder")
@@ -217,6 +220,74 @@ func TestNilGuard(t *testing.T) {
 	assert.Nil(t, guard.start("foo", "bar"))
 	guard.finish(context.Background(), nil)
 	assert.Equal(t, nilGuard{}, guard)
+}
+
+func TestStmtBreaker(t *testing.T) {
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectPrepare("any")
+
+		conn := NewSqlConnFromDB(db)
+		stmt, err := conn.Prepare("any")
+		assert.NoError(t, err)
+
+		var val struct {
+			Foo int
+			Bar string
+		}
+		for i := 0; i < 1000; i++ {
+			row := sqlmock.NewRows([]string{"foo"}).AddRow("bar")
+			mock.ExpectQuery("any").WillReturnRows(row)
+			err := stmt.QueryRow(&val)
+			assert.Error(t, err)
+			assert.NotErrorIs(t, err, breaker.ErrServiceUnavailable)
+		}
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectPrepare("any")
+		conn := NewSqlConnFromDB(db)
+		stmt, err := conn.Prepare("any")
+		assert.NoError(t, err)
+
+		for i := 0; i < 1000; i++ {
+			assert.Error(t, conn.Transact(func(session Session) error {
+				return nil
+			}))
+		}
+
+		var breakerTriggered bool
+		for i := 0; i < 1000; i++ {
+			_, err = stmt.Exec("any")
+			if errors.Is(err, breaker.ErrServiceUnavailable) {
+				breakerTriggered = true
+				break
+			}
+		}
+		assert.True(t, breakerTriggered)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectPrepare("any")
+		conn := NewSqlConnFromDB(db)
+		stmt, err := conn.Prepare("any")
+		assert.NoError(t, err)
+
+		for i := 0; i < 1000; i++ {
+			assert.Error(t, conn.Transact(func(session Session) error {
+				return nil
+			}))
+		}
+
+		var breakerTriggered bool
+		for i := 0; i < 1000; i++ {
+			err = stmt.QueryRows(&struct{}{}, "any")
+			if errors.Is(err, breaker.ErrServiceUnavailable) {
+				breakerTriggered = true
+				break
+			}
+		}
+		assert.True(t, breakerTriggered)
+	})
 }
 
 type mockedSessionConn struct {

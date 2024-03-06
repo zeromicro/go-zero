@@ -156,6 +156,7 @@ func TestStatement(t *testing.T) {
 		st := statement{
 			query: "foo",
 			stmt:  stmt,
+			brk:   breaker.NopBreaker(),
 		}
 		assert.NoError(t, st.Close())
 	})
