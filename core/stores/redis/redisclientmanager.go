@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	red "github.com/redis/go-redis/v9"
+
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
@@ -37,7 +38,9 @@ func getClient(r *Redis) (*red.Client, error) {
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
 		})
-		store.AddHook(durationHook)
+		store.AddHook(hook{
+			brk: r.brk,
+		})
 		for _, hook := range r.hooks {
 			store.AddHook(hook)
 		}

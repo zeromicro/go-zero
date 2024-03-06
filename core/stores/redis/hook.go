@@ -9,25 +9,30 @@ import (
 	"time"
 
 	red "github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	oteltrace "go.opentelemetry.io/otel/trace"
+
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/core/trace"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 // spanName is the span name of the redis calls.
 const spanName = "redis"
 
 var (
-	durationHook          = hook{}
+	durationHook = hook{
+		brk: breaker.NopBreaker(),
+	}
 	redisCmdsAttributeKey = attribute.Key("redis.cmds")
 )
 
-type hook struct{}
+type hook struct {
+	brk breaker.Breaker
+}
 
 func (h hook) DialHook(next red.DialHook) red.DialHook {
 	return next
@@ -35,51 +40,55 @@ func (h hook) DialHook(next red.DialHook) red.DialHook {
 
 func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 	return func(ctx context.Context, cmd red.Cmder) error {
-		start := timex.Now()
-		ctx, endSpan := h.startSpan(ctx, cmd)
+		return h.brk.DoWithAcceptable(func() error {
+			start := timex.Now()
+			ctx, endSpan := h.startSpan(ctx, cmd)
 
-		err := next(ctx, cmd)
+			err := next(ctx, cmd)
 
-		endSpan(err)
-		duration := timex.Since(start)
+			endSpan(err)
+			duration := timex.Since(start)
 
-		if duration > slowThreshold.Load() {
-			logDuration(ctx, []red.Cmder{cmd}, duration)
-			metricSlowCount.Inc(cmd.Name())
-		}
+			if duration > slowThreshold.Load() {
+				logDuration(ctx, []red.Cmder{cmd}, duration)
+				metricSlowCount.Inc(cmd.Name())
+			}
 
-		metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
-		if msg := formatError(err); len(msg) > 0 {
-			metricReqErr.Inc(cmd.Name(), msg)
-		}
+			metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
+			if msg := formatError(err); len(msg) > 0 {
+				metricReqErr.Inc(cmd.Name(), msg)
+			}
 
-		return err
+			return err
+		}, acceptable)
 	}
 }
 
 func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []red.Cmder) error {
-		if len(cmds) == 0 {
-			return next(ctx, cmds)
-		}
+		return h.brk.DoWithAcceptable(func() error {
+			if len(cmds) == 0 {
+				return next(ctx, cmds)
+			}
 
-		start := timex.Now()
-		ctx, endSpan := h.startSpan(ctx, cmds...)
+			start := timex.Now()
+			ctx, endSpan := h.startSpan(ctx, cmds...)
 
-		err := next(ctx, cmds)
+			err := next(ctx, cmds)
 
-		endSpan(err)
-		duration := timex.Since(start)
-		if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
-			logDuration(ctx, cmds, duration)
-		}
+			endSpan(err)
+			duration := timex.Since(start)
+			if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
+				logDuration(ctx, cmds, duration)
+			}
 
-		metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
-		if msg := formatError(err); len(msg) > 0 {
-			metricReqErr.Inc("Pipeline", msg)
-		}
+			metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
+			if msg := formatError(err); len(msg) > 0 {
+				metricReqErr.Inc("Pipeline", msg)
+			}
 
-		return err
+			return err
+		}, acceptable)
 	}
 }
 
