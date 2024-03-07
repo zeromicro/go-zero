@@ -82,6 +82,9 @@ type (
 	// ZStore is an alias of redis.ZStore.
 	ZStore = red.ZStore
 
+	// Redis Sub/Pub
+	PubSub = red.PubSub
+
 	// IntCmd is an alias of redis.IntCmd.
 	IntCmd = red.IntCmd
 	// FloatCmd is an alias of redis.FloatCmd.
@@ -171,12 +174,12 @@ func (s *Redis) PublishCtx(ctx context.Context, channel string, message any) (va
 }
 
 // Subscribe is redis subscribe command implementation.
-func (s *Redis) Subscribe(channel ...string) (*red.PubSub, error) {
+func (s *Redis) Subscribe(channel ...string) (*PubSub, error) {
 	return s.SubscribeCtx(context.Background(), channel...)
 }
 
 // SubscribeCtx is redis subscribe command implementation.
-func (s *Redis) SubscribeCtx(ctx context.Context, channel ...string) (val *red.PubSub, err error) {
+func (s *Redis) SubscribeCtx(ctx context.Context, channel ...string) (val *PubSub, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
