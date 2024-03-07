@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
 type filterBuilder struct {
 	filename      string
-	m             map[string]placeholder.Type
+	m             map[string]token.Position
 	checkExprName string
 	errorManager  *errorManager
 }
@@ -17,10 +17,10 @@ type filterBuilder struct {
 func (b *filterBuilder) check(nodes ...*ast.TokenNode) {
 	for _, node := range nodes {
 		fileNodeText := fmt.Sprintf("%s/%s", b.filename, node.Token.Text)
-		if _, ok := b.m[fileNodeText]; ok {
+		if pos, ok := b.m[fileNodeText]; ok && pos != node.Token.Position {
 			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
 		} else {
-			b.m[fileNodeText] = placeholder.PlaceHolder
+			b.m[fileNodeText] = node.Token.Position
 		}
 	}
 }
@@ -28,10 +28,10 @@ func (b *filterBuilder) check(nodes ...*ast.TokenNode) {
 func (b *filterBuilder) checkNodeWithPrefix(prefix string, nodes ...*ast.TokenNode) {
 	for _, node := range nodes {
 		joinText := fmt.Sprintf("%s/%s", prefix, node.Token.Text)
-		if _, ok := b.m[joinText]; ok {
+		if pos, ok := b.m[joinText]; ok && pos != node.Token.Position {
 			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
 		} else {
-			b.m[joinText] = placeholder.PlaceHolder
+			b.m[joinText] = node.Token.Position
 		}
 	}
 }
@@ -51,7 +51,7 @@ func newFilter() *filter {
 func (f *filter) addCheckItem(filename, checkExprName string) *filterBuilder {
 	b := &filterBuilder{
 		filename:      filename,
-		m:             make(map[string]placeholder.Type),
+		m:             make(map[string]token.Position),
 		checkExprName: checkExprName,
 		errorManager:  newErrorManager(),
 	}

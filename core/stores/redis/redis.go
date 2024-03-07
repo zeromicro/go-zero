@@ -526,13 +526,8 @@ func (s *Redis) ExistsManyCtx(ctx context.Context, keys ...string) (val int64, e
 			return err
 		}
 
-		v, err := conn.Exists(ctx, keys...).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.Exists(ctx, keys...).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -586,13 +581,8 @@ func (s *Redis) GeoAddCtx(ctx context.Context, key string, geoLocation ...*GeoLo
 			return err
 		}
 
-		v, err := conn.GeoAdd(ctx, key, geoLocation...).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.GeoAdd(ctx, key, geoLocation...).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -612,13 +602,8 @@ func (s *Redis) GeoDistCtx(ctx context.Context, key, member1, member2, unit stri
 			return err
 		}
 
-		v, err := conn.GeoDist(ctx, key, member1, member2, unit).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.GeoDist(ctx, key, member1, member2, unit).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -638,13 +623,8 @@ func (s *Redis) GeoHashCtx(ctx context.Context, key string, members ...string) (
 			return err
 		}
 
-		v, err := conn.GeoHash(ctx, key, members...).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.GeoHash(ctx, key, members...).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -665,13 +645,8 @@ func (s *Redis) GeoRadiusCtx(ctx context.Context, key string, longitude, latitud
 			return err
 		}
 
-		v, err := conn.GeoRadius(ctx, key, longitude, latitude, query).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.GeoRadius(ctx, key, longitude, latitude, query).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -691,13 +666,8 @@ func (s *Redis) GeoRadiusByMemberCtx(ctx context.Context, key, member string,
 			return err
 		}
 
-		v, err := conn.GeoRadiusByMember(ctx, key, member, query).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.GeoRadiusByMember(ctx, key, member, query).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -717,13 +687,8 @@ func (s *Redis) GeoPosCtx(ctx context.Context, key string, members ...string) (
 			return err
 		}
 
-		v, err := conn.GeoPos(ctx, key, members...).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.GeoPos(ctx, key, members...).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -742,7 +707,7 @@ func (s *Redis) GetCtx(ctx context.Context, key string) (val string, err error) 
 			return err
 		}
 
-		if val, err = conn.Get(ctx, key).Result(); err == red.Nil {
+		if val, err = conn.Get(ctx, key).Result(); errors.Is(err, red.Nil) {
 			return nil
 		} else if err != nil {
 			return err
@@ -792,7 +757,7 @@ func (s *Redis) GetSetCtx(ctx context.Context, key, value string) (val string, e
 			return err
 		}
 
-		if val, err = conn.GetSet(ctx, key, value).Result(); err == red.Nil {
+		if val, err = conn.GetSet(ctx, key, value).Result(); errors.Is(err, red.Nil) {
 			return nil
 		}
 
@@ -918,17 +883,16 @@ func (s *Redis) HincrbyFloat(key, field string, increment float64) (float64, err
 }
 
 // HincrbyFloatCtx is the implementation of redis hincrbyfloat command.
-func (s *Redis) HincrbyFloatCtx(ctx context.Context, key, field string, increment float64) (val float64, err error) {
+func (s *Redis) HincrbyFloatCtx(ctx context.Context, key, field string, increment float64) (
+	val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
 		}
+
 		val, err = conn.HIncrByFloat(ctx, key, field, increment).Result()
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}, acceptable)
 
 	return
@@ -1396,11 +1360,7 @@ func (s *Redis) MsetCtx(ctx context.Context, fieldsAndValues ...any) (val string
 		}
 
 		val, err = conn.MSet(ctx, fieldsAndValues...).Result()
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}, acceptable)
 
 	return
@@ -2095,6 +2055,7 @@ func (s *Redis) TtlCtx(ctx context.Context, key string) (val int, err error) {
 			// -1 means key exists but has no expire
 			val = int(duration)
 		}
+
 		return nil
 	}, acceptable)
 
@@ -2200,13 +2161,8 @@ func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (val int64
 			zs = append(zs, z)
 		}
 
-		v, err := conn.ZAdd(ctx, key, zs...).Result()
-		if err != nil {
-			return err
-		}
-
-		val = v
-		return nil
+		val, err = conn.ZAdd(ctx, key, zs...).Result()
+		return err
 	}, acceptable)
 
 	return
@@ -2326,6 +2282,7 @@ func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (val fl
 		if err != nil {
 			return err
 		}
+
 		val, err = conn.ZScore(ctx, key, value).Result()
 		return err
 	}, acceptable)
@@ -2990,7 +2947,7 @@ func withHook(hook red.Hook) Option {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == red.Nil || errors.Is(err, context.Canceled)
+	return err == nil || errors.Is(err, red.Nil) || errors.Is(err, context.Canceled)
 }
 
 func getRedis(r *Redis) (RedisNode, error) {

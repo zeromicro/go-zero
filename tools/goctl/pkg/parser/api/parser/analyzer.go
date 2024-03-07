@@ -108,6 +108,8 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 }
 
 func (a *Analyzer) convert2Spec() error {
+	a.fillInfo()
+
 	if err := a.fillTypes(); err != nil {
 		return err
 	}
@@ -128,7 +130,7 @@ func (a *Analyzer) convert2Spec() error {
 		groups = append(groups, v)
 	}
 	sort.SliceStable(groups, func(i, j int) bool {
-		return groups[i].Annotation.Properties["group"] < groups[j].Annotation.Properties["group"]
+		return groups[i].Annotation.Properties[groupKeyText] < groups[j].Annotation.Properties[groupKeyText]
 	})
 	a.spec.Service.Groups = groups
 
@@ -150,8 +152,13 @@ func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 	var ret = map[string]string{}
 	for _, v := range kv {
 		key := strings.TrimSuffix(v.Key.Token.Text, ":")
-		ret[key] = v.Value.Token.Text
+		if key == summaryKeyText {
+			ret[key] = v.Value.RawText()
+		} else {
+			ret[key] = v.Value.Token.Text
+		}
 	}
+
 	return ret
 }
 
@@ -268,6 +275,27 @@ func (a *Analyzer) fillService() error {
 
 	a.spec.Service.Groups = groups
 	return nil
+}
+
+func (a *Analyzer) fillInfo() {
+	properties := make(map[string]string)
+	if a.api.info != nil {
+		for _, kv := range a.api.info.Values {
+			key := kv.Key.Token.Text
+			properties[strings.TrimSuffix(key, ":")] = kv.Value.RawText()
+		}
+	}
+	a.spec.Info.Properties = properties
+	infoKeyValue := make(map[string]string)
+	for key, value := range properties {
+		titleKey := strings.Title(strings.TrimSuffix(key, ":"))
+		infoKeyValue[titleKey] = value
+	}
+	a.spec.Info.Title = infoKeyValue[infoTitleKey]
+	a.spec.Info.Desc = infoKeyValue[infoDescKey]
+	a.spec.Info.Version = infoKeyValue[infoVersionKey]
+	a.spec.Info.Author = infoKeyValue[infoAuthorKey]
+	a.spec.Info.Email = infoKeyValue[infoEmailKey]
 }
 
 func (a *Analyzer) fillTypes() error {

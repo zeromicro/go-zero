@@ -1,0 +1,3 @@
+syntax = "v1"
+
+type Base{}

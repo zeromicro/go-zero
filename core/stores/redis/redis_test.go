@@ -910,9 +910,11 @@ func TestRedis_Persist(t *testing.T) {
 }
 
 func TestRedis_Ping(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		ok := client.Ping()
-		assert.True(t, ok)
+	t.Run("ping", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			ok := client.Ping()
+			assert.True(t, ok)
+		})
 	})
 }
 
@@ -1069,24 +1071,40 @@ func TestRedis_Set(t *testing.T) {
 }
 
 func TestRedis_GetSet(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		_, err := newRedis(client.Addr, badType()).GetSet("hello", "world")
-		assert.NotNil(t, err)
-		val, err := client.GetSet("hello", "world")
-		assert.Nil(t, err)
-		assert.Equal(t, "", val)
-		val, err = client.Get("hello")
-		assert.Nil(t, err)
-		assert.Equal(t, "world", val)
-		val, err = client.GetSet("hello", "newworld")
-		assert.Nil(t, err)
-		assert.Equal(t, "world", val)
-		val, err = client.Get("hello")
-		assert.Nil(t, err)
-		assert.Equal(t, "newworld", val)
-		ret, err := client.Del("hello")
-		assert.Nil(t, err)
-		assert.Equal(t, 1, ret)
+	t.Run("set_get", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := newRedis(client.Addr, badType()).GetSet("hello", "world")
+			assert.NotNil(t, err)
+			val, err := client.GetSet("hello", "world")
+			assert.Nil(t, err)
+			assert.Equal(t, "", val)
+			val, err = client.Get("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "world", val)
+			val, err = client.GetSet("hello", "newworld")
+			assert.Nil(t, err)
+			assert.Equal(t, "world", val)
+			val, err = client.Get("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "newworld", val)
+			ret, err := client.Del("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, 1, ret)
+		})
+	})
+
+	t.Run("set_get with notexists", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := client.Get("hello")
+			assert.NoError(t, err)
+		})
+	})
+
+	t.Run("set_get with error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Get("hello")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -1822,9 +1840,9 @@ func TestRedisBlpop(t *testing.T) {
 		client.Ping()
 		var node mockedNode
 		_, err := client.Blpop(nil, "foo")
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		_, err = client.Blpop(node, "foo")
-		assert.NotNil(t, err)
+		assert.NoError(t, err)
 	})
 }
 
@@ -1836,19 +1854,60 @@ func TestRedisBlpopEx(t *testing.T) {
 			_, _, err := client.BlpopEx(nil, "foo")
 			assert.Error(t, err)
 			_, _, err = client.BlpopEx(node, "foo")
+			assert.NoError(t, err)
+		})
+	})
+
+	t.Run("blpopex with expire", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			node, err := getRedis(client)
+			assert.NoError(t, err)
+			assert.NoError(t, client.Set("foo", "bar"))
+			_, _, err = client.BlpopEx(node, "foo")
+			assert.Error(t, err)
+		})
+	})
+
+	t.Run("blpopex with bad return", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			node := &mockedNode{args: []string{"bar"}}
+			_, _, err := client.BlpopEx(node, "foo")
 			assert.Error(t, err)
 		})
 	})
 }
 
 func TestRedisBlpopWithTimeout(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		client.Ping()
-		var node mockedNode
-		_, err := client.BlpopWithTimeout(nil, 10*time.Second, "foo")
-		assert.NotNil(t, err)
-		_, err = client.BlpopWithTimeout(node, 10*time.Second, "foo")
-		assert.NotNil(t, err)
+	t.Run("blpop_withTimeout", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			var node mockedNode
+			_, err := client.BlpopWithTimeout(nil, 10*time.Second, "foo")
+			assert.Error(t, err)
+			_, err = client.BlpopWithTimeout(node, 10*time.Second, "foo")
+			assert.NoError(t, err)
+		})
+	})
+
+	t.Run("blpop_withTimeout_error", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			node, err := getRedis(client)
+			assert.NoError(t, err)
+			assert.NoError(t, client.Set("foo", "bar"))
+			_, err = client.BlpopWithTimeout(node, time.Millisecond, "foo")
+			assert.Error(t, err)
+		})
+	})
+
+	t.Run("blpop_with_bad_return", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			node := &mockedNode{args: []string{"foo"}}
+			_, err := client.Blpop(node, "foo")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -1943,6 +2002,22 @@ func TestRedis_WithPass(t *testing.T) {
 	})
 }
 
+func TestRedis_checkConnection(t *testing.T) {
+	t.Run("checkConnection", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			assert.NoError(t, client.checkConnection(time.Millisecond))
+		})
+	})
+
+	t.Run("checkConnection error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			assert.Error(t, newRedis(client.Addr, badType()).checkConnection(time.Millisecond))
+			assert.Error(t, client.checkConnection(time.Millisecond))
+		})
+	})
+}
+
 func TestRedis_Publish(t *testing.T) {
 	t.Run("publish", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
@@ -2024,8 +2099,16 @@ func badType() Option {
 
 type mockedNode struct {
 	RedisNode
+	args []string
 }
 
 func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.StringSliceCmd {
-	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
+	cmd := red.NewStringSliceCmd(context.Background())
+	if len(n.args) == 0 {
+		cmd.SetVal([]string{"foo", "bar"})
+	} else {
+		cmd.SetVal(n.args)
+	}
+
+	return cmd
 }
