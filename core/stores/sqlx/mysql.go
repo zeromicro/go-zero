@@ -13,7 +13,7 @@ const (
 
 // NewMysql returns a mysql connection.
 func NewMysql(datasource string, opts ...SqlOption) SqlConn {
-	opts = append(opts, withMysqlAcceptable())
+	opts = append([]SqlOption{withMysqlAcceptable()}, opts...)
 	return NewSqlConn(mysqlDriverName, datasource, opts...)
 }
 
