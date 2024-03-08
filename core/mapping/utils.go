@@ -416,7 +416,7 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 }
 
 // parseOptions parses the given options in tag.
-// for example: `json:"name,options=foo|bar"` or `json:"name,options=[foo,bar]"`
+// for example, `json:"name,options=foo|bar"` or `json:"name,options=[foo,bar]"`
 func parseOptions(val string) []string {
 	if len(val) == 0 {
 		return nil

@@ -1,6 +1,6 @@
 package logx
 
-// A LessLogger is a logger that control to log once during the given duration.
+// A LessLogger is a logger that controls to log once during the given duration.
 type LessLogger struct {
 	*limitedExecutor
 }

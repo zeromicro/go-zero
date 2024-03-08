@@ -39,7 +39,7 @@ var (
 )
 
 type (
-	// Unmarshaler is used to unmarshal with given tag key.
+	// Unmarshaler is used to unmarshal with the given tag key.
 	Unmarshaler struct {
 		key  string
 		opts unmarshalOptions
@@ -69,7 +69,7 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	return &unmarshaler
 }
 
-// UnmarshalKey unmarshals m into v with tag key.
+// UnmarshalKey unmarshals m into v with the tag key.
 func UnmarshalKey(m map[string]any, v any) error {
 	return keyUnmarshaler.Unmarshal(m, v)
 }
@@ -629,7 +629,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			return err
 		}
 
-		// if value is a pointer, we need to check overflow with the pointer's value.
+		// if the value is a pointer, we need to check overflow with the pointer's value.
 		derefedValue := value
 		for derefedValue.Type().Kind() == reflect.Ptr {
 			derefedValue = derefedValue.Elem()

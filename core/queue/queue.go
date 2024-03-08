@@ -76,7 +76,7 @@ func (q *Queue) AddListener(listener Listener) {
 	q.listeners = append(q.listeners, listener)
 }
 
-// Broadcast broadcasts message to all event channels.
+// Broadcast broadcasts the message to all event channels.
 func (q *Queue) Broadcast(message any) {
 	go func() {
 		q.eventLock.Lock()
@@ -202,7 +202,7 @@ func (q *Queue) produce() {
 }
 
 func (q *Queue) produceOne(producer Producer) (string, bool) {
-	// avoid panic quit the producer, just log it and continue
+	// avoid panic quit the producer, log it and continue
 	defer rescue.Recover()
 
 	return producer.Produce()

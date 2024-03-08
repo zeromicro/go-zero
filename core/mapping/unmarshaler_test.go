@@ -5866,7 +5866,7 @@ type mockValuerWithParent struct {
 	ok     bool
 }
 
-func (m mockValuerWithParent) Value(key string) (any, bool) {
+func (m mockValuerWithParent) Value(_ string) (any, bool) {
 	return m.value, m.ok
 }
 
