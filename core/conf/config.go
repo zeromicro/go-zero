@@ -133,7 +133,7 @@ func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo, fullName st
 			return newConflictKeyError(fullName)
 		}
 
-		if err := mergeFields(prev, key, child.children, fullName); err != nil {
+		if err := mergeFields(prev, child.children, fullName); err != nil {
 			return err
 		}
 	} else {
@@ -281,7 +281,7 @@ func getTagName(field reflect.StructField) string {
 	return field.Name
 }
 
-func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo, fullName string) error {
+func mergeFields(prev *fieldInfo, children map[string]*fieldInfo, fullName string) error {
 	if len(prev.children) == 0 || len(children) == 0 {
 		return newConflictKeyError(fullName)
 	}

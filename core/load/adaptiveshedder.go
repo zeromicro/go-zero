@@ -138,10 +138,10 @@ func (as *adaptiveShedder) Allow() (Promise, error) {
 func (as *adaptiveShedder) addFlying(delta int64) {
 	flying := atomic.AddInt64(&as.flying, delta)
 	// update avgFlying when the request is finished.
-	// this strategy makes avgFlying have a little bit lag against flying, and smoother.
+	// this strategy makes avgFlying have a little bit of lag against flying, and smoother.
 	// when the flying requests increase rapidly, avgFlying increase slower, accept more requests.
 	// when the flying requests drop rapidly, avgFlying drop slower, accept fewer requests.
-	// it makes the service to serve as more requests as possible.
+	// it makes the service to serve as many requests as possible.
 	if delta < 0 {
 		as.avgFlyingLock.Lock()
 		as.avgFlying = as.avgFlying*flyingBeta + float64(flying)*(1-flyingBeta)
@@ -200,7 +200,7 @@ func (as *adaptiveShedder) minRt() float64 {
 func (as *adaptiveShedder) overloadFactor() float64 {
 	// as.cpuThreshold must be less than cpuMax
 	factor := (cpuMax - float64(stat.CpuUsage())) / (cpuMax - float64(as.cpuThreshold))
-	// at least accept 10% of acceptable requests even cpu is highly overloaded.
+	// at least accept 10% of acceptable requests, even cpu is highly overloaded.
 	return mathx.Between(factor, overloadFactorLowerBound, 1)
 }
 
@@ -250,14 +250,14 @@ func (as *adaptiveShedder) systemOverloaded() bool {
 	return true
 }
 
-// WithBuckets customizes the Shedder with given number of buckets.
+// WithBuckets customizes the Shedder with the given number of buckets.
 func WithBuckets(buckets int) ShedderOption {
 	return func(opts *shedderOptions) {
 		opts.buckets = buckets
 	}
 }
 
-// WithCpuThreshold customizes the Shedder with given cpu threshold.
+// WithCpuThreshold customizes the Shedder with the given cpu threshold.
 func WithCpuThreshold(threshold int64) ShedderOption {
 	return func(opts *shedderOptions) {
 		opts.cpuThreshold = threshold

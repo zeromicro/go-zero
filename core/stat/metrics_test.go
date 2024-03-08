@@ -71,6 +71,6 @@ func (m *mockedWriter) Write(report *StatReport) error {
 
 type badWriter struct{}
 
-func (b *badWriter) Write(report *StatReport) error {
+func (b *badWriter) Write(_ *StatReport) error {
 	return errors.New("bad")
 }

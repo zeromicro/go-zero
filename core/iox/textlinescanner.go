@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// A TextLineScanner is a scanner that can scan lines from given reader.
+// A TextLineScanner is a scanner that can scan lines from the given reader.
 type TextLineScanner struct {
 	reader  *bufio.Reader
 	hasNext bool
@@ -14,7 +14,7 @@ type TextLineScanner struct {
 	err     error
 }
 
-// NewTextLineScanner returns a TextLineScanner with given reader.
+// NewTextLineScanner returns a TextLineScanner with the given reader.
 func NewTextLineScanner(reader io.Reader) *TextLineScanner {
 	return &TextLineScanner{
 		reader:  bufio.NewReader(reader),
