@@ -2,6 +2,7 @@ package iox
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"strings"
 )
@@ -30,7 +31,7 @@ func (scanner *TextLineScanner) Scan() bool {
 
 	line, err := scanner.reader.ReadString('\n')
 	scanner.line = strings.TrimRight(line, "\n")
-	if err == io.EOF {
+	if errors.Is(err, io.EOF) {
 		scanner.hasNext = false
 		return true
 	} else if err != nil {
