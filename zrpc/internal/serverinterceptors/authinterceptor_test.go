@@ -169,25 +169,25 @@ type mockedStream struct {
 	ctx context.Context
 }
 
-func (m mockedStream) SetHeader(md metadata.MD) error {
+func (m mockedStream) SetHeader(_ metadata.MD) error {
 	return nil
 }
 
-func (m mockedStream) SendHeader(md metadata.MD) error {
+func (m mockedStream) SendHeader(_ metadata.MD) error {
 	return nil
 }
 
-func (m mockedStream) SetTrailer(md metadata.MD) {
+func (m mockedStream) SetTrailer(_ metadata.MD) {
 }
 
 func (m mockedStream) Context() context.Context {
 	return m.ctx
 }
 
-func (m mockedStream) SendMsg(v any) error {
+func (m mockedStream) SendMsg(_ any) error {
 	return nil
 }
 
-func (m mockedStream) RecvMsg(v any) error {
+func (m mockedStream) RecvMsg(_ any) error {
 	return nil
 }
