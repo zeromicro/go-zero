@@ -2,6 +2,7 @@ package clientinterceptors
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	ztrace "github.com/zeromicro/go-zero/core/trace"
@@ -122,7 +123,7 @@ func (w *clientStream) RecvMsg(m any) error {
 	err := w.ClientStream.RecvMsg(m)
 	if err == nil && !w.desc.ServerStreams {
 		w.sendStreamEvent(receiveEndEvent, nil)
-	} else if err == io.EOF {
+	} else if errors.Is(err, io.EOF) {
 		w.sendStreamEvent(receiveEndEvent, nil)
 	} else if err != nil {
 		w.sendStreamEvent(errorEvent, err)
