@@ -35,7 +35,7 @@ func init() {
 	ddlCmdFlags.StringVar(&command.VarStringRemote, "remote")
 	ddlCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	datasourceCmdFlags.StringVar(&command.VarStringURL, "url")
+	datasourceCmdFlags.StringVarP(&command.VarStringURL, "url", "u")
 	datasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
 	datasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
 	datasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
@@ -45,7 +45,7 @@ func init() {
 	datasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
 	datasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	pgDatasourceCmdFlags.StringVar(&command.VarStringURL, "url")
+	pgDatasourceCmdFlags.StringVarP(&command.VarStringURL, "url", "u")
 	pgDatasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
 	pgDatasourceCmdFlags.StringVarPWithDefaultValue(&command.VarStringSchema, "schema", "s", "public")
 	pgDatasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")

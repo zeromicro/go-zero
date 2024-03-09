@@ -283,7 +283,7 @@ OPTIONS:
        goctl model mysql datasource [command options] [arguments...]
     
     OPTIONS:
-       --url value              the data source of database,like "root:password@tcp(127.0.0.1:3306)/database
+       --url value, -u url      the data source of database,like "root:password@tcp(127.0.0.1:3306)/database
        --table value, -t value  the table or table globbing patterns in the database
        --cache, -c              generate code with cache [optional]
        --dir value, -d value    the target dir
