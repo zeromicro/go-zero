@@ -122,7 +122,7 @@ func formatError(err error) string {
 	}
 
 	switch {
-	case err == io.EOF:
+	case errors.Is(err, io.EOF):
 		return "eof"
 	case errors.Is(err, context.DeadlineExceeded):
 		return "context deadline"
