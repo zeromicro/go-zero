@@ -60,7 +60,8 @@ func executeCallbacks(w http.ResponseWriter, r *http.Request, next http.Handler,
 	}
 }
 
-func handleVerificationFailure(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int) {
+func handleVerificationFailure(w http.ResponseWriter, r *http.Request, next http.Handler,
+	strict bool, _ int) {
 	if strict {
 		w.WriteHeader(http.StatusForbidden)
 	} else {

@@ -46,17 +46,17 @@ func (l *Logger) Fatalln(args ...any) {
 }
 
 // Info ignores the grpc info logs.
-func (l *Logger) Info(args ...any) {
+func (l *Logger) Info(_ ...any) {
 	// ignore builtin grpc info
 }
 
 // Infoln ignores the grpc info logs.
-func (l *Logger) Infoln(args ...any) {
+func (l *Logger) Infoln(_ ...any) {
 	// ignore builtin grpc info
 }
 
 // Infof ignores the grpc info logs.
-func (l *Logger) Infof(format string, args ...any) {
+func (l *Logger) Infof(_ string, _ ...any) {
 	// ignore builtin grpc info
 }
 
@@ -66,16 +66,16 @@ func (l *Logger) V(v int) bool {
 }
 
 // Warning ignores the grpc warning logs.
-func (l *Logger) Warning(args ...any) {
+func (l *Logger) Warning(_ ...any) {
 	// ignore builtin grpc warning
 }
 
 // Warningf ignores the grpc warning logs.
-func (l *Logger) Warningf(format string, args ...any) {
+func (l *Logger) Warningf(_ string, _ ...any) {
 	// ignore builtin grpc warning
 }
 
 // Warningln ignores the grpc warning logs.
-func (l *Logger) Warningln(args ...any) {
+func (l *Logger) Warningln(_ ...any) {
 	// ignore builtin grpc warning
 }
