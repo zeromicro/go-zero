@@ -222,7 +222,7 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 			break
 		}
 
-		logx.Error(err)
+		logx.Errorf("%s, key is %s", err.Error(), key)
 		time.Sleep(coolDownInterval)
 	}
 
