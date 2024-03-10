@@ -125,7 +125,7 @@ func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) boo
 		})
 	// redis allowed == false
 	// Lua boolean false -> r Nil bulk reply
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return false
 	}
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {

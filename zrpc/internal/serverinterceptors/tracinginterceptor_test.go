@@ -309,15 +309,15 @@ type mockedServerStream struct {
 	err error
 }
 
-func (m *mockedServerStream) SetHeader(md metadata.MD) error {
+func (m *mockedServerStream) SetHeader(_ metadata.MD) error {
 	panic("implement me")
 }
 
-func (m *mockedServerStream) SendHeader(md metadata.MD) error {
+func (m *mockedServerStream) SendHeader(_ metadata.MD) error {
 	panic("implement me")
 }
 
-func (m *mockedServerStream) SetTrailer(md metadata.MD) {
+func (m *mockedServerStream) SetTrailer(_ metadata.MD) {
 	panic("implement me")
 }
 
@@ -329,10 +329,10 @@ func (m *mockedServerStream) Context() context.Context {
 	return m.ctx
 }
 
-func (m *mockedServerStream) SendMsg(v any) error {
+func (m *mockedServerStream) SendMsg(_ any) error {
 	return m.err
 }
 
-func (m *mockedServerStream) RecvMsg(v any) error {
+func (m *mockedServerStream) RecvMsg(_ any) error {
 	return m.err
 }

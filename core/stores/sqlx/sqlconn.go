@@ -315,6 +315,13 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 // acceptable is the func to check if the error can be accepted.
 func WithAcceptable(acceptable func(err error) bool) SqlOption {
 	return func(conn *commonSqlConn) {
-		conn.accept = acceptable
+		if conn.accept == nil {
+			conn.accept = acceptable
+		} else {
+			pre := conn.accept
+			conn.accept = func(err error) bool {
+				return pre(err) || acceptable(err)
+			}
+		}
 	}
 }

@@ -224,7 +224,7 @@ func (m flushableResponseWriter) Write(p []byte) (int, error) {
 	return m.writer.Write(p)
 }
 
-func (m flushableResponseWriter) WriteHeader(statusCode int) {
+func (m flushableResponseWriter) WriteHeader(_ int) {
 	panic("implement me")
 }
 
@@ -240,6 +240,6 @@ func (t *halfWriter) Write(p []byte) (n int, err error) {
 type badWriter struct {
 }
 
-func (b *badWriter) Write(p []byte) (n int, err error) {
+func (b *badWriter) Write(_ []byte) (n int, err error) {
 	return 0, io.ErrClosedPipe
 }
