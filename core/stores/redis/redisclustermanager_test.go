@@ -51,7 +51,7 @@ func TestGetCluster(t *testing.T) {
 		Addr:  r.Addr(),
 		Type:  ClusterType,
 		tls:   true,
-		hooks: []red.Hook{durationHook},
+		hooks: []red.Hook{defaultDurationHook},
 	})
 	if assert.NoError(t, err) {
 		assert.NotNil(t, c)

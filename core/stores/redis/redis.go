@@ -2363,7 +2363,7 @@ func WithTLS() Option {
 	}
 }
 
-// withHook customizes the given Redis with given hook, only for private use now,
+// withHook customizes the given Redis with given durationHook, only for private use now,
 // maybe expose later.
 func withHook(hook red.Hook) Option {
 	return func(r *Redis) {

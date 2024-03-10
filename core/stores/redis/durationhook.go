@@ -23,75 +23,68 @@ import (
 const spanName = "redis"
 
 var (
-	durationHook = hook{
-		brk: breaker.NopBreaker(),
-	}
+	defaultDurationHook   = durationHook{}
 	redisCmdsAttributeKey = attribute.Key("redis.cmds")
 )
 
-type hook struct {
-	brk breaker.Breaker
+type durationHook struct {
 }
 
-func (h hook) DialHook(next red.DialHook) red.DialHook {
+func (h durationHook) DialHook(next red.DialHook) red.DialHook {
 	return next
 }
 
-func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+func (h durationHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 	return func(ctx context.Context, cmd red.Cmder) error {
-		return h.brk.DoWithAcceptable(func() error {
-			start := timex.Now()
-			ctx, endSpan := h.startSpan(ctx, cmd)
+		start := timex.Now()
+		ctx, endSpan := h.startSpan(ctx, cmd)
 
-			err := next(ctx, cmd)
+		err := next(ctx, cmd)
 
-			endSpan(err)
-			duration := timex.Since(start)
+		endSpan(err)
+		duration := timex.Since(start)
 
-			if duration > slowThreshold.Load() {
-				logDuration(ctx, []red.Cmder{cmd}, duration)
-				metricSlowCount.Inc(cmd.Name())
-			}
+		if duration > slowThreshold.Load() {
+			logDuration(ctx, []red.Cmder{cmd}, duration)
+			metricSlowCount.Inc(cmd.Name())
+		}
 
-			metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
-			if msg := formatError(err); len(msg) > 0 {
-				metricReqErr.Inc(cmd.Name(), msg)
-			}
+		metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
+		if msg := formatError(err); len(msg) > 0 {
+			metricReqErr.Inc(cmd.Name(), msg)
+		}
 
-			return err
-		}, acceptable)
+		return err
 	}
 }
 
-func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+func (h durationHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []red.Cmder) error {
-		return h.brk.DoWithAcceptable(func() error {
-			if len(cmds) == 0 {
-				return next(ctx, cmds)
-			}
+		if len(cmds) == 0 {
+			return next(ctx, cmds)
+		}
 
-			start := timex.Now()
-			ctx, endSpan := h.startSpan(ctx, cmds...)
+		start := timex.Now()
+		ctx, endSpan := h.startSpan(ctx, cmds...)
 
-			err := next(ctx, cmds)
+		err := next(ctx, cmds)
 
-			endSpan(err)
-			duration := timex.Since(start)
-			if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
-				logDuration(ctx, cmds, duration)
-			}
+		endSpan(err)
+		duration := timex.Since(start)
+		if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
+			logDuration(ctx, cmds, duration)
+		}
 
-			metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
-			if msg := formatError(err); len(msg) > 0 {
-				metricReqErr.Inc("Pipeline", msg)
-			}
+		metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
+		if msg := formatError(err); len(msg) > 0 {
+			metricReqErr.Inc("Pipeline", msg)
+		}
 
-			return err
-		}, acceptable)
+		return err
 	}
 }
 
-func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
+func (h durationHook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
 	tracer := trace.TracerFromContext(ctx)
 
 	ctx, span := tracer.Start(ctx,

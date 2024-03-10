@@ -33,10 +33,11 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
 		})
-		store.AddHook(hook{
+
+		hooks := append([]red.Hook{defaultDurationHook, breakerHook{
 			brk: r.brk,
-		})
-		for _, hook := range r.hooks {
+		}}, r.hooks...)
+		for _, hook := range hooks {
 			store.AddHook(hook)
 		}
 
