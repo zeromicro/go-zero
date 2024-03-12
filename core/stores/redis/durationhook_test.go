@@ -21,7 +21,7 @@ func TestHookProcessCase1(t *testing.T) {
 	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
 
-	err := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+	err := defaultDurationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
 		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		return nil
 	})(context.Background(), red.NewCmd(context.Background()))
@@ -36,7 +36,7 @@ func TestHookProcessCase2(t *testing.T) {
 	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
 
-	err := durationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
+	err := defaultDurationHook.ProcessHook(func(ctx context.Context, cmd red.Cmder) error {
 		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		time.Sleep(slowThreshold.Load() + time.Millisecond)
 		return nil
@@ -54,12 +54,12 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
 
-	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+	err := defaultDurationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
 		return nil
 	})(context.Background(), nil)
 	assert.NoError(t, err)
 
-	err = durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+	err = defaultDurationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
 		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		return nil
 	})(context.Background(), []red.Cmder{
@@ -74,7 +74,7 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	tracetest.NewInMemoryExporter(t)
 	w := logtest.NewCollector(t)
 
-	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+	err := defaultDurationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
 		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		time.Sleep(slowThreshold.Load() + time.Millisecond)
 		return nil
@@ -91,7 +91,7 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 func TestHookProcessPipelineCase3(t *testing.T) {
 	te := tracetest.NewInMemoryExporter(t)
 
-	err := durationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
+	err := defaultDurationHook.ProcessPipelineHook(func(ctx context.Context, cmds []red.Cmder) error {
 		assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 		return assert.AnError
 	})(context.Background(), []red.Cmder{
