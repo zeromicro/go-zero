@@ -420,10 +420,10 @@ func (m *mockedClientStream) Context() context.Context {
 	return context.Background()
 }
 
-func (m *mockedClientStream) SendMsg(v any) error {
+func (m *mockedClientStream) SendMsg(_ any) error {
 	return m.err
 }
 
-func (m *mockedClientStream) RecvMsg(v any) error {
+func (m *mockedClientStream) RecvMsg(_ any) error {
 	return m.err
 }

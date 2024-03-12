@@ -42,7 +42,7 @@ func Debugv(ctx context.Context, v interface{}) {
 	getLogger(ctx).Debugv(v)
 }
 
-// Debugw writes msg along with fields into access log.
+// Debugw writes msg along with fields into the access log.
 func Debugw(ctx context.Context, msg string, fields ...LogField) {
 	getLogger(ctx).Debugw(msg, fields...)
 }
@@ -63,7 +63,7 @@ func Errorv(ctx context.Context, v any) {
 	getLogger(ctx).Errorv(v)
 }
 
-// Errorw writes msg along with fields into error log.
+// Errorw writes msg along with fields into the error log.
 func Errorw(ctx context.Context, msg string, fields ...LogField) {
 	getLogger(ctx).Errorw(msg, fields...)
 }
@@ -88,7 +88,7 @@ func Infov(ctx context.Context, v any) {
 	getLogger(ctx).Infov(v)
 }
 
-// Infow writes msg along with fields into access log.
+// Infow writes msg along with fields into the access log.
 func Infow(ctx context.Context, msg string, fields ...LogField) {
 	getLogger(ctx).Infow(msg, fields...)
 }
@@ -108,10 +108,11 @@ func SetLevel(level uint32) {
 	logx.SetLevel(level)
 }
 
-// SetUp sets up the logx. If already set up, just return nil.
-// we allow SetUp to be called multiple times, because for example
+// SetUp sets up the logx.
+// If already set up, return nil.
+// We allow SetUp to be called multiple times, because, for example,
 // we need to allow different service frameworks to initialize logx respectively.
-// the same logic for SetUp
+// The same logic for SetUp
 func SetUp(c LogConf) error {
 	return logx.SetUp(c)
 }

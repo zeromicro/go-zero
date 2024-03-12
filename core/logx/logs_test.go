@@ -570,7 +570,7 @@ func TestErrorfWithWrappedError(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	Errorf("hello %w", errors.New(message))
+	Errorf("hello %s", errors.New(message))
 	assert.True(t, strings.Contains(w.String(), "hello there"))
 }
 

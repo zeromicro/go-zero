@@ -164,7 +164,7 @@ type mockedReadCloser struct {
 	errMsg string
 }
 
-func (m mockedReadCloser) Read(p []byte) (n int, err error) {
+func (m mockedReadCloser) Read(_ []byte) (n int, err error) {
 	return 0, errors.New(m.errMsg)
 }
 

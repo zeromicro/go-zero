@@ -59,7 +59,13 @@ func StartAgent(c Config) {
 
 // StopAgent shuts down the span processors in the order they were registered.
 func StopAgent() {
-	_ = tp.Shutdown(context.Background())
+	lock.Lock()
+	defer lock.Unlock()
+
+	if tp != nil {
+		_ = tp.Shutdown(context.Background())
+		tp = nil
+	}
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {

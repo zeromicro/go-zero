@@ -28,15 +28,15 @@ func (m *mockedClientConn) UpdateState(state resolver.State) error {
 	return m.err
 }
 
-func (m *mockedClientConn) ReportError(err error) {
+func (m *mockedClientConn) ReportError(_ error) {
 }
 
-func (m *mockedClientConn) NewAddress(addresses []resolver.Address) {
+func (m *mockedClientConn) NewAddress(_ []resolver.Address) {
 }
 
-func (m *mockedClientConn) NewServiceConfig(serviceConfig string) {
+func (m *mockedClientConn) NewServiceConfig(_ string) {
 }
 
-func (m *mockedClientConn) ParseServiceConfig(serviceConfigJSON string) *serviceconfig.ParseResult {
+func (m *mockedClientConn) ParseServiceConfig(_ string) *serviceconfig.ParseResult {
 	return nil
 }

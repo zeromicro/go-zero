@@ -12,7 +12,7 @@ const (
 )
 
 // Marshal marshals the given val and returns the map that contains the fields.
-// optional=another is not implemented, and it's hard to implement and not common used.
+// optional=another is not implemented, and it's hard to implement and not commonly used.
 func Marshal(val any) (map[string]map[string]any, error) {
 	ret := make(map[string]map[string]any)
 	tp := reflect.TypeOf(val)
