@@ -36,7 +36,7 @@ func (m myHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 		if cmd.Name() == "ping" && !m.includePing {
 			return next(ctx, cmd)
 		}
-		return errors.New("hook error")
+		return errors.New("durationHook error")
 	}
 }
 
@@ -155,7 +155,7 @@ func TestRedis_NonBlock(t *testing.T) {
 
 	t.Run("nonBlock true", func(t *testing.T) {
 		s := miniredis.RunT(t)
-		// use hook to simulate redis ping error
+		// use durationHook to simulate redis ping error
 		_, err := NewRedis(RedisConf{
 			Host:     s.Addr(),
 			NonBlock: true,
