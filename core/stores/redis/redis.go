@@ -174,14 +174,13 @@ func (s *Redis) BitOpAnd(destKey string, keys ...string) (int64, error) {
 }
 
 // BitOpAndCtx is redis bit operation (and) command implementation.
-func (s *Redis) BitOpAndCtx(ctx context.Context, destKey string, keys ...string) (val int64, err error) {
+func (s *Redis) BitOpAndCtx(ctx context.Context, destKey string, keys ...string) (int64, error) {
 	conn, err := getRedis(s)
 	if err != nil {
-		return
+		return 0, err
 	}
 
-	val, err = conn.BitOpAnd(ctx, destKey, keys...).Result()
-	return
+	return conn.BitOpAnd(ctx, destKey, keys...).Result()
 }
 
 // BitOpNot is redis bit operation (not) command implementation.
@@ -190,14 +189,13 @@ func (s *Redis) BitOpNot(destKey, key string) (int64, error) {
 }
 
 // BitOpNotCtx is redis bit operation (not) command implementation.
-func (s *Redis) BitOpNotCtx(ctx context.Context, destKey, key string) (val int64, err error) {
+func (s *Redis) BitOpNotCtx(ctx context.Context, destKey, key string) (int64, error) {
 	conn, err := getRedis(s)
 	if err != nil {
-		return
+		return 0, err
 	}
 
-	val, err = conn.BitOpNot(ctx, destKey, key).Result()
-	return
+	return conn.BitOpNot(ctx, destKey, key).Result()
 }
 
 // BitOpOr is redis bit operation (or) command implementation.
@@ -463,7 +461,8 @@ func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (int64, error) {
 }
 
 // GeoAddCtx is the implementation of redis geoadd command.
-func (s *Redis) GeoAddCtx(ctx context.Context, key string, geoLocation ...*GeoLocation) (int64, error) {
+func (s *Redis) GeoAddCtx(ctx context.Context, key string, geoLocation ...*GeoLocation) (
+	int64, error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return 0, err
@@ -478,7 +477,8 @@ func (s *Redis) GeoDist(key, member1, member2, unit string) (float64, error) {
 }
 
 // GeoDistCtx is the implementation of redis geodist command.
-func (s *Redis) GeoDistCtx(ctx context.Context, key, member1, member2, unit string) (float64, error) {
+func (s *Redis) GeoDistCtx(ctx context.Context, key, member1, member2, unit string) (
+	float64, error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return 0, err
@@ -821,7 +821,7 @@ func (s *Redis) HmsetCtx(ctx context.Context, key string, fieldsAndValues map[st
 
 // Hscan is the implementation of redis hscan command.
 func (s *Redis) Hscan(key string, cursor uint64, match string, count int64) (
-	keys []string, cur uint64, err error) {
+	[]string, uint64, error) {
 	return s.HscanCtx(context.Background(), key, cursor, match, count)
 }
 
@@ -1256,7 +1256,7 @@ func (s *Redis) SaddCtx(ctx context.Context, key string, values ...any) (int, er
 }
 
 // Scan is the implementation of redis scan command.
-func (s *Redis) Scan(cursor uint64, match string, count int64) (keys []string, cur uint64, err error) {
+func (s *Redis) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
 	return s.ScanCtx(context.Background(), cursor, match, count)
 }
 
@@ -1293,7 +1293,7 @@ func (s *Redis) SetBitCtx(ctx context.Context, key string, offset int64, value i
 
 // Sscan is the implementation of redis sscan command.
 func (s *Redis) Sscan(key string, cursor uint64, match string, count int64) (
-	keys []string, cur uint64, err error) {
+	[]string, uint64, error) {
 	return s.SscanCtx(context.Background(), key, cursor, match, count)
 }
 
@@ -1344,7 +1344,8 @@ func (s *Redis) ScriptRun(script *Script, keys []string, args ...any) (any, erro
 }
 
 // ScriptRunCtx is the implementation of *redis.Script run command.
-func (s *Redis) ScriptRunCtx(ctx context.Context, script *Script, keys []string, args ...any) (any, error) {
+func (s *Redis) ScriptRunCtx(ctx context.Context, script *Script, keys []string,
+	args ...any) (any, error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return nil, err
@@ -1638,8 +1639,7 @@ func (s *Redis) Zadd(key string, score int64, value string) (bool, error) {
 }
 
 // ZaddCtx is the implementation of redis zadd command.
-func (s *Redis) ZaddCtx(ctx context.Context, key string, score int64, value string) (
-	val bool, err error) {
+func (s *Redis) ZaddCtx(ctx context.Context, key string, score int64, value string) (bool, error) {
 	return s.ZaddFloatCtx(ctx, key, float64(score), value)
 }
 
@@ -1668,13 +1668,12 @@ func (s *Redis) ZaddFloatCtx(ctx context.Context, key string, score float64, val
 }
 
 // Zaddnx is the implementation of redis zadd nx command.
-func (s *Redis) Zaddnx(key string, score int64, value string) (val bool, err error) {
+func (s *Redis) Zaddnx(key string, score int64, value string) (bool, error) {
 	return s.ZaddnxCtx(context.Background(), key, score, value)
 }
 
 // ZaddnxCtx is the implementation of redis zadd nx command.
-func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value string) (
-	val bool, err error) {
+func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value string) (bool, error) {
 	return s.ZaddnxFloatCtx(ctx, key, float64(score), value)
 }
 
@@ -1822,7 +1821,7 @@ func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (float6
 
 // Zscan is the implementation of redis zscan command.
 func (s *Redis) Zscan(key string, cursor uint64, match string, count int64) (
-	keys []string, cur uint64, err error) {
+	[]string, uint64, error) {
 	return s.ZscanCtx(context.Background(), key, cursor, match, count)
 }
 
@@ -1987,7 +1986,7 @@ func (s *Redis) ZrevrangeWithScores(key string, start, stop int64) ([]Pair, erro
 // ZRevRangeWithScoresCtx is the implementation of redis zrevrange command with scores.
 // Deprecated: use ZrevrangeWithScoresCtx instead.
 func (s *Redis) ZRevRangeWithScoresCtx(ctx context.Context, key string, start, stop int64) (
-	val []Pair, err error) {
+	[]Pair, error) {
 	return s.ZrevrangeWithScoresCtx(ctx, key, start, stop)
 }
 
@@ -2021,7 +2020,7 @@ func (s *Redis) ZrevrangeWithScoresByFloat(key string, start, stop int64) ([]Flo
 // ZRevRangeWithScoresByFloatCtx is the implementation of redis zrevrange command with scores by float.
 // Deprecated: use ZrevrangeWithScoresByFloatCtx instead.
 func (s *Redis) ZRevRangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
-	val []FloatPair, err error) {
+	[]FloatPair, error) {
 	return s.ZrevrangeWithScoresByFloatCtx(ctx, key, start, stop)
 }
 
@@ -2066,7 +2065,8 @@ func (s *Redis) ZrangebyscoreWithScoresCtx(ctx context.Context, key string, star
 }
 
 // ZrangebyscoreWithScoresByFloat is the implementation of redis zrangebyscore command with scores by float.
-func (s *Redis) ZrangebyscoreWithScoresByFloat(key string, start, stop float64) ([]FloatPair, error) {
+func (s *Redis) ZrangebyscoreWithScoresByFloat(key string, start, stop float64) (
+	[]FloatPair, error) {
 	return s.ZrangebyscoreWithScoresByFloatCtx(context.Background(), key, start, stop)
 }
 
