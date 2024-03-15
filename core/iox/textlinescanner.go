@@ -2,11 +2,12 @@ package iox
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"strings"
 )
 
-// A TextLineScanner is a scanner that can scan lines from given reader.
+// A TextLineScanner is a scanner that can scan lines from the given reader.
 type TextLineScanner struct {
 	reader  *bufio.Reader
 	hasNext bool
@@ -14,7 +15,7 @@ type TextLineScanner struct {
 	err     error
 }
 
-// NewTextLineScanner returns a TextLineScanner with given reader.
+// NewTextLineScanner returns a TextLineScanner with the given reader.
 func NewTextLineScanner(reader io.Reader) *TextLineScanner {
 	return &TextLineScanner{
 		reader:  bufio.NewReader(reader),
@@ -30,7 +31,7 @@ func (scanner *TextLineScanner) Scan() bool {
 
 	line, err := scanner.reader.ReadString('\n')
 	scanner.line = strings.TrimRight(line, "\n")
-	if err == io.EOF {
+	if errors.Is(err, io.EOF) {
 		scanner.hasNext = false
 		return true
 	} else if err != nil {

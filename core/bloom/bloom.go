@@ -130,7 +130,7 @@ func (r *redisBitSet) check(ctx context.Context, offsets []uint) (bool, error) {
 	}
 
 	resp, err := r.store.ScriptRunCtx(ctx, testScript, []string{r.key}, args)
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -162,7 +162,7 @@ func (r *redisBitSet) set(ctx context.Context, offsets []uint) error {
 	}
 
 	_, err = r.store.ScriptRunCtx(ctx, setScript, []string{r.key}, args)
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return nil
 	}
 

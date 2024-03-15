@@ -8,7 +8,7 @@ const (
 )
 
 type (
-	// An Options is used to store the cache options.
+	// Options is used to store the cache options.
 	Options struct {
 		Expiry         time.Duration
 		NotFoundExpiry time.Duration

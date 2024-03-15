@@ -6,7 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/emicklei/proto v1.13.2
 	github.com/fatih/structtag v1.2.0
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.0
 	github.com/gookit/color v1.5.4
 	github.com/iancoleman/strcase v0.3.0
 	github.com/spf13/cobra v1.8.0
@@ -17,11 +17,12 @@ require (
 	github.com/zeromicro/ddl-parser v1.0.5
 	github.com/zeromicro/go-zero v1.6.3
 	golang.org/x/text v0.14.0
-	google.golang.org/grpc v1.62.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/grpc v1.62.1
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/alicebob/miniredis/v2 v2.31.1 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20210521184019-c5ad59b459ec // indirect

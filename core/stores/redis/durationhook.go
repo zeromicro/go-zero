@@ -23,17 +23,18 @@ import (
 const spanName = "redis"
 
 var (
-	durationHook          = hook{}
+	defaultDurationHook   = durationHook{}
 	redisCmdsAttributeKey = attribute.Key("redis.cmds")
 )
 
-type hook struct{}
+type durationHook struct {
+}
 
-func (h hook) DialHook(next red.DialHook) red.DialHook {
+func (h durationHook) DialHook(next red.DialHook) red.DialHook {
 	return next
 }
 
-func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+func (h durationHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 	return func(ctx context.Context, cmd red.Cmder) error {
 		start := timex.Now()
 		ctx, endSpan := h.startSpan(ctx, cmd)
@@ -57,7 +58,7 @@ func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 	}
 }
 
-func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+func (h durationHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []red.Cmder) error {
 		if len(cmds) == 0 {
 			return next(ctx, cmds)
@@ -83,7 +84,7 @@ func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipel
 	}
 }
 
-func (h hook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
+func (h durationHook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) {
 	tracer := trace.TracerFromContext(ctx)
 
 	ctx, span := tracer.Start(ctx,
@@ -122,7 +123,7 @@ func formatError(err error) string {
 	}
 
 	switch {
-	case err == io.EOF:
+	case errors.Is(err, io.EOF):
 		return "eof"
 	case errors.Is(err, context.DeadlineExceeded):
 		return "context deadline"

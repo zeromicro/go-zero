@@ -175,6 +175,6 @@ func (m mockedReader) Close() error {
 	return nil
 }
 
-func (m mockedReader) Read(p []byte) (n int, err error) {
+func (m mockedReader) Read(_ []byte) (n int, err error) {
 	return 0, errors.New("dummy")
 }

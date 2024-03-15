@@ -46,5 +46,5 @@ type nopResolver struct {
 func (r *nopResolver) Close() {
 }
 
-func (r *nopResolver) ResolveNow(options resolver.ResolveNowOptions) {
+func (r *nopResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 }

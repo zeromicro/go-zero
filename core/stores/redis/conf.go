@@ -47,7 +47,7 @@ func (rc RedisConf) NewRedis() *Redis {
 		opts = append(opts, WithTLS())
 	}
 
-	return New(rc.Host, opts...)
+	return newRedis(rc.Host, opts...)
 }
 
 // Validate validates the RedisConf.

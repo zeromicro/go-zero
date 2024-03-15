@@ -115,7 +115,7 @@ func split(content string) ([]string, error) {
 	for {
 		r, _, err := reader.ReadRune()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				if buffer.Len() > 0 {
 					list = append(list, buffer.String())
 				}
