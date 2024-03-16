@@ -31,9 +31,10 @@ type (
 		Name() string
 
 		// Allow checks if the request is allowed.
-		// If allowed, a promise will be returned, the caller needs to call promise.Accept()
-		// on success, or call promise.Reject() on failure.
-		// If not allow, ErrServiceUnavailable will be returned.
+		// If allowed, a promise will be returned,
+		// otherwise ErrServiceUnavailable will be returned as the error.
+		// The caller needs to call promise.Accept() on success,
+		// or call promise.Reject() on failure.
 		Allow() (Promise, error)
 
 		// Do runs the given request if the Breaker accepts it.
