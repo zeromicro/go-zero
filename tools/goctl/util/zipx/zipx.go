@@ -16,7 +16,7 @@ func Unpacking(name, destPath string, mapper func(f *zip.File) bool) error {
 	}
 	defer r.Close()
 
-	destAbsPath,err:=filepath.Abs(destPath)
+	destAbsPath, err := filepath.Abs(destPath)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func fileCopy(file *zip.File, destPath string) error {
 		return err
 	}
 	defer rc.Close()
-	abs,err:=filepath.Abs(file.Name)
+	abs, err := filepath.Abs(file.Name)
 	if err != nil {
 		return err
 	}
