@@ -52,6 +52,7 @@ func (b *googleBreaker) accept() error {
 
 func (b *googleBreaker) allow() (internalPromise, error) {
 	if err := b.accept(); err != nil {
+		b.markFailure()
 		return nil, err
 	}
 
