@@ -2,9 +2,13 @@ package gateway
 
 import (
 	"context"
+	"flag"
+	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -42,6 +46,9 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 		return listener.Dial()
 	}
 }
+
+
+
 
 func TestMustNewServer(t *testing.T) {
 	var c GatewayConf

@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	nurl "net/url"
+	"os"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/lang"
@@ -81,31 +83,70 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 		return nil, err
 	}
 
+	var contentType string
 	var reader io.Reader
+
 	jsonVars, hasJsonBody := val[jsonKey]
+	_, hasFormBody := val[formKey]
+
+	if hasJsonBody && hasFormBody {
+		return nil, fmt.Errorf("cannot have both json and form body")
+	}
 	if hasJsonBody {
 		if method == http.MethodGet {
 			return nil, ErrGetWithBody
 		}
-
 		var buf bytes.Buffer
 		enc := json.NewEncoder(&buf)
 		if err := enc.Encode(jsonVars); err != nil {
 			return nil, err
 		}
-
 		reader = &buf
-	}
+		contentType = header.JsonContentType
+	} else if hasFormBody {
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
 
+		for k, v := range val[formKey] {
+			if filePath, isFile := v.(string); isFile && strings.HasPrefix(filePath, "@") {
+				// Handle as a file
+				file, err := os.Open(filePath[1:])
+				if err != nil {
+					return nil, err
+				}
+				defer file.Close()
+				part, err := w.CreateFormFile(k, filePath[1:])
+				if err != nil {
+					return nil, err
+				}
+				io.Copy(part, file)
+			} else {
+				// Handle as a normal field
+				fw, err := w.CreateFormField(k)
+				if err != nil {
+					return nil, err
+				}
+				if _, err = fw.Write([]byte(fmt.Sprintf("%v", v))); err != nil {
+					return nil, err
+				}
+			}
+		}
+		err := w.Close()
+		if err != nil {
+			return nil, err
+		}
+		reader = &b
+		contentType = w.FormDataContentType()
+
+	}
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), reader)
 	if err != nil {
 		return nil, err
 	}
-
-	req.URL.RawQuery = buildFormQuery(u, val[formKey])
 	fillHeader(req, val[headerKey])
-	if hasJsonBody {
-		req.Header.Set(header.ContentType, header.JsonContentType)
+	// Set Content-Type header
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
 	}
 
 	return req, nil
