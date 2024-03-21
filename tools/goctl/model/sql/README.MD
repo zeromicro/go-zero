@@ -362,7 +362,7 @@ OPTIONS:
 | bigint         | int64           | sql.NullInt64                          |
 | float          | float64         | sql.NullFloat64                        |
 | double         | float64         | sql.NullFloat64                        |
-| decimal        | float64         | sql.NullFloat64                        |
+| decimal        | decimal.Decimal(github.com/shopspring/decimal) | decimal.NullDecimal(github.com/shopspring/decimal)  |
 | date           | time.Time       | sql.NullTime                           |
 | datetime       | time.Time       | sql.NullTime                           |
 | timestamp      | time.Time       | sql.NullTime                           |
