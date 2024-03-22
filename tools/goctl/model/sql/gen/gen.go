@@ -46,6 +46,7 @@ type (
 		deleteCode  string
 		cacheExtra  string
 		tableName   string
+		defineCode  string
 	}
 
 	codeTuple struct {
@@ -323,6 +324,11 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
+	defineCode, err := genDefine(table, withCache, g.isPostgreSql)
+	if err != nil {
+		return "", err
+	}
+
 	code := &code{
 		importsCode: importsCode,
 		varsCode:    varsCode,
@@ -334,6 +340,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		deleteCode:  deleteCode,
 		cacheExtra:  ret.cacheExtra,
 		tableName:   tableName,
+		defineCode:  defineCode,
 	}
 
 	output, err := g.executeModel(table, code)
@@ -387,6 +394,7 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		"extraMethod": code.cacheExtra,
 		"tableName":   code.tableName,
 		"data":        table,
+		"define":      code.defineCode,
 	})
 	if err != nil {
 		return nil, err
