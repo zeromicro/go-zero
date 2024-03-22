@@ -65,17 +65,17 @@ func (m mono) createAPIProject() {
 	configPath := filepath.Join(apiWorkDir, "internal", "config")
 	svcPath := filepath.Join(apiWorkDir, "internal", "svc")
 	typesPath := filepath.Join(apiWorkDir, "internal", "types")
-	svcPkg, err := golang.GetParentPackage(svcPath)
+	_, svcPkg, err := golang.GetParentPackage(svcPath)
 	logx.Must(err)
-	typesPkg, err := golang.GetParentPackage(typesPath)
+	_, typesPkg, err := golang.GetParentPackage(typesPath)
 	logx.Must(err)
-	configPkg, err := golang.GetParentPackage(configPath)
+	_, configPkg, err := golang.GetParentPackage(configPath)
 	logx.Must(err)
 
 	var rpcClientPkg string
 	if m.callRPC {
 		rpcClientPath := filepath.Join(rpcWorkDir, "greet")
-		rpcClientPkg, err = golang.GetParentPackage(rpcClientPath)
+		_, rpcClientPkg, err = golang.GetParentPackage(rpcClientPath)
 		logx.Must(err)
 	}
 

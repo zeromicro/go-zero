@@ -74,7 +74,7 @@ type (
 	}
 )
 
-func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genRoutes(dir, projectPkg, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -188,6 +188,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
 		data: map[string]any{
+			"projectPkg":      projectPkg,
+			"servicePkg":      rootPkg,
 			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),

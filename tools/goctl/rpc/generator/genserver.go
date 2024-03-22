@@ -37,6 +37,9 @@ func (g *Generator) GenServer(ctx DirContext, proto parser.Proto, cfg *conf.Conf
 }
 
 func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+	projectPkg := ctx.GetPath().Source()
+	servicePkg := ctx.GetMain().Package
+
 	dir := ctx.GetServer()
 	for _, service := range proto.Service {
 		var (
@@ -90,7 +93,9 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 		}
 
 		if err = util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]any{
-			"head": head,
+			"projectPkg": projectPkg,
+			"servicePkg": servicePkg,
+			"head":       head,
 			"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 				stringx.From(service.Name).ToCamel()),
 			"server":    stringx.From(service.Name).ToCamel(),

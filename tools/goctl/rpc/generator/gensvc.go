@@ -18,7 +18,11 @@ var svcTemplate string
 // GenSvc generates the servicecontext.go file, which is the resource dependency of a service,
 // such as rpc dependency, model dependency, etc.
 func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+	projectPkg := ctx.GetPath().Source()
+	servicePkg := ctx.GetMain().Package
+
 	dir := ctx.GetSvc()
+
 	svcFilename, err := format.FileNamingFormat(cfg.NamingFormat, "service_context")
 	if err != nil {
 		return err
@@ -31,6 +35,8 @@ func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) err
 	}
 
 	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]any{
-		"imports": fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
+		"projectPkg": projectPkg,
+		"servicePkg": servicePkg,
+		"imports":    fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
 	}, fileName, false)
 }

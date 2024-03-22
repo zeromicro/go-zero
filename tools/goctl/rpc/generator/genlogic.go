@@ -38,6 +38,9 @@ func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Confi
 
 func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 	cfg *conf.Config) error {
+	projectPkg := ctx.GetPath().Source()
+	servicePkg := ctx.GetMain().Package
+
 	dir := ctx.GetLogic()
 	service := proto.Service[0].Service.Name
 	for _, rpc := range proto.Service[0].RPC {
@@ -61,6 +64,8 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 			return err
 		}
 		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]any{
+			"projectPkg":  projectPkg,
+			"servicePkg":  servicePkg,
 			"logicName":   fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"functions":   functions,
 			"packageName": "logic",
