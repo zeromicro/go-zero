@@ -190,6 +190,17 @@ func (cc CachedConn) QueryRowNoCacheCtx(ctx context.Context, v any, q string,
 	return cc.db.QueryRowCtx(ctx, v, q, args...)
 }
 
+// QueryRowPartialNoCache unmarshals into v with given statement.
+func (cc CachedConn) QueryRowPartialNoCache(v any, q string, args ...any) error {
+	return cc.QueryRowPartialNoCacheCtx(context.Background(), v, q, args...)
+}
+
+// QueryRowPartialNoCacheCtx unmarshals into v with given statement.
+func (cc CachedConn) QueryRowPartialNoCacheCtx(ctx context.Context, v any, q string,
+	args ...any) error {
+	return cc.db.QueryRowPartialCtx(ctx, v, q, args...)
+}
+
 // QueryRowsNoCache unmarshals into v with given statement.
 // It doesn't use cache, because it might cause consistency problem.
 func (cc CachedConn) QueryRowsNoCache(v any, q string, args ...any) error {
@@ -201,6 +212,19 @@ func (cc CachedConn) QueryRowsNoCache(v any, q string, args ...any) error {
 func (cc CachedConn) QueryRowsNoCacheCtx(ctx context.Context, v any, q string,
 	args ...any) error {
 	return cc.db.QueryRowsCtx(ctx, v, q, args...)
+}
+
+// QueryRowsPartialNoCache unmarshals into v with given statement.
+// It doesn't use cache, because it might cause consistency problem.
+func (cc CachedConn) QueryRowsPartialNoCache(v any, q string, args ...any) error {
+	return cc.QueryRowsPartialNoCacheCtx(context.Background(), v, q, args...)
+}
+
+// QueryRowsPartialNoCacheCtx unmarshals into v with given statement.
+// It doesn't use cache, because it might cause consistency problem.
+func (cc CachedConn) QueryRowsPartialNoCacheCtx(ctx context.Context, v any, q string,
+	args ...any) error {
+	return cc.db.QueryRowsPartialCtx(ctx, v, q, args...)
 }
 
 // SetCache sets v into cache with given key.

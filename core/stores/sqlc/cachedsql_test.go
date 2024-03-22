@@ -546,6 +546,17 @@ func TestCachedConnQueryRows(t *testing.T) {
 	assert.True(t, conn.queryRowsValue)
 }
 
+func TestCachedConnQueryRowsPartial(t *testing.T) {
+	r := redistest.CreateRedis(t)
+
+	var conn trackedConn
+	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
+	var users []string
+	err := c.QueryRowsPartialNoCache(&users, "select user from user_table where id='kevin'")
+	assert.Nil(t, err)
+	assert.True(t, conn.queryRowsValue)
+}
+
 func TestCachedConnTransact(t *testing.T) {
 	r := redistest.CreateRedis(t)
 
@@ -574,6 +585,27 @@ func TestQueryRowNoCache(t *testing.T) {
 	}}
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	err := c.QueryRowNoCache(&user, key)
+	assert.Nil(t, err)
+	assert.Equal(t, value, user)
+	assert.True(t, ran)
+}
+
+func TestQueryRowPartialNoCache(t *testing.T) {
+	r := redistest.CreateRedis(t)
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	var user string
+	var ran bool
+	conn := dummySqlConn{queryRow: func(v any, q string, args ...any) error {
+		user = value
+		ran = true
+		return nil
+	}}
+	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
+	err := c.QueryRowPartialNoCache(&user, key)
 	assert.Nil(t, err)
 	assert.Equal(t, value, user)
 	assert.True(t, ran)
