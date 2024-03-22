@@ -356,6 +356,60 @@ func (s *Redis) DelCtx(ctx context.Context, keys ...string) (int, error) {
 	return int(v), nil
 }
 
+// FlushAll is the implementation of redis FlushAll command.This command clears all data from all databases in Redis.
+func (s *Redis) FlushAll(ctx context.Context) (bool, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return false, err
+	}
+
+	if err = conn.FlushAll(ctx).Err(); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// FlushAllAsync is the implementation of redis FlushAllAsync command.This command clears all data asynchronously from all databases in Redis.
+func (s *Redis) FlushAllAsync(ctx context.Context) (bool, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return false, err
+	}
+
+	if err = conn.FlushAllAsync(ctx).Err(); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// FlushDB is the implementation of redis FlushDB command.This command clears all data from the current database.
+func (s *Redis) FlushDB(ctx context.Context) (bool, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return false, err
+	}
+	if err = conn.FlushDB(ctx).Err(); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// FlushDBAsync is the implementation of redis FlushDBAsync command.This command clears all data asynchronously from the current database.
+func (s *Redis) FlushDBAsync(ctx context.Context) (bool, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return false, err
+	}
+	if err = conn.FlushDB(ctx).Err(); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // Eval is the implementation of redis eval command.
 func (s *Redis) Eval(script string, keys []string, args ...any) (any, error) {
 	return s.EvalCtx(context.Background(), script, keys, args...)
