@@ -10,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
@@ -54,6 +55,11 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 
 	subDir := getLogicFolderPath(group, route)
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          subDir,
@@ -70,6 +76,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"responseType": responseString,
 			"returnString": returnString,
 			"request":      requestString,
+			"goModule":     projectCtx.Path,
 		},
 	})
 }

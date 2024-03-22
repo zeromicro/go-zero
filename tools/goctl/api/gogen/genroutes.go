@@ -13,6 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
@@ -158,6 +159,11 @@ rest.WithPrefix("%s"),`, g.prefix)
 			routes = strings.TrimSpace(gbuilder.String())
 		}
 
+		projectCtx, err := ctx.Prepare(dir)
+		if err != nil {
+			return err
+		}
+
 		if err := gt.Execute(&builder, map[string]string{
 			"routes":    routes,
 			"jwt":       jwt,
@@ -165,6 +171,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"prefix":    prefix,
 			"timeout":   timeout,
 			"maxBytes":  maxBytes,
+			"goModule":  projectCtx.Path,
 		}); err != nil {
 			return err
 		}

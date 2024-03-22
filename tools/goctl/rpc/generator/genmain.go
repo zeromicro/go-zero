@@ -78,5 +78,6 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 		"imports":      strings.Join(imports, pathx.NL),
 		"pkg":          proto.PbPackage,
 		"serviceNames": serviceNames,
+		"goModule":     ctx.GetModule(),
 	}, fileName, false)
 }

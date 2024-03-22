@@ -7,6 +7,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
@@ -40,6 +41,10 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
+	projectCtx, err := ctx.Prepare(dir)
+	if err != nil {
+		return err
+	}
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          contextDir,
@@ -53,6 +58,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
 			"middlewareAssignment": middlewareAssignment,
+			"goModule":             projectCtx.Path,
 		},
 	})
 }

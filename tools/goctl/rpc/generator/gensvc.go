@@ -31,6 +31,7 @@ func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) err
 	}
 
 	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]any{
-		"imports": fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
+		"imports":  fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
+		"goModule": ctx.GetModule(),
 	}, fileName, false)
 }
