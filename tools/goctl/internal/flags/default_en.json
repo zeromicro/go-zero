@@ -37,7 +37,8 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
-        "style": "{{.global.style}}"
+        "style": "{{.global.style}}",
+        "without-suffix": "Remove the default suffix when generating files, such as Logic, Handler, Middleware"
       },
       "new": {
         "short": "Fast create api service",
