@@ -37,6 +37,7 @@ const (
 
 	fileMode   = "file"
 	volumeMode = "volume"
+	customMode = "custom"
 
 	levelAlert  = "alert"
 	levelInfo   = "info"

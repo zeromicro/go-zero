@@ -264,7 +264,7 @@ func buildPlainFields(fields ...LogField) []string {
 	return items
 }
 
-func combineGlobalFields(fields []LogField) []LogField {
+func CombineGlobalFields(fields []LogField) []LogField {
 	globals := globalFields.Load()
 	if globals == nil {
 		return fields
@@ -288,7 +288,7 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 		}
 	}
 
-	fields = combineGlobalFields(fields)
+	fields = CombineGlobalFields(fields)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:

@@ -8,7 +8,7 @@ type LogConf struct {
 	// console: log to console.
 	// file: log to file.
 	// volume: used in k8s, prepend the hostname to the log file name.
-	Mode string `json:",default=console,options=[console,file,volume]"`
+	Mode string `json:",default=console,options=[console,file,volume,custom]"`
 	// Encoding represents the encoding type, default is `json`.
 	// json: json encoding.
 	// plain: plain text encoding, typically used in development.
