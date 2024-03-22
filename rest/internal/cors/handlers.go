@@ -27,7 +27,7 @@ const (
 )
 
 // NotAllowedHandler handles cross domain not allowed requests.
-// At most one origin can be specified, other origins are ignored if given, default to be *.
+// At most one origin can be specified, other origins are ignored if given, default to the request origin.
 func NotAllowedHandler(fn func(w http.ResponseWriter), origins ...string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gw := response.NewHeaderOnceResponseWriter(w)
@@ -65,12 +65,12 @@ func Middleware(fn func(w http.Header), origins ...string) func(http.HandlerFunc
 func checkAndSetHeaders(w http.ResponseWriter, r *http.Request, origins []string) {
 	setVaryHeaders(w, r)
 
+	origin := r.Header.Get(originHeader)
 	if len(origins) == 0 {
-		setHeader(w, allOrigins)
+		setHeader(w, origin)
 		return
 	}
 
-	origin := r.Header.Get(originHeader)
 	if isOriginAllowed(origins, origin) {
 		setHeader(w, origin)
 	}
