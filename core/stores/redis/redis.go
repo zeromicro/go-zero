@@ -403,7 +403,7 @@ func (s *Redis) FlushDBAsync(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if err = conn.FlushDB(ctx).Err(); err != nil {
+	if err = conn.FlushDBAsync(ctx).Err(); err != nil {
 		return false, err
 	}
 
