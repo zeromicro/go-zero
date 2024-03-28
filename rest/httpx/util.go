@@ -21,9 +21,10 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 
 	params := make(map[string]any, len(r.Form))
 	for name := range r.Form {
-		formValue := r.Form.Get(name)
-		if len(formValue) > 0 {
-			params[name] = formValue
+		if len(r.Form[name]) > 1 {
+			params[name] = r.Form[name]
+		} else if len(r.Form[name]) == 1 {
+			params[name] = r.Form.Get(name)
 		}
 	}
 
