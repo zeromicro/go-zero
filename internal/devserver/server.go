@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"runtime"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -48,6 +49,10 @@ func (s *Server) addRoutes() {
 	}
 	// pprof
 	if s.config.EnablePprof {
+		// enable pprof mutex and block profile
+		runtime.SetMutexProfileFraction(s.config.MutexProfileRate)
+		runtime.SetBlockProfileRate(s.config.BlockProfileRate)
+
 		s.handleFunc("/debug/pprof/", pprof.Index)
 		s.handleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		s.handleFunc("/debug/pprof/profile", pprof.Profile)
