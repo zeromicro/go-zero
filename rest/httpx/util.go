@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -21,10 +22,16 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 
 	params := make(map[string]any, len(r.Form))
 	for name := range r.Form {
-		if len(r.Form[name]) > 1 {
+		fmt.Println(name, len(r.Form[name]))
+		switch len(r.Form[name]) {
+		case 1:
+			formValue := r.Form.Get(name)
+			if len(formValue) > 0 {
+				params[name] = formValue
+			}
+		default:
+			// len(r.Form[name]) > 1, never be 0
 			params[name] = r.Form[name]
-		} else if len(r.Form[name]) == 1 {
-			params[name] = r.Form.Get(name)
 		}
 	}
 
