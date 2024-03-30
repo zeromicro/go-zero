@@ -19,18 +19,21 @@ func TestParseForm(t *testing.T) {
 		Name     string   `form:"name"`
 		Age      int      `form:"age"`
 		Percent  float64  `form:"percent,optional"`
-		Statuses []string `form:"statuses[],optional"`
+		Statuses []string `form:"statuses,optional"`
+		NoValue  string   `form:"noValue,optional"`
 	}
 
-	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=try&statuses[]=done", http.NoBody)
+	r, err := http.NewRequest(
+		http.MethodGet,
+		"/a?name=hello&age=18&percent=3.4&statuses=try&statuses=done",
+		http.NoBody)
 	assert.Nil(t, err)
 	assert.Nil(t, Parse(r, &v))
 	assert.Equal(t, "hello", v.Name)
 	assert.Equal(t, 18, v.Age)
 	assert.Equal(t, 3.4, v.Percent)
-	assert.Equal(t, 2, len(v.Statuses))
-	assert.True(t, v.Statuses[0] == "try" || v.Statuses[1] == "try")
-	assert.True(t, v.Statuses[0] == "done" || v.Statuses[1] == "done")
+	assert.EqualValues(t, []string{"try", "done"}, v.Statuses)
+	assert.Equal(t, 0, len(v.NoValue))
 }
 
 func TestParseForm_Error(t *testing.T) {
