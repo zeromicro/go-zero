@@ -38,7 +38,7 @@ type (
 	// AuthConf is a JWT config
 	AuthConf struct {
 		AccessSecret string `json:",optional,env=AUTH_SECRET"`
-		AccessExpire string `json:",optional,env=AUTH_EXPIRE"`
+		AccessExpire int64  `json:",optional,env=AUTH_EXPIRE"`
 	}
 	// A RestConf is a http service config.
 	// Why not name it as Conf, because we need to consider usage like:

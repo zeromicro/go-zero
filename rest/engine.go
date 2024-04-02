@@ -163,6 +163,8 @@ func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route
 		chn = chn.Append(handler.GunzipHandler)
 	}
 
+	chn = chn.Append(handler.I18nHandler)
+
 	return chn
 }
 
