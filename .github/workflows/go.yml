@@ -41,6 +41,8 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   test-win:
     name: Windows
