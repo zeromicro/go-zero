@@ -20,7 +20,7 @@ func TestSqlxMetric(t *testing.T) {
 	_ = conf.FillDefault(&cfg)
 	cfg.Port = 6480
 	server := devserver.NewServer(cfg)
-	server.StartAsync()
+	server.StartAsync(cfg)
 	time.Sleep(time.Second)
 
 	metricReqDur.Observe(8, "test-cmd")

@@ -44,10 +44,10 @@ func AddProbe(probe Probe) {
 }
 
 // CreateHttpHandler create health http handler base on given probe.
-func CreateHttpHandler() http.HandlerFunc {
+func CreateHttpHandler(healthRespInfo string) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		if defaultHealthManager.IsReady() {
-			_, _ = w.Write([]byte("OK"))
+			_, _ = w.Write([]byte(healthRespInfo))
 		} else {
 			http.Error(w, "Service Unavailable\n"+defaultHealthManager.verboseInfo(),
 				http.StatusServiceUnavailable)
