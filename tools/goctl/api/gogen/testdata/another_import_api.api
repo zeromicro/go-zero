@@ -1,10 +1,10 @@
 import "importApi.api"
 
-type Request {
+type AnotherRequest {
     Name string `path:"name,options=you|me"`
 }
 
-type Response {
+type AnotherResponse {
     Message string `json:"message"` // message
 }
 
@@ -12,6 +12,6 @@ type Response {
     group: greet
 )
 service A-api {
-    @handler GreetHandler
-    get /greet/from/:name(Request) returns (Response)
+    @handler AnotherImportHandler
+    get /greet/from/another/:name(AnotherRequest) returns (AnotherResponse)
 }
