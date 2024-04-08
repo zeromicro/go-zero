@@ -16,8 +16,8 @@ import (
 
 var once sync.Once
 
-// Server is inner http server, expose some useful observability information of app.
-// For example health check, metrics and pprof.
+// Server is an inner http server, expose some useful observability information of app.
+// For example, health check, metrics and pprof.
 type Server struct {
 	config Config
 	server *http.ServeMux
@@ -37,8 +37,9 @@ func (s *Server) addRoutes(c Config) {
 	s.handleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode(s.routes)
 	})
+
 	// health
-	s.handleFunc(s.config.HealthPath, health.CreateHttpHandler(c.HealthRespInfo))
+	s.handleFunc(s.config.HealthPath, health.CreateHttpHandler(c.HealthResponse))
 
 	// metrics
 	if s.config.EnableMetrics {
@@ -46,6 +47,7 @@ func (s *Server) addRoutes(c Config) {
 		prometheus.Enable()
 		s.handleFunc(s.config.MetricsPath, promhttp.Handler().ServeHTTP)
 	}
+
 	// pprof
 	if s.config.EnablePprof {
 		s.handleFunc("/debug/pprof/", pprof.Index)
