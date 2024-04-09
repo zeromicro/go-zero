@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 
@@ -86,6 +87,26 @@ func SetOkHandler(handler func(context.Context, any) any) {
 	okLock.Lock()
 	defer okLock.Unlock()
 	okHandler = handler
+}
+
+// Stream writes data into w with streaming mode.
+// The ctx is used to control the streaming loop, typically use r.Context().
+// The fn is called repeatedly until it returns false.
+func Stream(ctx context.Context, w http.ResponseWriter, fn func(w io.Writer) bool) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			hasMore := fn(w)
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
+			}
+			if !hasMore {
+				return
+			}
+		}
+	}
 }
 
 // WriteJson writes v as json string into w with code.
