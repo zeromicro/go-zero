@@ -48,6 +48,181 @@ func TestParseForm(t *testing.T) {
 	})
 }
 
+func TestParseFormArrayString(t *testing.T) {
+	type ArrayFieldReqDto struct {
+		Name     string   `form:"name"`
+		Age      int      `form:"age"`
+		Percent  float64  `form:"percent,optional"`
+		Statuses []string `form:"statuses[],optional"`
+	}
+	var v1, v2, v3 ArrayFieldReqDto
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=try", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v1))
+	assert.Equal(t, "hello", v1.Name)
+	assert.Equal(t, 18, v1.Age)
+	assert.Equal(t, 3.4, v1.Percent)
+	assert.Equal(t, 1, len(v1.Statuses))
+	assert.True(t, v1.Statuses[0] == "try")
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=try&statuses[]=done", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v2))
+	assert.Equal(t, "hello", v2.Name)
+	assert.Equal(t, 18, v2.Age)
+	assert.Equal(t, 3.4, v2.Percent)
+	assert.Equal(t, 2, len(v2.Statuses))
+	assert.True(t, v2.Statuses[0] == "try" && v2.Statuses[1] == "done")
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v3))
+	assert.Equal(t, "hello", v3.Name)
+	assert.Equal(t, 18, v3.Age)
+	assert.Equal(t, 3.4, v3.Percent)
+	assert.Equal(t, 0, len(v3.Statuses))
+	assert.True(t, v3.Statuses == nil)
+}
+
+func TestParseFormArrayInt(t *testing.T) {
+	type ArrayFieldReqDto struct {
+		Name     string  `form:"name"`
+		Age      int     `form:"age"`
+		Percent  float64 `form:"percent,optional"`
+		Statuses []int   `form:"statuses[],optional"`
+	}
+	var v1, v2, v3 ArrayFieldReqDto
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=1&age=21", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v1))
+	assert.Equal(t, "hello", v1.Name)
+	assert.Equal(t, 18, v1.Age)
+	assert.Equal(t, 3.4, v1.Percent)
+	assert.Equal(t, 1, len(v1.Statuses))
+	assert.True(t, v1.Statuses[0] == 1)
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=1&statuses[]=2", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v2))
+	assert.Equal(t, "hello", v2.Name)
+	assert.Equal(t, 18, v2.Age)
+	assert.Equal(t, 3.4, v2.Percent)
+	assert.Equal(t, 2, len(v2.Statuses))
+	assert.True(t, v2.Statuses[0] == 1 && v2.Statuses[1] == 2)
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v3))
+	assert.Equal(t, "hello", v3.Name)
+	assert.Equal(t, 18, v3.Age)
+	assert.Equal(t, 3.4, v3.Percent)
+	assert.True(t, v3.Statuses == nil)
+}
+
+func TestParseFormArrayFloat32(t *testing.T) {
+	type ArrayFieldReqDto struct {
+		Name     string    `form:"name"`
+		Age      int       `form:"age"`
+		Percent  float64   `form:"percent,optional"`
+		Statuses []float32 `form:"statuses[],optional"`
+	}
+	var v1, v2, v3 ArrayFieldReqDto
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=1.1", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v1))
+	assert.Equal(t, "hello", v1.Name)
+	assert.Equal(t, 18, v1.Age)
+	assert.Equal(t, 3.4, v1.Percent)
+	assert.Equal(t, 1, len(v1.Statuses))
+	assert.True(t, v1.Statuses[0] == 1.1)
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=1.1&statuses[]=2.1", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v2))
+	assert.Equal(t, "hello", v2.Name)
+	assert.Equal(t, 18, v2.Age)
+	assert.Equal(t, 3.4, v2.Percent)
+	assert.Equal(t, 2, len(v2.Statuses))
+	assert.True(t, v2.Statuses[0] == 1.1 && v2.Statuses[1] == 2.1)
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v3))
+	assert.Equal(t, "hello", v3.Name)
+	assert.Equal(t, 18, v3.Age)
+	assert.Equal(t, 3.4, v3.Percent)
+	assert.True(t, v3.Statuses == nil)
+}
+
+func TestParseFormAnonymousArrayString(t *testing.T) {
+	type TestArray struct {
+		Statuses []string `form:"statuses[],optional"`
+	}
+	type ArrayFieldReqDto struct {
+		Name    string  `form:"name"`
+		Age     int     `form:"age"`
+		Percent float64 `form:"percent,optional"`
+		TestArray
+	}
+
+	var v1, v2, v3 ArrayFieldReqDto
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=try", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v1))
+	assert.Equal(t, "hello", v1.Name)
+	assert.Equal(t, 18, v1.Age)
+	assert.Equal(t, 3.4, v1.Percent)
+	assert.Equal(t, 1, len(v1.Statuses))
+	assert.True(t, v1.Statuses[0] == "try")
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&statuses[]=try&statuses[]=done", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v2))
+	assert.Equal(t, "hello", v2.Name)
+	assert.Equal(t, 18, v2.Age)
+	assert.Equal(t, 3.4, v2.Percent)
+	assert.Equal(t, 2, len(v2.Statuses))
+	assert.True(t, v2.Statuses[0] == "try" && v2.Statuses[1] == "done")
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v3))
+	assert.Equal(t, "hello", v3.Name)
+	assert.Equal(t, 18, v3.Age)
+	assert.Equal(t, 3.4, v3.Percent)
+	assert.Equal(t, 0, len(v3.Statuses))
+	assert.True(t, v3.Statuses == nil)
+}
+
+func TestParseFormString(t *testing.T) {
+	var v struct {
+		Name    string  `form:"name"`
+		Age     int     `form:"age"`
+		Percent float64 `form:"percent,optional"`
+		Status  string  `form:"status,optional"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&status=try", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, "hello", v.Name)
+	assert.Equal(t, 18, v.Age)
+	assert.Equal(t, 3.4, v.Percent)
+	assert.Equal(t, v.Status, "try")
+
+	r, err = http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4&status=try&status=done", http.NoBody)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, "hello", v.Name)
+	assert.Equal(t, 18, v.Age)
+	assert.Equal(t, 3.4, v.Percent)
+	assert.Equal(t, v.Status, "try")
+}
+
 func TestParseForm_Error(t *testing.T) {
 	var v struct {
 		Name string `form:"name"`

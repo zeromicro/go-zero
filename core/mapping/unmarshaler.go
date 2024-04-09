@@ -803,6 +803,9 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.Struct:
 		return u.processFieldNotFromString(fieldType, value, vp, opts, fullName)
 	default:
+		if reflect.TypeOf(mapValue).Kind() == reflect.Slice {
+			mapValue = reflect.ValueOf(mapValue).Index(0).Interface()
+		}
 		if u.opts.fromString || opts.fromString() {
 			return u.processNamedFieldWithValueFromString(fieldType, value, mapValue,
 				key, opts, fullName)
