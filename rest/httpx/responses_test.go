@@ -1,10 +1,13 @@
 package httpx
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -237,6 +240,60 @@ func TestWriteJsonMarshalFailed(t *testing.T) {
 		"Data": complex(0, 0),
 	})
 	assert.Equal(t, http.StatusInternalServerError, w.code)
+}
+
+func TestStream(t *testing.T) {
+	t.Run("regular case", func(t *testing.T) {
+		channel := make(chan string)
+		go func() {
+			defer close(channel)
+			for index := 0; index < 5; index++ {
+				channel <- fmt.Sprintf("%d", index)
+			}
+		}()
+
+		w := httptest.NewRecorder()
+		Stream(context.Background(), w, func(w io.Writer) bool {
+			output, ok := <-channel
+			if !ok {
+				return false
+			}
+
+			outputBytes := bytes.NewBufferString(output)
+			_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
+			return err == nil
+		})
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "0\n1\n2\n3\n4\n", w.Body.String())
+	})
+
+	t.Run("context done", func(t *testing.T) {
+		channel := make(chan string)
+		go func() {
+			defer close(channel)
+			for index := 0; index < 5; index++ {
+				channel <- fmt.Sprintf("num: %d", index)
+			}
+		}()
+
+		w := httptest.NewRecorder()
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		Stream(ctx, w, func(w io.Writer) bool {
+			output, ok := <-channel
+			if !ok {
+				return false
+			}
+
+			outputBytes := bytes.NewBufferString(output)
+			_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
+			return err == nil
+		})
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "", w.Body.String())
+	})
 }
 
 type tracedResponseWriter struct {
