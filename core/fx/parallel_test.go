@@ -48,3 +48,27 @@ func TestParallelFnErr(t *testing.T) {
 	assert.Error(t, err)
 	assert.ErrorContains(t, err, "failed to exec #1", "failed to exec #2")
 }
+
+func TestParallelFnErrErrorNil(t *testing.T) {
+	var count int32
+	err := ParallelFnErr(
+		func() error {
+			time.Sleep(time.Millisecond * 100)
+			atomic.AddInt32(&count, 1)
+			return nil
+		},
+		func() error {
+			time.Sleep(time.Millisecond * 100)
+			atomic.AddInt32(&count, 2)
+			return nil
+
+		},
+		func() error {
+			time.Sleep(time.Millisecond * 100)
+			atomic.AddInt32(&count, 3)
+			return nil
+		})
+
+	assert.Equal(t, int32(6), count)
+	assert.NoError(t, err)
+}
