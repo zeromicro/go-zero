@@ -17,7 +17,7 @@ require (
 	github.com/zeromicro/ddl-parser v1.0.5
 	github.com/zeromicro/go-zero v1.6.4
 	golang.org/x/text v0.14.0
-	google.golang.org/grpc v1.63.0
+	google.golang.org/grpc v1.63.2
 	google.golang.org/protobuf v1.33.0
 )
 
