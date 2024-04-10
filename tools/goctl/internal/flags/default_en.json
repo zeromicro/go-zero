@@ -274,6 +274,14 @@
     },
     "upgrade": {
       "short": "Upgrade goctl to latest version"
+    },
+    "config": {
+      "init": {
+        "short": "Initialize goctl config file"
+      },
+      "clean": {
+        "short": "Clean goctl config file"
+      }
     }
   },
   "global": {
