@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"strings"
 
 	"github.com/zeromicro/ddl-parser/parser"
@@ -17,6 +18,64 @@ var unsignedTypeMap = map[string]string{
 }
 
 var commonMysqlDataTypeMapInt = map[int]string{
+	// For consistency, all integer types are converted to int64
+	// number
+	parser.Bit:       "byte",
+	parser.TinyInt:   "int64",
+	parser.SmallInt:  "int64",
+	parser.MediumInt: "int64",
+	parser.Int:       "int64",
+	parser.MiddleInt: "int64",
+	parser.Int1:      "int64",
+	parser.Int2:      "int64",
+	parser.Int3:      "int64",
+	parser.Int4:      "int64",
+	parser.Int8:      "int64",
+	parser.Integer:   "int64",
+	parser.BigInt:    "int64",
+	parser.Float:     "float64",
+	parser.Float4:    "float64",
+	parser.Float8:    "float64",
+	parser.Double:    "float64",
+	parser.Decimal:   "float64",
+	parser.Dec:       "float64",
+	parser.Fixed:     "float64",
+	parser.Numeric:   "float64",
+	parser.Real:      "float64",
+	// date&time
+	parser.Date:      "time.Time",
+	parser.DateTime:  "time.Time",
+	parser.Timestamp: "time.Time",
+	parser.Time:      "string",
+	parser.Year:      "int64",
+	// string
+	parser.Char:            "string",
+	parser.VarChar:         "string",
+	parser.NVarChar:        "string",
+	parser.NChar:           "string",
+	parser.Character:       "string",
+	parser.LongVarChar:     "string",
+	parser.LineString:      "string",
+	parser.MultiLineString: "string",
+	parser.Binary:          "string",
+	parser.VarBinary:       "string",
+	parser.TinyText:        "string",
+	parser.Text:            "string",
+	parser.MediumText:      "string",
+	parser.LongText:        "string",
+	parser.Enum:            "string",
+	parser.Set:             "string",
+	parser.Json:            "string",
+	parser.Blob:            "string",
+	parser.LongBlob:        "string",
+	parser.MediumBlob:      "string",
+	parser.TinyBlob:        "string",
+	// bool
+	parser.Bool:    "bool",
+	parser.Boolean: "bool",
+}
+
+var commonMysqlDataTypeMap = map[int]string{
 	// number
 	parser.Bit:       "bit",
 	parser.TinyInt:   "tinyint",
@@ -145,24 +204,47 @@ var commonMysqlDataTypeMapString = map[string]string{
 
 // ConvertDataType converts mysql column type into golang type
 func ConvertDataType(dataBaseType int, isDefaultNull, unsigned, strict bool) (string, string, error) {
+	if env.UseExperimental() {
+		tp, ok := commonMysqlDataTypeMap[dataBaseType]
+		if !ok {
+			return "", "", fmt.Errorf("unsupported database type: %v", dataBaseType)
+		}
+
+		goType, thirdPkg, _, err := ConvertStringDataType(tp, isDefaultNull, unsigned, strict)
+		return goType, thirdPkg, err
+	}
+
+	// the following are the old version compatibility code.
 	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
 	if !ok {
 		return "", "", fmt.Errorf("unsupported database type: %v", dataBaseType)
 	}
 
-	goType, thirdPkg, _, err := ConvertStringDataType(tp, isDefaultNull, unsigned, strict)
-	return goType, thirdPkg, err
+	return mayConvertNullType(tp, isDefaultNull, unsigned, strict), "", nil
 }
 
 // ConvertStringDataType converts mysql column type into golang type
 func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict bool) (
 	goType string, thirdPkg string, isPQArray bool, err error) {
+	if env.UseExperimental() {
+		customTp, thirdImport := convertDatatypeWithConfig(dataBaseType, isDefaultNull, unsigned)
+		if len(customTp) != 0 {
+			return customTp, thirdImport, false, nil
+		}
 
-	customTp, thirdImport := convertDatatypeWithConfig(dataBaseType, isDefaultNull, unsigned)
-	if len(customTp) != 0 {
-		return customTp, thirdImport, false, nil
+		tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
+		if !ok {
+			return "", "", false, fmt.Errorf("unsupported database type: %s", dataBaseType)
+		}
+
+		if strings.HasPrefix(dataBaseType, "_") {
+			return tp, "", true, nil
+		}
+
+		return mayConvertNullType(tp, isDefaultNull, unsigned, strict), "", false, nil
 	}
 
+	// the following are the old version compatibility code.
 	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
 	if !ok {
 		return "", "", false, fmt.Errorf("unsupported database type: %s", dataBaseType)
