@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 
@@ -287,6 +288,24 @@ func TestStmtBreaker(t *testing.T) {
 			}
 		}
 		assert.True(t, breakerTriggered)
+	})
+}
+
+func TestQueryScanTimeout(t *testing.T) {
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancel()
+		row := sqlmock.NewRows([]string{"foo"})
+		for i := 0; i < 10000; i++ {
+			row = row.AddRow("bar" + strconv.Itoa(i))
+		}
+		var val []struct {
+			Foo int
+			Bar string
+		}
+		conn := NewSqlConnFromDB(db)
+		err := conn.QueryRowsCtx(ctx, &val, "any")
+		assert.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }
 
