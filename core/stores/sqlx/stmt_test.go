@@ -291,19 +291,19 @@ func TestStmtBreaker(t *testing.T) {
 	})
 }
 
-func TestQueryScanTimeout(t *testing.T) {
+func TestQueryRowsScanTimeout(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-		defer cancel()
-		row := sqlmock.NewRows([]string{"foo"})
+		rows := sqlmock.NewRows([]string{"foo"})
 		for i := 0; i < 10000; i++ {
-			row = row.AddRow("bar" + strconv.Itoa(i))
+			rows = rows.AddRow("bar" + strconv.Itoa(i))
 		}
+		mock.ExpectQuery("any").WillReturnRows(rows)
 		var val []struct {
-			Foo int
-			Bar string
+			Foo string
 		}
 		conn := NewSqlConnFromDB(db)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancel()
 		err := conn.QueryRowsCtx(ctx, &val, "any")
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
 	})

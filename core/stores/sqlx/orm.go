@@ -248,7 +248,7 @@ func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 			return ErrUnsupportedValueType
 		}
 
-		return nil
+		return scanner.Err()
 	default:
 		return ErrUnsupportedValueType
 	}
