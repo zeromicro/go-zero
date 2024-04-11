@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"strings"
@@ -85,6 +86,10 @@ func getValueInterface(value reflect.Value) (any, error) {
 
 		return value.Addr().Interface(), nil
 	}
+}
+
+func isScanFailed(err error) bool {
+	return err != nil && !errors.Is(err, context.DeadlineExceeded)
 }
 
 func mapStructFieldsIntoSlice(v reflect.Value, columns []string, strict bool) ([]any, error) {

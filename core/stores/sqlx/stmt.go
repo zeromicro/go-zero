@@ -144,7 +144,7 @@ func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) 
 	err := s.brk.DoWithAcceptable(func() error {
 		return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 			err := scanFn(v, rows)
-			if err != nil {
+			if isScanFailed(err) {
 				scanFailed = true
 			}
 			return err
