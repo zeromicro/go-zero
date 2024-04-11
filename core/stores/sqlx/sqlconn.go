@@ -296,7 +296,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 
 		return query(ctx, conn, func(rows *sql.Rows) error {
 			e := scanner(rows)
-			if e != nil {
+			if isScanFailed(e) {
 				scanFailed = true
 			}
 			return e
