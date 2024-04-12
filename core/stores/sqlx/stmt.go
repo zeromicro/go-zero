@@ -65,7 +65,7 @@ func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result,
 		endSpan(span, err)
 	}()
 
-	err = s.brk.DoWithAcceptable(func() error {
+	err = s.run(func() error {
 		result, err = execStmt(ctx, s.stmt, s.query, args...)
 		return err
 	}, func(err error) bool {
@@ -141,7 +141,7 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) error,
 	v any, args ...any) error {
 	var scanFailed bool
-	err := s.brk.DoWithAcceptable(func() error {
+	err := s.run(func() error {
 		return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 			err := scanFn(v, rows)
 			if isScanFailed(err) {
@@ -157,6 +157,10 @@ func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) 
 	}
 
 	return err
+}
+
+func (s statement) run(fn func() error, acceptable breaker.Acceptable) error {
+	return runWithBreaker(s.brk, fn, acceptable)
 }
 
 // DisableLog disables logging of sql statements, includes info and slow logs.
