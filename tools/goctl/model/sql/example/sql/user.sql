@@ -9,7 +9,7 @@ CREATE TABLE `user`
     `mobile`      varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '手机号',
     `gender`      char(5) COLLATE utf8mb4_general_ci      NOT NULL COMMENT '男｜女｜未公\r开',
     `nickname`    varchar(255) COLLATE utf8mb4_general_ci          DEFAULT '' COMMENT '用户昵称',
-    `type`    tinyint(1) COLLATE utf8mb4_general_ci          DEFAULT 0 COMMENT '用户类型',
+    `type`        tinyint(1) COLLATE utf8mb4_general_ci DEFAULT 0 COMMENT '用户类型',
     `create_time` timestamp NULL,
     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -22,12 +22,13 @@ CREATE TABLE `user`
 
 CREATE TABLE `student`
 (
-    `type`    bigint                          NOT NULL,
-    `class` varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `name`  varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `age`   tinyint                                   DEFAULT NULL,
+    `type`  bigint       NOT NULL,
+    `class` varchar(255) NOT NULL DEFAULT '',
+    `name`  varchar(255) NOT NULL DEFAULT '',
+    `age`   tinyint               DEFAULT NULL,
     `score` float(10, 0
 ) DEFAULT NULL,
+    `amount` decimal DEFAULT NULL,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT NULL,
   `delete_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
