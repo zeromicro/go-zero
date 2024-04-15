@@ -2,6 +2,7 @@ package fx
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/errorx"
@@ -14,9 +15,10 @@ type (
 	RetryOption func(*retryOptions)
 
 	retryOptions struct {
-		times    int
-		interval time.Duration
-		timeout  time.Duration
+		times        int
+		interval     time.Duration
+		timeout      time.Duration
+		ignoreErrors []error
 	}
 )
 
@@ -62,6 +64,11 @@ func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opt
 		select {
 		case err := <-errChan:
 			if err != nil {
+				for _, ignoreErr := range options.ignoreErrors {
+					if errors.Is(err, ignoreErr) {
+						return nil
+					}
+				}
 				berr.Add(err)
 			} else {
 				return nil
@@ -84,19 +91,28 @@ func retry(ctx context.Context, fn func(errChan chan error, retryCount int), opt
 	return berr.Err()
 }
 
-// WithRetry customize a DoWithRetry call with given retry times.
-func WithRetry(times int) RetryOption {
+// WithIgnoreErrors Ignore the specified errors
+func WithIgnoreErrors(ignoreErrors []error) RetryOption {
 	return func(options *retryOptions) {
-		options.times = times
+		options.ignoreErrors = ignoreErrors
 	}
 }
 
+// WithInterval customizes a DoWithRetry call with given interval.
 func WithInterval(interval time.Duration) RetryOption {
 	return func(options *retryOptions) {
 		options.interval = interval
 	}
 }
 
+// WithRetry customizes a DoWithRetry call with given retry times.
+func WithRetry(times int) RetryOption {
+	return func(options *retryOptions) {
+		options.times = times
+	}
+}
+
+// WithTimeout customizes a DoWithRetry call with given timeout.
 func WithTimeout(timeout time.Duration) RetryOption {
 	return func(options *retryOptions) {
 		options.timeout = timeout

@@ -15,9 +15,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: '1.19'
           check-latest: true
           cache: true
         id: go
@@ -40,7 +40,7 @@ jobs:
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
 
   test-win:
     name: Windows
@@ -50,10 +50,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           # use 1.19 to guarantee Go 1.19 compatibility
-          go-version: 1.19
+          go-version: '1.19'
           check-latest: true
           cache: true
 

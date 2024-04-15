@@ -156,6 +156,7 @@ func TestStatement(t *testing.T) {
 		st := statement{
 			query: "foo",
 			stmt:  stmt,
+			brk:   breaker.NopBreaker(),
 		}
 		assert.NoError(t, st.Close())
 	})
@@ -261,6 +262,45 @@ func TestBreakerWithScanError(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestWithAcceptable(t *testing.T) {
+	var (
+		acceptableErr  = errors.New("acceptable")
+		acceptableErr2 = errors.New("acceptable2")
+		acceptableErr3 = errors.New("acceptable3")
+	)
+	opts := []SqlOption{
+		WithAcceptable(func(err error) bool {
+			if err == nil {
+				return true
+			}
+			return errors.Is(err, acceptableErr)
+		}),
+		WithAcceptable(func(err error) bool {
+			if err == nil {
+				return true
+			}
+			return errors.Is(err, acceptableErr2)
+		}),
+		WithAcceptable(func(err error) bool {
+			if err == nil {
+				return true
+			}
+			return errors.Is(err, acceptableErr3)
+		}),
+	}
+
+	var conn = &commonSqlConn{}
+	for _, opt := range opts {
+		opt(conn)
+	}
+
+	assert.True(t, conn.accept(nil))
+	assert.False(t, conn.accept(assert.AnError))
+	assert.True(t, conn.accept(acceptableErr))
+	assert.True(t, conn.accept(acceptableErr2))
+	assert.True(t, conn.accept(acceptableErr3))
 }
 
 func buildConn() (mock sqlmock.Sqlmock, err error) {

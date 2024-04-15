@@ -217,8 +217,11 @@ func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 			handler.TraceHandler(ng.conf.Name,
 				"",
 				handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)),
-			ng.getLogHandler(),
 		)
+
+		if ng.conf.Middlewares.Log {
+			chn = chn.Append(ng.getLogHandler())
+		}
 
 		var h http.Handler
 		if next != nil {

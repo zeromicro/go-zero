@@ -178,7 +178,7 @@
         "short": "Generate postgresql model",
         "datasource": {
           "short": "Generate model from datasource",
-          "url": "The data source of database,like \"root:password@tcp(127.0.0.1:3306)/database",
+          "url": "The data source of database,like \"postgres://root:password@127.0.0.1:5432/database?sslmode=disable\"",
           "table": "The table or table globbing patterns in the database",
           "schema": "The schema or schema globbing patterns in the database",
           "cache": "Generate code with cache [optional]",
@@ -274,6 +274,14 @@
     },
     "upgrade": {
       "short": "Upgrade goctl to latest version"
+    },
+    "config": {
+      "init": {
+        "short": "Initialize goctl config file"
+      },
+      "clean": {
+        "short": "Clean goctl config file"
+      }
     }
   },
   "global": {

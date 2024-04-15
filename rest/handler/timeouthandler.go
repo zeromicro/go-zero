@@ -24,6 +24,8 @@ const (
 	reason                    = "Request Timeout"
 	headerUpgrade             = "Upgrade"
 	valueWebsocket            = "websocket"
+	headerAccept              = "Accept"
+	valueSSE                  = "text/event-stream"
 )
 
 // TimeoutHandler returns the handler with given timeout.
@@ -56,7 +58,9 @@ func (h *timeoutHandler) errorBody() string {
 }
 
 func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(headerUpgrade) == valueWebsocket {
+	if r.Header.Get(headerUpgrade) == valueWebsocket ||
+		// Server-Sent Event ignore timeout.
+		r.Header.Get(headerAccept) == valueSSE {
 		h.handler.ServeHTTP(w, r)
 		return
 	}
@@ -110,7 +114,7 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusServiceUnavailable)
 			}
-			io.WriteString(w, h.errorBody())
+			_, _ = io.WriteString(w, h.errorBody())
 		})
 		tw.timedOut = true
 	}
@@ -187,6 +191,15 @@ func (tw *timeoutWriter) Write(p []byte) (int, error) {
 	return tw.wbuf.Write(p)
 }
 
+func (tw *timeoutWriter) WriteHeader(code int) {
+	tw.mu.Lock()
+	defer tw.mu.Unlock()
+
+	if !tw.wroteHeader {
+		tw.writeHeaderLocked(code)
+	}
+}
+
 func (tw *timeoutWriter) writeHeaderLocked(code int) {
 	checkWriteHeaderCode(code)
 
@@ -202,15 +215,6 @@ func (tw *timeoutWriter) writeHeaderLocked(code int) {
 	default:
 		tw.wroteHeader = true
 		tw.code = code
-	}
-}
-
-func (tw *timeoutWriter) WriteHeader(code int) {
-	tw.mu.Lock()
-	defer tw.mu.Unlock()
-
-	if !tw.wroteHeader {
-		tw.writeHeaderLocked(code)
 	}
 }
 

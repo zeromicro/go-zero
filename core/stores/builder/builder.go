@@ -41,7 +41,7 @@ func RawFieldNames(in any, postgreSql ...bool) []string {
 				out = append(out, fmt.Sprintf("`%s`", fi.Name))
 			}
 		default:
-			// get tag name with the tag opton, e.g.:
+			// get tag name with the tag option, e.g.:
 			// `db:"id"`
 			// `db:"id,type=char,length=16"`
 			// `db:",type=char,length=16"`

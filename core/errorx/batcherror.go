@@ -1,11 +1,15 @@
 package errorx
 
-import "bytes"
+import (
+	"bytes"
+	"sync"
+)
 
 type (
 	// A BatchError is an error that can hold multiple errors.
 	BatchError struct {
 		errs errorArray
+		lock sync.Mutex
 	}
 
 	errorArray []error
@@ -13,6 +17,9 @@ type (
 
 // Add adds errs to be, nil errors are ignored.
 func (be *BatchError) Add(errs ...error) {
+	be.lock.Lock()
+	defer be.lock.Unlock()
+
 	for _, err := range errs {
 		if err != nil {
 			be.errs = append(be.errs, err)
@@ -22,6 +29,9 @@ func (be *BatchError) Add(errs ...error) {
 
 // Err returns an error that represents all errors.
 func (be *BatchError) Err() error {
+	be.lock.Lock()
+	defer be.lock.Unlock()
+
 	switch len(be.errs) {
 	case 0:
 		return nil
@@ -34,6 +44,9 @@ func (be *BatchError) Err() error {
 
 // NotNil checks if any error inside.
 func (be *BatchError) NotNil() bool {
+	be.lock.Lock()
+	defer be.lock.Unlock()
+
 	return len(be.errs) > 0
 }
 

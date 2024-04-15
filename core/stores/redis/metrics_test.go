@@ -19,7 +19,7 @@ func TestRedisMetric(t *testing.T) {
 	cfg := devserver.Config{}
 	_ = conf.FillDefault(&cfg)
 	server := devserver.NewServer(cfg)
-	server.StartAsync()
+	server.StartAsync(cfg)
 	time.Sleep(time.Second)
 
 	metricReqDur.Observe(8, "test-cmd")

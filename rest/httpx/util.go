@@ -1,6 +1,9 @@
 package httpx
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
 
 const xForwardedFor = "X-Forwarded-For"
 
@@ -11,7 +14,7 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 	}
 
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		if err != http.ErrNotMultipart {
+		if !errors.Is(err, http.ErrNotMultipart) {
 			return nil, err
 		}
 	}

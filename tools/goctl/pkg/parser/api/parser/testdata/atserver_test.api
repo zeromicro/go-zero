@@ -13,4 +13,9 @@
     timeout6: 10ns
     timeout7: 1h10m10s10ms10µs10ns
     maxBytes: 1024
+    prefix: /v1
+    prefix1: /v1/v2_test/v2-beta
+    prefix2: v1/v2_test/v2-beta
+    prefix3: v1/v2_
+    summary:"test"
 )

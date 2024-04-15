@@ -84,6 +84,20 @@ func (t *TokenNode) SetLeadingCommentGroup(cg CommentGroup) {
 	t.LeadingCommentGroup = cg
 }
 
+// RawText returns the node's raw text.
+func (t *TokenNode) RawText() string {
+	text := t.Token.Text
+	if strings.HasPrefix(text, "`") {
+		text = strings.TrimPrefix(text, "`")
+		text = strings.TrimSuffix(text, "`")
+	} else if strings.HasPrefix(text, `"`) {
+		text = strings.TrimPrefix(text, `"`)
+		text = strings.TrimSuffix(text, `"`)
+	}
+
+	return text
+}
+
 func (t *TokenNode) HasLeadingCommentGroup() bool {
 	return t.LeadingCommentGroup.Valid() || t.leadingFlag
 }

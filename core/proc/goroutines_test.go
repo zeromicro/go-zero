@@ -36,6 +36,6 @@ type fakeCreator struct {
 	err  error
 }
 
-func (fc fakeCreator) Create(name string) (file *os.File, err error) {
+func (fc fakeCreator) Create(_ string) (file *os.File, err error) {
 	return fc.file, fc.err
 }

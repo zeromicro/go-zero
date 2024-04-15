@@ -32,11 +32,8 @@ type API struct {
 func convert2API(a *ast.AST, importSet map[string]lang.PlaceholderType, is *importstack.ImportStack) (*API, error) {
 	var api = new(API)
 	api.importManager = is
-	api.importSet = make(map[string]lang.PlaceholderType)
+	api.importSet = importSet
 	api.Filename = a.Filename
-	for k, v := range importSet {
-		api.importSet[k] = v
-	}
 	one := a.Stmts[0]
 	syntax, ok := one.(*ast.SyntaxStmt)
 	if !ok {
@@ -85,15 +82,12 @@ func convert2API(a *ast.AST, importSet map[string]lang.PlaceholderType, is *impo
 		}
 	}
 
-	if err := api.SelfCheck(); err != nil {
-		return nil, err
-	}
 	return api, nil
 }
 
 func (api *API) checkImportStmt() error {
 	f := newFilter()
-	b := f.addCheckItem("import value expression")
+	b := f.addCheckItem(api.Filename, "import value expression")
 	for _, v := range api.importStmt {
 		switch val := v.(type) {
 		case *ast.ImportLiteralStmt:
@@ -110,7 +104,7 @@ func (api *API) checkInfoStmt() error {
 		return nil
 	}
 	f := newFilter()
-	b := f.addCheckItem("info key expression")
+	b := f.addCheckItem(api.Filename, "info key expression")
 	for _, v := range api.info.Values {
 		b.check(v.Key)
 	}
@@ -119,9 +113,9 @@ func (api *API) checkInfoStmt() error {
 
 func (api *API) checkServiceStmt() error {
 	f := newFilter()
-	serviceNameChecker := f.addCheckItem("service name expression")
-	handlerChecker := f.addCheckItem("handler expression")
-	pathChecker := f.addCheckItem("path expression")
+	serviceNameChecker := f.addCheckItem(api.Filename, "service name expression")
+	handlerChecker := f.addCheckItem(api.Filename, "handler expression")
+	pathChecker := f.addCheckItem(api.Filename, "path expression")
 	var serviceName = map[string]string{}
 	for _, v := range api.ServiceStmts {
 		name := strings.TrimSuffix(v.Name.Format(""), "-api")
@@ -150,7 +144,7 @@ func (api *API) checkServiceStmt() error {
 
 func (api *API) checkTypeStmt() error {
 	f := newFilter()
-	b := f.addCheckItem("type expression")
+	b := f.addCheckItem(api.Filename, "type expression")
 	for _, v := range api.TypeStmt {
 		switch val := v.(type) {
 		case *ast.TypeLiteralStmt:

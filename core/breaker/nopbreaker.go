@@ -4,7 +4,8 @@ const nopBreakerName = "nopBreaker"
 
 type nopBreaker struct{}
 
-func newNopBreaker() Breaker {
+// NopBreaker returns a breaker that never trigger breaker circuit.
+func NopBreaker() Breaker {
 	return nopBreaker{}
 }
 
@@ -24,12 +25,11 @@ func (b nopBreaker) DoWithAcceptable(req func() error, _ Acceptable) error {
 	return req()
 }
 
-func (b nopBreaker) DoWithFallback(req func() error, _ func(err error) error) error {
+func (b nopBreaker) DoWithFallback(req func() error, _ Fallback) error {
 	return req()
 }
 
-func (b nopBreaker) DoWithFallbackAcceptable(req func() error, _ func(err error) error,
-	_ Acceptable) error {
+func (b nopBreaker) DoWithFallbackAcceptable(req func() error, _ Fallback, _ Acceptable) error {
 	return req()
 }
 

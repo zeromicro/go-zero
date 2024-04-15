@@ -17,14 +17,13 @@ import (
 const callerDepth = 4
 
 var (
-	timeFormat = "2006-01-02T15:04:05.000Z07:00"
-	logLevel   uint32
+	timeFormat        = "2006-01-02T15:04:05.000Z07:00"
 	encoding   uint32 = jsonEncodingType
 	// maxContentLength is used to truncate the log content, 0 for not truncating.
 	maxContentLength uint32
 	// use uint32 for atomic operations
-	disableLog  uint32
 	disableStat uint32
+	logLevel    uint32
 	options     logOptions
 	writer      = new(atomicWriter)
 	setupOnce   sync.Once
@@ -87,7 +86,7 @@ func Debugv(v any) {
 	}
 }
 
-// Debugw writes msg along with fields into access log.
+// Debugw writes msg along with fields into the access log.
 func Debugw(msg string, fields ...LogField) {
 	if shallLog(DebugLevel) {
 		writeDebug(msg, fields...)
@@ -96,7 +95,7 @@ func Debugw(msg string, fields ...LogField) {
 
 // Disable disables the logging.
 func Disable() {
-	atomic.StoreUint32(&disableLog, 1)
+	atomic.StoreUint32(&logLevel, disableLevel)
 	writer.Store(nopWriter{})
 }
 
@@ -143,7 +142,7 @@ func Errorv(v any) {
 	}
 }
 
-// Errorw writes msg along with fields into error log.
+// Errorw writes msg along with fields into the error log.
 func Errorw(msg string, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		writeError(msg, fields...)
@@ -209,7 +208,7 @@ func Infov(v any) {
 	}
 }
 
-// Infow writes msg along with fields into access log.
+// Infow writes msg along with fields into the access log.
 func Infow(msg string, fields ...LogField) {
 	if shallLog(InfoLevel) {
 		writeInfo(msg, fields...)
@@ -250,16 +249,17 @@ func SetLevel(level uint32) {
 
 // SetWriter sets the logging writer. It can be used to customize the logging.
 func SetWriter(w Writer) {
-	if atomic.LoadUint32(&disableLog) == 0 {
+	if atomic.LoadUint32(&logLevel) != disableLevel {
 		writer.Store(w)
 	}
 }
 
-// SetUp sets up the logx. If already set up, just return nil.
-// we allow SetUp to be called multiple times, because for example
+// SetUp sets up the logx.
+// If already set up, return nil.
+// We allow SetUp to be called multiple times, because, for example,
 // we need to allow different service frameworks to initialize logx respectively.
 func SetUp(c LogConf) (err error) {
-	// Just ignore the subsequent SetUp calls.
+	// Ignore the later SetUp calls.
 	// Because multiple services in one process might call SetUp respectively.
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
@@ -481,7 +481,7 @@ func writeDebug(val any, fields ...LogField) {
 	getWriter().Debug(val, addCaller(fields...)...)
 }
 
-// writeError writes v into error log.
+// writeError writes v into the error log.
 // Not checking shallLog here is for performance consideration.
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
@@ -521,7 +521,7 @@ func writeStack(msg string) {
 	getWriter().Stack(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 }
 
-// writeStat writes v into stat log.
+// writeStat writes v into the stat log.
 // Not checking shallLog here is for performance consideration.
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.

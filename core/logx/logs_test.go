@@ -570,7 +570,7 @@ func TestErrorfWithWrappedError(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	Errorf("hello %w", errors.New(message))
+	Errorf("hello %s", errors.New(message))
 	assert.True(t, strings.Contains(w.String(), "hello there"))
 }
 
@@ -666,6 +666,7 @@ func TestDisable(t *testing.T) {
 	WithMaxSize(1024)(&opt)
 	assert.Nil(t, Close())
 	assert.Nil(t, Close())
+	assert.Equal(t, uint32(disableLevel), atomic.LoadUint32(&logLevel))
 }
 
 func TestDisableStat(t *testing.T) {
@@ -680,7 +681,7 @@ func TestDisableStat(t *testing.T) {
 }
 
 func TestSetWriter(t *testing.T) {
-	atomic.StoreUint32(&disableLog, 0)
+	atomic.StoreUint32(&logLevel, 0)
 	Reset()
 	SetWriter(nopWriter{})
 	assert.NotNil(t, writer.Load())

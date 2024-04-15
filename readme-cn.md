@@ -120,12 +120,12 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     # docker for amd64 architecture
     docker pull kevinwan/goctl
     # run goctl like
-    docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
+    docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
     
     # docker for arm64(Mac) architecture
     docker pull kevinwan/goctl:latest-arm64
     # run goctl like
-    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
+    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 --help
     ```
     
     确保 goctl 可执行
@@ -300,14 +300,16 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >96. Sonderbase Technologies
 >97. 上海荣时信息科技有限公司
 >98. 上海同犀智能科技有限公司
+>99. 新华三技术有限公司
+>100. 上海邑脉科技有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
 ## 10. CNCF 云原生技术全景图
 
 <p float="left">
-<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
-<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-landscape-logo.svg" width="150"/>
 </p>
 
 go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
