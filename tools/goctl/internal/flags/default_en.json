@@ -245,7 +245,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "verbose": "Enable log output",
-        "client": "Whether to generate rpc client"
+        "client": "Whether to generate rpc client",
+        "skip_pb": "Whether to skip generating pb & grpc file"
       }
     },
     "template": {

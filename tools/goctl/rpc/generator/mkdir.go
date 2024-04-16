@@ -69,10 +69,6 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
 	protoGoDir := pbDir
-	if c != nil {
-		pbDir = c.ProtoGenGrpcDir
-		protoGoDir = c.ProtoGenGoDir
-	}
 
 	getChildPackage := func(parent, childPath string) (string, error) {
 		child := strings.TrimPrefix(childPath, parent)
