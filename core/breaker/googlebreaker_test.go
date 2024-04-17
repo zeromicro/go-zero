@@ -66,15 +66,21 @@ func TestGoogleBreakerOpen(t *testing.T) {
 }
 
 func TestGoogleBreakerRecover(t *testing.T) {
-	b := getGoogleBreaker()
-	b.k = k
-	for i := 0; i < 5; i++ {
+	st := collection.NewRollingWindow[int64, *bucket](func() *bucket {
+		return new(bucket)
+	}, testBuckets*2, testInterval)
+	b := &googleBreaker{
+		stat:  st,
+		k:     k,
+		proba: mathx.NewProba(),
+	}
+	for i := 0; i < testBuckets; i++ {
 		for j := 0; j < 100; j++ {
 			b.stat.Add(1)
 		}
 		time.Sleep(testInterval)
 	}
-	for i := 0; i < 5; i++ {
+	for i := 0; i < testBuckets; i++ {
 		for j := 0; j < 100; j++ {
 			b.stat.Add(0)
 		}
