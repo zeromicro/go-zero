@@ -189,6 +189,41 @@ func TestWritePlainAny(t *testing.T) {
 	assert.Contains(t, buf.String(), "runtime/debug.Stack")
 }
 
+func TestWritePlainDuplicate(t *testing.T) {
+	old := atomic.SwapUint32(&encoding, plainEncodingType)
+	t.Cleanup(func() {
+		atomic.StoreUint32(&encoding, old)
+	})
+
+	var buf bytes.Buffer
+	output(&buf, levelInfo, "foo", LogField{
+		Key:   "first",
+		Value: "a",
+	}, LogField{
+		Key:   "first",
+		Value: "b",
+	})
+	assert.Contains(t, buf.String(), "foo")
+	assert.NotContains(t, buf.String(), "first=a")
+	assert.Contains(t, buf.String(), "first=b")
+
+	buf.Reset()
+	output(&buf, levelInfo, "foo", LogField{
+		Key:   "first",
+		Value: "a",
+	}, LogField{
+		Key:   "first",
+		Value: "b",
+	}, LogField{
+		Key:   "second",
+		Value: "c",
+	})
+	assert.Contains(t, buf.String(), "foo")
+	assert.NotContains(t, buf.String(), "first=a")
+	assert.Contains(t, buf.String(), "first=b")
+	assert.Contains(t, buf.String(), "second=c")
+}
+
 func TestLogWithLimitContentLength(t *testing.T) {
 	maxLen := atomic.LoadUint32(&maxContentLength)
 	atomic.StoreUint32(&maxContentLength, 10)
