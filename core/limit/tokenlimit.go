@@ -23,9 +23,8 @@ const (
 
 var (
 	//go:embed tokenscript.lua
-	tokenScript string
-
-	scriptToken = redis.NewScript(tokenScript)
+	tokenLuaScript string
+	tokenScript    = redis.NewScript(tokenLuaScript)
 )
 
 // A TokenLimiter controls how frequently events are allowed to happen with in one second.
@@ -88,7 +87,7 @@ func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) boo
 	}
 
 	resp, err := lim.store.ScriptRunCtx(ctx,
-		scriptToken,
+		tokenScript,
 		[]string{
 			lim.tokenKey,
 			lim.timestampKey,
