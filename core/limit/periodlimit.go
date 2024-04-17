@@ -30,9 +30,8 @@ var (
 	ErrUnknownCode = errors.New("unknown status code")
 
 	//go:embed periodscript.lua
-	periodScript string
-
-	scriptPeriod = redis.NewScript(periodScript)
+	periodLuaScript string
+	periodScript    = redis.NewScript(periodLuaScript)
 )
 
 type (
@@ -73,7 +72,7 @@ func (h *PeriodLimit) Take(key string) (int, error) {
 
 // TakeCtx requests a permit with context, it returns the permit state.
 func (h *PeriodLimit) TakeCtx(ctx context.Context, key string) (int, error) {
-	resp, err := h.limitStore.ScriptRunCtx(ctx, scriptPeriod, []string{h.keyPrefix + key}, []string{
+	resp, err := h.limitStore.ScriptRunCtx(ctx, periodScript, []string{h.keyPrefix + key}, []string{
 		strconv.Itoa(h.quota),
 		strconv.Itoa(h.calcExpireSeconds()),
 	})

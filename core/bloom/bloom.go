@@ -19,14 +19,12 @@ var (
 	ErrTooLargeOffset = errors.New("too large offset")
 
 	//go:embed setscript.lua
-	setScript string
-
-	scriptSet = redis.NewScript(setScript)
+	setLuaScript string
+	setScript    = redis.NewScript(setLuaScript)
 
 	//go:embed testscript.lua
-	testScript string
-
-	scriptTest = redis.NewScript(testScript)
+	testLuaScript string
+	testScript    = redis.NewScript(testLuaScript)
 )
 
 type (
@@ -126,7 +124,7 @@ func (r *redisBitSet) check(ctx context.Context, offsets []uint) (bool, error) {
 		return false, err
 	}
 
-	resp, err := r.store.ScriptRunCtx(ctx, scriptTest, []string{r.key}, args)
+	resp, err := r.store.ScriptRunCtx(ctx, testScript, []string{r.key}, args)
 	if errors.Is(err, redis.Nil) {
 		return false, nil
 	} else if err != nil {
@@ -158,7 +156,7 @@ func (r *redisBitSet) set(ctx context.Context, offsets []uint) error {
 		return err
 	}
 
-	_, err = r.store.ScriptRunCtx(ctx, scriptSet, []string{r.key}, args)
+	_, err = r.store.ScriptRunCtx(ctx, setScript, []string{r.key}, args)
 	if errors.Is(err, redis.Nil) {
 		return nil
 	}
