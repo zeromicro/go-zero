@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"math/rand"
 	"strconv"
@@ -20,17 +21,15 @@ const (
 )
 
 var (
-	lockScript = NewScript(`if redis.call("GET", KEYS[1]) == ARGV[1] then
-    redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2])
-    return "OK"
-else
-    return redis.call("SET", KEYS[1], ARGV[1], "NX", "PX", ARGV[2])
-end`)
-	delScript = NewScript(`if redis.call("GET", KEYS[1]) == ARGV[1] then
-    return redis.call("DEL", KEYS[1])
-else
-    return 0
-end`)
+	//go:embed lockscript.lua
+	lockScript string
+
+	scriptLock = NewScript(lockScript)
+
+	//go:embed delscript.lua
+	delScript string
+
+	scriptDel = NewScript(delScript)
 )
 
 // A RedisLock is a redis lock.
@@ -62,7 +61,7 @@ func (rl *RedisLock) Acquire() (bool, error) {
 // AcquireCtx acquires the lock with the given ctx.
 func (rl *RedisLock) AcquireCtx(ctx context.Context) (bool, error) {
 	seconds := atomic.LoadUint32(&rl.seconds)
-	resp, err := rl.store.ScriptRunCtx(ctx, lockScript, []string{rl.key}, []string{
+	resp, err := rl.store.ScriptRunCtx(ctx, scriptLock, []string{rl.key}, []string{
 		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
 	})
 	if errors.Is(err, red.Nil) {
@@ -90,7 +89,7 @@ func (rl *RedisLock) Release() (bool, error) {
 
 // ReleaseCtx releases the lock with the given ctx.
 func (rl *RedisLock) ReleaseCtx(ctx context.Context) (bool, error) {
-	resp, err := rl.store.ScriptRunCtx(ctx, delScript, []string{rl.key}, []string{rl.id})
+	resp, err := rl.store.ScriptRunCtx(ctx, scriptDel, []string{rl.key}, []string{rl.id})
 	if err != nil {
 		return false, err
 	}
