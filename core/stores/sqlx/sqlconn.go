@@ -120,7 +120,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.run(func() error {
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
@@ -148,7 +148,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.run(func() error {
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
@@ -256,7 +256,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.run(func() error {
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
 	if errors.Is(err, breaker.ErrServiceUnavailable) {
@@ -287,7 +287,7 @@ func (db *commonSqlConn) acceptable(err error) bool {
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...any) (err error) {
 	var scanFailed bool
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.run(func() error {
 		conn, err := db.connProv()
 		if err != nil {
 			db.onError(ctx, err)
@@ -309,6 +309,10 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	}
 
 	return
+}
+
+func (db *commonSqlConn) run(fn func() error, acceptable breaker.Acceptable) error {
+	return runWithBreaker(db.brk, fn, acceptable)
 }
 
 // WithAcceptable returns a SqlOption that setting the acceptable function.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -78,4 +79,20 @@ func TestBreakerInterceptor(t *testing.T) {
 			assert.Equal(t, test.err, err)
 		})
 	}
+}
+
+func TestBreakerTimeout(t *testing.T) {
+	t.Run("not timeout", func(t *testing.T) {
+		cc := new(grpc.ClientConn)
+		for i := 0; i < 1000; i++ {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+			err := BreakerInterceptor(ctx, "/foo", nil, nil, cc,
+				func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
+					opts ...grpc.CallOption) error {
+					return context.DeadlineExceeded
+				})
+			assert.ErrorIs(t, err, context.DeadlineExceeded)
+			cancel()
+		}
+	})
 }

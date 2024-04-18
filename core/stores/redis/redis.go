@@ -2371,10 +2371,6 @@ func withHook(hook red.Hook) Option {
 	}
 }
 
-func acceptable(err error) bool {
-	return err == nil || errors.Is(err, red.Nil) || errors.Is(err, context.Canceled)
-}
-
 func getRedis(r *Redis) (RedisNode, error) {
 	switch r.Type {
 	case ClusterType:

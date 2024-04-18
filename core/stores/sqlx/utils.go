@@ -8,9 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/core/timex"
 )
+
+const minTimeout = time.Millisecond * 100
 
 var errUnbalancedEscape = errors.New("no char after escape char")
 
@@ -146,6 +150,17 @@ func logSqlError(ctx context.Context, stmt string, err error) {
 	if err != nil && !errors.Is(err, ErrNotFound) {
 		logx.WithContext(ctx).Errorf("stmt: %s, error: %s", stmt, err.Error())
 	}
+}
+
+func runWithBreaker(brk breaker.Breaker, fn func() error, acceptable breaker.Acceptable) error {
+	start := timex.Now()
+	return brk.DoWithAcceptable(fn, func(err error) bool {
+		if acceptable(err) {
+			return true
+		}
+
+		return errors.Is(err, context.DeadlineExceeded) && timex.Since(start) < minTimeout
+	})
 }
 
 func writeValue(buf *strings.Builder, arg any) {
