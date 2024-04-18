@@ -26,7 +26,7 @@ func (h breakerHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 			return next(ctx, cmd)
 		}
 
-		return h.brk.DoWithAcceptable(func() error {
+		return h.brk.DoWithAcceptableCtx(ctx, func() error {
 			return next(ctx, cmd)
 		}, acceptable)
 	}
@@ -34,7 +34,7 @@ func (h breakerHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 
 func (h breakerHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []red.Cmder) error {
-		return h.brk.DoWithAcceptable(func() error {
+		return h.brk.DoWithAcceptableCtx(ctx, func() error {
 			return next(ctx, cmds)
 		}, acceptable)
 	}

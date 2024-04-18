@@ -63,7 +63,7 @@ func (s namedService) do(r *http.Request) (resp *http.Response, err error) {
 	}
 
 	brk := breaker.GetBreaker(s.name)
-	err = brk.DoWithAcceptable(func() error {
+	err = brk.DoWithAcceptableCtx(r.Context(), func() error {
 		resp, err = s.cli.Do(r)
 		return err
 	}, func(err error) bool {
