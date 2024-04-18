@@ -41,6 +41,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		templateFile:    handlerTemplateFile,
 		builtinTemplate: handlerTemplate,
 		data: map[string]any{
+			"RootPkg":        rootPkg,
 			"PkgName":        pkgName,
 			"ImportPackages": genHandlerImports(group, route, rootPkg),
 			"HandlerName":    handler,
