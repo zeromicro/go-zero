@@ -4,18 +4,28 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
 type (
-	// RollingWindowOption let callers customize the RollingWindow.
-	RollingWindowOption func(rollingWindow *RollingWindow)
+	// BucketInterface is the interface that defines the buckets.
+	BucketInterface[T Numerical] interface {
+		Add(v T)
+		Reset()
+	}
 
-	// RollingWindow defines a rolling window to calculate the events in buckets with time interval.
-	RollingWindow struct {
+	// Numerical is the interface that restricts the numerical type.
+	Numerical = mathx.Numerical
+
+	// RollingWindowOption let callers customize the RollingWindow.
+	RollingWindowOption[T Numerical, B BucketInterface[T]] func(rollingWindow *RollingWindow[T, B])
+
+	// RollingWindow defines a rolling window to calculate the events in buckets with the time interval.
+	RollingWindow[T Numerical, B BucketInterface[T]] struct {
 		lock          sync.RWMutex
 		size          int
-		win           *window
+		win           *window[T, B]
 		interval      time.Duration
 		offset        int
 		ignoreCurrent bool
@@ -25,14 +35,15 @@ type (
 
 // NewRollingWindow returns a RollingWindow that with size buckets and time interval,
 // use opts to customize the RollingWindow.
-func NewRollingWindow(size int, interval time.Duration, opts ...RollingWindowOption) *RollingWindow {
+func NewRollingWindow[T Numerical, B BucketInterface[T]](newBucket func() B, size int,
+	interval time.Duration, opts ...RollingWindowOption[T, B]) *RollingWindow[T, B] {
 	if size < 1 {
 		panic("size must be greater than 0")
 	}
 
-	w := &RollingWindow{
+	w := &RollingWindow[T, B]{
 		size:     size,
-		win:      newWindow(size),
+		win:      newWindow[T, B](newBucket, size),
 		interval: interval,
 		lastTime: timex.Now(),
 	}
@@ -43,7 +54,7 @@ func NewRollingWindow(size int, interval time.Duration, opts ...RollingWindowOpt
 }
 
 // Add adds value to current bucket.
-func (rw *RollingWindow) Add(v float64) {
+func (rw *RollingWindow[T, B]) Add(v T) {
 	rw.lock.Lock()
 	defer rw.lock.Unlock()
 	rw.updateOffset()
@@ -51,13 +62,13 @@ func (rw *RollingWindow) Add(v float64) {
 }
 
 // Reduce runs fn on all buckets, ignore current bucket if ignoreCurrent was set.
-func (rw *RollingWindow) Reduce(fn func(b *Bucket)) {
+func (rw *RollingWindow[T, B]) Reduce(fn func(b B)) {
 	rw.lock.RLock()
 	defer rw.lock.RUnlock()
 
 	var diff int
 	span := rw.span()
-	// ignore current bucket, because of partial data
+	// ignore the current bucket, because of partial data
 	if span == 0 && rw.ignoreCurrent {
 		diff = rw.size - 1
 	} else {
@@ -69,7 +80,7 @@ func (rw *RollingWindow) Reduce(fn func(b *Bucket)) {
 	}
 }
 
-func (rw *RollingWindow) span() int {
+func (rw *RollingWindow[T, B]) span() int {
 	offset := int(timex.Since(rw.lastTime) / rw.interval)
 	if 0 <= offset && offset < rw.size {
 		return offset
@@ -78,7 +89,7 @@ func (rw *RollingWindow) span() int {
 	return rw.size
 }
 
-func (rw *RollingWindow) updateOffset() {
+func (rw *RollingWindow[T, B]) updateOffset() {
 	span := rw.span()
 	if span <= 0 {
 		return
@@ -97,54 +108,54 @@ func (rw *RollingWindow) updateOffset() {
 }
 
 // Bucket defines the bucket that holds sum and num of additions.
-type Bucket struct {
-	Sum   float64
+type Bucket[T Numerical] struct {
+	Sum   T
 	Count int64
 }
 
-func (b *Bucket) add(v float64) {
+func (b *Bucket[T]) Add(v T) {
 	b.Sum += v
 	b.Count++
 }
 
-func (b *Bucket) reset() {
+func (b *Bucket[T]) Reset() {
 	b.Sum = 0
 	b.Count = 0
 }
 
-type window struct {
-	buckets []*Bucket
+type window[T Numerical, B BucketInterface[T]] struct {
+	buckets []B
 	size    int
 }
 
-func newWindow(size int) *window {
-	buckets := make([]*Bucket, size)
+func newWindow[T Numerical, B BucketInterface[T]](newBucket func() B, size int) *window[T, B] {
+	buckets := make([]B, size)
 	for i := 0; i < size; i++ {
-		buckets[i] = new(Bucket)
+		buckets[i] = newBucket()
 	}
-	return &window{
+	return &window[T, B]{
 		buckets: buckets,
 		size:    size,
 	}
 }
 
-func (w *window) add(offset int, v float64) {
-	w.buckets[offset%w.size].add(v)
+func (w *window[T, B]) add(offset int, v T) {
+	w.buckets[offset%w.size].Add(v)
 }
 
-func (w *window) reduce(start, count int, fn func(b *Bucket)) {
+func (w *window[T, B]) reduce(start, count int, fn func(b B)) {
 	for i := 0; i < count; i++ {
 		fn(w.buckets[(start+i)%w.size])
 	}
 }
 
-func (w *window) resetBucket(offset int) {
-	w.buckets[offset%w.size].reset()
+func (w *window[T, B]) resetBucket(offset int) {
+	w.buckets[offset%w.size].Reset()
 }
 
 // IgnoreCurrentBucket lets the Reduce call ignore current bucket.
-func IgnoreCurrentBucket() RollingWindowOption {
-	return func(w *RollingWindow) {
+func IgnoreCurrentBucket[T Numerical, B BucketInterface[T]]() RollingWindowOption[T, B] {
+	return func(w *RollingWindow[T, B]) {
 		w.ignoreCurrent = true
 	}
 }

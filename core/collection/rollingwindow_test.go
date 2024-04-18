@@ -12,18 +12,24 @@ import (
 const duration = time.Millisecond * 50
 
 func TestNewRollingWindow(t *testing.T) {
-	assert.NotNil(t, NewRollingWindow(10, time.Second))
+	assert.NotNil(t, NewRollingWindow[int64, *Bucket[int64]](func() *Bucket[int64] {
+		return new(Bucket[int64])
+	}, 10, time.Second))
 	assert.Panics(t, func() {
-		NewRollingWindow(0, time.Second)
+		NewRollingWindow[int64, *Bucket[int64]](func() *Bucket[int64] {
+			return new(Bucket[int64])
+		}, 0, time.Second)
 	})
 }
 
 func TestRollingWindowAdd(t *testing.T) {
 	const size = 3
-	r := NewRollingWindow(size, duration)
+	r := NewRollingWindow[float64, *Bucket[float64]](func() *Bucket[float64] {
+		return new(Bucket[float64])
+	}, size, duration)
 	listBuckets := func() []float64 {
 		var buckets []float64
-		r.Reduce(func(b *Bucket) {
+		r.Reduce(func(b *Bucket[float64]) {
 			buckets = append(buckets, b.Sum)
 		})
 		return buckets
@@ -47,10 +53,12 @@ func TestRollingWindowAdd(t *testing.T) {
 
 func TestRollingWindowReset(t *testing.T) {
 	const size = 3
-	r := NewRollingWindow(size, duration, IgnoreCurrentBucket())
+	r := NewRollingWindow[float64, *Bucket[float64]](func() *Bucket[float64] {
+		return new(Bucket[float64])
+	}, size, duration, IgnoreCurrentBucket[float64, *Bucket[float64]]())
 	listBuckets := func() []float64 {
 		var buckets []float64
-		r.Reduce(func(b *Bucket) {
+		r.Reduce(func(b *Bucket[float64]) {
 			buckets = append(buckets, b.Sum)
 		})
 		return buckets
@@ -72,15 +80,19 @@ func TestRollingWindowReset(t *testing.T) {
 func TestRollingWindowReduce(t *testing.T) {
 	const size = 4
 	tests := []struct {
-		win    *RollingWindow
+		win    *RollingWindow[float64, *Bucket[float64]]
 		expect float64
 	}{
 		{
-			win:    NewRollingWindow(size, duration),
+			win: NewRollingWindow[float64, *Bucket[float64]](func() *Bucket[float64] {
+				return new(Bucket[float64])
+			}, size, duration),
 			expect: 10,
 		},
 		{
-			win:    NewRollingWindow(size, duration, IgnoreCurrentBucket()),
+			win: NewRollingWindow[float64, *Bucket[float64]](func() *Bucket[float64] {
+				return new(Bucket[float64])
+			}, size, duration, IgnoreCurrentBucket[float64, *Bucket[float64]]()),
 			expect: 4,
 		},
 	}
@@ -97,7 +109,7 @@ func TestRollingWindowReduce(t *testing.T) {
 				}
 			}
 			var result float64
-			r.Reduce(func(b *Bucket) {
+			r.Reduce(func(b *Bucket[float64]) {
 				result += b.Sum
 			})
 			assert.Equal(t, test.expect, result)
@@ -108,10 +120,12 @@ func TestRollingWindowReduce(t *testing.T) {
 func TestRollingWindowBucketTimeBoundary(t *testing.T) {
 	const size = 3
 	interval := time.Millisecond * 30
-	r := NewRollingWindow(size, interval)
+	r := NewRollingWindow[float64, *Bucket[float64]](func() *Bucket[float64] {
+		return new(Bucket[float64])
+	}, size, interval)
 	listBuckets := func() []float64 {
 		var buckets []float64
-		r.Reduce(func(b *Bucket) {
+		r.Reduce(func(b *Bucket[float64]) {
 			buckets = append(buckets, b.Sum)
 		})
 		return buckets
@@ -138,7 +152,9 @@ func TestRollingWindowBucketTimeBoundary(t *testing.T) {
 
 func TestRollingWindowDataRace(t *testing.T) {
 	const size = 3
-	r := NewRollingWindow(size, duration)
+	r := NewRollingWindow[float64, *Bucket[float64]](func() *Bucket[float64] {
+		return new(Bucket[float64])
+	}, size, duration)
 	stop := make(chan bool)
 	go func() {
 		for {
@@ -157,7 +173,7 @@ func TestRollingWindowDataRace(t *testing.T) {
 			case <-stop:
 				return
 			default:
-				r.Reduce(func(b *Bucket) {})
+				r.Reduce(func(b *Bucket[float64]) {})
 			}
 		}
 	}()

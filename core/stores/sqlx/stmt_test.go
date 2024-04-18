@@ -302,10 +302,10 @@ func TestQueryRowsScanTimeout(t *testing.T) {
 			Foo string
 		}
 		conn := NewSqlConnFromDB(db)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-		defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*2)
 		err := conn.QueryRowsCtx(ctx, &val, "any")
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
+		cancel()
 	})
 }
 
