@@ -24,7 +24,7 @@ func StreamBreakerInterceptor(svr any, stream grpc.ServerStream, info *grpc.Stre
 func UnaryBreakerInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp any, err error) {
 	breakerName := info.FullMethod
-	err = breaker.DoWithAcceptable(breakerName, func() error {
+	err = breaker.DoWithAcceptableCtx(ctx, breakerName, func() error {
 		var err error
 		resp, err = handler(ctx, req)
 		return err

@@ -9,6 +9,7 @@ import (
 
 const (
 	category                              = "model"
+	customizedTemplateFile                = "customized.tpl"
 	deleteTemplateFile                    = "delete.tpl"
 	deleteMethodTemplateFile              = "interface-delete.tpl"
 	fieldTemplateFile                     = "field.tpl"
@@ -34,6 +35,7 @@ const (
 )
 
 var templates = map[string]string{
+	customizedTemplateFile:                template.Customized,
 	deleteTemplateFile:                    template.Delete,
 	deleteMethodTemplateFile:              template.DeleteMethod,
 	fieldTemplateFile:                     template.Field,

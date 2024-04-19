@@ -191,6 +191,15 @@ func (tw *timeoutWriter) Write(p []byte) (int, error) {
 	return tw.wbuf.Write(p)
 }
 
+func (tw *timeoutWriter) WriteHeader(code int) {
+	tw.mu.Lock()
+	defer tw.mu.Unlock()
+
+	if !tw.wroteHeader {
+		tw.writeHeaderLocked(code)
+	}
+}
+
 func (tw *timeoutWriter) writeHeaderLocked(code int) {
 	checkWriteHeaderCode(code)
 
@@ -206,15 +215,6 @@ func (tw *timeoutWriter) writeHeaderLocked(code int) {
 	default:
 		tw.wroteHeader = true
 		tw.code = code
-	}
-}
-
-func (tw *timeoutWriter) WriteHeader(code int) {
-	tw.mu.Lock()
-	defer tw.mu.Unlock()
-
-	if !tw.wroteHeader {
-		tw.writeHeaderLocked(code)
 	}
 }
 

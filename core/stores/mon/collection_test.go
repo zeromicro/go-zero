@@ -595,7 +595,15 @@ func (d *dropBreaker) Allow() (breaker.Promise, error) {
 	return nil, errDummy
 }
 
+func (d *dropBreaker) AllowCtx(_ context.Context) (breaker.Promise, error) {
+	return nil, errDummy
+}
+
 func (d *dropBreaker) Do(_ func() error) error {
+	return nil
+}
+
+func (d *dropBreaker) DoCtx(_ context.Context, _ func() error) error {
 	return nil
 }
 
@@ -603,11 +611,24 @@ func (d *dropBreaker) DoWithAcceptable(_ func() error, _ breaker.Acceptable) err
 	return errDummy
 }
 
+func (d *dropBreaker) DoWithAcceptableCtx(_ context.Context, _ func() error, _ breaker.Acceptable) error {
+	return errDummy
+}
+
 func (d *dropBreaker) DoWithFallback(_ func() error, _ breaker.Fallback) error {
+	return nil
+}
+
+func (d *dropBreaker) DoWithFallbackCtx(_ context.Context, _ func() error, _ breaker.Fallback) error {
 	return nil
 }
 
 func (d *dropBreaker) DoWithFallbackAcceptable(_ func() error, _ breaker.Fallback,
 	_ breaker.Acceptable) error {
+	return nil
+}
+
+func (d *dropBreaker) DoWithFallbackAcceptableCtx(_ context.Context, _ func() error,
+	_ breaker.Fallback, _ breaker.Acceptable) error {
 	return nil
 }

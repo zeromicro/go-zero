@@ -35,6 +35,5 @@ LABEL org.opencontainers.image.description="A cloud-native Go microservices fram
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.source="https://github.com/zeromicro/go-zero"
 LABEL org.opencontainers.image.title="goctl (cli)"
-LABEL org.opencontainers.image.version="v1.6.3"
 
 ENTRYPOINT ["/usr/local/bin/goctl"]

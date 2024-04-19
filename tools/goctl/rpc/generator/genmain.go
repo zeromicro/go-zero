@@ -11,15 +11,17 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 //go:embed main.tpl
 var mainTemplate string
 
 type MainServiceTemplateData struct {
-	Service   string
-	ServerPkg string
-	Pkg       string
+	GRPCService string
+	Service     string
+	ServerPkg   string
+	Pkg         string
 }
 
 // GenMain generates the main file of the rpc service, which is an rpc service program call entry
@@ -57,9 +59,10 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 		}
 		imports = append(imports, remoteImport)
 		serviceNames = append(serviceNames, MainServiceTemplateData{
-			Service:   parser.CamelCase(e.Name),
-			ServerPkg: serverPkg,
-			Pkg:       proto.PbPackage,
+			GRPCService: parser.CamelCase(e.Name),
+			Service:     stringx.From(e.Name).ToCamel(),
+			ServerPkg:   serverPkg,
+			Pkg:         proto.PbPackage,
 		})
 	}
 

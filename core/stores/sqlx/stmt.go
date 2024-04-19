@@ -65,7 +65,7 @@ func (s statement) ExecCtx(ctx context.Context, args ...any) (result sql.Result,
 		endSpan(span, err)
 	}()
 
-	err = s.brk.DoWithAcceptable(func() error {
+	err = s.brk.DoWithAcceptableCtx(ctx, func() error {
 		result, err = execStmt(ctx, s.stmt, s.query, args...)
 		return err
 	}, func(err error) bool {
@@ -141,10 +141,10 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) error,
 	v any, args ...any) error {
 	var scanFailed bool
-	err := s.brk.DoWithAcceptable(func() error {
+	err := s.brk.DoWithAcceptableCtx(ctx, func() error {
 		return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 			err := scanFn(v, rows)
-			if err != nil {
+			if isScanFailed(err) {
 				scanFailed = true
 			}
 			return err

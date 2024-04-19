@@ -7,6 +7,7 @@ import (
 	{{.ImportPackages}}
 )
 
+{{if .HasDoc}}{{.Doc}}{{end}}
 func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		{{if .HasRequest}}var req types.{{.RequestType}}
