@@ -45,10 +45,14 @@ func TestCircuitBreaker_Allow(t *testing.T) {
 	t.Run("allow with ctx cancel", func(t *testing.T) {
 		b := NewBreaker()
 		assert.True(t, len(b.Name()) > 0)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		cancel()
-		_, err := b.AllowCtx(ctx)
-		assert.ErrorIs(t, err, context.Canceled)
+		for i := 0; i < 100; i++ {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			cancel()
+			_, err := b.AllowCtx(ctx)
+			assert.ErrorIs(t, err, context.Canceled)
+		}
+		_, err := b.AllowCtx(context.Background())
+		assert.NoError(t, err)
 	})
 }
 
@@ -86,12 +90,17 @@ func TestCircuitBreaker_Do(t *testing.T) {
 	t.Run("do with ctx cancel", func(t *testing.T) {
 		b := NewBreaker()
 		assert.True(t, len(b.Name()) > 0)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		cancel()
-		err := b.DoCtx(ctx, func() error {
+		for i := 0; i < 100; i++ {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			cancel()
+			err := b.DoCtx(ctx, func() error {
+				return nil
+			})
+			assert.ErrorIs(t, err, context.Canceled)
+		}
+		assert.NoError(t, b.DoCtx(context.Background(), func() error {
 			return nil
-		})
-		assert.ErrorIs(t, err, context.Canceled)
+		}))
 	})
 }
 
@@ -135,14 +144,21 @@ func TestCircuitBreaker_DoWithAcceptable(t *testing.T) {
 	t.Run("doWithAcceptable with ctx cancel", func(t *testing.T) {
 		b := NewBreaker()
 		assert.True(t, len(b.Name()) > 0)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		cancel()
-		err := b.DoWithAcceptableCtx(ctx, func() error {
+		for i := 0; i < 100; i++ {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			cancel()
+			err := b.DoWithAcceptableCtx(ctx, func() error {
+				return nil
+			}, func(err error) bool {
+				return true
+			})
+			assert.ErrorIs(t, err, context.Canceled)
+		}
+		assert.NoError(t, b.DoWithAcceptableCtx(context.Background(), func() error {
 			return nil
 		}, func(err error) bool {
 			return true
-		})
-		assert.ErrorIs(t, err, context.Canceled)
+		}))
 	})
 }
 
@@ -186,14 +202,21 @@ func TestCircuitBreaker_DoWithFallback(t *testing.T) {
 	t.Run("doWithFallback with ctx cancel", func(t *testing.T) {
 		b := NewBreaker()
 		assert.True(t, len(b.Name()) > 0)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		cancel()
-		err := b.DoWithFallbackCtx(ctx, func() error {
+		for i := 0; i < 100; i++ {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			cancel()
+			err := b.DoWithFallbackCtx(ctx, func() error {
+				return nil
+			}, func(err error) error {
+				return err
+			})
+			assert.ErrorIs(t, err, context.Canceled)
+		}
+		assert.NoError(t, b.DoWithFallbackCtx(context.Background(), func() error {
 			return nil
 		}, func(err error) error {
 			return err
-		})
-		assert.ErrorIs(t, err, context.Canceled)
+		}))
 	})
 }
 
@@ -243,16 +266,25 @@ func TestCircuitBreaker_DoWithFallbackAcceptable(t *testing.T) {
 	t.Run("doWithFallbackAcceptable with ctx cancel", func(t *testing.T) {
 		b := NewBreaker()
 		assert.True(t, len(b.Name()) > 0)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		cancel()
-		err := b.DoWithFallbackAcceptableCtx(ctx, func() error {
+		for i := 0; i < 100; i++ {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			cancel()
+			err := b.DoWithFallbackAcceptableCtx(ctx, func() error {
+				return nil
+			}, func(err error) error {
+				return err
+			}, func(err error) bool {
+				return true
+			})
+			assert.ErrorIs(t, err, context.Canceled)
+		}
+		assert.NoError(t, b.DoWithFallbackAcceptableCtx(context.Background(), func() error {
 			return nil
 		}, func(err error) error {
 			return err
 		}, func(err error) bool {
 			return true
-		})
-		assert.ErrorIs(t, err, context.Canceled)
+		}))
 	})
 }
 
