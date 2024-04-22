@@ -22,7 +22,9 @@ func init() {
 }
 
 func getGoogleBreaker() *googleBreaker {
-	st := collection.NewRollingWindow(testBuckets, testInterval)
+	st := collection.NewRollingWindow[int64, *bucket](func() *bucket {
+		return new(bucket)
+	}, testBuckets, testInterval)
 	return &googleBreaker{
 		stat:  st,
 		k:     5,
@@ -60,6 +62,32 @@ func TestGoogleBreakerOpen(t *testing.T) {
 	time.Sleep(testInterval * 2)
 	verify(t, func() bool {
 		return b.accept() != nil
+	})
+}
+
+func TestGoogleBreakerRecover(t *testing.T) {
+	st := collection.NewRollingWindow[int64, *bucket](func() *bucket {
+		return new(bucket)
+	}, testBuckets*2, testInterval)
+	b := &googleBreaker{
+		stat:  st,
+		k:     k,
+		proba: mathx.NewProba(),
+	}
+	for i := 0; i < testBuckets; i++ {
+		for j := 0; j < 100; j++ {
+			b.stat.Add(1)
+		}
+		time.Sleep(testInterval)
+	}
+	for i := 0; i < testBuckets; i++ {
+		for j := 0; j < 100; j++ {
+			b.stat.Add(0)
+		}
+		time.Sleep(testInterval)
+	}
+	verify(t, func() bool {
+		return b.accept() == nil
 	})
 }
 
@@ -164,41 +192,38 @@ func TestGoogleBreakerSelfProtection(t *testing.T) {
 }
 
 func TestGoogleBreakerHistory(t *testing.T) {
-	var b *googleBreaker
-	var accepts, total int64
-
 	sleep := testInterval
 	t.Run("accepts == total", func(t *testing.T) {
-		b = getGoogleBreaker()
+		b := getGoogleBreaker()
 		markSuccessWithDuration(b, 10, sleep/2)
-		accepts, total = b.history()
-		assert.Equal(t, int64(10), accepts)
-		assert.Equal(t, int64(10), total)
+		result := b.history()
+		assert.Equal(t, int64(10), result.accepts)
+		assert.Equal(t, int64(10), result.total)
 	})
 
 	t.Run("fail == total", func(t *testing.T) {
-		b = getGoogleBreaker()
+		b := getGoogleBreaker()
 		markFailedWithDuration(b, 10, sleep/2)
-		accepts, total = b.history()
-		assert.Equal(t, int64(0), accepts)
-		assert.Equal(t, int64(10), total)
+		result := b.history()
+		assert.Equal(t, int64(0), result.accepts)
+		assert.Equal(t, int64(10), result.total)
 	})
 
 	t.Run("accepts = 1/2 * total, fail = 1/2 * total", func(t *testing.T) {
-		b = getGoogleBreaker()
+		b := getGoogleBreaker()
 		markFailedWithDuration(b, 5, sleep/2)
 		markSuccessWithDuration(b, 5, sleep/2)
-		accepts, total = b.history()
-		assert.Equal(t, int64(5), accepts)
-		assert.Equal(t, int64(10), total)
+		result := b.history()
+		assert.Equal(t, int64(5), result.accepts)
+		assert.Equal(t, int64(10), result.total)
 	})
 
 	t.Run("auto reset rolling counter", func(t *testing.T) {
-		b = getGoogleBreaker()
+		b := getGoogleBreaker()
 		time.Sleep(testInterval * testBuckets)
-		accepts, total = b.history()
-		assert.Equal(t, int64(0), accepts)
-		assert.Equal(t, int64(0), total)
+		result := b.history()
+		assert.Equal(t, int64(0), result.accepts)
+		assert.Equal(t, int64(0), result.total)
 	})
 }
 

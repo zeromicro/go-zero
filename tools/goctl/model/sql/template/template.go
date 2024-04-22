@@ -7,6 +7,11 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
+// Customized defines a template for customized in model
+//
+//go:embed tpl/customized.tpl
+var Customized string
+
 // Vars defines a template for var block in model
 //
 //go:embed tpl/var.tpl
@@ -51,6 +56,7 @@ package {{.pkg}}
 {{.update}}
 {{.extraMethod}}
 {{.tableName}}
+{{.customized}}
 `, util.DoNotEditHead)
 
 // Insert defines a template for insert code in model

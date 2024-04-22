@@ -58,7 +58,7 @@ func TestAdaptiveShedder(t *testing.T) {
 func TestAdaptiveShedderMaxPass(t *testing.T) {
 	passCounter := newRollingWindow()
 	for i := 1; i <= 10; i++ {
-		passCounter.Add(float64(i * 100))
+		passCounter.Add(int64(i * 100))
 		time.Sleep(bucketDuration)
 	}
 	shedder := &adaptiveShedder{
@@ -83,7 +83,7 @@ func TestAdaptiveShedderMinRt(t *testing.T) {
 			time.Sleep(bucketDuration)
 		}
 		for j := i*10 + 1; j <= i*10+10; j++ {
-			rtCounter.Add(float64(j))
+			rtCounter.Add(int64(j))
 		}
 	}
 	shedder := &adaptiveShedder{
@@ -107,9 +107,9 @@ func TestAdaptiveShedderMaxFlight(t *testing.T) {
 		if i > 0 {
 			time.Sleep(bucketDuration)
 		}
-		passCounter.Add(float64((i + 1) * 100))
+		passCounter.Add(int64((i + 1) * 100))
 		for j := i*10 + 1; j <= i*10+10; j++ {
-			rtCounter.Add(float64(j))
+			rtCounter.Add(int64(j))
 		}
 	}
 	shedder := &adaptiveShedder{
@@ -129,9 +129,9 @@ func TestAdaptiveShedderShouldDrop(t *testing.T) {
 		if i > 0 {
 			time.Sleep(bucketDuration)
 		}
-		passCounter.Add(float64((i + 1) * 100))
+		passCounter.Add(int64((i + 1) * 100))
 		for j := i*10 + 1; j <= i*10+10; j++ {
-			rtCounter.Add(float64(j))
+			rtCounter.Add(int64(j))
 		}
 	}
 	shedder := &adaptiveShedder{
@@ -184,9 +184,9 @@ func TestAdaptiveShedderStillHot(t *testing.T) {
 		if i > 0 {
 			time.Sleep(bucketDuration)
 		}
-		passCounter.Add(float64((i + 1) * 100))
+		passCounter.Add(int64((i + 1) * 100))
 		for j := i*10 + 1; j <= i*10+10; j++ {
-			rtCounter.Add(float64(j))
+			rtCounter.Add(int64(j))
 		}
 	}
 	shedder := &adaptiveShedder{
@@ -248,9 +248,9 @@ func BenchmarkMaxFlight(b *testing.B) {
 		if i > 0 {
 			time.Sleep(bucketDuration)
 		}
-		passCounter.Add(float64((i + 1) * 100))
+		passCounter.Add(int64((i + 1) * 100))
 		for j := i*10 + 1; j <= i*10+10; j++ {
-			rtCounter.Add(float64(j))
+			rtCounter.Add(int64(j))
 		}
 	}
 	shedder := &adaptiveShedder{
@@ -265,6 +265,8 @@ func BenchmarkMaxFlight(b *testing.B) {
 	}
 }
 
-func newRollingWindow() *collection.RollingWindow {
-	return collection.NewRollingWindow(buckets, bucketDuration, collection.IgnoreCurrentBucket())
+func newRollingWindow() *collection.RollingWindow[int64, *collection.Bucket[int64]] {
+	return collection.NewRollingWindow[int64, *collection.Bucket[int64]](func() *collection.Bucket[int64] {
+		return new(collection.Bucket[int64])
+	}, buckets, bucketDuration, collection.IgnoreCurrentBucket[int64, *collection.Bucket[int64]]())
 }
