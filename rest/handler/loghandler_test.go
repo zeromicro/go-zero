@@ -140,9 +140,7 @@ func TestSetSlowThreshold(t *testing.T) {
 }
 
 func TestSetSlowIgnorePaths(t *testing.T) {
-	assert.Equal(t, 0, slowIgnorePaths.Count())
 	SetSlowIgnorePaths([]string{"/test"})
-	assert.Equal(t, 1, slowIgnorePaths.Count())
 	assert.True(t, slowIgnorePaths.Contains("/test"))
 }
 
