@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	xrate "golang.org/x/time/rate"
@@ -103,7 +104,7 @@ func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) boo
 	if errors.Is(err, redis.Nil) {
 		return false
 	}
-	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+	if errorx.In(err, context.DeadlineExceeded, context.Canceled) {
 		logx.Errorf("fail to use rate limiter: %s", err)
 		return false
 	}
