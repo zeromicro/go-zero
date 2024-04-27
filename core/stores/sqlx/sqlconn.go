@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -267,8 +268,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	if err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone) ||
-		errors.Is(err, context.Canceled) {
+	if err == nil || errorx.In(err, sql.ErrNoRows, sql.ErrTxDone, context.Canceled) {
 		return true
 	}
 

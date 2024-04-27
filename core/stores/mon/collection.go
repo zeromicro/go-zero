@@ -2,10 +2,10 @@ package mon
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
@@ -527,19 +527,10 @@ func (p keepablePromise) keep(err error) error {
 }
 
 func acceptable(err error) bool {
-	return err == nil ||
-		errors.Is(err, mongo.ErrNoDocuments) ||
-		errors.Is(err, mongo.ErrNilValue) ||
-		errors.Is(err, mongo.ErrNilDocument) ||
-		errors.Is(err, mongo.ErrNilCursor) ||
-		errors.Is(err, mongo.ErrEmptySlice) ||
+	return err == nil || errorx.In(err, mongo.ErrNoDocuments, mongo.ErrNilValue,
+		mongo.ErrNilDocument, mongo.ErrNilCursor, mongo.ErrEmptySlice,
 		// session errors
-		errors.Is(err, session.ErrSessionEnded) ||
-		errors.Is(err, session.ErrNoTransactStarted) ||
-		errors.Is(err, session.ErrTransactInProgress) ||
-		errors.Is(err, session.ErrAbortAfterCommit) ||
-		errors.Is(err, session.ErrAbortTwice) ||
-		errors.Is(err, session.ErrCommitAfterAbort) ||
-		errors.Is(err, session.ErrUnackWCUnsupported) ||
-		errors.Is(err, session.ErrSnapshotTransaction)
+		session.ErrSessionEnded, session.ErrNoTransactStarted, session.ErrTransactInProgress,
+		session.ErrAbortAfterCommit, session.ErrAbortTwice, session.ErrCommitAfterAbort,
+		session.ErrUnackWCUnsupported, session.ErrSnapshotTransaction)
 }
