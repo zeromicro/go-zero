@@ -180,12 +180,14 @@ service example {
 	post /example/array/base (DemoOfArrayReq) returns ([]string)
 }
 
+@server (
+	group:    /prefix
+	prefix:   foo-bar
+	summary: "test"
+)
 service example {
-	@handler nestDemo1
-	post /example/nest (NestDemoReq1) returns (NestDemoResp1)
-
-	@handler nestDemo2
-	post /example/nest2 (NestDemoReq2) returns (NestDemoResp2)
+	@handler prefixDemo
+	post /example/prefix (PostFormReq) returns (PostFormResp)
 }
 
 @server (
