@@ -29,6 +29,15 @@ func TestUnaryBreakerInterceptor(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestUnaryBreakerInterceptorOK(t *testing.T) {
+	_, err := UnaryBreakerInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+		FullMethod: "any",
+	}, func(_ context.Context, _ any) (any, error) {
+		return nil, nil
+	})
+	assert.NoError(t, err)
+}
+
 func TestUnaryBreakerInterceptor_Unavailable(t *testing.T) {
 	_, err := UnaryBreakerInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "any",
