@@ -41,6 +41,8 @@ func convertError(err error) error {
 		return nil
 	}
 
+	// we don't convert context.DeadlineExceeded to status error,
+	// because grpc will convert it and return to the client.
 	if errors.Is(err, breaker.ErrServiceUnavailable) {
 		return status.Error(gcodes.Unavailable, err.Error())
 	}
