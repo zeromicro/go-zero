@@ -303,6 +303,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"prefix1:":    "/v1/v2_test/v2-beta",
 			"prefix2:":    "v1/v2_test/v2-beta",
 			"prefix3:":    "v1/v2_",
+			"prefix4:":    "a-b-c",
 			"summary:":    `"test"`,
 		}
 
