@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 
+	"github.com/zeromicro/go-zero/zrpc/resolver/internal/kube"
+
 	"google.golang.org/grpc/resolver"
 )
 
@@ -28,7 +30,7 @@ var (
 	directResolverBuilder directBuilder
 	discovResolverBuilder discovBuilder
 	etcdResolverBuilder   etcdBuilder
-	k8sResolverBuilder    kubeBuilder
+	k8sResolverBuilder    kubeBuilder = kubeBuilder{handlers: make(map[resolver.Target]*kube.EventHandler)}
 )
 
 // RegisterResolver registers the direct and discov schemes to the resolver.

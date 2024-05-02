@@ -72,7 +72,6 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	if !ok {
-		logx.Debugf("fitst time informer for %s", target)
 		handler = kube.NewEventHandler(updates)
 
 		inf := informers.NewSharedInformerFactoryWithOptions(cs, resyncInterval,
@@ -101,7 +100,6 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		b.handlers[target] = handler
 		b.lock.Unlock()
 	} else {
-		logx.Debugf("existed informer updates for %s", target)
 		updates(handler.Targets())
 	}
 
