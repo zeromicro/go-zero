@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -21,7 +22,10 @@ const (
 	nameSelector   = "metadata.name="
 )
 
-type kubeBuilder struct{}
+type kubeBuilder struct {
+	handlers map[resolver.Target]*kube.EventHandler
+	lock     sync.RWMutex
+}
 
 func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	_ resolver.BuildOptions) (resolver.Resolver, error) {
@@ -29,6 +33,10 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	if err != nil {
 		return nil, err
 	}
+
+	b.lock.RLock()
+	handler, ok := b.handlers[target]
+	b.lock.RUnlock()
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -48,7 +56,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		svc.Port = int(endpoints.Subsets[0].Ports[0].Port)
 	}
 
-	handler := kube.NewEventHandler(func(endpoints []string) {
+	updates := func(endpoints []string) {
 		var addrs []resolver.Address
 		for _, val := range subset(endpoints, subsetSize) {
 			addrs = append(addrs, resolver.Address{
@@ -61,27 +69,41 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		}); err != nil {
 			logx.Error(err)
 		}
-	})
-	inf := informers.NewSharedInformerFactoryWithOptions(cs, resyncInterval,
-		informers.WithNamespace(svc.Namespace),
-		informers.WithTweakListOptions(func(options *v1.ListOptions) {
-			options.FieldSelector = nameSelector + svc.Name
-		}))
-	in := inf.Core().V1().Endpoints()
-	_, err = in.Informer().AddEventHandler(handler)
-	if err != nil {
-		return nil, err
 	}
 
-	threading.GoSafe(func() {
-		inf.Start(proc.Done())
-	})
-	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
+	if !ok {
+		logx.Debugf("fitst time informer for %s", target)
+		handler = kube.NewEventHandler(updates)
 
-	handler.Update(endpoints)
+		inf := informers.NewSharedInformerFactoryWithOptions(cs, resyncInterval,
+			informers.WithNamespace(svc.Namespace),
+			informers.WithTweakListOptions(func(options *v1.ListOptions) {
+				options.FieldSelector = nameSelector + svc.Name
+			}))
+		in := inf.Core().V1().Endpoints()
+		_, err = in.Informer().AddEventHandler(handler)
+		if err != nil {
+			return nil, err
+		}
+
+		threading.GoSafe(func() {
+			inf.Start(proc.Done())
+		})
+
+		endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		handler.Update(endpoints)
+
+		b.lock.Lock()
+		b.handlers[target] = handler
+		b.lock.Unlock()
+	} else {
+		logx.Debugf("existed informer updates for %s", target)
+		updates(handler.Targets())
+	}
 
 	return &nopResolver{cc: cc}, nil
 }
