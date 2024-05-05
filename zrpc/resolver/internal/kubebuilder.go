@@ -22,7 +22,27 @@ const (
 	nameSelector   = "metadata.name="
 )
 
-type kubeBuilder struct{}
+type kubeResolver struct {
+	cc     resolver.ClientConn
+	stopCh chan struct{}
+	inf    informers.SharedInformerFactory
+}
+
+func (r *kubeResolver) start() {
+	threading.GoSafe(func() {
+		r.inf.Start(r.stopCh)
+	})
+}
+
+func (r *kubeResolver) ResolveNow(_ resolver.ResolveNowOptions) {}
+
+func (r *kubeResolver) Close() {
+	r.stopCh <- struct{}{}
+}
+
+type kubeBuilder struct {
+	resolver *kubeResolver
+}
 
 func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	_ resolver.BuildOptions) (resolver.Resolver, error) {
@@ -59,7 +79,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			})
 		}
 
-		if err := cc.UpdateState(resolver.State{
+		if err := b.resolver.cc.UpdateState(resolver.State{
 			Addresses: addrs,
 		}); err != nil {
 			logx.Error(err)
@@ -76,9 +96,18 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
+	b.resolver = &kubeResolver{
+		cc:     cc,
+		stopCh: make(chan struct{}),
+		inf:    inf,
+	}
+
+	b.resolver.start()
+
 	threading.GoSafe(func() {
-		inf.Start(proc.Done())
+		b.resolver.stopCh <- <-proc.Done()
 	})
+
 	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -86,7 +115,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	handler.Update(endpoints)
 
-	return &nopResolver{cc: cc}, nil
+	return &kubeResolver{cc: cc}, nil
 }
 
 func (b *kubeBuilder) Scheme() string {
