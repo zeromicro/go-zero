@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -25,6 +26,8 @@ type kubeBuilder struct{}
 
 func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	_ resolver.BuildOptions) (resolver.Resolver, error) {
+	logx.Debugf("target: %s, callstack: %s, cc ptr: %p", target, string(debug.Stack()), cc)
+
 	svc, err := kube.ParseTarget(target)
 	if err != nil {
 		return nil, err
