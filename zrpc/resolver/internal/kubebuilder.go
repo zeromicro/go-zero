@@ -36,7 +36,7 @@ func (r *kubeResolver) start() {
 func (r *kubeResolver) ResolveNow(_ resolver.ResolveNowOptions) {}
 
 func (r *kubeResolver) Close() {
-	r.stopCh <- struct{}{}
+	close(r.stopCh)
 }
 
 type kubeBuilder struct{}
