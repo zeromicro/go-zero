@@ -108,7 +108,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	resolver.start()
 
-	return &kubeResolver{cc: cc, stopCh: make(chan struct{}), inf: inf}, nil
+	return resolver, nil
 }
 
 func (b *kubeBuilder) Scheme() string {
