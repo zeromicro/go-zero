@@ -39,9 +39,7 @@ func (r *kubeResolver) Close() {
 	r.stopCh <- struct{}{}
 }
 
-type kubeBuilder struct {
-	resolver *kubeResolver
-}
+type kubeBuilder struct{}
 
 func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	_ resolver.BuildOptions) (resolver.Resolver, error) {
@@ -102,15 +100,15 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	handler.Update(endpoints)
 
-	b.resolver = &kubeResolver{
+	resolver := &kubeResolver{
 		cc:     cc,
 		stopCh: make(chan struct{}),
 		inf:    inf,
 	}
 
-	b.resolver.start()
+	resolver.start()
 
-	return &kubeResolver{cc: cc}, nil
+	return &kubeResolver{cc: cc, stopCh: make(chan struct{}), inf: inf}, nil
 }
 
 func (b *kubeBuilder) Scheme() string {
