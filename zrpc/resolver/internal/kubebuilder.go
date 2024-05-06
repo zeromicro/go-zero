@@ -78,7 +78,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			})
 		}
 
-		if err := b.resolver.cc.UpdateState(resolver.State{
+		if err := cc.UpdateState(resolver.State{
 			Addresses: addrs,
 		}); err != nil {
 			logx.Error(err)
@@ -95,6 +95,13 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
+	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	handler.Update(endpoints)
+
 	b.resolver = &kubeResolver{
 		cc:     cc,
 		stopCh: make(chan struct{}),
@@ -102,13 +109,6 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	b.resolver.start()
-
-	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	handler.Update(endpoints)
 
 	return &kubeResolver{cc: cc}, nil
 }
