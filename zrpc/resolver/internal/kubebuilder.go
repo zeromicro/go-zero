@@ -3,10 +3,10 @@ package internal
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/go-zero/zrpc/resolver/internal/kube"
 	"google.golang.org/grpc/resolver"
@@ -21,10 +21,30 @@ const (
 	nameSelector   = "metadata.name="
 )
 
+type kubeResolver struct {
+	cc     resolver.ClientConn
+	stopCh chan struct{}
+	inf    informers.SharedInformerFactory
+}
+
+func (r *kubeResolver) start() {
+	threading.GoSafe(func() {
+		r.inf.Start(r.stopCh)
+	})
+}
+
+func (r *kubeResolver) ResolveNow(_ resolver.ResolveNowOptions) {}
+
+func (r *kubeResolver) Close() {
+	close(r.stopCh)
+}
+
 type kubeBuilder struct{}
 
 func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	_ resolver.BuildOptions) (resolver.Resolver, error) {
+	logx.Debugf("target: %s, callstack: %s, cc ptr: %p", target, string(debug.Stack()), cc)
+
 	svc, err := kube.ParseTarget(target)
 	if err != nil {
 		return nil, err
@@ -73,9 +93,6 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
-	threading.GoSafe(func() {
-		inf.Start(proc.Done())
-	})
 	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -83,7 +100,15 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	handler.Update(endpoints)
 
-	return &nopResolver{cc: cc}, nil
+	resolver := &kubeResolver{
+		cc:     cc,
+		stopCh: make(chan struct{}),
+		inf:    inf,
+	}
+
+	resolver.start()
+
+	return resolver, nil
 }
 
 func (b *kubeBuilder) Scheme() string {
