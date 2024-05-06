@@ -30,9 +30,12 @@ func (b *discovBuilder) Scheme() string {
 
 func (b *discovBuilder) updateState(target resolver.Target) error {
 	if b.update == nil {
-		if err := b.buildEndpointsUpdater(target); err != nil {
+		update, err := b.buildEndpointsUpdater(target)
+		if err != nil {
 			return err
 		}
+
+		b.update = update
 	}
 
 	b.update()
@@ -40,13 +43,13 @@ func (b *discovBuilder) updateState(target resolver.Target) error {
 	return nil
 }
 
-func (b *discovBuilder) buildEndpointsUpdater(target resolver.Target) error {
+func (b *discovBuilder) buildEndpointsUpdater(target resolver.Target) (func(), error) {
 	hosts := strings.FieldsFunc(targets.GetAuthority(target), func(r rune) bool {
 		return r == EndpointSepChar
 	})
 	sub, err := discov.NewSubscriber(hosts, targets.GetEndpoints(target))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	update := func() {
@@ -64,7 +67,6 @@ func (b *discovBuilder) buildEndpointsUpdater(target resolver.Target) error {
 		}
 	}
 	sub.AddListener(update)
-	b.update = update
 
-	return nil
+	return update, nil
 }
