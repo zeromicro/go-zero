@@ -277,6 +277,20 @@ func combineGlobalFields(fields []LogField) []LogField {
 	return ret
 }
 
+func marshalJson(t interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(t)
+	// go 1.5+ will append a newline to the end of the json string
+	// https://github.com/golang/go/issues/13520
+	if l := buf.Len(); l != 0 && buf.Bytes()[l-1] == '\n' {
+		buf.Truncate(l - 1)
+	}
+
+	return buf.Bytes(), err
+}
+
 func output(writer io.Writer, level string, val any, fields ...LogField) {
 	// only truncate string content, don't know how to truncate the values of other types.
 	if v, ok := val.(string); ok {
@@ -333,7 +347,7 @@ func wrapLevelWithColor(level string) string {
 }
 
 func writeJson(writer io.Writer, info any) {
-	if content, err := json.Marshal(info); err != nil {
+	if content, err := marshalJson(info); err != nil {
 		log.Printf("err: %s\n\n%s", err.Error(), debug.Stack())
 	} else if writer == nil {
 		log.Println(string(content))
