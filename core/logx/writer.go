@@ -284,7 +284,7 @@ func marshalJson(t interface{}) ([]byte, error) {
 	err := encoder.Encode(t)
 	// go 1.5+ will append a newline to the end of the json string
 	// https://github.com/golang/go/issues/13520
-	if l := buf.Len(); l != 0 && buf.Bytes()[l-1] == '\n' {
+	if l := buf.Len(); l > 0 && buf.Bytes()[l-1] == '\n' {
 		buf.Truncate(l - 1)
 	}
 
