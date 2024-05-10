@@ -433,7 +433,7 @@ func encodeWithRecover(arg any, fn func() string) (ret string) {
 			if v := reflect.ValueOf(arg); v.Kind() == reflect.Ptr && v.IsNil() {
 				ret = nilAngleString
 			} else {
-				panic(err)
+				ret = fmt.Sprintf("panic: %v", err)
 			}
 		}
 	}()
