@@ -120,6 +120,43 @@ func TestGoogleBreakerReject(t *testing.T) {
 	}, nil, defaultAcceptable))
 }
 
+func TestGoogleBreakerMoreFallingBuckets(t *testing.T) {
+	t.Parallel()
+
+	t.Run("more falling buckets", func(t *testing.T) {
+		b := getGoogleBreaker()
+
+		func() {
+			stopChan := time.After(testInterval * minBucketsToSpeedUp * 2)
+			for {
+				time.Sleep(time.Millisecond)
+				select {
+				case <-stopChan:
+					return
+				default:
+					assert.Error(t, b.doReq(func() error {
+						return errors.New("foo")
+					}, func(err error) error {
+						return err
+					}, func(err error) bool {
+						return err == nil
+					}))
+				}
+			}
+		}()
+
+		var count int
+		for i := 0; i < 100; i++ {
+			if errors.Is(b.doReq(func() error {
+				return ErrServiceUnavailable
+			}, nil, defaultAcceptable), ErrServiceUnavailable) {
+				count++
+			}
+		}
+		assert.True(t, count > 90)
+	})
+}
+
 func TestGoogleBreakerAcceptable(t *testing.T) {
 	b := getGoogleBreaker()
 	errAcceptable := errors.New("any")
