@@ -126,7 +126,7 @@ func TestWithinTimeoutBadCode(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 }
 
-func TestWithTimeoutTimedout(t *testing.T) {
+func TestWithTimeoutTimeout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(time.Millisecond * 10)
