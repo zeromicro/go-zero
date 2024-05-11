@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -514,4 +515,24 @@ func (m mockRequest) Validate() error {
 	}
 
 	return nil
+}
+
+type mockCustomUnmarshalerStruct struct {
+	Name string
+}
+
+func (m *mockCustomUnmarshalerStruct) UnmarshalJSON(b []byte) error {
+	m.Name = string(b)
+	return nil
+}
+
+func TestCustomUnmarshalerStructRequest(t *testing.T) {
+	reqBody := `{"name": "hello"}`
+	r := httptest.NewRequest(http.MethodPost, "/a", bytes.NewReader([]byte(reqBody)))
+	r.Header.Set("Content-Type", "application/json")
+	v := struct {
+		Foo *mockCustomUnmarshalerStruct `json:"name"`
+	}{}
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, "hello", v.Foo.Name)
 }
