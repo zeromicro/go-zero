@@ -5,6 +5,8 @@ import (
 
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/mathx"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
@@ -13,9 +15,10 @@ const (
 	buckets                   = 40
 	maxFailBucketsToDecreaseK = 30
 	minBucketsToSpeedUp       = 3
+	forcePassDuration         = time.Second
 	k                         = 1.5
 	minK                      = 1.1
-	recoveryK                 = 3 - k
+	recoveryK                 = 4 - k
 	protection                = 5
 )
 
@@ -23,9 +26,10 @@ const (
 // see Client-Side Throttling section in https://landing.google.com/sre/sre-book/chapters/handling-overload/
 type (
 	googleBreaker struct {
-		k     float64
-		stat  *collection.RollingWindow[int64, *bucket]
-		proba *mathx.Proba
+		k        float64
+		stat     *collection.RollingWindow[int64, *bucket]
+		proba    *mathx.Proba
+		lastPass *syncx.AtomicDuration
 	}
 
 	windowResult struct {
@@ -42,9 +46,10 @@ func newGoogleBreaker() *googleBreaker {
 		return new(bucket)
 	}, buckets, bucketDuration)
 	return &googleBreaker{
-		stat:  st,
-		k:     k,
-		proba: mathx.NewProba(),
+		stat:     st,
+		k:        k,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
 	}
 }
 
@@ -65,6 +70,12 @@ func (b *googleBreaker) accept() error {
 		return nil
 	}
 
+	lastPass := b.lastPass.Load()
+	if lastPass > 0 && timex.Since(lastPass) > forcePassDuration {
+		b.lastPass.Set(timex.Now())
+		return nil
+	}
+
 	// If we have more than 2 working buckets, we are in recovery mode,
 	// the latest bucket is the current one, so we ignore it.
 	if history.workingBuckets >= minBucketsToSpeedUp {
@@ -74,6 +85,8 @@ func (b *googleBreaker) accept() error {
 	if b.proba.TrueOnProba(dropRatio) {
 		return ErrServiceUnavailable
 	}
+
+	b.lastPass.Set(timex.Now())
 
 	return nil
 }
@@ -140,10 +153,10 @@ func (b *googleBreaker) history() windowResult {
 		} else if b.Success > 0 {
 			result.workingBuckets++
 		}
-		if b.Drop > 0 && b.Failure > 0 {
-			result.failingBuckets++
-		} else {
+		if b.Success > 0 {
 			result.failingBuckets = 0
+		} else if b.Failure > 0 {
+			result.failingBuckets++
 		}
 	})
 
