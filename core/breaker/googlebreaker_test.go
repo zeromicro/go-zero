@@ -10,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 const (
@@ -26,9 +27,10 @@ func getGoogleBreaker() *googleBreaker {
 		return new(bucket)
 	}, testBuckets, testInterval)
 	return &googleBreaker{
-		stat:  st,
-		k:     5,
-		proba: mathx.NewProba(),
+		stat:     st,
+		k:        5,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
 	}
 }
 
@@ -70,9 +72,10 @@ func TestGoogleBreakerRecover(t *testing.T) {
 		return new(bucket)
 	}, testBuckets*2, testInterval)
 	b := &googleBreaker{
-		stat:  st,
-		k:     k,
-		proba: mathx.NewProba(),
+		stat:     st,
+		k:        k,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
 	}
 	for i := 0; i < testBuckets; i++ {
 		for j := 0; j < 100; j++ {
