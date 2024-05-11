@@ -5761,7 +5761,7 @@ func TestUnmarshalWithIgnoreFields(t *testing.T) {
 	}
 }
 
-func TestUnmarshal_JsonUnmarshaler(t *testing.T) {
+func TestUnmarshal_Unmarshaler(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		v := struct {
 			Foo *mockUnmarshaler `json:"name"`
@@ -5777,6 +5777,18 @@ func TestUnmarshal_JsonUnmarshaler(t *testing.T) {
 		}{}
 		body := `{"name": "hello"}`
 		assert.Error(t, UnmarshalJsonBytes([]byte(body), &v))
+	})
+
+	t.Run("not json unmarshaler", func(t *testing.T) {
+		v := struct {
+			Foo *struct {
+				Name string
+			} `key:"name"`
+		}{}
+		u := NewUnmarshaler(defaultKeyName)
+		assert.Error(t, u.unmarshal(map[string]any{
+			"name": "hello",
+		}, &v, "foo"))
 	})
 }
 
