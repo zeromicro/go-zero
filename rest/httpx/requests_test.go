@@ -442,6 +442,17 @@ func TestParseWithEscapedParams(t *testing.T) {
 	})
 }
 
+func TestCustomUnmarshalerStructRequest(t *testing.T) {
+	reqBody := `{"name": "hello"}`
+	r := httptest.NewRequest(http.MethodPost, "/a", bytes.NewReader([]byte(reqBody)))
+	r.Header.Set(ContentType, JsonContentType)
+	v := struct {
+		Foo *mockUnmarshaler `json:"name"`
+	}{}
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, "hello", v.Foo.Name)
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
@@ -517,22 +528,11 @@ func (m mockRequest) Validate() error {
 	return nil
 }
 
-type mockCustomUnmarshalerStruct struct {
+type mockUnmarshaler struct {
 	Name string
 }
 
-func (m *mockCustomUnmarshalerStruct) UnmarshalJSON(b []byte) error {
+func (m *mockUnmarshaler) UnmarshalJSON(b []byte) error {
 	m.Name = string(b)
 	return nil
-}
-
-func TestCustomUnmarshalerStructRequest(t *testing.T) {
-	reqBody := `{"name": "hello"}`
-	r := httptest.NewRequest(http.MethodPost, "/a", bytes.NewReader([]byte(reqBody)))
-	r.Header.Set("Content-Type", "application/json")
-	v := struct {
-		Foo *mockCustomUnmarshalerStruct `json:"name"`
-	}{}
-	assert.Nil(t, Parse(r, &v))
-	assert.Equal(t, "hello", v.Foo.Name)
 }

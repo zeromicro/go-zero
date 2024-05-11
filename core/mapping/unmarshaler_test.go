@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -5760,6 +5761,25 @@ func TestUnmarshalWithIgnoreFields(t *testing.T) {
 	}
 }
 
+func TestUnmarshal_JsonUnmarshaler(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshaler `json:"name"`
+		}{}
+		body := `{"name": "hello"}`
+		assert.NoError(t, UnmarshalJsonBytes([]byte(body), &v))
+		assert.Equal(t, "hello", v.Foo.Name)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshalerWithError `json:"name"`
+		}{}
+		body := `{"name": "hello"}`
+		assert.Error(t, UnmarshalJsonBytes([]byte(body), &v))
+	})
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
@@ -5872,4 +5892,21 @@ func (m mockValuerWithParent) Value(_ string) (any, bool) {
 
 func (m mockValuerWithParent) Parent() valuerWithParent {
 	return m.parent
+}
+
+type mockUnmarshaler struct {
+	Name string
+}
+
+func (m *mockUnmarshaler) UnmarshalJSON(b []byte) error {
+	m.Name = string(b)
+	return nil
+}
+
+type mockUnmarshalerWithError struct {
+	Name string
+}
+
+func (m *mockUnmarshalerWithError) UnmarshalJSON(b []byte) error {
+	return errors.New("foo")
 }
