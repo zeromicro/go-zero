@@ -113,27 +113,6 @@ func (u *Unmarshaler) unmarshalValuer(m Valuer, v any, fullName string) error {
 	return u.unmarshalWithFullName(simpleValuer{current: m}, v, fullName)
 }
 
-func (u *Unmarshaler) fillJsonUnmarshalerStruct(fieldType reflect.Type,
-	value reflect.Value, targetValue string) error {
-	if !value.CanSet() {
-		return errValueNotSettable
-	}
-
-	baseType := Deref(fieldType)
-	target := reflect.New(baseType)
-	unmarshaler, ok := target.Interface().(json.Unmarshaler)
-	if !ok {
-		return errUnsupportedType
-	}
-
-	if err := unmarshaler.UnmarshalJSON([]byte(targetValue)); err != nil {
-		return err
-	}
-
-	value.Set(target)
-	return nil
-}
-
 func (u *Unmarshaler) fillMap(fieldType reflect.Type, value reflect.Value,
 	mapValue any, fullName string) error {
 	if !value.CanSet() {
@@ -330,6 +309,32 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 	return u.fillSlice(derefedType, value, slice, fullName)
 }
 
+func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
+	value reflect.Value, targetValue string) error {
+	if !value.CanSet() {
+		return errValueNotSettable
+	}
+
+	baseType := Deref(fieldType)
+	target := reflect.New(baseType)
+	switch u.key {
+	case jsonTagKey:
+		unmarshaler, ok := target.Interface().(json.Unmarshaler)
+		if !ok {
+			return errUnsupportedType
+		}
+
+		if err := unmarshaler.UnmarshalJSON([]byte(targetValue)); err != nil {
+			return err
+		}
+	default:
+		return errUnsupportedType
+	}
+
+	value.Set(target)
+	return nil
+}
+
 func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 	fullName string) (reflect.Value, error) {
 	mapType := reflect.MapOf(keyType, elemType)
@@ -421,6 +426,15 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 	}
 
 	return targetValue, nil
+}
+
+func (u *Unmarshaler) implementsUnmarshaler(t reflect.Type) bool {
+	switch u.key {
+	case jsonTagKey:
+		return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
+	default:
+		return false
+	}
 }
 
 func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Valuer, fullName string) (
@@ -600,8 +614,8 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
 	case valueKind == reflect.String && derefedFieldType == durationType:
 		return fillDurationValue(fieldType, value, mapValue.(string))
-	case valueKind == reflect.String && typeKind == reflect.Struct && implementsJsonUnmarshaler(fieldType):
-		return u.fillJsonUnmarshalerStruct(fieldType, value, mapValue.(string))
+	case valueKind == reflect.String && typeKind == reflect.Struct && u.implementsUnmarshaler(fieldType):
+		return u.fillUnmarshalerStruct(fieldType, value, mapValue.(string))
 	default:
 		return u.processFieldPrimitive(fieldType, value, mapValue, opts, fullName)
 	}
@@ -1085,10 +1099,6 @@ func getValueWithChainedKeys(m valuerWithParent, keys []string) (any, bool) {
 
 		return nil, false
 	}
-}
-
-func implementsJsonUnmarshaler(t reflect.Type) bool {
-	return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
 }
 
 func join(elem ...string) string {
