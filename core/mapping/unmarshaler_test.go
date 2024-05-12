@@ -5786,9 +5786,21 @@ func TestUnmarshal_Unmarshaler(t *testing.T) {
 			} `key:"name"`
 		}{}
 		u := NewUnmarshaler(defaultKeyName)
-		assert.Error(t, u.unmarshal(map[string]any{
+		assert.Error(t, u.Unmarshal(map[string]any{
 			"name": "hello",
-		}, &v, "foo"))
+		}, &v))
+	})
+
+	t.Run("not with json key", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshaler `json:"name"`
+		}{}
+		u := NewUnmarshaler(defaultKeyName)
+		// with different key, ignore
+		assert.NoError(t, u.Unmarshal(map[string]any{
+			"name": "hello",
+		}, &v))
+		assert.Nil(t, v.Foo)
 	})
 }
 
