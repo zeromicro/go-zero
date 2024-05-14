@@ -127,7 +127,7 @@ func TestGoogleBreakerMoreFallingBuckets(t *testing.T) {
 		b := getGoogleBreaker()
 
 		func() {
-			stopChan := time.After(testInterval * minBucketsToSpeedUp * 2)
+			stopChan := time.After(testInterval * 6)
 			for {
 				time.Sleep(time.Millisecond)
 				select {
