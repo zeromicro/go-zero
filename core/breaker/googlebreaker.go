@@ -11,15 +11,12 @@ import (
 
 const (
 	// 250ms for bucket duration
-	window                    = time.Second * 10
-	buckets                   = 40
-	maxFailBucketsToDecreaseK = 30
-	minBucketsToSpeedUp       = 3
-	forcePassDuration         = time.Second
-	k                         = 1.5
-	minK                      = 1.1
-	recoveryK                 = 4 - k
-	protection                = 5
+	window            = time.Second * 10
+	buckets           = 40
+	forcePassDuration = time.Second
+	k                 = 1.5
+	minK              = 1.1
+	protection        = 5
 )
 
 // googleBreaker is a netflixBreaker pattern from google.
@@ -56,13 +53,8 @@ func newGoogleBreaker() *googleBreaker {
 func (b *googleBreaker) accept() error {
 	var w float64
 	history := b.history()
-	if history.failingBuckets >= minBucketsToSpeedUp {
-		w = b.k - float64(history.failingBuckets-1)*(b.k-minK)/maxFailBucketsToDecreaseK
-		w = mathx.AtLeast(w, minK)
-	} else {
-		w = b.k
-	}
-	weightedAccepts := w * float64(history.accepts)
+	w = b.k - (b.k-minK)*float64(history.failingBuckets)/buckets
+	weightedAccepts := mathx.AtLeast(w, minK) * float64(history.accepts)
 	// https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101
 	// for better performance, no need to care about the negative ratio
 	dropRatio := (float64(history.total-protection) - weightedAccepts) / float64(history.total+1)
@@ -76,11 +68,7 @@ func (b *googleBreaker) accept() error {
 		return nil
 	}
 
-	// If we have more than 2 working buckets, we are in recovery mode,
-	// the latest bucket is the current one, so we ignore it.
-	if history.workingBuckets >= minBucketsToSpeedUp {
-		dropRatio /= recoveryK
-	}
+	dropRatio *= float64(buckets-history.workingBuckets) / buckets
 
 	if b.proba.TrueOnProba(dropRatio) {
 		return ErrServiceUnavailable
