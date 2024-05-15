@@ -71,7 +71,7 @@ func genTemplates(_ *cobra.Command, _ []string) error {
 	}
 
 	fmt.Printf("Templates are generated in %s, %s\n", color.Green.Render(abs),
-		color.Red.Render("edit on your risk!"))
+		color.Red.Render("edit on your disk!"))
 
 	return nil
 }
