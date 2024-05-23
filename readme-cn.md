@@ -133,10 +133,12 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 2. 快速生成 api 服务
 
     ```shell
+    mkdir quickstart
+    cd quickstart
+    go mod init go-zero-quickstart
     goctl api new greet
-    cd greet
-    go mod init
     go mod tidy
+    cd greet
     go run greet.go -f etc/greet-api.yaml
     ```
 

@@ -193,9 +193,12 @@ go get -u github.com/zeromicro/go-zero
    the generated code can be run directly:
 
    ```shell
-   cd greet
-   go mod init
+   mkdir quickstart
+   cd quickstart
+   go mod init go-zero-quickstart
+   goctl api new greet
    go mod tidy
+   cd greet
    go run greet.go -f etc/greet-api.yaml
    ```
 
