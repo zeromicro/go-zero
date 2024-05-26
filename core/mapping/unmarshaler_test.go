@@ -261,6 +261,7 @@ func TestUnmarshalInt(t *testing.T) {
 		Int64FromStr int64 `key:"int64str,string"`
 		DefaultInt   int64 `key:"defaultint,default=11"`
 		Optional     int   `key:"optional,optional"`
+		IntOptDef    int   `key:"intopt,optional,default=6"`
 	}
 	m := map[string]any{
 		"int":      1,
@@ -289,6 +290,7 @@ func TestUnmarshalInt(t *testing.T) {
 		ast.Equal(int64(9), in.Int64)
 		ast.Equal(int64(10), in.Int64FromStr)
 		ast.Equal(int64(11), in.DefaultInt)
+		ast.Equal(6, in.IntOptDef)
 	}
 }
 
