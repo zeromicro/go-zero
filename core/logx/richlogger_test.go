@@ -287,6 +287,54 @@ func TestLogWithCallerSkip(t *testing.T) {
 	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestLogWithCallerSkipCopy(t *testing.T) {
+	log1 := WithCallerSkip(2)
+	log2 := log1.WithCallerSkip(3)
+	log3 := log2.WithCallerSkip(-1)
+	assert.Equal(t, 2, log1.(*richLogger).callerSkip)
+	assert.Equal(t, 3, log2.(*richLogger).callerSkip)
+	assert.Equal(t, 3, log3.(*richLogger).callerSkip)
+}
+
+func TestLogWithContextCopy(t *testing.T) {
+	c1 := context.Background()
+	c2 := context.WithValue(context.Background(), "foo", "bar")
+	log1 := WithContext(c1)
+	log2 := log1.WithContext(c2)
+	assert.Equal(t, c1, log1.(*richLogger).ctx)
+	assert.Equal(t, c2, log2.(*richLogger).ctx)
+}
+
+func TestLogWithDurationCopy(t *testing.T) {
+	log1 := WithContext(context.Background())
+	log2 := log1.WithDuration(time.Second)
+	assert.Empty(t, log1.(*richLogger).fields)
+	assert.Equal(t, 1, len(log2.(*richLogger).fields))
+
+	var w mockWriter
+	old := writer.Swap(&w)
+	defer writer.Store(old)
+	log2.Info("hello")
+	assert.Contains(t, w.String(), `"duration":"1000.0ms"`)
+}
+
+func TestLogWithFieldsCopy(t *testing.T) {
+	log1 := WithContext(context.Background())
+	log2 := log1.WithFields(Field("foo", "bar"))
+	log3 := log1.WithFields()
+	assert.Empty(t, log1.(*richLogger).fields)
+	assert.Equal(t, 1, len(log2.(*richLogger).fields))
+	assert.Equal(t, log1, log3)
+	assert.Empty(t, log3.(*richLogger).fields)
+
+	var w mockWriter
+	old := writer.Swap(&w)
+	defer writer.Store(old)
+
+	log2.Info("hello")
+	assert.Contains(t, w.String(), `"foo":"bar"`)
+}
+
 func TestLoggerWithFields(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
