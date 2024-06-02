@@ -20,8 +20,8 @@ require (
 	github.com/redis/go-redis/v9 v9.5.2
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.9.0
-	go.etcd.io/etcd/api/v3 v3.5.13
-	go.etcd.io/etcd/client/v3 v3.5.13
+	go.etcd.io/etcd/api/v3 v3.5.14
+	go.etcd.io/etcd/client/v3 v3.5.14
 	go.mongodb.org/mongo-driver v1.13.1
 	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -101,7 +101,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.13 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.14 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
