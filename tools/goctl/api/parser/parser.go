@@ -8,6 +8,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
+	apiParser "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
 type parser struct {
@@ -15,22 +17,28 @@ type parser struct {
 	spec *spec.ApiSpec
 }
 
-// Parse parses the api file
+// Parse parses the api file.
+// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// it will be removed in the future.
 func Parse(filename string) (*spec.ApiSpec, error) {
+	if env.UseExperimental() {
+		return apiParser.Parse(filename, "")
+	}
+
 	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
-	ast, err := astParser.Parse(filename)
+	parsedApi, err := astParser.Parse(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	spec := new(spec.ApiSpec)
-	p := parser{ast: ast, spec: spec}
+	apiSpec := new(spec.ApiSpec)
+	p := parser{ast: parsedApi, spec: apiSpec}
 	err = p.convert2Spec()
 	if err != nil {
 		return nil, err
 	}
 
-	return spec, nil
+	return apiSpec, nil
 }
 
 func parseContent(content string, skipCheckTypeDeclaration bool, filename ...string) (*spec.ApiSpec, error) {
@@ -40,26 +48,30 @@ func parseContent(content string, skipCheckTypeDeclaration bool, filename ...str
 	} else {
 		astParser = ast.NewParser()
 	}
-	ast, err := astParser.ParseContent(content, filename...)
+	parsedApi, err := astParser.ParseContent(content, filename...)
 	if err != nil {
 		return nil, err
 	}
 
-	spec := new(spec.ApiSpec)
-	p := parser{ast: ast, spec: spec}
+	apiSpec := new(spec.ApiSpec)
+	p := parser{ast: parsedApi, spec: apiSpec}
 	err = p.convert2Spec()
 	if err != nil {
 		return nil, err
 	}
 
-	return spec, nil
+	return apiSpec, nil
 }
 
+// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// it will be removed in the future.
 // ParseContent parses the api content
 func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
 	return parseContent(content, false, filename...)
 }
 
+// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// it will be removed in the future.
 // ParseContentWithParserSkipCheckTypeDeclaration parses the api content with skip check type declaration
 func ParseContentWithParserSkipCheckTypeDeclaration(content string, filename ...string) (*spec.ApiSpec, error) {
 	return parseContent(content, true, filename...)
@@ -168,17 +180,15 @@ func (p parser) findDefinedType(name string) (*spec.Type, error) {
 }
 
 func (p parser) fieldToMember(field *ast.TypeField) spec.Member {
-	name := ""
-	tag := ""
+	var name string
+	var tag string
 	if !field.IsAnonymous {
 		name = field.Name.Text()
-		if field.Tag == nil {
-			panic(fmt.Sprintf("error: line %d:%d field %s has no tag", field.Name.Line(), field.Name.Column(),
-				field.Name.Text()))
+		if field.Tag != nil {
+			tag = field.Tag.Text()
 		}
-
-		tag = field.Tag.Text()
 	}
+
 	return spec.Member{
 		Name:     name,
 		Type:     p.astTypeToSpec(field.DataType),
@@ -226,6 +236,7 @@ func (p parser) stringExprs(docs []ast.Expr) []string {
 		if item == nil {
 			continue
 		}
+
 		result = append(result, item.Text())
 	}
 	return result
@@ -287,11 +298,12 @@ func (p parser) fillService() error {
 			}
 
 			group.Routes = append(group.Routes, route)
-
 			name := item.ServiceApi.Name.Text()
 			if len(p.spec.Service.Name) > 0 && p.spec.Service.Name != name {
-				return fmt.Errorf("multiple service names defined %s and %s", name, p.spec.Service.Name)
+				return fmt.Errorf("multiple service names defined %s and %s",
+					name, p.spec.Service.Name)
 			}
+
 			p.spec.Service.Name = name
 		}
 		groups = append(groups, group)

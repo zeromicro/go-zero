@@ -110,7 +110,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			wg.Wait()
-			dist := make(map[interface{}]int)
+			dist := make(map[any]int)
 			conns := picker.(*p2cPicker).conns
 			for _, conn := range conns {
 				dist[conn.addr.Addr] = int(conn.requests)
@@ -123,13 +123,30 @@ func TestP2cPicker_Pick(t *testing.T) {
 	}
 }
 
+func TestPickerWithEmptyConns(t *testing.T) {
+	var picker p2cPicker
+	_, err := picker.Pick(balancer.PickInfo{
+		FullMethodName: "/",
+		Ctx:            context.Background(),
+	})
+	assert.ErrorIs(t, err, balancer.ErrNoSubConnAvailable)
+}
+
 type mockClientConn struct {
 	// add random string member to avoid map key equality.
 	id string
 }
 
-func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {
+func (m mockClientConn) GetOrBuildProducer(builder balancer.ProducerBuilder) (
+	p balancer.Producer, close func()) {
+	return builder.Build(m)
+}
+
+func (m mockClientConn) UpdateAddresses(_ []resolver.Address) {
 }
 
 func (m mockClientConn) Connect() {
+}
+
+func (m mockClientConn) Shutdown() {
 }

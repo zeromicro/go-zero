@@ -1,6 +1,8 @@
 package bloom
 
 import (
+	"context"
+	_ "embed"
 	"errors"
 	"strconv"
 
@@ -8,27 +10,22 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
-const (
-	// for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
-	// maps as k in the error rate table
-	maps      = 14
-	setScript = `
-for _, offset in ipairs(ARGV) do
-	redis.call("setbit", KEYS[1], offset, 1)
-end
-`
-	testScript = `
-for _, offset in ipairs(ARGV) do
-	if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then
-		return false
-	end
-end
-return true
-`
-)
+// for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
+// maps as k in the error rate table
+const maps = 14
 
-// ErrTooLargeOffset indicates the offset is too large in bitset.
-var ErrTooLargeOffset = errors.New("too large offset")
+var (
+	// ErrTooLargeOffset indicates the offset is too large in bitset.
+	ErrTooLargeOffset = errors.New("too large offset")
+
+	//go:embed setscript.lua
+	setLuaScript string
+	setScript    = redis.NewScript(setLuaScript)
+
+	//go:embed testscript.lua
+	testLuaScript string
+	testScript    = redis.NewScript(testLuaScript)
+)
 
 type (
 	// A Filter is a bloom filter.
@@ -38,8 +35,8 @@ type (
 	}
 
 	bitSetProvider interface {
-		check([]uint) (bool, error)
-		set([]uint) error
+		check(ctx context.Context, offsets []uint) (bool, error)
+		set(ctx context.Context, offsets []uint) error
 	}
 )
 
@@ -58,14 +55,24 @@ func New(store *redis.Redis, key string, bits uint) *Filter {
 
 // Add adds data into f.
 func (f *Filter) Add(data []byte) error {
+	return f.AddCtx(context.Background(), data)
+}
+
+// AddCtx adds data into f with context.
+func (f *Filter) AddCtx(ctx context.Context, data []byte) error {
 	locations := f.getLocations(data)
-	return f.bitSet.set(locations)
+	return f.bitSet.set(ctx, locations)
 }
 
 // Exists checks if data is in f.
 func (f *Filter) Exists(data []byte) (bool, error) {
+	return f.ExistsCtx(context.Background(), data)
+}
+
+// ExistsCtx checks if data is in f with context.
+func (f *Filter) ExistsCtx(ctx context.Context, data []byte) (bool, error) {
 	locations := f.getLocations(data)
-	isSet, err := f.bitSet.check(locations)
+	isSet, err := f.bitSet.check(ctx, locations)
 	if err != nil {
 		return false, err
 	}
@@ -111,14 +118,14 @@ func (r *redisBitSet) buildOffsetArgs(offsets []uint) ([]string, error) {
 	return args, nil
 }
 
-func (r *redisBitSet) check(offsets []uint) (bool, error) {
+func (r *redisBitSet) check(ctx context.Context, offsets []uint) (bool, error) {
 	args, err := r.buildOffsetArgs(offsets)
 	if err != nil {
 		return false, err
 	}
 
-	resp, err := r.store.Eval(testScript, []string{r.key}, args)
-	if err == redis.Nil {
+	resp, err := r.store.ScriptRunCtx(ctx, testScript, []string{r.key}, args)
+	if errors.Is(err, redis.Nil) {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -132,23 +139,25 @@ func (r *redisBitSet) check(offsets []uint) (bool, error) {
 	return exists == 1, nil
 }
 
+// del only use for testing.
 func (r *redisBitSet) del() error {
 	_, err := r.store.Del(r.key)
 	return err
 }
 
+// expire only use for testing.
 func (r *redisBitSet) expire(seconds int) error {
 	return r.store.Expire(r.key, seconds)
 }
 
-func (r *redisBitSet) set(offsets []uint) error {
+func (r *redisBitSet) set(ctx context.Context, offsets []uint) error {
 	args, err := r.buildOffsetArgs(offsets)
 	if err != nil {
 		return err
 	}
 
-	_, err = r.store.Eval(setScript, []string{r.key}, args)
-	if err == redis.Nil {
+	_, err = r.store.ScriptRunCtx(ctx, setScript, []string{r.key}, args)
+	if errors.Is(err, redis.Nil) {
 		return nil
 	}
 

@@ -10,7 +10,7 @@ import (
 
 func TestLockedCallDo(t *testing.T) {
 	g := NewLockedCalls()
-	v, err := g.Do("key", func() (interface{}, error) {
+	v, err := g.Do("key", func() (any, error) {
 		return "bar", nil
 	})
 	if got, want := fmt.Sprintf("%v (%T)", v, v), "bar (string)"; got != want {
@@ -24,10 +24,10 @@ func TestLockedCallDo(t *testing.T) {
 func TestLockedCallDoErr(t *testing.T) {
 	g := NewLockedCalls()
 	someErr := errors.New("some error")
-	v, err := g.Do("key", func() (interface{}, error) {
+	v, err := g.Do("key", func() (any, error) {
 		return nil, someErr
 	})
-	if err != someErr {
+	if !errors.Is(err, someErr) {
 		t.Errorf("Do error = %v; want someErr", err)
 	}
 	if v != nil {
@@ -39,7 +39,7 @@ func TestLockedCallDoDupSuppress(t *testing.T) {
 	g := NewLockedCalls()
 	c := make(chan string)
 	var calls int
-	fn := func() (interface{}, error) {
+	fn := func() (any, error) {
 		calls++
 		ret := calls
 		<-c

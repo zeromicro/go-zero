@@ -2,13 +2,14 @@ package iox
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os"
 )
 
 const bufSize = 32 * 1024
 
-// CountLines returns the number of lines in file.
+// CountLines returns the number of lines in the file.
 func CountLines(file string) (int, error) {
 	f, err := os.Open(file)
 	if err != nil {
@@ -26,7 +27,7 @@ func CountLines(file string) (int, error) {
 		count += bytes.Count(buf[:c], lineSep)
 
 		switch {
-		case err == io.EOF:
+		case errors.Is(err, io.EOF):
 			if noEol {
 				count++
 			}

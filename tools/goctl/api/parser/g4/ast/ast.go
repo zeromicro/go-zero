@@ -36,7 +36,7 @@ type (
 		Doc() []Expr
 		Comment() Expr
 		Format() error
-		Equal(v interface{}) bool
+		Equal(v any) bool
 	}
 
 	// Expr describes ast expression
@@ -250,11 +250,11 @@ func EqualDoc(spec1, spec2 Spec) bool {
 }
 
 func (v *ApiVisitor) getDoc(t TokenStream) []Expr {
-	return v.getHiddenTokensToLeft(t, api.COMEMNTS, false)
+	return v.getHiddenTokensToLeft(t, api.COMMENTS, false)
 }
 
 func (v *ApiVisitor) getComment(t TokenStream) Expr {
-	list := v.getHiddenTokensToRight(t, api.COMEMNTS)
+	list := v.getHiddenTokensToRight(t, api.COMMENTS)
 	if len(list) == 0 {
 		return nil
 	}

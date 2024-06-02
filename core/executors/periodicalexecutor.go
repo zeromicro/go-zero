@@ -21,16 +21,16 @@ type (
 	TaskContainer interface {
 		// AddTask adds the task into the container.
 		// Returns true if the container needs to be flushed after the addition.
-		AddTask(task interface{}) bool
+		AddTask(task any) bool
 		// Execute handles the collected tasks by the container when flushing.
-		Execute(tasks interface{})
+		Execute(tasks any)
 		// RemoveAll removes the contained tasks, and return them.
-		RemoveAll() interface{}
+		RemoveAll() any
 	}
 
 	// A PeriodicalExecutor is an executor that periodically execute tasks.
 	PeriodicalExecutor struct {
-		commander chan interface{}
+		commander chan any
 		interval  time.Duration
 		container TaskContainer
 		waitGroup sync.WaitGroup
@@ -48,7 +48,7 @@ type (
 func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *PeriodicalExecutor {
 	executor := &PeriodicalExecutor{
 		// buffer 1 to let the caller go quickly
-		commander:   make(chan interface{}, 1),
+		commander:   make(chan any, 1),
 		interval:    interval,
 		container:   container,
 		confirmChan: make(chan lang.PlaceholderType),
@@ -64,7 +64,7 @@ func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *Per
 }
 
 // Add adds tasks into pe.
-func (pe *PeriodicalExecutor) Add(task interface{}) {
+func (pe *PeriodicalExecutor) Add(task any) {
 	if vals, ok := pe.addAndCheck(task); ok {
 		pe.commander <- vals
 		<-pe.confirmChan
@@ -74,14 +74,14 @@ func (pe *PeriodicalExecutor) Add(task interface{}) {
 // Flush forces pe to execute tasks.
 func (pe *PeriodicalExecutor) Flush() bool {
 	pe.enterExecution()
-	return pe.executeTasks(func() interface{} {
+	return pe.executeTasks(func() any {
 		pe.lock.Lock()
 		defer pe.lock.Unlock()
 		return pe.container.RemoveAll()
 	}())
 }
 
-// Sync lets caller to run fn thread-safe with pe, especially for the underlying container.
+// Sync lets caller run fn thread-safe with pe, especially for the underlying container.
 func (pe *PeriodicalExecutor) Sync(fn func()) {
 	pe.lock.Lock()
 	defer pe.lock.Unlock()
@@ -96,7 +96,7 @@ func (pe *PeriodicalExecutor) Wait() {
 	})
 }
 
-func (pe *PeriodicalExecutor) addAndCheck(task interface{}) (interface{}, bool) {
+func (pe *PeriodicalExecutor) addAndCheck(task any) (any, bool) {
 	pe.lock.Lock()
 	defer func() {
 		if !pe.guarded {
@@ -116,7 +116,7 @@ func (pe *PeriodicalExecutor) addAndCheck(task interface{}) (interface{}, bool) 
 }
 
 func (pe *PeriodicalExecutor) backgroundFlush() {
-	threading.GoSafe(func() {
+	go func() {
 		// flush before quit goroutine to avoid missing tasks
 		defer pe.Flush()
 
@@ -144,7 +144,7 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 				}
 			}
 		}
-	})
+	}()
 }
 
 func (pe *PeriodicalExecutor) doneExecution() {
@@ -157,18 +157,20 @@ func (pe *PeriodicalExecutor) enterExecution() {
 	})
 }
 
-func (pe *PeriodicalExecutor) executeTasks(tasks interface{}) bool {
+func (pe *PeriodicalExecutor) executeTasks(tasks any) bool {
 	defer pe.doneExecution()
 
 	ok := pe.hasTasks(tasks)
 	if ok {
-		pe.container.Execute(tasks)
+		threading.RunSafe(func() {
+			pe.container.Execute(tasks)
+		})
 	}
 
 	return ok
 }
 
-func (pe *PeriodicalExecutor) hasTasks(tasks interface{}) bool {
+func (pe *PeriodicalExecutor) hasTasks(tasks any) bool {
 	if tasks == nil {
 		return false
 	}

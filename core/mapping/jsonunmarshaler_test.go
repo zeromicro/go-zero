@@ -856,8 +856,7 @@ func TestUnmarshalBytesError(t *testing.T) {
 	}
 
 	err := UnmarshalJsonBytes([]byte(payload), &v)
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), payload))
+	assert.Equal(t, errTypeMismatch, err)
 }
 
 func TestUnmarshalReaderError(t *testing.T) {
@@ -867,14 +866,12 @@ func TestUnmarshalReaderError(t *testing.T) {
 		Any string
 	}
 
-	err := UnmarshalJsonReader(reader, &v)
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), payload))
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(reader, &v))
 }
 
 func TestUnmarshalMap(t *testing.T) {
 	t.Run("nil map and valid", func(t *testing.T) {
-		var m map[string]interface{}
+		var m map[string]any
 		var v struct {
 			Any string `json:",optional"`
 		}
@@ -885,7 +882,7 @@ func TestUnmarshalMap(t *testing.T) {
 	})
 
 	t.Run("empty map but not valid", func(t *testing.T) {
-		m := map[string]interface{}{}
+		m := map[string]any{}
 		var v struct {
 			Any string
 		}
@@ -895,18 +892,20 @@ func TestUnmarshalMap(t *testing.T) {
 	})
 
 	t.Run("empty map and valid", func(t *testing.T) {
-		m := map[string]interface{}{}
+		m := map[string]any{}
 		var v struct {
 			Any string `json:",optional"`
 		}
 
-		err := UnmarshalJsonMap(m, &v)
+		err := UnmarshalJsonMap(m, &v, WithCanonicalKeyFunc(func(s string) string {
+			return s
+		}))
 		assert.Nil(t, err)
 		assert.True(t, len(v.Any) == 0)
 	})
 
 	t.Run("valid map", func(t *testing.T) {
-		m := map[string]interface{}{
+		m := map[string]any{
 			"Any": "foo",
 		}
 		var v struct {
@@ -917,4 +916,27 @@ func TestUnmarshalMap(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, "foo", v.Any)
 	})
+}
+
+func TestUnmarshalJsonArray(t *testing.T) {
+	var v []struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	body := `[{"name":"kevin", "age": 18}]`
+	assert.NoError(t, UnmarshalJsonBytes([]byte(body), &v))
+	assert.Equal(t, 1, len(v))
+	assert.Equal(t, "kevin", v[0].Name)
+	assert.Equal(t, 18, v[0].Age)
+}
+
+func TestUnmarshalJsonBytesError(t *testing.T) {
+	var v []struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	assert.Error(t, UnmarshalJsonBytes([]byte((``)), &v))
+	assert.Error(t, UnmarshalJsonReader(strings.NewReader(``), &v))
 }

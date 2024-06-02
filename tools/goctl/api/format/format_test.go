@@ -3,7 +3,6 @@ package format
 import (
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -26,6 +25,11 @@ service A-api {
 handler: GreetHandler
   )
   get /greet/from/:name(Request) returns (Response)
+
+@server(
+handler: GreetHandler2
+  )
+  get /greet/from2/:name(Request) returns (Response)
 }
 `
 
@@ -41,6 +45,11 @@ service A-api {
 		handler: GreetHandler
 	)
 	get /greet/from/:name(Request) returns (Response)
+
+	@server(
+		handler: GreetHandler2
+	)
+	get /greet/from2/:name(Request) returns (Response)
 }`
 )
 
@@ -49,7 +58,7 @@ func TestFormat(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, formattedStr, r)
 	_, err = apiFormat(notFormattedStr, false)
-	assert.Errorf(t, err, " line 7:13 can not found declaration 'Student' in context")
+	assert.Errorf(t, err, " line 7:13 can not find declaration 'Student' in context")
 }
 
 func Test_apiFormatReader_issue1721(t *testing.T) {
@@ -61,11 +70,11 @@ func Test_apiFormatReader_issue1721(t *testing.T) {
 	require.NoError(t, err)
 
 	importedFilename := path.Join(dir, "foo.api")
-	err = ioutil.WriteFile(importedFilename, []byte{}, fs.ModePerm)
+	err = os.WriteFile(importedFilename, []byte{}, fs.ModePerm)
 	require.NoError(t, err)
 
 	filename := path.Join(subDir, "bar.api")
-	err = ioutil.WriteFile(filename, []byte(fmt.Sprintf(`import "%s"`, importedFilename)), 0644)
+	err = os.WriteFile(filename, []byte(fmt.Sprintf(`import "%s"`, importedFilename)), 0o644)
 	require.NoError(t, err)
 
 	f, err := os.Open(filename)

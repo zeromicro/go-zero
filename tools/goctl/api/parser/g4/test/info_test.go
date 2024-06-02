@@ -8,7 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
-var infoAccept = func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+var infoAccept = func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 	return p.InfoSpec().Accept(visitor)
 }
 

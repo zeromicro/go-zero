@@ -1,3 +1,13 @@
-comment: false
+coverage:
+  status:
+    patch: true
+    project: false # disabled because project coverage is not stable
+comment:
+  layout: "flags, files"
+  behavior: once
+  require_changes: true
 ignore:
   - "tools"
+  - "**/mock"
+  - "**/*_mock.go"
+  - "**/*test"

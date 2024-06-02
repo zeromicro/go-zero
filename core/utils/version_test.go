@@ -15,8 +15,10 @@ func TestCompareVersions(t *testing.T) {
 		out      bool
 	}{
 		{"1", "1.0.1", ">", false},
+		{"1.0.1", "1.0", "<", false},
 		{"1", "0.9.9", ">", true},
 		{"1", "1.0-1", "<", true},
+		{"1", "1.0-1", "!", false},
 		{"1.0.1", "1-0.1", "<", false},
 		{"1.0.1", "1.0.1", "==", true},
 		{"1.0.1", "1.0.2", "==", false},
@@ -34,6 +36,24 @@ func TestCompareVersions(t *testing.T) {
 		t.Run(each.ver1, func(t *testing.T) {
 			actual := CompareVersions(each.ver1, each.operator, each.ver2)
 			assert.Equal(t, each.out, actual, fmt.Sprintf("%s vs %s", each.ver1, each.ver2))
+		})
+	}
+}
+
+func TestStrsToInts(t *testing.T) {
+	testCases := []struct {
+		input    []string
+		expected []int64
+	}{
+		{[]string{}, nil},
+		{[]string{"1", "2", "3"}, []int64{1, 2, 3}},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run("", func(t *testing.T) {
+			actual := strsToInts(tc.input)
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }

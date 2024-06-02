@@ -20,7 +20,7 @@ func goModTidy(dir string) int {
 	return execCommand(dir, "go mod tidy", prepareGoProxyEnv()...)
 }
 
-func execCommand(dir string, arg string, envArgs ...string) int {
+func execCommand(dir, arg string, envArgs ...string) int {
 	cmd := exec.Command("sh", "-c", arg)
 	if runtime.GOOS == vars.OsWindows {
 		cmd = exec.Command("cmd.exe", "/c", arg)

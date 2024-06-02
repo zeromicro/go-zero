@@ -11,11 +11,10 @@ import (
 
 func TestBulkInserter(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "ok", Value: 1}}...))
-		bulk := NewBulkInserter(mt.Coll)
+		bulk, err := NewBulkInserter(createModel(mt).Collection)
+		assert.Equal(t, err, nil)
 		bulk.SetResultHandler(func(result *mongo.InsertManyResult, err error) {
 			assert.Nil(t, err)
 			assert.Equal(t, 2, len(result.InsertedIDs))

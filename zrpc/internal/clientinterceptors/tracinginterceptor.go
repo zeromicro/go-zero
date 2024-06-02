@@ -2,6 +2,7 @@ package clientinterceptors
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	ztrace "github.com/zeromicro/go-zero/core/trace"
@@ -20,7 +21,7 @@ const (
 )
 
 // UnaryTracingInterceptor returns a grpc.UnaryClientInterceptor for opentelemetry.
-func UnaryTracingInterceptor(ctx context.Context, method string, req, reply interface{},
+func UnaryTracingInterceptor(ctx context.Context, method string, req, reply any,
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	ctx, span := startSpan(ctx, method, cc.Target())
 	defer span.End()
@@ -118,11 +119,11 @@ func (w *clientStream) Header() (metadata.MD, error) {
 	return md, err
 }
 
-func (w *clientStream) RecvMsg(m interface{}) error {
+func (w *clientStream) RecvMsg(m any) error {
 	err := w.ClientStream.RecvMsg(m)
 	if err == nil && !w.desc.ServerStreams {
 		w.sendStreamEvent(receiveEndEvent, nil)
-	} else if err == io.EOF {
+	} else if errors.Is(err, io.EOF) {
 		w.sendStreamEvent(receiveEndEvent, nil)
 	} else if err != nil {
 		w.sendStreamEvent(errorEvent, err)
@@ -134,7 +135,7 @@ func (w *clientStream) RecvMsg(m interface{}) error {
 	return err
 }
 
-func (w *clientStream) SendMsg(m interface{}) error {
+func (w *clientStream) SendMsg(m any) error {
 	err := w.ClientStream.SendMsg(m)
 	w.sentMessageID++
 	ztrace.MessageSent.Event(w.Context(), w.sentMessageID, m)
@@ -153,11 +154,8 @@ func (w *clientStream) sendStreamEvent(eventType streamEventType, err error) {
 }
 
 func startSpan(ctx context.Context, method, target string) (context.Context, trace.Span) {
-	var md metadata.MD
-	requestMetadata, ok := metadata.FromOutgoingContext(ctx)
-	if ok {
-		md = requestMetadata.Copy()
-	} else {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
 		md = metadata.MD{}
 	}
 	tr := otel.Tracer(ztrace.TraceName)

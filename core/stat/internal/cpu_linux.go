@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/iox"
@@ -13,66 +14,32 @@ import (
 const (
 	cpuTicks  = 100
 	cpuFields = 8
+	cpuMax    = 1000
+	statFile  = "/proc/stat"
 )
 
 var (
 	preSystem uint64
 	preTotal  uint64
-	quota     float64
+	limit     float64
 	cores     uint64
+	noCgroup  bool
+	initOnce  sync.Once
 )
-
-// if /proc not present, ignore the cpu calculation, like wsl linux
-func init() {
-	cpus, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	cores = uint64(len(cpus))
-	sets, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	quota = float64(len(sets))
-	cq, err := cpuQuota()
-	if err == nil {
-		if cq != -1 {
-			period, err := cpuPeriod()
-			if err != nil {
-				logx.Error(err)
-				return
-			}
-
-			limit := float64(cq) / float64(period)
-			if limit < quota {
-				quota = limit
-			}
-		}
-	}
-
-	preSystem, err = systemCpuUsage()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	preTotal, err = totalCpuUsage()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-}
 
 // RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
-	total, err := totalCpuUsage()
+	initializeOnce()
+
+	if noCgroup {
+		return 0
+	}
+
+	total, err := cpuUsage()
 	if err != nil {
 		return 0
 	}
+
 	system, err := systemCpuUsage()
 	if err != nil {
 		return 0
@@ -82,7 +49,10 @@ func RefreshCpu() uint64 {
 	cpuDelta := total - preTotal
 	systemDelta := system - preSystem
 	if cpuDelta > 0 && systemDelta > 0 {
-		usage = uint64(float64(cpuDelta*cores*1e3) / (float64(systemDelta) * quota))
+		usage = uint64(float64(cpuDelta*cores*cpuMax) / (float64(systemDelta) * limit))
+		if usage > cpuMax {
+			usage = cpuMax
+		}
 	}
 	preSystem = system
 	preTotal = total
@@ -90,35 +60,76 @@ func RefreshCpu() uint64 {
 	return usage
 }
 
-func cpuQuota() (int64, error) {
+func cpuQuota() (float64, error) {
 	cg, err := currentCgroup()
 	if err != nil {
 		return 0, err
 	}
 
-	return cg.cpuQuotaUs()
+	return cg.cpuQuota()
 }
 
-func cpuPeriod() (uint64, error) {
+func cpuUsage() (uint64, error) {
 	cg, err := currentCgroup()
 	if err != nil {
 		return 0, err
 	}
 
-	return cg.cpuPeriodUs()
+	return cg.cpuUsage()
 }
 
-func cpuSets() ([]uint64, error) {
+func effectiveCpus() (int, error) {
 	cg, err := currentCgroup()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return cg.cpus()
+	return cg.effectiveCpus()
+}
+
+// if /proc not present, ignore the cpu calculation, like wsl linux
+func initialize() error {
+	cpus, err := effectiveCpus()
+	if err != nil {
+		return err
+	}
+
+	cores = uint64(cpus)
+	limit = float64(cpus)
+	quota, err := cpuQuota()
+	if err == nil && quota > 0 {
+		if quota < limit {
+			limit = quota
+		}
+	}
+
+	preSystem, err = systemCpuUsage()
+	if err != nil {
+		return err
+	}
+
+	preTotal, err = cpuUsage()
+	return err
+}
+
+func initializeOnce() {
+	initOnce.Do(func() {
+		defer func() {
+			if p := recover(); p != nil {
+				noCgroup = true
+				logx.Error(p)
+			}
+		}()
+
+		if err := initialize(); err != nil {
+			noCgroup = true
+			logx.Error(err)
+		}
+	})
 }
 
 func systemCpuUsage() (uint64, error) {
-	lines, err := iox.ReadTextLines("/proc/stat", iox.WithoutBlank())
+	lines, err := iox.ReadTextLines(statFile, iox.WithoutBlank())
 	if err != nil {
 		return 0, err
 	}
@@ -145,13 +156,4 @@ func systemCpuUsage() (uint64, error) {
 	}
 
 	return 0, errors.New("bad stats format")
-}
-
-func totalCpuUsage() (usage uint64, err error) {
-	var cg cgroup
-	if cg, err = currentCgroup(); err != nil {
-		return
-	}
-
-	return cg.usageAllCpus()
 }

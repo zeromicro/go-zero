@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -31,14 +32,14 @@ func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
 }
 
 func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext) error {
-	pbDir, err := findPbFile(c.GoOutput, false)
+	pbDir, err := findPbFile(c.GoOutput, c.Src, false)
 	if err != nil {
 		return err
 	}
 	if len(pbDir) == 0 {
 		return fmt.Errorf("pg.go is not found under %q", c.GoOutput)
 	}
-	grpcDir, err := findPbFile(c.GrpcOutput, true)
+	grpcDir, err := findPbFile(c.GrpcOutput, c.Src, true)
 	if err != nil {
 		return err
 	}
@@ -62,7 +63,11 @@ const (
 	grpcSuffix = "_grpc.pb.go"
 )
 
-func findPbFile(current string, grpc bool) (string, error) {
+func findPbFile(current string, src string, grpc bool) (string, error) {
+	protoName := strings.TrimSuffix(filepath.Base(src), filepath.Ext(src))
+	pbFile := protoName + "." + pbSuffix
+	grpcFile := protoName + grpcSuffix
+
 	fileSystem := os.DirFS(current)
 	var ret string
 	err := fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
@@ -71,18 +76,18 @@ func findPbFile(current string, grpc bool) (string, error) {
 		}
 		if strings.HasSuffix(path, pbSuffix) {
 			if grpc {
-				if strings.HasSuffix(path, grpcSuffix) {
+				if strings.HasSuffix(path, grpcFile) {
 					ret = path
 					return os.ErrExist
 				}
-			} else if !strings.HasSuffix(path, grpcSuffix) {
+			} else if strings.HasSuffix(path, pbFile) {
 				ret = path
 				return os.ErrExist
 			}
 		}
 		return nil
 	})
-	if err == os.ErrExist {
+	if errors.Is(err, os.ErrExist) {
 		return filepath.Dir(filepath.Join(current, ret)), nil
 	}
 	return "", err

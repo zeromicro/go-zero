@@ -1,7 +1,6 @@
 package ast
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -25,13 +24,13 @@ func Test_ImportCycle(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	mainPath := filepath.Join(dir, mainFilename)
-	err = ioutil.WriteFile(mainPath, []byte(mainSrc), 0777)
+	err = os.WriteFile(mainPath, []byte(mainSrc), 0o777)
 	require.NoError(t, err)
 	subAPath := filepath.Join(dir, subAFilename)
-	err = ioutil.WriteFile(subAPath, []byte(subASrc), 0777)
+	err = os.WriteFile(subAPath, []byte(subASrc), 0o777)
 	require.NoError(t, err)
 	subBPath := filepath.Join(dir, subBFilename)
-	err = ioutil.WriteFile(subBPath, []byte(subBSrc), 0777)
+	err = os.WriteFile(subBPath, []byte(subBSrc), 0o777)
 	require.NoError(t, err)
 
 	_, err = NewParser().Parse(mainPath)
@@ -55,13 +54,13 @@ func Test_MultiImportedShouldAllowed(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	mainPath := filepath.Join(dir, mainFilename)
-	err = ioutil.WriteFile(mainPath, []byte(mainSrc), 0777)
+	err = os.WriteFile(mainPath, []byte(mainSrc), 0o777)
 	require.NoError(t, err)
 	subAPath := filepath.Join(dir, subAFilename)
-	err = ioutil.WriteFile(subAPath, []byte(subASrc), 0777)
+	err = os.WriteFile(subAPath, []byte(subASrc), 0o777)
 	require.NoError(t, err)
 	subBPath := filepath.Join(dir, subBFilename)
-	err = ioutil.WriteFile(subBPath, []byte(subBSrc), 0777)
+	err = os.WriteFile(subBPath, []byte(subBSrc), 0o777)
 	require.NoError(t, err)
 
 	_, err = NewParser().Parse(mainPath)
@@ -84,13 +83,13 @@ func Test_RedundantDeclarationShouldNotBeAllowed(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	mainPath := filepath.Join(dir, mainFilename)
-	err = ioutil.WriteFile(mainPath, []byte(mainSrc), 0777)
+	err = os.WriteFile(mainPath, []byte(mainSrc), 0o777)
 	require.NoError(t, err)
 	subAPath := filepath.Join(dir, subAFilename)
-	err = ioutil.WriteFile(subAPath, []byte(subASrc), 0777)
+	err = os.WriteFile(subAPath, []byte(subASrc), 0o777)
 	require.NoError(t, err)
 	subBPath := filepath.Join(dir, subBFilename)
-	err = ioutil.WriteFile(subBPath, []byte(subBSrc), 0777)
+	err = os.WriteFile(subBPath, []byte(subBSrc), 0o777)
 	require.NoError(t, err)
 
 	_, err = NewParser().Parse(mainPath)

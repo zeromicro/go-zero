@@ -9,7 +9,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/trace"
+	ztrace "github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/core/trace/tracetest"
+	"go.opentelemetry.io/otel/attribute"
+	tcodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -17,17 +22,18 @@ import (
 )
 
 func TestOpenTracingInterceptor(t *testing.T) {
-	trace.StartAgent(trace.Config{
+	ztrace.StartAgent(ztrace.Config{
 		Name:     "go-zero-test",
 		Endpoint: "http://localhost:14268/api/traces",
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer ztrace.StopAgent()
 
 	cc := new(grpc.ClientConn)
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.MD{})
 	err := UnaryTracingInterceptor(ctx, "/ListUser", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			return nil
 		})
@@ -35,20 +41,79 @@ func TestOpenTracingInterceptor(t *testing.T) {
 }
 
 func TestUnaryTracingInterceptor(t *testing.T) {
-	var run int32
-	var wg sync.WaitGroup
-	wg.Add(1)
-	cc := new(grpc.ClientConn)
-	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
-			opts ...grpc.CallOption) error {
-			defer wg.Done()
-			atomic.AddInt32(&run, 1)
-			return nil
-		})
-	wg.Wait()
-	assert.Nil(t, err)
-	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+	t.Run("normal", func(t *testing.T) {
+		var run int32
+		cc := new(grpc.ClientConn)
+		me := tracetest.NewInMemoryExporter(t)
+		err := UnaryTracingInterceptor(context.Background(), "/proto.Hello/Echo",
+			nil, nil, cc,
+			func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
+				opts ...grpc.CallOption) error {
+				atomic.AddInt32(&run, 1)
+				return nil
+			})
+		assert.Nil(t, err)
+		assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+
+		assert.Equal(t, 1, len(me.GetSpans()))
+		span := me.GetSpans()[0].Snapshot()
+		assert.Equal(t, 2, len(span.Events()))
+		assert.ElementsMatch(t, []attribute.KeyValue{
+			ztrace.RPCSystemGRPC,
+			semconv.RPCServiceKey.String("proto.Hello"),
+			semconv.RPCMethodKey.String("Echo"),
+			ztrace.StatusCodeAttr(codes.OK),
+		}, span.Attributes())
+	})
+
+	t.Run("grpc error status", func(t *testing.T) {
+		me := tracetest.NewInMemoryExporter(t)
+		cc := new(grpc.ClientConn)
+		err := UnaryTracingInterceptor(context.Background(), "/proto.Hello/Echo",
+			nil, nil, cc,
+			func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
+				opts ...grpc.CallOption) error {
+				return status.Error(codes.Unknown, "test")
+			})
+		assert.Error(t, err)
+		assert.Equal(t, 1, len(me.GetSpans()))
+		span := me.GetSpans()[0].Snapshot()
+		assert.Equal(t, trace.Status{
+			Code:        tcodes.Error,
+			Description: "test",
+		}, span.Status())
+		assert.Equal(t, 2, len(span.Events()))
+		assert.ElementsMatch(t, []attribute.KeyValue{
+			ztrace.RPCSystemGRPC,
+			semconv.RPCServiceKey.String("proto.Hello"),
+			semconv.RPCMethodKey.String("Echo"),
+			ztrace.StatusCodeAttr(codes.Unknown),
+		}, span.Attributes())
+	})
+
+	t.Run("non grpc status error", func(t *testing.T) {
+		me := tracetest.NewInMemoryExporter(t)
+		cc := new(grpc.ClientConn)
+		err := UnaryTracingInterceptor(context.Background(), "/proto.Hello/Echo",
+			nil, nil, cc,
+			func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
+				opts ...grpc.CallOption) error {
+				return errors.New("test")
+			})
+		assert.Error(t, err)
+		assert.Equal(t, 1, len(me.GetSpans()))
+		span := me.GetSpans()[0].Snapshot()
+		assert.Equal(t, trace.Status{
+			Code:        tcodes.Error,
+			Description: "test",
+		}, span.Status())
+		assert.Equal(t, 2, len(span.Events()))
+		assert.ElementsMatch(t, []attribute.KeyValue{
+			ztrace.RPCSystemGRPC,
+			semconv.RPCServiceKey.String("proto.Hello"),
+			semconv.RPCMethodKey.String("Echo"),
+		}, span.Attributes())
+	})
 }
 
 func TestUnaryTracingInterceptor_WithError(t *testing.T) {
@@ -57,11 +122,28 @@ func TestUnaryTracingInterceptor_WithError(t *testing.T) {
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
 	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			atomic.AddInt32(&run, 1)
 			return errors.New("dummy")
+		})
+	wg.Wait()
+	assert.NotNil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
+func TestUnaryTracingInterceptor_WithStatusError(t *testing.T) {
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cc := new(grpc.ClientConn)
+	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
+			opts ...grpc.CallOption) error {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return status.Error(codes.DataLoss, "dummy")
 		})
 	wg.Wait()
 	assert.NotNil(t, err)
@@ -194,7 +276,7 @@ func TestUnaryTracingInterceptor_GrpcFormat(t *testing.T) {
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
 	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			atomic.AddInt32(&run, 1)
@@ -338,10 +420,10 @@ func (m *mockedClientStream) Context() context.Context {
 	return context.Background()
 }
 
-func (m *mockedClientStream) SendMsg(v interface{}) error {
+func (m *mockedClientStream) SendMsg(_ any) error {
 	return m.err
 }
 
-func (m *mockedClientStream) RecvMsg(v interface{}) error {
+func (m *mockedClientStream) RecvMsg(_ any) error {
 	return m.err
 }

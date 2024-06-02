@@ -5,6 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 )
 
 func TestNewGaugeVec(t *testing.T) {
@@ -18,9 +19,12 @@ func TestNewGaugeVec(t *testing.T) {
 	gaugeVecNil := NewGaugeVec(nil)
 	assert.NotNil(t, gaugeVec)
 	assert.Nil(t, gaugeVecNil)
+
+	proc.Shutdown()
 }
 
 func TestGaugeInc(t *testing.T) {
+	startAgent()
 	gaugeVec := NewGaugeVec(&GaugeVecOpts{
 		Namespace: "rpc_client2",
 		Subsystem: "requests",
@@ -36,7 +40,25 @@ func TestGaugeInc(t *testing.T) {
 	assert.Equal(t, float64(2), r)
 }
 
+func TestGaugeDec(t *testing.T) {
+	startAgent()
+	gaugeVec := NewGaugeVec(&GaugeVecOpts{
+		Namespace: "rpc_client",
+		Subsystem: "requests",
+		Name:      "duration_ms",
+		Help:      "rpc server requests duration(ms).",
+		Labels:    []string{"path"},
+	})
+	defer gaugeVec.close()
+	gv, _ := gaugeVec.(*promGaugeVec)
+	gv.Dec("/users")
+	gv.Dec("/users")
+	r := testutil.ToFloat64(gv.gauge)
+	assert.Equal(t, float64(-2), r)
+}
+
 func TestGaugeAdd(t *testing.T) {
+	startAgent()
 	gaugeVec := NewGaugeVec(&GaugeVecOpts{
 		Namespace: "rpc_client",
 		Subsystem: "request",
@@ -52,7 +74,25 @@ func TestGaugeAdd(t *testing.T) {
 	assert.Equal(t, float64(20), r)
 }
 
+func TestGaugeSub(t *testing.T) {
+	startAgent()
+	gaugeVec := NewGaugeVec(&GaugeVecOpts{
+		Namespace: "rpc_client",
+		Subsystem: "request",
+		Name:      "duration_ms",
+		Help:      "rpc server requests duration(ms).",
+		Labels:    []string{"path"},
+	})
+	defer gaugeVec.close()
+	gv, _ := gaugeVec.(*promGaugeVec)
+	gv.Sub(-100, "/classroom")
+	gv.Sub(30, "/classroom")
+	r := testutil.ToFloat64(gv.gauge)
+	assert.Equal(t, float64(70), r)
+}
+
 func TestGaugeSet(t *testing.T) {
+	startAgent()
 	gaugeVec := NewGaugeVec(&GaugeVecOpts{
 		Namespace: "http_client",
 		Subsystem: "request",

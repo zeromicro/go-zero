@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,10 +9,6 @@ import (
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/stat"
 )
-
-func init() {
-	log.SetOutput(ioutil.Discard)
-}
 
 func TestSheddingHandlerAccept(t *testing.T) {
 	metrics := stat.NewMetrics("unit-test")
@@ -28,7 +22,7 @@ func TestSheddingHandlerAccept(t *testing.T) {
 		assert.Nil(t, err)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	req.Header.Set("X-Test", "test")
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
@@ -47,7 +41,7 @@ func TestSheddingHandlerFail(t *testing.T) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
@@ -63,7 +57,7 @@ func TestSheddingHandlerReject(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
@@ -76,7 +70,7 @@ func TestSheddingHandlerNoShedding(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)

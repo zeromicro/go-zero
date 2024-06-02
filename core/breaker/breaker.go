@@ -1,6 +1,7 @@
 package breaker
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -31,37 +32,52 @@ type (
 		Name() string
 
 		// Allow checks if the request is allowed.
-		// If allowed, a promise will be returned, the caller needs to call promise.Accept()
-		// on success, or call promise.Reject() on failure.
-		// If not allow, ErrServiceUnavailable will be returned.
+		// If allowed, a promise will be returned,
+		// otherwise ErrServiceUnavailable will be returned as the error.
+		// The caller needs to call promise.Accept() on success,
+		// or call promise.Reject() on failure.
 		Allow() (Promise, error)
+		// AllowCtx checks if the request is allowed when ctx isn't done.
+		AllowCtx(ctx context.Context) (Promise, error)
 
 		// Do runs the given request if the Breaker accepts it.
 		// Do returns an error instantly if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		Do(req func() error) error
+		// DoCtx runs the given request if the Breaker accepts it when ctx isn't done.
+		DoCtx(ctx context.Context, req func() error) error
 
 		// DoWithAcceptable runs the given request if the Breaker accepts it.
 		// DoWithAcceptable returns an error instantly if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
-		// acceptable checks if it's a successful call, even if the err is not nil.
+		// acceptable checks if it's a successful call, even if the error is not nil.
 		DoWithAcceptable(req func() error, acceptable Acceptable) error
+		// DoWithAcceptableCtx runs the given request if the Breaker accepts it when ctx isn't done.
+		DoWithAcceptableCtx(ctx context.Context, req func() error, acceptable Acceptable) error
 
 		// DoWithFallback runs the given request if the Breaker accepts it.
 		// DoWithFallback runs the fallback if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
-		DoWithFallback(req func() error, fallback func(err error) error) error
+		DoWithFallback(req func() error, fallback Fallback) error
+		// DoWithFallbackCtx runs the given request if the Breaker accepts it when ctx isn't done.
+		DoWithFallbackCtx(ctx context.Context, req func() error, fallback Fallback) error
 
 		// DoWithFallbackAcceptable runs the given request if the Breaker accepts it.
 		// DoWithFallbackAcceptable runs the fallback if the Breaker rejects the request.
 		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
-		// acceptable checks if it's a successful call, even if the err is not nil.
-		DoWithFallbackAcceptable(req func() error, fallback func(err error) error, acceptable Acceptable) error
+		// acceptable checks if it's a successful call, even if the error is not nil.
+		DoWithFallbackAcceptable(req func() error, fallback Fallback, acceptable Acceptable) error
+		// DoWithFallbackAcceptableCtx runs the given request if the Breaker accepts it when ctx isn't done.
+		DoWithFallbackAcceptableCtx(ctx context.Context, req func() error, fallback Fallback,
+			acceptable Acceptable) error
 	}
+
+	// Fallback is the func to be called if the request is rejected.
+	Fallback func(err error) error
 
 	// Option defines the method to customize a Breaker.
 	Option func(breaker *circuitBreaker)
@@ -86,12 +102,12 @@ type (
 
 	internalThrottle interface {
 		allow() (internalPromise, error)
-		doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error
+		doReq(req func() error, fallback Fallback, acceptable Acceptable) error
 	}
 
 	throttle interface {
 		allow() (Promise, error)
-		doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error
+		doReq(req func() error, fallback Fallback, acceptable Acceptable) error
 	}
 )
 
@@ -114,21 +130,69 @@ func (cb *circuitBreaker) Allow() (Promise, error) {
 	return cb.throttle.allow()
 }
 
+func (cb *circuitBreaker) AllowCtx(ctx context.Context) (Promise, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		return cb.Allow()
+	}
+}
+
 func (cb *circuitBreaker) Do(req func() error) error {
 	return cb.throttle.doReq(req, nil, defaultAcceptable)
+}
+
+func (cb *circuitBreaker) DoCtx(ctx context.Context, req func() error) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return cb.Do(req)
+	}
 }
 
 func (cb *circuitBreaker) DoWithAcceptable(req func() error, acceptable Acceptable) error {
 	return cb.throttle.doReq(req, nil, acceptable)
 }
 
-func (cb *circuitBreaker) DoWithFallback(req func() error, fallback func(err error) error) error {
+func (cb *circuitBreaker) DoWithAcceptableCtx(ctx context.Context, req func() error,
+	acceptable Acceptable) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return cb.DoWithAcceptable(req, acceptable)
+	}
+}
+
+func (cb *circuitBreaker) DoWithFallback(req func() error, fallback Fallback) error {
 	return cb.throttle.doReq(req, fallback, defaultAcceptable)
 }
 
-func (cb *circuitBreaker) DoWithFallbackAcceptable(req func() error, fallback func(err error) error,
+func (cb *circuitBreaker) DoWithFallbackCtx(ctx context.Context, req func() error,
+	fallback Fallback) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return cb.DoWithFallback(req, fallback)
+	}
+}
+
+func (cb *circuitBreaker) DoWithFallbackAcceptable(req func() error, fallback Fallback,
 	acceptable Acceptable) error {
 	return cb.throttle.doReq(req, fallback, acceptable)
+}
+
+func (cb *circuitBreaker) DoWithFallbackAcceptableCtx(ctx context.Context, req func() error,
+	fallback Fallback, acceptable Acceptable) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return cb.DoWithFallbackAcceptable(req, fallback, acceptable)
+	}
 }
 
 func (cb *circuitBreaker) Name() string {
@@ -168,7 +232,7 @@ func (lt loggedThrottle) allow() (Promise, error) {
 	}, lt.logError(err)
 }
 
-func (lt loggedThrottle) doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error {
+func (lt loggedThrottle) doReq(req func() error, fallback Fallback, acceptable Acceptable) error {
 	return lt.logError(lt.internalThrottle.doReq(req, fallback, func(err error) bool {
 		accept := acceptable(err)
 		if !accept && err != nil {
@@ -179,7 +243,7 @@ func (lt loggedThrottle) doReq(req func() error, fallback func(err error) error,
 }
 
 func (lt loggedThrottle) logError(err error) error {
-	if err == ErrServiceUnavailable {
+	if errors.Is(err, ErrServiceUnavailable) {
 		// if circuit open, not possible to have empty error window
 		stat.Report(fmt.Sprintf(
 			"proc(%s/%d), callee: %s, breaker is open and requests dropped\nlast errors:\n%s",

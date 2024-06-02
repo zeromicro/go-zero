@@ -10,12 +10,12 @@ import (
 )
 
 func TestPromMetricHandler_Disabled(t *testing.T) {
-	promMetricHandler := PrometheusHandler("/user/login")
+	promMetricHandler := PrometheusHandler("/user/login", http.MethodGet)
 	handler := promMetricHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -26,12 +26,12 @@ func TestPromMetricHandler_Enabled(t *testing.T) {
 		Host: "localhost",
 		Path: "/",
 	})
-	promMetricHandler := PrometheusHandler("/user/login")
+	promMetricHandler := PrometheusHandler("/user/login", http.MethodGet)
 	handler := promMetricHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)

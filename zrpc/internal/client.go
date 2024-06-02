@@ -42,13 +42,16 @@ type (
 	ClientOption func(options *ClientOptions)
 
 	client struct {
-		conn *grpc.ClientConn
+		conn        *grpc.ClientConn
+		middlewares ClientMiddlewaresConf
 	}
 )
 
 // NewClient returns a Client.
-func NewClient(target string, opts ...ClientOption) (Client, error) {
-	var cli client
+func NewClient(target string, middlewares ClientMiddlewaresConf, opts ...ClientOption) (Client, error) {
+	cli := client{
+		middlewares: middlewares,
+	}
 
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, p2c.Name)
 	balancerOpt := WithDialOption(grpc.WithDefaultServiceConfig(svcCfg))
@@ -72,7 +75,8 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 
 	var options []grpc.DialOption
 	if !cliOpts.Secure {
-		options = append([]grpc.DialOption(nil), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		options = append([]grpc.DialOption(nil),
+			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	if !cliOpts.NonBlock {
@@ -80,19 +84,43 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	}
 
 	options = append(options,
-		WithUnaryClientInterceptors(
-			clientinterceptors.UnaryTracingInterceptor,
-			clientinterceptors.DurationInterceptor,
-			clientinterceptors.PrometheusInterceptor,
-			clientinterceptors.BreakerInterceptor,
-			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
-		),
-		WithStreamClientInterceptors(
-			clientinterceptors.StreamTracingInterceptor,
-		),
+		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts.Timeout)...),
+		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
 	)
 
 	return append(options, cliOpts.DialOptions...)
+}
+
+func (c *client) buildStreamInterceptors() []grpc.StreamClientInterceptor {
+	var interceptors []grpc.StreamClientInterceptor
+
+	if c.middlewares.Trace {
+		interceptors = append(interceptors, clientinterceptors.StreamTracingInterceptor)
+	}
+
+	return interceptors
+}
+
+func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClientInterceptor {
+	var interceptors []grpc.UnaryClientInterceptor
+
+	if c.middlewares.Trace {
+		interceptors = append(interceptors, clientinterceptors.UnaryTracingInterceptor)
+	}
+	if c.middlewares.Duration {
+		interceptors = append(interceptors, clientinterceptors.DurationInterceptor)
+	}
+	if c.middlewares.Prometheus {
+		interceptors = append(interceptors, clientinterceptors.PrometheusInterceptor)
+	}
+	if c.middlewares.Breaker {
+		interceptors = append(interceptors, clientinterceptors.BreakerInterceptor)
+	}
+	if c.middlewares.Timeout {
+		interceptors = append(interceptors, clientinterceptors.TimeoutInterceptor(timeout))
+	}
+
+	return interceptors
 }
 
 func (c *client) dial(server string, opts ...ClientOption) error {
@@ -134,7 +162,8 @@ func WithNonBlock() ClientOption {
 // WithStreamClientInterceptor returns a func to customize a ClientOptions with given interceptor.
 func WithStreamClientInterceptor(interceptor grpc.StreamClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
-		options.DialOptions = append(options.DialOptions, WithStreamClientInterceptors(interceptor))
+		options.DialOptions = append(options.DialOptions,
+			grpc.WithChainStreamInterceptor(interceptor))
 	}
 }
 
@@ -156,6 +185,7 @@ func WithTransportCredentials(creds credentials.TransportCredentials) ClientOpti
 // WithUnaryClientInterceptor returns a func to customize a ClientOptions with given interceptor.
 func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
-		options.DialOptions = append(options.DialOptions, WithUnaryClientInterceptors(interceptor))
+		options.DialOptions = append(options.DialOptions,
+			grpc.WithChainUnaryInterceptor(interceptor))
 	}
 }

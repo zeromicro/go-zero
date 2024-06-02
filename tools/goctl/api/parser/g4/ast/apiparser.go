@@ -2,7 +2,7 @@ package ast
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -19,7 +19,6 @@ type (
 		linePrefix               string
 		debug                    bool
 		log                      console.Console
-		src                      string
 		skipCheckTypeDeclaration bool
 		handlerMap               map[string]PlaceHolder
 		routeMap                 map[string]PlaceHolder
@@ -51,7 +50,7 @@ func NewParser(options ...ParserOption) *Parser {
 
 // Accept can parse any terminalNode of api tree by fn.
 // -- for debug
-func (p *Parser) Accept(fn func(p *api.ApiParserParser, visitor *ApiVisitor) interface{}, content string) (v interface{}, err error) {
+func (p *Parser) Accept(fn func(p *api.ApiParserParser, visitor *ApiVisitor) any, content string) (v any, err error) {
 	defer func() {
 		p := recover()
 		if p != nil {
@@ -88,30 +87,29 @@ func (p *Parser) Parse(filename string) (*Api, error) {
 		return nil, err
 	}
 
-	p.src = abs
 	data, err := p.readContent(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	p.importStatck.push(p.src)
+	p.importStatck.push(abs)
 	return p.parse(filename, data)
 }
 
 // ParseContent is used to parse the api from the specified content
 func (p *Parser) ParseContent(content string, filename ...string) (*Api, error) {
-	var f string
+	var f, abs string
 	if len(filename) > 0 {
 		f = filename[0]
-		abs, err := filepath.Abs(f)
+		a, err := filepath.Abs(f)
 		if err != nil {
 			return nil, err
 		}
 
-		p.src = abs
+		abs = a
 	}
 
-	p.importStatck.push(p.src)
+	p.importStatck.push(abs)
 	return p.parse(f, content)
 }
 
@@ -127,7 +125,7 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	apiAstList = append(apiAstList, root)
 	p.storeVerificationInfo(root)
 	p.syntax = root.Syntax
-	impApiAstList, err := p.invokeImportedApi(root.Import)
+	impApiAstList, err := p.invokeImportedApi(filename, root.Import)
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +142,10 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	return allApi, nil
 }
 
-func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
+func (p *Parser) invokeImportedApi(filename string, imports []*ImportExpr) ([]*Api, error) {
 	var apiAstList []*Api
 	for _, imp := range imports {
-		dir := filepath.Dir(p.src)
+		dir := filepath.Dir(filename)
 		impPath := strings.ReplaceAll(imp.Value.Text(), "\"", "")
 		if !filepath.IsAbs(impPath) {
 			impPath = filepath.Join(dir, impPath)
@@ -158,6 +156,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		}
 		// ignore already imported file
 		if p.alreadyImported(impPath) {
+			p.importStatck.pop()
 			continue
 		}
 		p.fileMap[impPath] = PlaceHolder{}
@@ -178,7 +177,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		}
 		p.storeVerificationInfo(nestedApi)
 		apiAstList = append(apiAstList, nestedApi)
-		list, err := p.invokeImportedApi(nestedApi.Import)
+		list, err := p.invokeImportedApi(impPath, nestedApi.Import)
 		p.importStatck.pop()
 		apiAstList = append(apiAstList, list...)
 
@@ -232,20 +231,27 @@ func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
 
 // storeVerificationInfo stores information for verification
 func (p *Parser) storeVerificationInfo(api *Api) {
-	routeMap := func(list []*ServiceRoute) {
+	routeMap := func(list []*ServiceRoute, prefix string) {
 		for _, g := range list {
 			handler := g.GetHandler()
 			if handler.IsNotNil() {
 				handlerName := handler.Text()
 				p.handlerMap[handlerName] = Holder
-				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
+				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), path.Join(prefix, g.Route.Path.Text()))
 				p.routeMap[route] = Holder
 			}
 		}
 	}
 
 	for _, each := range api.Service {
-		routeMap(each.ServiceApi.ServiceRoute)
+		var prefix string
+		if each.AtServer != nil {
+			pExp := each.AtServer.Kv.Get(prefixKey)
+			if pExp != nil {
+				prefix = pExp.Text()
+			}
+		}
+		routeMap(each.ServiceApi.ServiceRoute, prefix)
 	}
 
 	for _, each := range api.Type {
@@ -254,7 +260,6 @@ func (p *Parser) storeVerificationInfo(api *Api) {
 }
 
 func (p *Parser) valid(nestedApi *Api) error {
-
 	if p.syntax != nil && nestedApi.Syntax != nil {
 		if p.syntax.Version.Text() != nestedApi.Syntax.Version.Text() {
 			syntaxToken := nestedApi.Syntax.Syntax
@@ -416,7 +421,7 @@ func (p *Parser) checkServices(apiItem *Api, types map[string]TypeExpr, linePref
 
 				_, ok := types[structName]
 				if !ok {
-					return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+					return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 						linePrefix, route.Reply.Name.Expr().Line(), route.Reply.Name.Expr().Column(), structName)
 				}
 			}
@@ -429,7 +434,7 @@ func (p *Parser) checkRequestBody(route *Route, types map[string]TypeExpr, lineP
 	if route.Req != nil && route.Req.Name.IsNotNil() && route.Req.Name.Expr().IsNotNil() {
 		_, ok := types[route.Req.Name.Expr().Text()]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, route.Req.Name.Expr().Line(), route.Req.Name.Expr().Column(), route.Req.Name.Expr().Text())
 		}
 	}
@@ -466,7 +471,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		}
 		_, ok := types[name]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, v.Literal.Line(), v.Literal.Column(), name)
 		}
 
@@ -477,7 +482,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		}
 		_, ok := types[name]
 		if !ok {
-			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
 				linePrefix, v.Name.Line(), v.Name.Column(), name)
 		}
 	case *Map:
@@ -492,7 +497,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 
 func (p *Parser) readContent(filename string) (string, error) {
 	filename = strings.ReplaceAll(filename, `"`, "")
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
@@ -501,7 +506,7 @@ func (p *Parser) readContent(filename string) (string, error) {
 }
 
 // SyntaxError accepts errors and panic it
-func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, _ antlr.RecognitionException) {
+func (p *Parser) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, _ antlr.RecognitionException) {
 	str := fmt.Sprintf(`%s line %d:%d  %s`, p.linePrefix, line, column, msg)
 	if p.debug {
 		p.log.Error(str)

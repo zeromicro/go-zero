@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package hi;
+
+option go_package = "./hi";
+
+message HiReq {
+  string in = 1;
+}
+
+message HelloReq {
+  string in = 1;
+}
+
+message HiResp {
+  string msg = 1;
+}
+
+message HelloResp {
+  string msg = 1;
+}
+
+service Greet {
+  rpc SayHi(HiReq) returns (HiResp);
+  rpc SayHello(HelloReq) returns (HelloResp);
+}
+
+message EventReq{}
+message EventResp{}
+
+service Event {
+  rpc AskQuestion(EventReq) returns (EventResp);
+}

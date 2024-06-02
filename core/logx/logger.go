@@ -7,32 +7,44 @@ import (
 
 // A Logger represents a logger.
 type Logger interface {
+	// Debug logs a message at info level.
+	Debug(...any)
+	// Debugf logs a message at info level.
+	Debugf(string, ...any)
+	// Debugv logs a message at info level.
+	Debugv(any)
+	// Debugw logs a message at info level.
+	Debugw(string, ...LogField)
 	// Error logs a message at error level.
-	Error(...interface{})
+	Error(...any)
 	// Errorf logs a message at error level.
-	Errorf(string, ...interface{})
+	Errorf(string, ...any)
 	// Errorv logs a message at error level.
-	Errorv(interface{})
+	Errorv(any)
 	// Errorw logs a message at error level.
 	Errorw(string, ...LogField)
 	// Info logs a message at info level.
-	Info(...interface{})
+	Info(...any)
 	// Infof logs a message at info level.
-	Infof(string, ...interface{})
+	Infof(string, ...any)
 	// Infov logs a message at info level.
-	Infov(interface{})
+	Infov(any)
 	// Infow logs a message at info level.
 	Infow(string, ...LogField)
 	// Slow logs a message at slow level.
-	Slow(...interface{})
+	Slow(...any)
 	// Slowf logs a message at slow level.
-	Slowf(string, ...interface{})
+	Slowf(string, ...any)
 	// Slowv logs a message at slow level.
-	Slowv(interface{})
+	Slowv(any)
 	// Sloww logs a message at slow level.
 	Sloww(string, ...LogField)
+	// WithCallerSkip returns a new logger with the given caller skip.
+	WithCallerSkip(skip int) Logger
 	// WithContext returns a new logger with the given context.
-	WithContext(context.Context) Logger
+	WithContext(ctx context.Context) Logger
 	// WithDuration returns a new logger with the given duration.
-	WithDuration(time.Duration) Logger
+	WithDuration(d time.Duration) Logger
+	// WithFields returns a new logger with the given fields.
+	WithFields(fields ...LogField) Logger
 }

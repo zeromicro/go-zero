@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -36,7 +37,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}
 	)
 `
 	timeoutThreshold = time.Millisecond
@@ -64,11 +65,13 @@ type (
 		middlewares      []string
 		prefix           string
 		jwtTrans         string
+		maxBytes         string
 	}
 	route struct {
 		method  string
 		path    string
 		handler string
+		doc     string
 	}
 )
 
@@ -90,13 +93,24 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		var gbuilder strings.Builder
 		gbuilder.WriteString("[]rest.Route{")
 		for _, r := range g.routes {
-			fmt.Fprintf(&gbuilder, `
-		{
-			Method:  %s,
-			Path:    "%s",
-			Handler: %s,
-		},`,
-				r.method, r.path, r.handler)
+			var routeString string
+			if len(r.doc) > 0 {
+				routeString = fmt.Sprintf(`
+					{
+						%s
+						Method:  %s,
+						Path:    "%s",
+						Handler: %s,
+					},`, getDoc(r.doc), r.method, r.path, r.handler)
+			} else {
+				routeString = fmt.Sprintf(`
+					{
+						Method:  %s,
+						Path:    "%s",
+						Handler: %s,
+					},`, r.method, r.path, r.handler)
+			}
+			fmt.Fprint(&gbuilder, routeString)
 		}
 
 		var jwt string
@@ -127,8 +141,18 @@ rest.WithPrefix("%s"),`, g.prefix)
 				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
 			}
 
-			timeout = fmt.Sprintf("rest.WithTimeout(%d * time.Millisecond),", duration/time.Millisecond)
+			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration.Milliseconds())
 			hasTimeout = true
+		}
+
+		var maxBytes string
+		if len(g.maxBytes) > 0 {
+			_, err := strconv.ParseInt(g.maxBytes, 10, 64)
+			if err != nil {
+				return fmt.Errorf("maxBytes %s parse error,it is an invalid number", g.maxBytes)
+			}
+
+			maxBytes = fmt.Sprintf("\n rest.WithMaxBytes(%s),", g.maxBytes)
 		}
 
 		var routes string
@@ -152,6 +176,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"signature": signature,
 			"prefix":    prefix,
 			"timeout":   timeout,
+			"maxBytes":  maxBytes,
 		}); err != nil {
 			return err
 		}
@@ -174,7 +199,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 		category:        category,
 		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
-		data: map[string]interface{}{
+		data: map[string]any{
 			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
@@ -226,10 +251,12 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				method:  mapping[r.Method],
 				path:    r.Path,
 				handler: handler,
+				doc:     r.JoinedDoc(),
 			})
 		}
 
 		groupedRoutes.timeout = g.GetAnnotation("timeout")
+		groupedRoutes.maxBytes = g.GetAnnotation("maxBytes")
 
 		jwt := g.GetAnnotation("jwt")
 		if len(jwt) > 0 {

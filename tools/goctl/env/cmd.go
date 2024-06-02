@@ -1,6 +1,6 @@
 package env
 
-import "github.com/spf13/cobra"
+import "github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 
 var (
 	sliceVarWriteValue []string
@@ -8,39 +8,21 @@ var (
 	boolVarVerbose     bool
 	boolVarInstall     bool
 
-	// Cmd describes a env command.
-	Cmd = &cobra.Command{
-		Use:   "env",
-		Short: "Check or edit goctl environment",
-		RunE:  write,
-	}
-	installCmd = &cobra.Command{
-		Use:   "install",
-		Short: "Goctl env installation",
-		RunE:  install,
-	}
-	checkCmd = &cobra.Command{
-		Use:   "check",
-		Short: "Detect goctl env and dependency tools",
-		RunE:  check,
-	}
+	// Cmd describes an env command.
+	Cmd        = cobrax.NewCommand("env", cobrax.WithRunE(write))
+	installCmd = cobrax.NewCommand("install", cobrax.WithRunE(install))
+	checkCmd   = cobrax.NewCommand("check", cobrax.WithRunE(check))
 )
 
 func init() {
 	// The root command flags
-	Cmd.Flags().StringSliceVarP(&sliceVarWriteValue,
-		"write", "w", nil, "Edit goctl environment")
-	Cmd.PersistentFlags().BoolVarP(&boolVarForce,
-		"force", "f", false,
-		"Silent installation of non-existent dependencies")
-	Cmd.PersistentFlags().BoolVarP(&boolVarVerbose,
-		"verbose", "v", false, "Enable log output")
+	Cmd.Flags().StringSliceVarP(&sliceVarWriteValue, "write", "w")
+	Cmd.PersistentFlags().BoolVarP(&boolVarForce, "force", "f")
+	Cmd.PersistentFlags().BoolVarP(&boolVarVerbose, "verbose", "v")
 
 	// The sub-command flags
-	checkCmd.Flags().BoolVarP(&boolVarInstall, "install", "i",
-		false, "Install dependencies if not found")
+	checkCmd.Flags().BoolVarP(&boolVarInstall, "install", "i")
 
 	// Add sub-command
-	Cmd.AddCommand(installCmd)
-	Cmd.AddCommand(checkCmd)
+	Cmd.AddCommand(checkCmd, installCmd)
 }

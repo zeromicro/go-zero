@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -36,6 +36,7 @@ type Deployment struct {
 	Replicas        int
 	Revisions       int
 	Port            int
+	TargetPort      int
 	NodePort        int
 	UseNodePort     bool
 	RequestCpu      int
@@ -48,7 +49,7 @@ type Deployment struct {
 	ImagePullPolicy string
 }
 
-// DeploymentCommand is used to generate the kubernetes deployment yaml files.
+// deploymentCommand is used to generate the kubernetes deployment yaml files.
 func deploymentCommand(_ *cobra.Command, _ []string) error {
 	nodePort := varIntNodePort
 	home := varStringHome
@@ -81,6 +82,10 @@ func deploymentCommand(_ *cobra.Command, _ []string) error {
 	}
 	defer out.Close()
 
+	if varIntTargetPort == 0 {
+		varIntTargetPort = varIntPort
+	}
+
 	t := template.Must(template.New("deploymentTemplate").Parse(text))
 	err = t.Execute(out, Deployment{
 		Name:            varStringName,
@@ -90,6 +95,7 @@ func deploymentCommand(_ *cobra.Command, _ []string) error {
 		Replicas:        varIntReplicas,
 		Revisions:       varIntRevisions,
 		Port:            varIntPort,
+		TargetPort:      varIntTargetPort,
 		NodePort:        nodePort,
 		UseNodePort:     nodePort > 0,
 		RequestCpu:      varIntRequestCpu,
@@ -105,7 +111,7 @@ func deploymentCommand(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Println(aurora.Green("Done."))
+	fmt.Println(color.Green.Render("Done."))
 	return nil
 }
 

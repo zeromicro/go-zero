@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
@@ -39,9 +39,13 @@ func TsCommand(_ *cobra.Command, _ []string) error {
 		return errors.New("missing -dir")
 	}
 
+	if len(webAPI) == 0 {
+		webAPI = "."
+	}
+
 	api, err := parser.Parse(apiFile)
 	if err != nil {
-		fmt.Println(aurora.Red("Failed"))
+		fmt.Println(color.Red.Render("Failed"))
 		return err
 	}
 
@@ -51,9 +55,10 @@ func TsCommand(_ *cobra.Command, _ []string) error {
 
 	api.Service = api.Service.JoinPrefix()
 	logx.Must(pathx.MkdirIfNotExist(dir))
+	logx.Must(genRequest(dir))
 	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
 	logx.Must(genComponents(dir, api))
 
-	fmt.Println(aurora.Green("Done."))
+	fmt.Println(color.Green.Render("Done."))
 	return nil
 }

@@ -16,6 +16,7 @@ import (
 type Context struct {
 	Types  []string
 	Cache  bool
+	Easy   bool
 	Output string
 	Cfg    *config.Config
 }
@@ -54,7 +55,7 @@ func generateModel(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type":      stringx.From(t).Title(),
 			"lowerType": stringx.From(t).Untitle(),
 			"Cache":     ctx.Cache,
@@ -79,10 +80,12 @@ func generateCustomModel(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type":      stringx.From(t).Title(),
 			"lowerType": stringx.From(t).Untitle(),
+			"snakeType": stringx.From(t).ToSnake(),
 			"Cache":     ctx.Cache,
+			"Easy":      ctx.Easy,
 		}, output, false)
 		if err != nil {
 			return err
@@ -94,7 +97,7 @@ func generateCustomModel(ctx *Context) error {
 
 func generateTypes(ctx *Context) error {
 	for _, t := range ctx.Types {
-		fn, err := format.FileNamingFormat(ctx.Cfg.NamingFormat, t+"types")
+		fn, err := format.FileNamingFormat(ctx.Cfg.NamingFormat, t+"_types")
 		if err != nil {
 			return err
 		}
@@ -105,9 +108,9 @@ func generateTypes(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type": stringx.From(t).Title(),
-		}, output, false);err!=nil{
+		}, output, false); err != nil {
 			return err
 		}
 	}

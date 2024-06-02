@@ -1,0 +1,154 @@
+syntax = "v1"
+
+import "example_base1.api"
+
+import (
+	"example_base2.api"
+)
+
+info (
+	title:   "type title here"
+	desc:    "type desc here"
+	author:  "type author here"
+	email:   "type email here"
+	version: "type version here"
+)
+
+type GetFormReq {
+	Name    string   `form:"name"`
+	Age     int      `form:"age"`
+	Hobbits []string `form:"hobbits"`
+	Any     any      `form:"any"`
+}
+
+type GetFormREsp {
+	Name    string   `json:"name"`
+	Age     int      `json:"age"`
+	Hobbits []string `json:"hobbits"`
+}
+
+type (
+	PostFormReq {
+		Name    string   `form:"name"`
+		Age     int      `form:"age"`
+		Hobbits []string `form:"hobbits"`
+	}
+	PostFormResp {
+		Name    string   `json:"name"`
+		Age     int      `json:"age"`
+		Hobbits []string `json:"hobbits"`
+	}
+)
+
+type (
+	PostJsonReq {
+		Name    string   `json:"name"`
+		Age     int      `json:"age"`
+		Hobbits []string `json:"hobbits"`
+	}
+	PostJsonResp {
+		Name    string            `json:"name"`
+		Age     int               `json:"age"`
+		Hobbits []string          `json:"hobbits"`
+		Extra   map[string]string `json:"extra"`
+		Data    interface{}       `json:"data"`
+	}
+)
+
+type (
+	PostPathReq {
+		Id string `path:"id"`
+	}
+	PostPathResp {
+		Name    string            `json:"name"`
+		Age     int               `json:"age"`
+		Hobbits []string          `json:"hobbits"`
+		Extra   map[string]string `json:"extra"`
+		Data    interface{}       `json:"data"`
+	}
+)
+
+type (
+	DemoOfArrayReq {
+		In string `json:"in"`
+	}
+	DemoOfArrayResp {
+		Out string `json:"out"`
+	}
+)
+
+type (
+	Nest {
+		Name string `json:"name"`
+	}
+	NestDemoReq {
+		Nest *Nest `json:"nest"`
+	}
+	NestDemoResp {
+		Nest []*Nest `json:"nest"`
+	}
+)
+
+@server (
+	group: form
+)
+service example {
+	@handler getForm
+	get /example/form (GetFormReq) returns (GetFormREsp)
+
+	@handler postForm
+	post /example/form (PostFormReq) returns (PostFormResp)
+}
+
+@server (
+	group: json
+	jwt:   Auth
+)
+service example {
+	@doc "json demo"
+	@handler postJson
+	post /example/json (PostJsonReq) returns (PostJsonResp)
+}
+
+@server (
+	group:      path
+	middleware: Path
+	prefix:     /v1/v2
+)
+service example {
+	@doc (
+		desc: "path demo"
+	)
+	@handler postPath
+	post /example/path (PostPathReq) returns (PostPathResp)
+}
+
+@server (
+	group:  array
+	prefix: /array
+)
+service example {
+	@doc (
+		desc: "array response demo"
+	)
+	@handler getArray
+	post /example/array (DemoOfArrayReq) returns ([]DemoOfArrayResp)
+
+	@doc (
+		desc: "array pointer response demo"
+	)
+	@handler getArrayPointer
+	post /example/array/pointer (DemoOfArrayReq) returns ([]*DemoOfArrayResp)
+
+	@doc (
+		desc: "array base response demo"
+	)
+	@handler getArrayBase
+	post /example/array/pointer (DemoOfArrayReq) returns ([]string)
+}
+
+service example {
+	@handler nestDemo
+	post /example/nest (NestDemoReq) returns (NestDemoResp)
+}
+

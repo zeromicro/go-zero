@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	apinew "github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
+	"github.com/zeromicro/go-zero/tools/goctl/gateway"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	mongogen "github.com/zeromicro/go-zero/tools/goctl/model/mongo/generate"
 	modelgen "github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
@@ -52,6 +53,9 @@ func genTemplates(_ *cobra.Command, _ []string) error {
 		func() error {
 			return apinew.GenTemplates()
 		},
+		func() error {
+			return gateway.GenTemplates()
+		},
 	); err != nil {
 		return err
 	}
@@ -66,8 +70,8 @@ func genTemplates(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(abs),
-		aurora.Red("edit on your risk!"))
+	fmt.Printf("Templates are generated in %s, %s\n", color.Green.Render(abs),
+		color.Red.Render("edit on your risk!"))
 
 	return nil
 }
@@ -104,12 +108,15 @@ func cleanTemplates(_ *cobra.Command, _ []string) error {
 		func() error {
 			return apinew.Clean()
 		},
+		func() error {
+			return gateway.Clean()
+		},
 	)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%s\n", aurora.Green("templates are cleaned!"))
+	fmt.Printf("%s\n", color.Green.Render("templates are cleaned!"))
 	return nil
 }
 
@@ -124,7 +131,7 @@ func updateTemplates(_ *cobra.Command, _ []string) (err error) {
 
 	defer func() {
 		if err == nil {
-			fmt.Println(aurora.Green(fmt.Sprintf("%s template are update!", category)).String())
+			fmt.Println(color.Green.Sprintf("%s template are update!", category))
 		}
 	}()
 	switch category {
@@ -144,6 +151,8 @@ func updateTemplates(_ *cobra.Command, _ []string) (err error) {
 		return apigen.Update()
 	case apinew.Category():
 		return apinew.Update()
+	case gateway.Category():
+		return gateway.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -161,7 +170,7 @@ func revertTemplates(_ *cobra.Command, _ []string) (err error) {
 
 	defer func() {
 		if err == nil {
-			fmt.Println(aurora.Green(fmt.Sprintf("%s template are reverted!", filename)).String())
+			fmt.Println(color.Green.Sprintf("%s template are reverted!", filename))
 		}
 	}()
 	switch category {
@@ -181,6 +190,8 @@ func revertTemplates(_ *cobra.Command, _ []string) (err error) {
 		return apigen.RevertTemplate(filename)
 	case apinew.Category():
 		return apinew.RevertTemplate(filename)
+	case gateway.Category():
+		return gateway.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return

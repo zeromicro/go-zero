@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -29,7 +30,7 @@ var (
 )
 
 // CreateServiceCommand fast create service
-func CreateServiceCommand(args []string) error {
+func CreateServiceCommand(_ *cobra.Command, args []string) error {
 	dirName := args[0]
 	if len(VarStringStyle) == 0 {
 		VarStringStyle = conf.DefaultFormat

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
@@ -19,7 +20,8 @@ const (
 )
 
 var (
-	timingWheel *collection.TimingWheel
+	// use atomic to avoid data race in unit tests
+	timingWheel atomic.Value
 	taskRunner  = threading.NewTaskRunner(cleanWorkers)
 )
 
@@ -30,25 +32,30 @@ type delayTask struct {
 }
 
 func init() {
-	var err error
-	timingWheel, err = collection.NewTimingWheel(time.Second, timingWheelSlots, clean)
+	tw, err := collection.NewTimingWheel(time.Second, timingWheelSlots, clean)
 	logx.Must(err)
+	timingWheel.Store(tw)
 
 	proc.AddShutdownListener(func() {
-		timingWheel.Drain(clean)
+		if err := tw.Drain(clean); err != nil {
+			logx.Errorf("failed to drain timing wheel: %v", err)
+		}
 	})
 }
 
 // AddCleanTask adds a clean task on given keys.
 func AddCleanTask(task func() error, keys ...string) {
-	timingWheel.SetTimer(stringx.Randn(taskKeyLen), delayTask{
+	tw := timingWheel.Load().(*collection.TimingWheel)
+	if err := tw.SetTimer(stringx.Randn(taskKeyLen), delayTask{
 		delay: time.Second,
 		task:  task,
 		keys:  keys,
-	}, time.Second)
+	}, time.Second); err != nil {
+		logx.Errorf("failed to set timer for keys: %q, error: %v", formatKeys(keys), err)
+	}
 }
 
-func clean(key, value interface{}) {
+func clean(key, value any) {
 	taskRunner.Schedule(func() {
 		dt := value.(delayTask)
 		err := dt.task()
@@ -59,7 +66,10 @@ func clean(key, value interface{}) {
 		next, ok := nextDelay(dt.delay)
 		if ok {
 			dt.delay = next
-			timingWheel.SetTimer(key, dt, next)
+			tw := timingWheel.Load().(*collection.TimingWheel)
+			if err = tw.SetTimer(key, dt, next); err != nil {
+				logx.Errorf("failed to set timer for key: %s, error: %v", key, err)
+			}
 		} else {
 			msg := fmt.Sprintf("retried but failed to clear cache with keys: %q, error: %v",
 				formatKeys(dt.keys), err)

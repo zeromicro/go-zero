@@ -1,7 +1,11 @@
 package httpx
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"sync"
 
@@ -11,19 +15,137 @@ import (
 )
 
 var (
-	errorHandler func(error) (int, interface{})
-	lock         sync.RWMutex
+	errorHandler func(context.Context, error) (int, any)
+	errorLock    sync.RWMutex
+	okHandler    func(context.Context, any) any
+	okLock       sync.RWMutex
 )
 
 // Error writes err into w.
 func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
-	lock.RLock()
-	handler := errorHandler
-	lock.RUnlock()
+	doHandleError(w, err, buildErrorHandler(context.Background()), WriteJson, fns...)
+}
 
+// ErrorCtx writes err into w.
+func ErrorCtx(ctx context.Context, w http.ResponseWriter, err error,
+	fns ...func(w http.ResponseWriter, err error)) {
+	writeJson := func(w http.ResponseWriter, code int, v any) {
+		WriteJsonCtx(ctx, w, code, v)
+	}
+	doHandleError(w, err, buildErrorHandler(ctx), writeJson, fns...)
+}
+
+// Ok writes HTTP 200 OK into w.
+func Ok(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
+}
+
+// OkJson writes v into w with 200 OK.
+func OkJson(w http.ResponseWriter, v any) {
+	okLock.RLock()
+	handler := okHandler
+	okLock.RUnlock()
+	if handler != nil {
+		v = handler(context.Background(), v)
+	}
+	WriteJson(w, http.StatusOK, v)
+}
+
+// OkJsonCtx writes v into w with 200 OK.
+func OkJsonCtx(ctx context.Context, w http.ResponseWriter, v any) {
+	okLock.RLock()
+	handlerCtx := okHandler
+	okLock.RUnlock()
+	if handlerCtx != nil {
+		v = handlerCtx(ctx, v)
+	}
+	WriteJsonCtx(ctx, w, http.StatusOK, v)
+}
+
+// SetErrorHandler sets the error handler, which is called on calling Error.
+// Notice: SetErrorHandler and SetErrorHandlerCtx set the same error handler.
+// Keeping both SetErrorHandler and SetErrorHandlerCtx is for backward compatibility.
+func SetErrorHandler(handler func(error) (int, any)) {
+	errorLock.Lock()
+	defer errorLock.Unlock()
+	errorHandler = func(_ context.Context, err error) (int, any) {
+		return handler(err)
+	}
+}
+
+// SetErrorHandlerCtx sets the error handler, which is called on calling Error.
+// Notice: SetErrorHandler and SetErrorHandlerCtx set the same error handler.
+// Keeping both SetErrorHandler and SetErrorHandlerCtx is for backward compatibility.
+func SetErrorHandlerCtx(handlerCtx func(context.Context, error) (int, any)) {
+	errorLock.Lock()
+	defer errorLock.Unlock()
+	errorHandler = handlerCtx
+}
+
+// SetOkHandler sets the response handler, which is called on calling OkJson and OkJsonCtx.
+func SetOkHandler(handler func(context.Context, any) any) {
+	okLock.Lock()
+	defer okLock.Unlock()
+	okHandler = handler
+}
+
+// Stream writes data into w with streaming mode.
+// The ctx is used to control the streaming loop, typically use r.Context().
+// The fn is called repeatedly until it returns false.
+func Stream(ctx context.Context, w http.ResponseWriter, fn func(w io.Writer) bool) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			hasMore := fn(w)
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
+			}
+			if !hasMore {
+				return
+			}
+		}
+	}
+}
+
+// WriteJson writes v as json string into w with code.
+func WriteJson(w http.ResponseWriter, code int, v any) {
+	if err := doWriteJson(w, code, v); err != nil {
+		logx.Error(err)
+	}
+}
+
+// WriteJsonCtx writes v as json string into w with code.
+func WriteJsonCtx(ctx context.Context, w http.ResponseWriter, code int, v any) {
+	if err := doWriteJson(w, code, v); err != nil {
+		logx.WithContext(ctx).Error(err)
+	}
+}
+
+func buildErrorHandler(ctx context.Context) func(error) (int, any) {
+	errorLock.RLock()
+	handlerCtx := errorHandler
+	errorLock.RUnlock()
+
+	var handler func(error) (int, any)
+	if handlerCtx != nil {
+		handler = func(err error) (int, any) {
+			return handlerCtx(ctx, err)
+		}
+	}
+
+	return handler
+}
+
+func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, any),
+	writeJson func(w http.ResponseWriter, code int, v any),
+	fns ...func(w http.ResponseWriter, err error)) {
 	if handler == nil {
 		if len(fns) > 0 {
-			fns[0](w, err)
+			for _, fn := range fns {
+				fn(w, err)
+			}
 		} else if errcode.IsGrpcError(err) {
 			// don't unwrap error and get status.Message(),
 			// it hides the rpc error headers.
@@ -41,37 +163,19 @@ func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, 
 		return
 	}
 
-	e, ok := body.(error)
-	if ok {
-		http.Error(w, e.Error(), code)
-	} else {
-		WriteJson(w, code, body)
+	switch v := body.(type) {
+	case error:
+		http.Error(w, v.Error(), code)
+	default:
+		writeJson(w, code, body)
 	}
 }
 
-// Ok writes HTTP 200 OK into w.
-func Ok(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusOK)
-}
-
-// OkJson writes v into w with 200 OK.
-func OkJson(w http.ResponseWriter, v interface{}) {
-	WriteJson(w, http.StatusOK, v)
-}
-
-// SetErrorHandler sets the error handler, which is called on calling Error.
-func SetErrorHandler(handler func(error) (int, interface{})) {
-	lock.Lock()
-	defer lock.Unlock()
-	errorHandler = handler
-}
-
-// WriteJson writes v as json string into w with code.
-func WriteJson(w http.ResponseWriter, code int, v interface{}) {
+func doWriteJson(w http.ResponseWriter, code int, v any) error {
 	bs, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return fmt.Errorf("marshal json failed, error: %w", err)
 	}
 
 	w.Header().Set(ContentType, header.JsonContentType)
@@ -80,10 +184,12 @@ func WriteJson(w http.ResponseWriter, code int, v interface{}) {
 	if n, err := w.Write(bs); err != nil {
 		// http.ErrHandlerTimeout has been handled by http.TimeoutHandler,
 		// so it's ignored here.
-		if err != http.ErrHandlerTimeout {
-			logx.Errorf("write response failed, error: %s", err)
+		if !errors.Is(err, http.ErrHandlerTimeout) {
+			return fmt.Errorf("write response failed, error: %w", err)
 		}
 	} else if n < len(bs) {
-		logx.Errorf("actual bytes: %d, written bytes: %d", len(bs), n)
+		return fmt.Errorf("actual bytes: %d, written bytes: %d", len(bs), n)
 	}
+
+	return nil
 }

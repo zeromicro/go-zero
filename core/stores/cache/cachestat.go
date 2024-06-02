@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const statInterval = time.Minute
@@ -25,7 +26,13 @@ func NewStat(name string) *Stat {
 	ret := &Stat{
 		name: name,
 	}
-	go ret.statLoop()
+
+	go func() {
+		ticker := timex.NewTicker(statInterval)
+		defer ticker.Stop()
+
+		ret.statLoop(ticker)
+	}()
 
 	return ret
 }
@@ -50,11 +57,8 @@ func (s *Stat) IncrementDbFails() {
 	atomic.AddUint64(&s.DbFails, 1)
 }
 
-func (s *Stat) statLoop() {
-	ticker := time.NewTicker(statInterval)
-	defer ticker.Stop()
-
-	for range ticker.C {
+func (s *Stat) statLoop(ticker timex.Ticker) {
+	for range ticker.Chan() {
 		total := atomic.SwapUint64(&s.Total, 0)
 		if total == 0 {
 			continue

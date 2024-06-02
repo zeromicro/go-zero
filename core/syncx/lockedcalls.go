@@ -10,7 +10,7 @@ type (
 	// A ------->calls F with key and executes<------->returns
 	// B ------------------>calls F with key<--------->executes<---->returns
 	LockedCalls interface {
-		Do(key string, fn func() (interface{}, error)) (interface{}, error)
+		Do(key string, fn func() (any, error)) (any, error)
 	}
 
 	lockedGroup struct {
@@ -26,7 +26,7 @@ func NewLockedCalls() LockedCalls {
 	}
 }
 
-func (lg *lockedGroup) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
+func (lg *lockedGroup) Do(key string, fn func() (any, error)) (any, error) {
 begin:
 	lg.mu.Lock()
 	if wg, ok := lg.m[key]; ok {
@@ -38,7 +38,7 @@ begin:
 	return lg.makeCall(key, fn)
 }
 
-func (lg *lockedGroup) makeCall(key string, fn func() (interface{}, error)) (interface{}, error) {
+func (lg *lockedGroup) makeCall(key string, fn func() (any, error)) (any, error) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	lg.m[key] = &wg

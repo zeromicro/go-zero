@@ -1,6 +1,9 @@
 package redis
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	// ErrEmptyHost is an error that indicates no redis host is set.
@@ -14,20 +17,24 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host string
-		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
-		Tls  bool   `json:",optional"`
+		Host     string
+		Type     string `json:",default=node,options=node|cluster"`
+		Pass     string `json:",optional"`
+		Tls      bool   `json:",optional"`
+		NonBlock bool   `json:",default=true"`
+		// PingTimeout is the timeout for ping redis.
+		PingTimeout time.Duration `json:",default=1s"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
 	RedisKeyConf struct {
 		RedisConf
-		Key string `json:",optional"`
+		Key string
 	}
 )
 
 // NewRedis returns a Redis.
+// Deprecated: use MustNewRedis or NewRedis instead.
 func (rc RedisConf) NewRedis() *Redis {
 	var opts []Option
 	if rc.Type == ClusterType {
@@ -40,7 +47,7 @@ func (rc RedisConf) NewRedis() *Redis {
 		opts = append(opts, WithTLS())
 	}
 
-	return New(rc.Host, opts...)
+	return newRedis(rc.Host, opts...)
 }
 
 // Validate validates the RedisConf.

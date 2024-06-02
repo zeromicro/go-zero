@@ -2,7 +2,6 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 	"go/token"
 	"os"
 	"path/filepath"
@@ -14,9 +13,11 @@ import (
 )
 
 type (
-	// DefaultProtoParser types a empty struct
+	// DefaultProtoParser types an empty struct
 	DefaultProtoParser struct{}
 )
+
+var ErrGoPackage = errors.New(`option go_package = "" field is not filled in`)
 
 // NewDefaultProtoParser creates a new instance
 func NewDefaultProtoParser() *DefaultProtoParser {
@@ -25,7 +26,7 @@ func NewDefaultProtoParser() *DefaultProtoParser {
 
 // Parse provides to parse the proto file into a golang structure,
 // which is convenient for subsequent rpc generation and use
-func (p *DefaultProtoParser) Parse(src string) (Proto, error) {
+func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) {
 	var ret Proto
 
 	abs, err := filepath.Abs(src)
@@ -45,7 +46,7 @@ func (p *DefaultProtoParser) Parse(src string) (Proto, error) {
 		return ret, err
 	}
 
-	var serviceList []Service
+	var serviceList Services
 	proto.Walk(
 		set,
 		proto.WithImport(func(i *proto.Import) {
@@ -76,31 +77,21 @@ func (p *DefaultProtoParser) Parse(src string) (Proto, error) {
 			}
 		}),
 	)
-	if len(serviceList) == 0 {
-		return ret, errors.New("rpc service not found")
+	if err = serviceList.validate(abs, multiple...); err != nil {
+		return ret, err
 	}
 
-	if len(serviceList) > 1 {
-		return ret, errors.New("only one service expected")
-	}
-	service := serviceList[0]
-	name := filepath.Base(abs)
-
-	for _, rpc := range service.RPC {
-		if strings.Contains(rpc.RequestType, ".") {
-			return ret, fmt.Errorf("line %v:%v, request type must defined in %s", rpc.Position.Line, rpc.Position.Column, name)
-		}
-		if strings.Contains(rpc.ReturnsType, ".") {
-			return ret, fmt.Errorf("line %v:%v, returns type must defined in %s", rpc.Position.Line, rpc.Position.Column, name)
-		}
-	}
 	if len(ret.GoPackage) == 0 {
+		if ret.Package.Package == nil {
+			return ret, ErrGoPackage
+		}
 		ret.GoPackage = ret.Package.Name
 	}
+
 	ret.PbPackage = GoSanitized(filepath.Base(ret.GoPackage))
 	ret.Src = abs
-	ret.Name = name
-	ret.Service = service
+	ret.Name = filepath.Base(abs)
+	ret.Service = serviceList
 
 	return ret, nil
 }

@@ -104,7 +104,7 @@ type (
 	}
 )
 
-func (c *metricsContainer) AddTask(v interface{}) bool {
+func (c *metricsContainer) AddTask(v any) bool {
 	if task, ok := v.(Task); ok {
 		if task.Drop {
 			c.drops++
@@ -117,7 +117,7 @@ func (c *metricsContainer) AddTask(v interface{}) bool {
 	return false
 }
 
-func (c *metricsContainer) Execute(v interface{}) {
+func (c *metricsContainer) Execute(v any) {
 	pair := v.(tasksDurationPair)
 	tasks := pair.tasks
 	duration := pair.duration
@@ -141,7 +141,7 @@ func (c *metricsContainer) Execute(v interface{}) {
 			report.Median = float32(medianTask.Duration) / float32(time.Millisecond)
 			tenPercent := fiftyPercent / 5
 			if tenPercent > 0 {
-				top10pTasks := topK(tasks, tenPercent)
+				top10pTasks := topK(top50pTasks, tenPercent)
 				task90th := top10pTasks[0]
 				report.Top90th = float32(task90th.Duration) / float32(time.Millisecond)
 				onePercent := tenPercent / 10
@@ -163,7 +163,7 @@ func (c *metricsContainer) Execute(v interface{}) {
 					report.Top99p9th = mostDuration
 				}
 			} else {
-				mostDuration := getTopDuration(tasks)
+				mostDuration := getTopDuration(top50pTasks)
 				report.Top90th = mostDuration
 				report.Top99th = mostDuration
 				report.Top99p9th = mostDuration
@@ -180,7 +180,7 @@ func (c *metricsContainer) Execute(v interface{}) {
 	log(report)
 }
 
-func (c *metricsContainer) RemoveAll() interface{} {
+func (c *metricsContainer) RemoveAll() any {
 	tasks := c.tasks
 	duration := c.duration
 	drops := c.drops

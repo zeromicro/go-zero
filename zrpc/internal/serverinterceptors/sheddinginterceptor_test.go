@@ -8,6 +8,8 @@ import (
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestUnarySheddingInterceptor(t *testing.T) {
@@ -33,7 +35,7 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 			name:      "reject",
 			allow:     false,
 			handleErr: nil,
-			expect:    load.ErrServiceOverloaded,
+			expect:    status.Error(codes.ResourceExhausted, load.ErrServiceOverloaded.Error()),
 		},
 	}
 
@@ -47,7 +49,7 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 			interceptor := UnarySheddingInterceptor(shedder, metrics)
 			_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 				FullMethod: "/",
-			}, func(ctx context.Context, req interface{}) (interface{}, error) {
+			}, func(ctx context.Context, req any) (any, error) {
 				return nil, test.handleErr
 			})
 			assert.Equal(t, test.expect, err)

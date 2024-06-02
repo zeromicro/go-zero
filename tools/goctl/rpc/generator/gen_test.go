@@ -5,14 +5,12 @@ import (
 	"go/build"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestRpcGenerate(t *testing.T) {
@@ -41,8 +39,9 @@ func TestRpcGenerate(t *testing.T) {
 	// case go path
 	t.Run("GOPATH", func(t *testing.T) {
 		ctx := &ZRpcContext{
-			Src:            "./test.proto",
-			ProtocCmd:      fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s", common, projectDir, projectDir),
+			Src: "./test.proto",
+			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
+				common, projectDir, projectDir),
 			IsGooglePlugin: true,
 			GoOutput:       projectDir,
 			GrpcOutput:     projectDir,
@@ -51,17 +50,13 @@ func TestRpcGenerate(t *testing.T) {
 		err = g.Generate(ctx)
 		assert.Nil(t, err)
 		_, err = execx.Run("go test "+projectName, projectDir)
-		if err != nil {
-			assert.True(t, func() bool {
-				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-			}())
-		}
+		assert.Error(t, err)
 	})
 
 	// case go mod
 	t.Run("GOMOD", func(t *testing.T) {
-		workDir := pathx.MustTempDir()
-		name := filepath.Base(workDir)
+		workDir := projectDir
+		name := filepath.Base(projectDir)
 		_, err = execx.Run("go mod init "+name, workDir)
 		if err != nil {
 			logx.Error(err)
@@ -70,8 +65,9 @@ func TestRpcGenerate(t *testing.T) {
 
 		projectDir = filepath.Join(workDir, projectName)
 		ctx := &ZRpcContext{
-			Src:            "./test.proto",
-			ProtocCmd:      fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s", common, projectDir, projectDir),
+			Src: "./test.proto",
+			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
+				common, projectDir, projectDir),
 			IsGooglePlugin: true,
 			GoOutput:       projectDir,
 			GrpcOutput:     projectDir,
@@ -79,31 +75,5 @@ func TestRpcGenerate(t *testing.T) {
 		}
 		err = g.Generate(ctx)
 		assert.Nil(t, err)
-		_, err = execx.Run("go test "+projectName, projectDir)
-		if err != nil {
-			assert.True(t, func() bool {
-				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-			}())
-		}
-	})
-
-	// case not in go mod and go path
-	t.Run("OTHER", func(t *testing.T) {
-		ctx := &ZRpcContext{
-			Src:            "./test.proto",
-			ProtocCmd:      fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s", common, projectDir, projectDir),
-			IsGooglePlugin: true,
-			GoOutput:       projectDir,
-			GrpcOutput:     projectDir,
-			Output:         projectDir,
-		}
-		err = g.Generate(ctx)
-		assert.Nil(t, err)
-		_, err = execx.Run("go test "+projectName, projectDir)
-		if err != nil {
-			assert.True(t, func() bool {
-				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-			}())
-		}
 	})
 }

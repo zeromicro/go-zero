@@ -1,29 +1,31 @@
 package logx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"path"
-	"strings"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 
+	fatihcolor "github.com/fatih/color"
 	"github.com/zeromicro/go-zero/core/color"
 )
 
 type (
 	Writer interface {
-		Alert(v interface{})
+		Alert(v any)
 		Close() error
-		Error(v interface{}, fields ...LogField)
-		Info(v interface{}, fields ...LogField)
-		Severe(v interface{})
-		Slow(v interface{}, fields ...LogField)
-		Stack(v interface{})
-		Stat(v interface{}, fields ...LogField)
+		Debug(v any, fields ...LogField)
+		Error(v any, fields ...LogField)
+		Info(v any, fields ...LogField)
+		Severe(v any)
+		Slow(v any, fields ...LogField)
+		Stack(v any)
+		Stat(v any, fields ...LogField)
 	}
 
 	atomicWriter struct {
@@ -63,21 +65,32 @@ func (w *atomicWriter) Load() Writer {
 
 func (w *atomicWriter) Store(v Writer) {
 	w.lock.Lock()
+	defer w.lock.Unlock()
 	w.writer = v
-	w.lock.Unlock()
+}
+
+func (w *atomicWriter) StoreIfNil(v Writer) Writer {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
+	if w.writer == nil {
+		w.writer = v
+	}
+
+	return w.writer
 }
 
 func (w *atomicWriter) Swap(v Writer) Writer {
 	w.lock.Lock()
+	defer w.lock.Unlock()
 	old := w.writer
 	w.writer = v
-	w.lock.Unlock()
 	return old
 }
 
 func newConsoleWriter() Writer {
-	outLog := newLogWriter(log.New(os.Stdout, "", flags))
-	errLog := newLogWriter(log.New(os.Stderr, "", flags))
+	outLog := newLogWriter(log.New(fatihcolor.Output, "", flags))
+	errLog := newLogWriter(log.New(fatihcolor.Error, "", flags))
 	return &concreteWriter{
 		infoLog:   outLog,
 		errorLog:  errLog,
@@ -109,6 +122,14 @@ func newFileWriter(c LogConf) (Writer, error) {
 	if c.KeepDays > 0 {
 		opts = append(opts, WithKeepDays(c.KeepDays))
 	}
+	if c.MaxBackups > 0 {
+		opts = append(opts, WithMaxBackups(c.MaxBackups))
+	}
+	if c.MaxSize > 0 {
+		opts = append(opts, WithMaxSize(c.MaxSize))
+	}
+
+	opts = append(opts, WithRotation(c.Rotation))
 
 	accessFile := path.Join(c.Path, accessFilename)
 	errorFile := path.Join(c.Path, errorFilename)
@@ -151,7 +172,7 @@ func newFileWriter(c LogConf) (Writer, error) {
 	}, nil
 }
 
-func (w *concreteWriter) Alert(v interface{}) {
+func (w *concreteWriter) Alert(v any) {
 	output(w.errorLog, levelAlert, v)
 }
 
@@ -175,78 +196,123 @@ func (w *concreteWriter) Close() error {
 	return w.statLog.Close()
 }
 
-func (w *concreteWriter) Error(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Debug(v any, fields ...LogField) {
+	output(w.infoLog, levelDebug, v, fields...)
+}
+
+func (w *concreteWriter) Error(v any, fields ...LogField) {
 	output(w.errorLog, levelError, v, fields...)
 }
 
-func (w *concreteWriter) Info(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Info(v any, fields ...LogField) {
 	output(w.infoLog, levelInfo, v, fields...)
 }
 
-func (w *concreteWriter) Severe(v interface{}) {
+func (w *concreteWriter) Severe(v any) {
 	output(w.severeLog, levelFatal, v)
 }
 
-func (w *concreteWriter) Slow(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Slow(v any, fields ...LogField) {
 	output(w.slowLog, levelSlow, v, fields...)
 }
 
-func (w *concreteWriter) Stack(v interface{}) {
+func (w *concreteWriter) Stack(v any) {
 	output(w.stackLog, levelError, v)
 }
 
-func (w *concreteWriter) Stat(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Stat(v any, fields ...LogField) {
 	output(w.statLog, levelStat, v, fields...)
 }
 
 type nopWriter struct{}
 
-func (n nopWriter) Alert(_ interface{}) {
+func (n nopWriter) Alert(_ any) {
 }
 
 func (n nopWriter) Close() error {
 	return nil
 }
 
-func (n nopWriter) Error(_ interface{}, _ ...LogField) {
+func (n nopWriter) Debug(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Info(_ interface{}, _ ...LogField) {
+func (n nopWriter) Error(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Severe(_ interface{}) {
+func (n nopWriter) Info(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Slow(_ interface{}, _ ...LogField) {
+func (n nopWriter) Severe(_ any) {
 }
 
-func (n nopWriter) Stack(_ interface{}) {
+func (n nopWriter) Slow(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Stat(_ interface{}, _ ...LogField) {
+func (n nopWriter) Stack(_ any) {
 }
 
-func buildFields(fields ...LogField) []string {
-	var items []string
+func (n nopWriter) Stat(_ any, _ ...LogField) {
+}
 
-	for _, field := range fields {
-		items = append(items, fmt.Sprintf("%s=%v", field.Key, field.Value))
+func buildPlainFields(fields logEntry) []string {
+	items := make([]string, 0, len(fields))
+	for k, v := range fields {
+		items = append(items, fmt.Sprintf("%s=%+v", k, v))
 	}
 
 	return items
 }
 
-func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
-	fields = append(fields, Field(callerKey, getCaller(callerDepth)))
+func combineGlobalFields(fields []LogField) []LogField {
+	globals := globalFields.Load()
+	if globals == nil {
+		return fields
+	}
+
+	gf := globals.([]LogField)
+	ret := make([]LogField, 0, len(gf)+len(fields))
+	ret = append(ret, gf...)
+	ret = append(ret, fields...)
+
+	return ret
+}
+
+func marshalJson(t interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(t)
+	// go 1.5+ will append a newline to the end of the json string
+	// https://github.com/golang/go/issues/13520
+	if l := buf.Len(); l > 0 && buf.Bytes()[l-1] == '\n' {
+		buf.Truncate(l - 1)
+	}
+
+	return buf.Bytes(), err
+}
+
+func output(writer io.Writer, level string, val any, fields ...LogField) {
+	// only truncate string content, don't know how to truncate the values of other types.
+	if v, ok := val.(string); ok {
+		maxLen := atomic.LoadUint32(&maxContentLength)
+		if maxLen > 0 && len(v) > int(maxLen) {
+			val = v[:maxLen]
+			fields = append(fields, truncatedField)
+		}
+	}
+
+	fields = combineGlobalFields(fields)
+	// +3 for timestamp, level and content
+	entry := make(logEntry, len(fields)+3)
+	for _, field := range fields {
+		entry[field.Key] = field.Value
+	}
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainAny(writer, level, val, buildFields(fields...)...)
+		plainFields := buildPlainFields(entry)
+		writePlainAny(writer, level, val, plainFields...)
 	default:
-		entry := make(logEntryWithFields)
-		for _, field := range fields {
-			entry[field.Key] = field.Value
-		}
 		entry[timestampKey] = getTimestamp()
 		entry[levelKey] = level
 		entry[contentKey] = val
@@ -267,6 +333,8 @@ func wrapLevelWithColor(level string) string {
 		colour = color.FgBlue
 	case levelSlow:
 		colour = color.FgYellow
+	case levelDebug:
+		colour = color.FgYellow
 	case levelStat:
 		colour = color.FgGreen
 	}
@@ -278,17 +346,19 @@ func wrapLevelWithColor(level string) string {
 	return color.WithColorPadding(level, colour)
 }
 
-func writeJson(writer io.Writer, info interface{}) {
-	if content, err := json.Marshal(info); err != nil {
-		log.Println(err.Error())
+func writeJson(writer io.Writer, info any) {
+	if content, err := marshalJson(info); err != nil {
+		log.Printf("err: %s\n\n%s", err.Error(), debug.Stack())
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
-		writer.Write(append(content, '\n'))
+		if _, err := writer.Write(append(content, '\n')); err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
-func writePlainAny(writer io.Writer, level string, val interface{}, fields ...string) {
+func writePlainAny(writer io.Writer, level string, val any, fields ...string) {
 	level = wrapLevelWithColor(level)
 
 	switch v := val.(type) {
@@ -299,34 +369,12 @@ func writePlainAny(writer io.Writer, level string, val interface{}, fields ...st
 	case fmt.Stringer:
 		writePlainText(writer, level, v.String(), fields...)
 	default:
-		var buf strings.Builder
-		buf.WriteString(getTimestamp())
-		buf.WriteByte(plainEncodingSep)
-		buf.WriteString(level)
-		buf.WriteByte(plainEncodingSep)
-		if err := json.NewEncoder(&buf).Encode(val); err != nil {
-			log.Println(err.Error())
-			return
-		}
-
-		for _, item := range fields {
-			buf.WriteByte(plainEncodingSep)
-			buf.WriteString(item)
-		}
-		buf.WriteByte('\n')
-		if writer == nil {
-			log.Println(buf.String())
-			return
-		}
-
-		if _, err := fmt.Fprint(writer, buf.String()); err != nil {
-			log.Println(err.Error())
-		}
+		writePlainValue(writer, level, v, fields...)
 	}
 }
 
 func writePlainText(writer io.Writer, level, msg string, fields ...string) {
-	var buf strings.Builder
+	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(level)
@@ -342,7 +390,33 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 		return
 	}
 
-	if _, err := fmt.Fprint(writer, buf.String()); err != nil {
+	if _, err := writer.Write(buf.Bytes()); err != nil {
+		log.Println(err.Error())
+	}
+}
+
+func writePlainValue(writer io.Writer, level string, val any, fields ...string) {
+	var buf bytes.Buffer
+	buf.WriteString(getTimestamp())
+	buf.WriteByte(plainEncodingSep)
+	buf.WriteString(level)
+	buf.WriteByte(plainEncodingSep)
+	if err := json.NewEncoder(&buf).Encode(val); err != nil {
+		log.Printf("err: %s\n\n%s", err.Error(), debug.Stack())
+		return
+	}
+
+	for _, item := range fields {
+		buf.WriteByte(plainEncodingSep)
+		buf.WriteString(item)
+	}
+	buf.WriteByte('\n')
+	if writer == nil {
+		log.Println(buf.String())
+		return
+	}
+
+	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
 }

@@ -21,11 +21,7 @@ spec:
       - name: {{.Name}}
         image: {{.Image}}
         {{if .ImagePullPolicy}}imagePullPolicy: {{.ImagePullPolicy}}
-        {{end}}lifecycle:
-          preStop:
-            exec:
-              command: ["sh","-c","sleep 5"]
-        ports:
+        {{end}}ports:
         - containerPort: {{.Port}}
         readinessProbe:
           tcpSocket:
@@ -63,17 +59,18 @@ metadata:
   namespace: {{.Namespace}}
 spec:
   ports:
-    {{if .UseNodePort}}- nodePort: {{.NodePort}}
-      port: {{.Port}}
-      protocol: TCP
-      targetPort: {{.Port}}
-  type: NodePort{{else}}- port: {{.Port}}{{end}}
+  {{if .UseNodePort}}- nodePort: {{.NodePort}}
+    port: {{.Port}}
+    protocol: TCP
+    targetPort: {{.TargetPort}}
+  type: NodePort{{else}}- port: {{.Port}}
+    targetPort: {{.TargetPort}}{{end}}
   selector:
     app: {{.Name}}
 
 ---
 
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{.Name}}-hpa-c
@@ -91,11 +88,13 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: 80
+      target:
+        type: Utilization
+        averageUtilization: 80
 
 ---
 
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{.Name}}-hpa-m
@@ -113,4 +112,6 @@ spec:
   - type: Resource
     resource:
       name: memory
-      targetAverageUtilization: 80
+      target:
+        type: Utilization
+        averageUtilization: 80

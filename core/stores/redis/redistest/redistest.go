@@ -1,31 +1,20 @@
 package redistest
 
 import (
-	"time"
+	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
-// CreateRedis returns a in process redis.Redis.
-func CreateRedis() (r *redis.Redis, clean func(), err error) {
-	mr, err := miniredis.Run()
-	if err != nil {
-		return nil, nil, err
-	}
+// CreateRedis returns an in process redis.Redis.
+func CreateRedis(t *testing.T) *redis.Redis {
+	r, _ := CreateRedisWithClean(t)
+	return r
+}
 
-	return redis.New(mr.Addr()), func() {
-		ch := make(chan lang.PlaceholderType)
-
-		go func() {
-			mr.Close()
-			close(ch)
-		}()
-
-		select {
-		case <-ch:
-		case <-time.After(time.Second):
-		}
-	}, nil
+// CreateRedisWithClean returns an in process redis.Redis and a clean function.
+func CreateRedisWithClean(t *testing.T) (r *redis.Redis, clean func()) {
+	mr := miniredis.RunT(t)
+	return redis.New(mr.Addr()), mr.Close
 }

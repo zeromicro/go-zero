@@ -26,11 +26,11 @@ type (
 	// CacheOption defines the method to customize a Cache.
 	CacheOption func(cache *Cache)
 
-	// A Cache object is a in-memory cache.
+	// A Cache object is an in-memory cache.
 	Cache struct {
 		name           string
 		lock           sync.Mutex
-		data           map[string]interface{}
+		data           map[string]any
 		expire         time.Duration
 		timingWheel    *TimingWheel
 		lruCache       lru
@@ -43,7 +43,7 @@ type (
 // NewCache returns a Cache with given expire.
 func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	cache := &Cache{
-		data:           make(map[string]interface{}),
+		data:           make(map[string]any),
 		expire:         expire,
 		lruCache:       emptyLruCache,
 		barrier:        syncx.NewSingleFlight(),
@@ -59,7 +59,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	}
 	cache.stats = newCacheStat(cache.name, cache.size)
 
-	timingWheel, err := NewTimingWheel(time.Second, slots, func(k, v interface{}) {
+	timingWheel, err := NewTimingWheel(time.Second, slots, func(k, v any) {
 		key, ok := k.(string)
 		if !ok {
 			return
@@ -85,7 +85,7 @@ func (c *Cache) Del(key string) {
 }
 
 // Get returns the item with the given key from c.
-func (c *Cache) Get(key string) (interface{}, bool) {
+func (c *Cache) Get(key string) (any, bool) {
 	value, ok := c.doGet(key)
 	if ok {
 		c.stats.IncrementHit()
@@ -97,12 +97,12 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 }
 
 // Set sets value into c with key.
-func (c *Cache) Set(key string, value interface{}) {
+func (c *Cache) Set(key string, value any) {
 	c.SetWithExpire(key, value, c.expire)
 }
 
 // SetWithExpire sets value into c with key and expire with the given value.
-func (c *Cache) SetWithExpire(key string, value interface{}, expire time.Duration) {
+func (c *Cache) SetWithExpire(key string, value any, expire time.Duration) {
 	c.lock.Lock()
 	_, ok := c.data[key]
 	c.data[key] = value
@@ -120,16 +120,16 @@ func (c *Cache) SetWithExpire(key string, value interface{}, expire time.Duratio
 // Take returns the item with the given key.
 // If the item is in c, return it directly.
 // If not, use fetch method to get the item, set into c and return it.
-func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}, error) {
+func (c *Cache) Take(key string, fetch func() (any, error)) (any, error) {
 	if val, ok := c.doGet(key); ok {
 		c.stats.IncrementHit()
 		return val, nil
 	}
 
 	var fresh bool
-	val, err := c.barrier.Do(key, func() (interface{}, error) {
-		// because O(1) on map search in memory, and fetch is an IO query
-		// so we do double check, cache might be taken by another call
+	val, err := c.barrier.Do(key, func() (any, error) {
+		// because O(1) on map search in memory, and fetch is an IO query,
+		// so we do double-check, cache might be taken by another call
 		if val, ok := c.doGet(key); ok {
 			return val, nil
 		}
@@ -157,7 +157,7 @@ func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}
 	return val, nil
 }
 
-func (c *Cache) doGet(key string) (interface{}, bool) {
+func (c *Cache) doGet(key string) (any, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 

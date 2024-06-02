@@ -2,12 +2,16 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
+	"github.com/zeromicro/go-zero/internal/health"
 )
+
+const probeNamePrefix = "rest"
 
 // StartOption defines the method to customize http.Server.
 type StartOption func(svr *http.Server)
@@ -37,17 +41,21 @@ func start(host string, port int, handler http.Handler, run func(svr *http.Serve
 	for _, opt := range opts {
 		opt(server)
 	}
+	healthManager := health.NewHealthManager(fmt.Sprintf("%s-%s:%d", probeNamePrefix, host, port))
 
-	waitForCalled := proc.AddWrapUpListener(func() {
-		if e := server.Shutdown(context.Background()); err != nil {
+	waitForCalled := proc.AddShutdownListener(func() {
+		healthManager.MarkNotReady()
+		if e := server.Shutdown(context.Background()); e != nil {
 			logx.Error(e)
 		}
 	})
 	defer func() {
-		if err == http.ErrServerClosed {
+		if errors.Is(err, http.ErrServerClosed) {
 			waitForCalled()
 		}
 	}()
 
+	healthManager.MarkReady()
+	health.AddProbe(healthManager)
 	return run(server)
 }

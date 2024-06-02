@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package mr
 
 import (
@@ -16,11 +13,11 @@ import (
 )
 
 func FuzzMapReduce(f *testing.F) {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 
-	f.Add(uint(10), uint(runtime.NumCPU()))
-	f.Fuzz(func(t *testing.T, num uint, workers uint) {
-		n := int64(num)%5000 + 5000
+	f.Add(int64(10), runtime.NumCPU())
+	f.Fuzz(func(t *testing.T, n int64, workers int) {
+		n = n%5000 + 5000
 		genPanic := rand.Intn(100) == 0
 		mapperPanic := rand.Intn(100) == 0
 		reducerPanic := rand.Intn(100) == 0
@@ -29,34 +26,33 @@ func FuzzMapReduce(f *testing.F) {
 		reducerIdx := rand.Int63n(n)
 		squareSum := (n - 1) * n * (2*n - 1) / 6
 
-		fn := func() (interface{}, error) {
+		fn := func() (int64, error) {
 			defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 
-			return MapReduce(func(source chan<- interface{}) {
+			return MapReduce(func(source chan<- int64) {
 				for i := int64(0); i < n; i++ {
 					source <- i
 					if genPanic && i == genIdx {
 						panic("foo")
 					}
 				}
-			}, func(item interface{}, writer Writer, cancel func(error)) {
-				v := item.(int64)
+			}, func(v int64, writer Writer[int64], cancel func(error)) {
 				if mapperPanic && v == mapperIdx {
 					panic("bar")
 				}
 				writer.Write(v * v)
-			}, func(pipe <-chan interface{}, writer Writer, cancel func(error)) {
+			}, func(pipe <-chan int64, writer Writer[int64], cancel func(error)) {
 				var idx int64
 				var total int64
 				for v := range pipe {
 					if reducerPanic && idx == reducerIdx {
 						panic("baz")
 					}
-					total += v.(int64)
+					total += v
 					idx++
 				}
 				writer.Write(total)
-			}, WithWorkers(int(workers)%50+runtime.NumCPU()/2))
+			}, WithWorkers(workers%50+runtime.NumCPU()))
 		}
 
 		if genPanic || mapperPanic || reducerPanic {
@@ -72,7 +68,7 @@ func FuzzMapReduce(f *testing.F) {
 		} else {
 			val, err := fn()
 			assert.Nil(t, err)
-			assert.Equal(t, squareSum, val.(int64))
+			assert.Equal(t, squareSum, val)
 		}
 	})
 }

@@ -9,12 +9,22 @@ import (
 )
 
 // Marshal marshals v into json bytes.
-func Marshal(v interface{}) ([]byte, error) {
+func Marshal(v any) ([]byte, error) {
 	return json.Marshal(v)
 }
 
+// MarshalToString marshals v into a string.
+func MarshalToString(v any) (string, error) {
+	data, err := Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 // Unmarshal unmarshals data bytes into v.
-func Unmarshal(data []byte, v interface{}) error {
+func Unmarshal(data []byte, v any) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	if err := unmarshalUseNumber(decoder, v); err != nil {
 		return formatError(string(data), err)
@@ -24,7 +34,7 @@ func Unmarshal(data []byte, v interface{}) error {
 }
 
 // UnmarshalFromString unmarshals v from str.
-func UnmarshalFromString(str string, v interface{}) error {
+func UnmarshalFromString(str string, v any) error {
 	decoder := json.NewDecoder(strings.NewReader(str))
 	if err := unmarshalUseNumber(decoder, v); err != nil {
 		return formatError(str, err)
@@ -34,7 +44,7 @@ func UnmarshalFromString(str string, v interface{}) error {
 }
 
 // UnmarshalFromReader unmarshals v from reader.
-func UnmarshalFromReader(reader io.Reader, v interface{}) error {
+func UnmarshalFromReader(reader io.Reader, v any) error {
 	var buf strings.Builder
 	teeReader := io.TeeReader(reader, &buf)
 	decoder := json.NewDecoder(teeReader)
@@ -45,7 +55,7 @@ func UnmarshalFromReader(reader io.Reader, v interface{}) error {
 	return nil
 }
 
-func unmarshalUseNumber(decoder *json.Decoder, v interface{}) error {
+func unmarshalUseNumber(decoder *json.Decoder, v any) error {
 	decoder.UseNumber()
 	return decoder.Decode(v)
 }

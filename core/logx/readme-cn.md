@@ -8,15 +8,18 @@
 
 ```go
 type LogConf struct {
-	ServiceName         string `json:",optional"`
-	Mode                string `json:",default=console,options=[console,file,volume]"`
-	Encoding            string `json:",default=json,options=[json,plain]"`
-	TimeFormat          string `json:",optional"`
-	Path                string `json:",default=logs"`
-	Level               string `json:",default=info,options=[info,error,severe]"`
-	Compress            bool   `json:",optional"`
-	KeepDays            int    `json:",optional"`
-	StackCooldownMillis int    `json:",default=100"`
+	ServiceName         string              `json:",optional"`
+	Mode                string              `json:",default=console,options=[console,file,volume]"`
+	Encoding            string              `json:",default=json,options=[json,plain]"`
+	TimeFormat          string              `json:",optional"`
+	Path                string              `json:",default=logs"`
+	Level               string              `json:",default=info,options=[info,error,severe]"`
+	Compress            bool                `json:",optional"`
+	KeepDays            int                 `json:",optional"`
+	StackCooldownMillis int                 `json:",default=100"`
+	MaxBackups          int                 `json:",default=0"`
+	MaxSize             int                 `json:",default=0"`
+	Rotation            string              `json:",default=daily,options=[daily,size]"`
 }
 ```
 
@@ -37,33 +40,39 @@ type LogConf struct {
 - `Compress`: 是否压缩日志文件，只在 `file` 模式下工作
 - `KeepDays`：日志文件被保留多少天，在给定的天数之后，过期的文件将被自动删除。对 `console` 模式没有影响
 - `StackCooldownMillis`：多少毫秒后再次写入堆栈跟踪。用来避免堆栈跟踪日志过多
+- `MaxBackups`: 多少个日志文件备份将被保存。0代表所有备份都被保存。当`Rotation`被设置为`size`时才会起作用。注意：`KeepDays`选项的优先级会比`MaxBackups`高，即使`MaxBackups`被设置为0，当达到`KeepDays`上限时备份文件同样会被删除。
+- `MaxSize`: 当前被写入的日志文件最大可占用多少空间。0代表没有上限。单位为`MB`。当`Rotation`被设置为`size`时才会起作用。
+- `Rotation`: 日志轮转策略类型。默认为`daily`（按天轮转）。
+  - `daily` 按天轮转。
+  - `size` 按日志大小轮转。
+
 
 ## 打印日志方法
 
 ```go
 type Logger interface {
 	// Error logs a message at error level.
-	Error(...interface{})
+	Error(...any)
 	// Errorf logs a message at error level.
-	Errorf(string, ...interface{})
+	Errorf(string, ...any)
 	// Errorv logs a message at error level.
-	Errorv(interface{})
+	Errorv(any)
 	// Errorw logs a message at error level.
 	Errorw(string, ...LogField)
 	// Info logs a message at info level.
-	Info(...interface{})
+	Info(...any)
 	// Infof logs a message at info level.
-	Infof(string, ...interface{})
+	Infof(string, ...any)
 	// Infov logs a message at info level.
-	Infov(interface{})
+	Infov(any)
 	// Infow logs a message at info level.
 	Infow(string, ...LogField)
 	// Slow logs a message at slow level.
-	Slow(...interface{})
+	Slow(...any)
 	// Slowf logs a message at slow level.
-	Slowf(string, ...interface{})
+	Slowf(string, ...any)
 	// Slowv logs a message at slow level.
-	Slowv(interface{})
+	Slowv(any)
 	// Sloww logs a message at slow level.
 	Sloww(string, ...LogField)
 	// WithContext returns a new logger with the given context.
@@ -156,7 +165,7 @@ func NewSensitiveLogger(writer logx.Writer) *SensitiveLogger {
 	}
 }
 
-func (l *SensitiveLogger) Info(msg interface{}, fields ...logx.LogField) {
+func (l *SensitiveLogger) Info(msg any, fields ...logx.LogField) {
 	if m, ok := msg.(Message); ok {
 		l.Writer.Info(Message{
 			Name:     m.Name,

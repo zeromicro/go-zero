@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -61,10 +60,6 @@ type requestSettings struct {
 	fingerprint string
 	missHeader  bool
 	signature   string
-}
-
-func init() {
-	log.SetOutput(ioutil.Discard)
 }
 
 func TestContentSecurityHandler(t *testing.T) {
@@ -332,7 +327,7 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 			query,
 			bodySign,
 		}, "\n")
-		rs.signature = codec.HmacBase64([]byte(key), contentOfSign)
+		rs.signature = codec.HmacBase64(key, contentOfSign)
 	}
 
 	var mode string
@@ -348,7 +343,7 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 		"time=" + strconv.FormatInt(rs.timestamp, 10),
 	}, "; ")
 
-	encrypter, err := codec.NewRsaEncrypter([]byte(pubKey))
+	encrypter, err := codec.NewRsaEncrypter(pubKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -374,14 +369,13 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 }
 
 func createTempFile(body []byte) (string, error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "go-unit-*.tmp")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "go-unit-*.tmp")
 	if err != nil {
 		return "", err
 	}
 
 	tmpFile.Close()
-	err = ioutil.WriteFile(tmpFile.Name(), body, os.ModePerm)
-	if err != nil {
+	if err = os.WriteFile(tmpFile.Name(), body, os.ModePerm); err != nil {
 		return "", err
 	}
 

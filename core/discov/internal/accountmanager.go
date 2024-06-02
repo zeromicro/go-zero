@@ -3,7 +3,7 @@ package internal
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -37,7 +37,7 @@ func AddTLS(endpoints []string, certFile, certKeyFile, caFile string, insecureSk
 		return err
 	}
 
-	caData, err := ioutil.ReadFile(caFile)
+	caData, err := os.ReadFile(caFile)
 	if err != nil {
 		return err
 	}

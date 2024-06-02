@@ -3,10 +3,8 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/metric"
-	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
@@ -19,8 +17,8 @@ var (
 		Subsystem: "requests",
 		Name:      "duration_ms",
 		Help:      "http server requests duration(ms).",
-		Labels:    []string{"path"},
-		Buckets:   []float64{5, 10, 25, 50, 100, 250, 500, 1000},
+		Labels:    []string{"path", "method", "code"},
+		Buckets:   []float64{5, 10, 25, 50, 100, 250, 500, 750, 1000},
 	})
 
 	metricServerReqCodeTotal = metric.NewCounterVec(&metric.CounterVecOpts{
@@ -28,23 +26,20 @@ var (
 		Subsystem: "requests",
 		Name:      "code_total",
 		Help:      "http server requests error count.",
-		Labels:    []string{"path", "code"},
+		Labels:    []string{"path", "method", "code"},
 	})
 )
 
 // PrometheusHandler returns a middleware that reports stats to prometheus.
-func PrometheusHandler(path string) func(http.Handler) http.Handler {
+func PrometheusHandler(path, method string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		if !prometheus.Enabled() {
-			return next
-		}
-
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startTime := timex.Now()
-			cw := &response.WithCodeResponseWriter{Writer: w}
+			cw := response.NewWithCodeResponseWriter(w)
 			defer func() {
-				metricServerReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), path)
-				metricServerReqCodeTotal.Inc(path, strconv.Itoa(cw.Code))
+				code := strconv.Itoa(cw.Code)
+				metricServerReqDur.Observe(timex.Since(startTime).Milliseconds(), path, method, code)
+				metricServerReqCodeTotal.Inc(path, method, code)
 			}()
 
 			next.ServeHTTP(cw, r)

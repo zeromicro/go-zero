@@ -1,5 +1,4 @@
 //go:build linux || darwin
-// +build linux darwin
 
 package proc
 
@@ -43,10 +42,20 @@ func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
 }
 
-func gracefulStop(signals chan os.Signal) {
+// Shutdown calls the registered shutdown listeners, only for test purpose.
+func Shutdown() {
+	shutdownListeners.notifyListeners()
+}
+
+// WrapUp wraps up the process, only for test purpose.
+func WrapUp() {
+	wrapUpListeners.notifyListeners()
+}
+
+func gracefulStop(signals chan os.Signal, sig syscall.Signal) {
 	signal.Stop(signals)
 
-	logx.Info("Got signal SIGTERM, shutting down...")
+	logx.Infof("Got signal %d, shutting down...", sig)
 	go wrapUpListeners.notifyListeners()
 
 	time.Sleep(wrapUpTime)
@@ -54,7 +63,7 @@ func gracefulStop(signals chan os.Signal) {
 
 	time.Sleep(delayTimeBeforeForceQuit - wrapUpTime)
 	logx.Infof("Still alive after %v, going to force kill the process...", delayTimeBeforeForceQuit)
-	syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+	_ = syscall.Kill(syscall.Getpid(), sig)
 }
 
 type listenerManager struct {
@@ -87,4 +96,6 @@ func (lm *listenerManager) notifyListeners() {
 		group.RunSafe(listener)
 	}
 	group.Wait()
+
+	lm.listeners = nil
 }

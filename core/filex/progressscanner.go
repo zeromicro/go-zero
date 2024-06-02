@@ -5,7 +5,7 @@ import "gopkg.in/cheggaaa/pb.v1"
 type (
 	// A Scanner is used to read lines.
 	Scanner interface {
-		// Scan checks if has remaining to read.
+		// Scan checks if it has remaining to read.
 		Scan() bool
 		// Text returns next line.
 		Text() string

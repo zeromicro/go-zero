@@ -7,6 +7,21 @@ import (
 )
 
 type (
+	// MiddlewaresConf is the config of middlewares.
+	MiddlewaresConf struct {
+		Trace      bool `json:",default=true"`
+		Log        bool `json:",default=true"`
+		Prometheus bool `json:",default=true"`
+		MaxConns   bool `json:",default=true"`
+		Breaker    bool `json:",default=true"`
+		Shedding   bool `json:",default=true"`
+		Timeout    bool `json:",default=true"`
+		Recover    bool `json:",default=true"`
+		Metrics    bool `json:",default=true"`
+		MaxBytes   bool `json:",default=true"`
+		Gunzip     bool `json:",default=true"`
+	}
+
 	// A PrivateKeyConf is a private key config.
 	PrivateKeyConf struct {
 		Fingerprint string
@@ -38,7 +53,11 @@ type (
 		MaxBytes int64  `json:",default=1048576"`
 		// milliseconds
 		Timeout      int64         `json:",default=3000"`
-		CpuThreshold int64         `json:",default=900,range=[0:1000]"`
+		CpuThreshold int64         `json:",default=900,range=[0:1000)"`
 		Signature    SignatureConf `json:",optional"`
+		// There are default values for all the items in Middlewares.
+		Middlewares MiddlewaresConf
+		// TraceIgnorePaths is paths blacklist for trace middleware.
+		TraceIgnorePaths []string `json:",optional"`
 	}
 )

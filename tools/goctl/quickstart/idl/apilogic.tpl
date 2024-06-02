@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"greet/api/internal/svc"
-	"greet/api/internal/types"{{if .callRPC}}
-	"greet/rpc/greet"{{end}}
+
+	"{{.svcPkg}}"
+	"{{.typesPkg}}"{{if .callRPC}}
+	"{{.rpcClientPkg}}"{{end}}
 )
 
 type PingLogic struct {

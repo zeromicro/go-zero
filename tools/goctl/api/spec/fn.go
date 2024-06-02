@@ -13,10 +13,11 @@ const (
 	bodyTagKey        = "json"
 	formTagKey        = "form"
 	pathTagKey        = "path"
+	headerTagKey      = "header"
 	defaultSummaryKey = "summary"
 )
 
-var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey}
+var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey, headerTagKey}
 
 func (s Service) JoinPrefix() Service {
 	var groups []Group
@@ -138,6 +139,42 @@ func (m Member) IsFormMember() bool {
 	return false
 }
 
+// IsTagMember returns true if contains given tag
+func (m Member) IsTagMember(tagKey string) bool {
+	if m.IsInline {
+		return true
+	}
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == tagKey {
+			return true
+		}
+	}
+	return false
+}
+
+// GetEnumOptions return a slice contains all enumeration options
+func (m Member) GetEnumOptions() []string {
+	if !m.IsBodyMember() {
+		return nil
+	}
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == bodyTagKey {
+			options := tag.Options
+			for _, option := range options {
+				if strings.Index(option, "options=") == 0 {
+					option = strings.TrimPrefix(option, "options=")
+					return strings.Split(option, "|")
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // GetBodyMembers returns all json fields
 func (t DefineStruct) GetBodyMembers() []Member {
 	var result []Member
@@ -165,6 +202,17 @@ func (t DefineStruct) GetNonBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
 		if !member.IsBodyMember() {
+			result = append(result, member)
+		}
+	}
+	return result
+}
+
+// GetTagMembers returns all given key fields
+func (t DefineStruct) GetTagMembers(tagKey string) []Member {
+	var result []Member
+	for _, member := range t.Members {
+		if member.IsTagMember(tagKey) {
 			result = append(result, member)
 		}
 	}

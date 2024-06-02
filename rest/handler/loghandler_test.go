@@ -2,9 +2,8 @@ package handler
 
 import (
 	"bytes"
+	"errors"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,11 +11,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/rest/internal"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 )
-
-func init() {
-	log.SetOutput(ioutil.Discard)
-}
 
 func TestLogHandler(t *testing.T) {
 	handlers := []func(handler http.Handler) http.Handler{
@@ -25,9 +21,9 @@ func TestLogHandler(t *testing.T) {
 	}
 
 	for _, logHandler := range handlers {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
+			internal.LogCollectorFromContext(r.Context()).Append("anything")
 			w.Header().Set("X-Test", "test")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, err := w.Write([]byte("content"))
@@ -54,8 +50,8 @@ func TestLogHandlerVeryLong(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "http://localhost", &buf)
 	handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
-		io.Copy(ioutil.Discard, r.Body)
+		internal.LogCollectorFromContext(r.Context()).Append("anything")
+		_, _ = io.Copy(io.Discard, r.Body)
 		w.Header().Set("X-Test", "test")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, err := w.Write([]byte("content"))
@@ -80,7 +76,7 @@ func TestLogHandlerSlow(t *testing.T) {
 	}
 
 	for _, logHandler := range handlers {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(defaultSlowThreshold + time.Millisecond*50)
 		}))
@@ -90,45 +86,31 @@ func TestLogHandlerSlow(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 	}
 }
-
-func TestLogHandler_Hijack(t *testing.T) {
-	resp := httptest.NewRecorder()
-	writer := &loggedResponseWriter{
-		w: resp,
-	}
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-
-	writer = &loggedResponseWriter{
-		w: mockedHijackable{resp},
-	}
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-}
-
 func TestDetailedLogHandler_Hijack(t *testing.T) {
 	resp := httptest.NewRecorder()
 	writer := &detailLoggedResponseWriter{
-		writer: &loggedResponseWriter{
-			w: resp,
-		},
+		writer: response.NewWithCodeResponseWriter(resp),
 	}
 	assert.NotPanics(t, func() {
-		writer.Hijack()
+		_, _, _ = writer.Hijack()
 	})
 
 	writer = &detailLoggedResponseWriter{
-		writer: &loggedResponseWriter{
-			w: mockedHijackable{resp},
-		},
+		writer: response.NewWithCodeResponseWriter(resp),
 	}
 	assert.NotPanics(t, func() {
-		writer.Hijack()
+		_, _, _ = writer.Hijack()
+	})
+
+	writer = &detailLoggedResponseWriter{
+		writer: response.NewWithCodeResponseWriter(mockedHijackable{
+			ResponseRecorder: resp,
+		}),
+	}
+	assert.NotPanics(t, func() {
+		_, _, _ = writer.Hijack()
 	})
 }
-
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
 	SetSlowThreshold(time.Second)
@@ -157,10 +139,17 @@ func TestWrapStatusCodeWithColor(t *testing.T) {
 	assert.Equal(t, "503", wrapStatusCode(http.StatusServiceUnavailable))
 }
 
+func TestDumpRequest(t *testing.T) {
+	const errMsg = "error"
+	r := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	r.Body = mockedReadCloser{errMsg: errMsg}
+	assert.Equal(t, errMsg, dumpRequest(r))
+}
+
 func BenchmarkLogHandler(b *testing.B) {
 	b.ReportAllocs()
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -169,4 +158,16 @@ func BenchmarkLogHandler(b *testing.B) {
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 	}
+}
+
+type mockedReadCloser struct {
+	errMsg string
+}
+
+func (m mockedReadCloser) Read(_ []byte) (n int, err error) {
+	return 0, errors.New(m.errMsg)
+}
+
+func (m mockedReadCloser) Close() error {
+	return nil
 }

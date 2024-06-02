@@ -5,7 +5,17 @@ import (
 	"strings"
 
 	"github.com/zeromicro/ddl-parser/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 )
+
+var unsignedTypeMap = map[string]string{
+	"int":   "uint",
+	"int8":  "uint8",
+	"int16": "uint16",
+	"int32": "uint32",
+	"int64": "uint64",
+}
 
 var commonMysqlDataTypeMapInt = map[int]string{
 	// For consistency, all integer types are converted to int64
@@ -65,10 +75,68 @@ var commonMysqlDataTypeMapInt = map[int]string{
 	parser.Boolean: "bool",
 }
 
+var commonMysqlDataTypeMap = map[int]string{
+	// number
+	parser.Bit:       "bit",
+	parser.TinyInt:   "tinyint",
+	parser.SmallInt:  "smallint",
+	parser.MediumInt: "mediumint",
+	parser.Int:       "int",
+	parser.MiddleInt: "middleint",
+	parser.Int1:      "int1",
+	parser.Int2:      "int2",
+	parser.Int3:      "int3",
+	parser.Int4:      "int4",
+	parser.Int8:      "int8",
+	parser.Integer:   "integer",
+	parser.BigInt:    "bigint",
+	parser.Float:     "float",
+	parser.Float4:    "float4",
+	parser.Float8:    "float8",
+	parser.Double:    "double",
+	parser.Decimal:   "decimal",
+	parser.Dec:       "dec",
+	parser.Fixed:     "fixed",
+	parser.Numeric:   "numeric",
+	parser.Real:      "real",
+	// date&time
+	parser.Date:      "date",
+	parser.DateTime:  "datetime",
+	parser.Timestamp: "timestamp",
+	parser.Time:      "time",
+	parser.Year:      "year",
+	// string
+	parser.Char:            "char",
+	parser.VarChar:         "varchar",
+	parser.NVarChar:        "nvarchar",
+	parser.NChar:           "nchar",
+	parser.Character:       "character",
+	parser.LongVarChar:     "longvarchar",
+	parser.LineString:      "linestring",
+	parser.MultiLineString: "multilinestring",
+	parser.Binary:          "binary",
+	parser.VarBinary:       "varbinary",
+	parser.TinyText:        "tinytext",
+	parser.Text:            "text",
+	parser.MediumText:      "mediumtext",
+	parser.LongText:        "longtext",
+	parser.Enum:            "enum",
+	parser.Set:             "set",
+	parser.Json:            "json",
+	parser.Blob:            "blob",
+	parser.LongBlob:        "longblob",
+	parser.MediumBlob:      "mediumblob",
+	parser.TinyBlob:        "tinyblob",
+	// bool
+	parser.Bool:    "bool",
+	parser.Boolean: "boolean",
+}
+
 var commonMysqlDataTypeMapString = map[string]string{
 	// For consistency, all integer types are converted to int64
 	// bool
 	"bool":    "bool",
+	"_bool":   "pq.BoolArray",
 	"boolean": "bool",
 	// number
 	"tinyint":   "int64",
@@ -77,14 +145,20 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"int":       "int64",
 	"int1":      "int64",
 	"int2":      "int64",
+	"_int2":     "pq.Int64Array",
 	"int3":      "int64",
 	"int4":      "int64",
+	"_int4":     "pq.Int64Array",
 	"int8":      "int64",
+	"_int8":     "pq.Int64Array",
 	"integer":   "int64",
+	"_integer":  "pq.Int64Array",
 	"bigint":    "int64",
 	"float":     "float64",
 	"float4":    "float64",
+	"_float4":   "pq.Float64Array",
 	"float8":    "float64",
+	"_float8":   "pq.Float64Array",
 	"double":    "float64",
 	"decimal":   "float64",
 	"dec":       "float64",
@@ -103,14 +177,18 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"nvarchar":        "string",
 	"nchar":           "string",
 	"char":            "string",
+	"bpchar":          "string",
+	"_char":           "pq.StringArray",
 	"character":       "string",
 	"varchar":         "string",
+	"_varchar":        "pq.StringArray",
 	"binary":          "string",
 	"bytea":           "string",
 	"longvarbinary":   "string",
 	"varbinary":       "string",
 	"tinytext":        "string",
 	"text":            "string",
+	"_text":           "pq.StringArray",
 	"mediumtext":      "string",
 	"longtext":        "string",
 	"enum":            "string",
@@ -121,30 +199,93 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"longblob":        "string",
 	"mediumblob":      "string",
 	"tinyblob":        "string",
+	"ltree":           "[]byte",
 }
 
 // ConvertDataType converts mysql column type into golang type
-func ConvertDataType(dataBaseType int, isDefaultNull bool) (string, error) {
-	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
-	if !ok {
-		return "", fmt.Errorf("unsupported database type: %v", dataBaseType)
+func ConvertDataType(dataBaseType int, isDefaultNull, unsigned, strict bool) (string, string, error) {
+	if env.UseExperimental() {
+		tp, ok := commonMysqlDataTypeMap[dataBaseType]
+		if !ok {
+			return "", "", fmt.Errorf("unsupported database type: %v", dataBaseType)
+		}
+
+		goType, thirdPkg, _, err := ConvertStringDataType(tp, isDefaultNull, unsigned, strict)
+		return goType, thirdPkg, err
 	}
 
-	return mayConvertNullType(tp, isDefaultNull), nil
+	// the following are the old version compatibility code.
+	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
+	if !ok {
+		return "", "", fmt.Errorf("unsupported database type: %v", dataBaseType)
+	}
+
+	return mayConvertNullType(tp, isDefaultNull, unsigned, strict), "", nil
 }
 
 // ConvertStringDataType converts mysql column type into golang type
-func ConvertStringDataType(dataBaseType string, isDefaultNull bool) (string, error) {
-	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
-	if !ok {
-		return "", fmt.Errorf("unsupported database type: %s", dataBaseType)
+func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict bool) (
+	goType string, thirdPkg string, isPQArray bool, err error) {
+	if env.UseExperimental() {
+		customTp, thirdImport := convertDatatypeWithConfig(dataBaseType, isDefaultNull, unsigned)
+		if len(customTp) != 0 {
+			return customTp, thirdImport, false, nil
+		}
+
+		tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
+		if !ok {
+			return "", "", false, fmt.Errorf("unsupported database type: %s", dataBaseType)
+		}
+
+		if strings.HasPrefix(dataBaseType, "_") {
+			return tp, "", true, nil
+		}
+
+		return mayConvertNullType(tp, isDefaultNull, unsigned, strict), "", false, nil
 	}
 
-	return mayConvertNullType(tp, isDefaultNull), nil
+	// the following are the old version compatibility code.
+	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
+	if !ok {
+		return "", "", false, fmt.Errorf("unsupported database type: %s", dataBaseType)
+	}
+
+	if strings.HasPrefix(dataBaseType, "_") {
+		return tp, "", true, nil
+	}
+
+	return mayConvertNullType(tp, isDefaultNull, unsigned, strict), "", false, nil
 }
 
-func mayConvertNullType(goDataType string, isDefaultNull bool) string {
+func convertDatatypeWithConfig(dataBaseType string, isDefaultNull, unsigned bool) (string, string) {
+	if config.ExternalConfig == nil {
+		return "", ""
+	}
+	opt, ok := config.ExternalConfig.Model.TypesMap[strings.ToLower(dataBaseType)]
+	if !ok || (len(opt.Type) == 0 && len(opt.UnsignedType) == 0 && len(opt.NullType) == 0) {
+		return "", ""
+	}
+
+	if isDefaultNull {
+		if len(opt.NullType) != 0 {
+			return opt.NullType, opt.Pkg
+		}
+	} else if unsigned {
+		if len(opt.UnsignedType) != 0 {
+			return opt.UnsignedType, opt.Pkg
+		}
+	}
+	return opt.Type, opt.Pkg
+}
+
+func mayConvertNullType(goDataType string, isDefaultNull, unsigned, strict bool) string {
 	if !isDefaultNull {
+		if unsigned && strict {
+			ret, ok := unsignedTypeMap[goDataType]
+			if ok {
+				return ret
+			}
+		}
 		return goDataType
 	}
 
@@ -162,6 +303,12 @@ func mayConvertNullType(goDataType string, isDefaultNull bool) string {
 	case "time.Time":
 		return "sql.NullTime"
 	default:
+		if unsigned {
+			ret, ok := unsignedTypeMap[goDataType]
+			if ok {
+				return ret
+			}
+		}
 		return goDataType
 	}
 }
