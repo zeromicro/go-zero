@@ -258,10 +258,12 @@ func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict 
 }
 
 func convertDatatypeWithConfig(dataBaseType string, isDefaultNull, unsigned bool) (string, string) {
-	if config.ExternalConfig == nil {
+	externalConfig, err := config.GetExternalConfig()
+	if err != nil {
 		return "", ""
 	}
-	opt, ok := config.ExternalConfig.Model.TypesMap[strings.ToLower(dataBaseType)]
+
+	opt, ok := externalConfig.Model.TypesMap[strings.ToLower(dataBaseType)]
 	if !ok || (len(opt.Type) == 0 && len(opt.UnsignedType) == 0 && len(opt.NullType) == 0) {
 		return "", ""
 	}
