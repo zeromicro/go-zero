@@ -102,7 +102,9 @@ func GetDefaultGoctlHome() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, goctlDir), nil
+	goctlHomeDir := filepath.Join(home, goctlDir)
+	_ = MkdirIfNotExist(goctlHomeDir)
+	return goctlHomeDir, nil
 }
 
 // GetGitHome returns the git home of goctl.
