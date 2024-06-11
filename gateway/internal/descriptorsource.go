@@ -18,13 +18,12 @@ type Method struct {
 }
 
 // GetMethods returns all methods of the given grpcurl.DescriptorSource.
-func GetMethods(source grpcurl.DescriptorSource) ([]Method, error) {
+func GetMethods(source grpcurl.DescriptorSource,methods []Method) ([]Method, error) {
 	svcs, err := source.ListServices()
 	if err != nil {
 		return nil, err
 	}
 
-	var methods []Method
 	for _, svc := range svcs {
 		d, err := source.FindSymbol(svc)
 		if err != nil {
@@ -45,7 +44,6 @@ func GetMethods(source grpcurl.DescriptorSource) ([]Method, error) {
 						})
 						continue
 					}
-
 					switch httpRule := rule.GetPattern().(type) {
 					case *annotations.HttpRule_Get:
 						methods = append(methods, Method{
@@ -90,7 +88,6 @@ func GetMethods(source grpcurl.DescriptorSource) ([]Method, error) {
 			}
 		}
 	}
-
 	return methods, nil
 }
 
