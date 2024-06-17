@@ -1,18 +1,12 @@
 package handler
 
 import (
-	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestWithPanic(t *testing.T) {
 	handler := RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

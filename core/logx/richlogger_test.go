@@ -66,6 +66,9 @@ func TestTraceDebug(t *testing.T) {
 	l.WithDuration(time.Second).Debugv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
+	l.WithDuration(time.Second).Debugv(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Debugw(testlog, Field("foo", "bar"))
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
@@ -103,6 +106,9 @@ func TestTraceError(t *testing.T) {
 	l.WithDuration(time.Second).Errorv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
+	l.WithDuration(time.Second).Errorv(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "basket"), w.String())
@@ -136,6 +142,9 @@ func TestTraceInfo(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Infov(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Infow(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
@@ -173,6 +182,9 @@ func TestTraceInfoConsole(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Infov(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
 }
 
 func TestTraceSlow(t *testing.T) {
@@ -203,6 +215,9 @@ func TestTraceSlow(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
 	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Slowv(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Sloww(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
@@ -272,6 +287,54 @@ func TestLogWithCallerSkip(t *testing.T) {
 	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestLogWithCallerSkipCopy(t *testing.T) {
+	log1 := WithCallerSkip(2)
+	log2 := log1.WithCallerSkip(3)
+	log3 := log2.WithCallerSkip(-1)
+	assert.Equal(t, 2, log1.(*richLogger).callerSkip)
+	assert.Equal(t, 3, log2.(*richLogger).callerSkip)
+	assert.Equal(t, 3, log3.(*richLogger).callerSkip)
+}
+
+func TestLogWithContextCopy(t *testing.T) {
+	c1 := context.Background()
+	c2 := context.WithValue(context.Background(), "foo", "bar")
+	log1 := WithContext(c1)
+	log2 := log1.WithContext(c2)
+	assert.Equal(t, c1, log1.(*richLogger).ctx)
+	assert.Equal(t, c2, log2.(*richLogger).ctx)
+}
+
+func TestLogWithDurationCopy(t *testing.T) {
+	log1 := WithContext(context.Background())
+	log2 := log1.WithDuration(time.Second)
+	assert.Empty(t, log1.(*richLogger).fields)
+	assert.Equal(t, 1, len(log2.(*richLogger).fields))
+
+	var w mockWriter
+	old := writer.Swap(&w)
+	defer writer.Store(old)
+	log2.Info("hello")
+	assert.Contains(t, w.String(), `"duration":"1000.0ms"`)
+}
+
+func TestLogWithFieldsCopy(t *testing.T) {
+	log1 := WithContext(context.Background())
+	log2 := log1.WithFields(Field("foo", "bar"))
+	log3 := log1.WithFields()
+	assert.Empty(t, log1.(*richLogger).fields)
+	assert.Equal(t, 1, len(log2.(*richLogger).fields))
+	assert.Equal(t, log1, log3)
+	assert.Empty(t, log3.(*richLogger).fields)
+
+	var w mockWriter
+	old := writer.Swap(&w)
+	defer writer.Store(old)
+
+	log2.Info("hello")
+	assert.Contains(t, w.String(), `"foo":"bar"`)
+}
+
 func TestLoggerWithFields(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -311,8 +374,32 @@ func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
 }
 
+func validateContentType(t *testing.T, body string, expectedType any, expectedTrace, expectedSpan bool) {
+	var val mockValue
+	dec := json.NewDecoder(strings.NewReader(body))
+
+	for {
+		var doc mockValue
+		err := dec.Decode(&doc)
+		if err == io.EOF {
+			// all done
+			break
+		}
+		if err != nil {
+			continue
+		}
+
+		val = doc
+	}
+
+	assert.IsType(t, expectedType, val.Content, body)
+	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
+	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
+}
+
 type mockValue struct {
-	Trace string `json:"trace"`
-	Span  string `json:"span"`
-	Foo   string `json:"foo"`
+	Trace   string `json:"trace"`
+	Span    string `json:"span"`
+	Foo     string `json:"foo"`
+	Content any    `json:"content"`
 }

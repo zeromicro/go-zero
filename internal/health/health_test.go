@@ -53,6 +53,19 @@ func TestComboHealthManager(t *testing.T) {
 		assert.True(t, chm.IsReady())
 	})
 
+	t.Run("is ready verbose", func(t *testing.T) {
+		chm := newComboHealthManager()
+		hm := NewHealthManager(probeName)
+
+		assert.True(t, chm.IsReady())
+		chm.addProbe(hm)
+		assert.False(t, chm.IsReady())
+		hm.MarkReady()
+		assert.True(t, chm.IsReady())
+		assert.Contains(t, chm.verboseInfo(), probeName)
+		assert.Contains(t, chm.verboseInfo(), "is ready")
+	})
+
 	t.Run("concurrent add probes", func(t *testing.T) {
 		chm := newComboHealthManager()
 
@@ -108,7 +121,7 @@ func TestAddGlobalProbes(t *testing.T) {
 
 func TestCreateHttpHandler(t *testing.T) {
 	cleanupForTest(t)
-	srv := httptest.NewServer(CreateHttpHandler())
+	srv := httptest.NewServer(CreateHttpHandler("OK"))
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL)

@@ -97,6 +97,15 @@ func TestConsoleWriter(t *testing.T) {
 	w.(*concreteWriter).statLog = easyToCloseWriter{}
 }
 
+func TestNewFileWriter(t *testing.T) {
+	t.Run("access", func(t *testing.T) {
+		_, err := newFileWriter(LogConf{
+			Path: "/not-exists",
+		})
+		assert.Error(t, err)
+	})
+}
+
 func TestNopWriter(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var w nopWriter
@@ -117,9 +126,23 @@ func TestWriteJson(t *testing.T) {
 	log.SetOutput(&buf)
 	writeJson(nil, "foo")
 	assert.Contains(t, buf.String(), "foo")
+
+	buf.Reset()
+	writeJson(hardToWriteWriter{}, "foo")
+	assert.Contains(t, buf.String(), "write error")
+
 	buf.Reset()
 	writeJson(nil, make(chan int))
 	assert.Contains(t, buf.String(), "unsupported type")
+
+	buf.Reset()
+	type C struct {
+		RC func()
+	}
+	writeJson(nil, C{
+		RC: func() {},
+	})
+	assert.Contains(t, buf.String(), "runtime/debug.Stack")
 }
 
 func TestWritePlainAny(t *testing.T) {
@@ -156,6 +179,49 @@ func TestWritePlainAny(t *testing.T) {
 	writePlainAny(hardToWriteWriter{}, levelFatal, "foo")
 	assert.Contains(t, buf.String(), "write error")
 
+	buf.Reset()
+	type C struct {
+		RC func()
+	}
+	writePlainAny(nil, levelError, C{
+		RC: func() {},
+	})
+	assert.Contains(t, buf.String(), "runtime/debug.Stack")
+}
+
+func TestWritePlainDuplicate(t *testing.T) {
+	old := atomic.SwapUint32(&encoding, plainEncodingType)
+	t.Cleanup(func() {
+		atomic.StoreUint32(&encoding, old)
+	})
+
+	var buf bytes.Buffer
+	output(&buf, levelInfo, "foo", LogField{
+		Key:   "first",
+		Value: "a",
+	}, LogField{
+		Key:   "first",
+		Value: "b",
+	})
+	assert.Contains(t, buf.String(), "foo")
+	assert.NotContains(t, buf.String(), "first=a")
+	assert.Contains(t, buf.String(), "first=b")
+
+	buf.Reset()
+	output(&buf, levelInfo, "foo", LogField{
+		Key:   "first",
+		Value: "a",
+	}, LogField{
+		Key:   "first",
+		Value: "b",
+	}, LogField{
+		Key:   "second",
+		Value: "c",
+	})
+	assert.Contains(t, buf.String(), "foo")
+	assert.NotContains(t, buf.String(), "first=a")
+	assert.Contains(t, buf.String(), "first=b")
+	assert.Contains(t, buf.String(), "second=c")
 }
 
 func TestLogWithLimitContentLength(t *testing.T) {

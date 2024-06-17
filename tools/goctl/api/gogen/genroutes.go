@@ -71,6 +71,7 @@ type (
 		method  string
 		path    string
 		handler string
+		doc     string
 	}
 )
 
@@ -92,13 +93,24 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		var gbuilder strings.Builder
 		gbuilder.WriteString("[]rest.Route{")
 		for _, r := range g.routes {
-			fmt.Fprintf(&gbuilder, `
-		{
-			Method:  %s,
-			Path:    "%s",
-			Handler: %s,
-		},`,
-				r.method, r.path, r.handler)
+			var routeString string
+			if len(r.doc) > 0 {
+				routeString = fmt.Sprintf(`
+					{
+						%s
+						Method:  %s,
+						Path:    "%s",
+						Handler: %s,
+					},`, getDoc(r.doc), r.method, r.path, r.handler)
+			} else {
+				routeString = fmt.Sprintf(`
+					{
+						Method:  %s,
+						Path:    "%s",
+						Handler: %s,
+					},`, r.method, r.path, r.handler)
+			}
+			fmt.Fprint(&gbuilder, routeString)
 		}
 
 		var jwt string
@@ -129,7 +141,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
 			}
 
-			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration/time.Millisecond)
+			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration.Milliseconds())
 			hasTimeout = true
 		}
 
@@ -239,6 +251,7 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				method:  mapping[r.Method],
 				path:    r.Path,
 				handler: handler,
+				doc:     r.JoinedDoc(),
 			})
 		}
 

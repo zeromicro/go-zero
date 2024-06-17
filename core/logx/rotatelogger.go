@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path"
@@ -299,6 +298,7 @@ func (l *RotateLogger) initialize() error {
 		if l.fp, err = os.OpenFile(l.filename, os.O_APPEND|os.O_WRONLY, defaultFileMode); err != nil {
 			return err
 		}
+
 		l.currentSize = fileInfo.Size()
 	}
 
@@ -319,7 +319,7 @@ func (l *RotateLogger) maybeCompressFile(file string) {
 	}()
 
 	if _, err := os.Stat(file); err != nil {
-		// file not exists or other error, ignore compression
+		// file doesn't exist or another error, ignore compression
 		return
 	}
 
@@ -382,7 +382,15 @@ func (l *RotateLogger) startWorker() {
 			case event := <-l.channel:
 				l.write(event)
 			case <-l.done:
-				return
+				// avoid losing logs before closing.
+				for {
+					select {
+					case event := <-l.channel:
+						l.write(event)
+					default:
+						return
+					}
+				}
 			}
 		}
 	}()
@@ -406,7 +414,7 @@ func (l *RotateLogger) write(v []byte) {
 func compressLogFile(file string) {
 	start := time.Now()
 	Infof("compressing log file: %s", file)
-	if err := gzipFile(file); err != nil {
+	if err := gzipFile(file, fileSys); err != nil {
 		Errorf("compress error: %s", err)
 	} else {
 		Infof("compressed log file: %s, took %s", file, time.Since(start))
@@ -421,25 +429,37 @@ func getNowDateInRFC3339Format() string {
 	return time.Now().Format(fileTimeFormat)
 }
 
-func gzipFile(file string) error {
-	in, err := os.Open(file)
+func gzipFile(file string, fsys fileSystem) (err error) {
+	in, err := fsys.Open(file)
 	if err != nil {
 		return err
 	}
-	defer in.Close()
+	defer func() {
+		if e := fsys.Close(in); e != nil {
+			Errorf("failed to close file: %s, error: %v", file, e)
+		}
+		if err == nil {
+			// only remove the original file when compression is successful
+			err = fsys.Remove(file)
+		}
+	}()
 
-	out, err := os.Create(fmt.Sprintf("%s%s", file, gzipExt))
+	out, err := fsys.Create(fmt.Sprintf("%s%s", file, gzipExt))
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() {
+		e := fsys.Close(out)
+		if err == nil {
+			err = e
+		}
+	}()
 
 	w := gzip.NewWriter(out)
-	if _, err = io.Copy(w, in); err != nil {
-		return err
-	} else if err = w.Close(); err != nil {
+	if _, err = fsys.Copy(w, in); err != nil {
+		// failed to copy, no need to close w
 		return err
 	}
 
-	return os.Remove(file)
+	return fsys.Close(w)
 }

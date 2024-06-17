@@ -13,6 +13,20 @@ type WithCodeResponseWriter struct {
 	Code   int
 }
 
+// NewWithCodeResponseWriter returns a WithCodeResponseWriter.
+// If writer is already a WithCodeResponseWriter, it returns writer directly.
+func NewWithCodeResponseWriter(writer http.ResponseWriter) *WithCodeResponseWriter {
+	switch w := writer.(type) {
+	case *WithCodeResponseWriter:
+		return w
+	default:
+		return &WithCodeResponseWriter{
+			Writer: writer,
+			Code:   http.StatusOK,
+		}
+	}
+}
+
 // Flush flushes the response writer.
 func (w *WithCodeResponseWriter) Flush() {
 	if flusher, ok := w.Writer.(http.Flusher); ok {

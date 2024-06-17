@@ -18,6 +18,12 @@ type UnsignedCallback func(w http.ResponseWriter, r *http.Request, next http.Han
 // ContentSecurityHandler returns a middleware to verify content security.
 func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance time.Duration,
 	strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
+	return LimitContentSecurityHandler(maxBytes, decrypters, tolerance, strict, callbacks...)
+}
+
+// LimitContentSecurityHandler returns a middleware to verify content security.
+func LimitContentSecurityHandler(limitBytes int64, decrypters map[string]codec.RsaDecrypter,
+	tolerance time.Duration, strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
 	if len(callbacks) == 0 {
 		callbacks = append(callbacks, handleVerificationFailure)
 	}
@@ -36,7 +42,7 @@ func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance 
 						r.Header.Get(contentSecurity))
 					executeCallbacks(w, r, next, strict, code, callbacks)
 				} else if r.ContentLength > 0 && header.Encrypted() {
-					CryptionHandler(header.Key)(next).ServeHTTP(w, r)
+					LimitCryptionHandler(limitBytes, header.Key)(next).ServeHTTP(w, r)
 				} else {
 					next.ServeHTTP(w, r)
 				}
@@ -54,7 +60,8 @@ func executeCallbacks(w http.ResponseWriter, r *http.Request, next http.Handler,
 	}
 }
 
-func handleVerificationFailure(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int) {
+func handleVerificationFailure(w http.ResponseWriter, r *http.Request, next http.Handler,
+	strict bool, _ int) {
 	if strict {
 		w.WriteHeader(http.StatusForbidden)
 	} else {

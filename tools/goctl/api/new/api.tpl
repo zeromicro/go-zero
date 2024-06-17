@@ -1,3 +1,5 @@
+syntax = "v1"
+
 type Request {
   Name string `path:"name,options=you|me"`
 }

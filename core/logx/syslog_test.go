@@ -12,6 +12,8 @@ import (
 
 const testlog = "Stay hungry, stay foolish."
 
+var testobj = map[string]any{"foo": "bar"}
+
 func TestCollectSysLog(t *testing.T) {
 	CollectSysLog()
 	content := getContent(captureOutput(func() {

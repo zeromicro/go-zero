@@ -1,6 +1,10 @@
 package sqlx
 
-import "github.com/go-sql-driver/mysql"
+import (
+	"errors"
+
+	"github.com/go-sql-driver/mysql"
+)
 
 const (
 	mysqlDriverName           = "mysql"
@@ -9,7 +13,7 @@ const (
 
 // NewMysql returns a mysql connection.
 func NewMysql(datasource string, opts ...SqlOption) SqlConn {
-	opts = append(opts, withMysqlAcceptable())
+	opts = append([]SqlOption{withMysqlAcceptable()}, opts...)
 	return NewSqlConn(mysqlDriverName, datasource, opts...)
 }
 
@@ -18,7 +22,8 @@ func mysqlAcceptable(err error) bool {
 		return true
 	}
 
-	myerr, ok := err.(*mysql.MySQLError)
+	var myerr *mysql.MySQLError
+	ok := errors.As(err, &myerr)
 	if !ok {
 		return false
 	}
@@ -32,7 +37,5 @@ func mysqlAcceptable(err error) bool {
 }
 
 func withMysqlAcceptable() SqlOption {
-	return func(conn *commonSqlConn) {
-		conn.accept = mysqlAcceptable
-	}
+	return WithAcceptable(mysqlAcceptable)
 }

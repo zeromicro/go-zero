@@ -344,7 +344,7 @@ OPTIONS:
   
   理论上是没任何问题，但是我们认为，对于model层的数据操作均是以整个结构体为单位，包括查询，我不建议只查询某部分字段（不反对），否则我们的缓存就没有意义了。
 
-* 为什么不支持`findPageLimit`、`findAll`这么模式代码生层？
+* 为什么不支持`findPageLimit`、`findAll`这种模型代码生成？
   
   目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
@@ -379,3 +379,4 @@ OPTIONS:
 | enum           | string          | sql.NullString                         |
 | set            | string          | sql.NullString                         |
 | json           | string          | sql.NullString                         |
+

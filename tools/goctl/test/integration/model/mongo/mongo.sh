@@ -25,7 +25,7 @@ fi
 
 # run docker image
 console_step "docker running"
-docker run $image
+docker run --rm $image
 if [ $? -ne 0 ]; then
 	rm -f $buildFile
 	console_red "docker run failed"

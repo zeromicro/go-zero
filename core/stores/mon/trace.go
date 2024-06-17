@@ -3,6 +3,7 @@ package mon
 import (
 	"context"
 
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/trace"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"
@@ -23,8 +24,7 @@ func startSpan(ctx context.Context, cmd string) (context.Context, oteltrace.Span
 func endSpan(span oteltrace.Span, err error) {
 	defer span.End()
 
-	if err == nil || err == mongo.ErrNoDocuments ||
-		err == mongo.ErrNilValue || err == mongo.ErrNilDocument {
+	if err == nil || errorx.In(err, mongo.ErrNoDocuments, mongo.ErrNilValue, mongo.ErrNilDocument) {
 		span.SetStatus(codes.Ok, "")
 		return
 	}

@@ -8,18 +8,15 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const defaultMigrateVersion = "v1.3.0"
@@ -165,7 +162,7 @@ func writeFile(pkgs []*ast.Package, verbose bool) error {
 				return fmt.Errorf("[rewriteImport] format file %s error: %w", filename, err)
 			}
 
-			err = ioutil.WriteFile(filename, w.Bytes(), os.ModePerm)
+			err = os.WriteFile(filename, w.Bytes(), os.ModePerm)
 			if err != nil {
 				return fmt.Errorf("[rewriteImport] write file %s error: %w", filename, err)
 			}
@@ -246,10 +243,7 @@ It's recommended to use the replacement package, do you want to replace?
 ['Y' for yes, 'N' for no, 'A' for all, 'I' for ignore]: `,
 		deprecated, replacement)
 
-	if runtime.GOOS != vars.OsWindows {
-		msg = aurora.Yellow(msg).String()
-	}
-	fmt.Print(msg)
+	fmt.Print(color.Yellow.Render(msg))
 
 	for {
 		var in string

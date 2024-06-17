@@ -1,9 +1,13 @@
 package httpx
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -80,14 +84,14 @@ func TestError(t *testing.T) {
 				headers: make(map[string][]string),
 			}
 			if test.errorHandler != nil {
-				lock.RLock()
+				errorLock.RLock()
 				prev := errorHandler
-				lock.RUnlock()
+				errorLock.RUnlock()
 				SetErrorHandler(test.errorHandler)
 				defer func() {
-					lock.Lock()
+					errorLock.Lock()
 					errorHandler = prev
-					lock.Unlock()
+					errorLock.Unlock()
 				}()
 			}
 			Error(&w, errors.New(test.input))
@@ -129,13 +133,71 @@ func TestOk(t *testing.T) {
 }
 
 func TestOkJson(t *testing.T) {
-	w := tracedResponseWriter{
-		headers: make(map[string][]string),
-	}
-	msg := message{Name: "anyone"}
-	OkJson(&w, msg)
-	assert.Equal(t, http.StatusOK, w.code)
-	assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+	t.Run("no handler", func(t *testing.T) {
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJson(&w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+	})
+
+	t.Run("with handler", func(t *testing.T) {
+		okLock.RLock()
+		prev := okHandler
+		okLock.RUnlock()
+		t.Cleanup(func() {
+			okLock.Lock()
+			okHandler = prev
+			okLock.Unlock()
+		})
+
+		SetOkHandler(func(_ context.Context, v interface{}) any {
+			return fmt.Sprintf("hello %s", v.(message).Name)
+		})
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJson(&w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, `"hello anyone"`, w.builder.String())
+	})
+}
+
+func TestOkJsonCtx(t *testing.T) {
+	t.Run("no handler", func(t *testing.T) {
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJsonCtx(context.Background(), &w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+	})
+
+	t.Run("with handler", func(t *testing.T) {
+		okLock.RLock()
+		prev := okHandler
+		okLock.RUnlock()
+		t.Cleanup(func() {
+			okLock.Lock()
+			okHandler = prev
+			okLock.Unlock()
+		})
+
+		SetOkHandler(func(_ context.Context, v interface{}) any {
+			return fmt.Sprintf("hello %s", v.(message).Name)
+		})
+		w := tracedResponseWriter{
+			headers: make(map[string][]string),
+		}
+		msg := message{Name: "anyone"}
+		OkJsonCtx(context.Background(), &w, msg)
+		assert.Equal(t, http.StatusOK, w.code)
+		assert.Equal(t, `"hello anyone"`, w.builder.String())
+	})
 }
 
 func TestWriteJsonTimeout(t *testing.T) {
@@ -178,6 +240,60 @@ func TestWriteJsonMarshalFailed(t *testing.T) {
 		"Data": complex(0, 0),
 	})
 	assert.Equal(t, http.StatusInternalServerError, w.code)
+}
+
+func TestStream(t *testing.T) {
+	t.Run("regular case", func(t *testing.T) {
+		channel := make(chan string)
+		go func() {
+			defer close(channel)
+			for index := 0; index < 5; index++ {
+				channel <- fmt.Sprintf("%d", index)
+			}
+		}()
+
+		w := httptest.NewRecorder()
+		Stream(context.Background(), w, func(w io.Writer) bool {
+			output, ok := <-channel
+			if !ok {
+				return false
+			}
+
+			outputBytes := bytes.NewBufferString(output)
+			_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
+			return err == nil
+		})
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "0\n1\n2\n3\n4\n", w.Body.String())
+	})
+
+	t.Run("context done", func(t *testing.T) {
+		channel := make(chan string)
+		go func() {
+			defer close(channel)
+			for index := 0; index < 5; index++ {
+				channel <- fmt.Sprintf("num: %d", index)
+			}
+		}()
+
+		w := httptest.NewRecorder()
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		Stream(ctx, w, func(w io.Writer) bool {
+			output, ok := <-channel
+			if !ok {
+				return false
+			}
+
+			outputBytes := bytes.NewBufferString(output)
+			_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
+			return err == nil
+		})
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "", w.Body.String())
+	})
 }
 
 type tracedResponseWriter struct {
@@ -275,14 +391,14 @@ func TestErrorCtx(t *testing.T) {
 				headers: make(map[string][]string),
 			}
 			if test.errorHandlerCtx != nil {
-				lock.RLock()
-				prev := errorHandlerCtx
-				lock.RUnlock()
+				errorLock.RLock()
+				prev := errorHandler
+				errorLock.RUnlock()
 				SetErrorHandlerCtx(test.errorHandlerCtx)
 				defer func() {
-					lock.Lock()
+					errorLock.Lock()
 					test.errorHandlerCtx = prev
-					lock.Unlock()
+					errorLock.Unlock()
 				}()
 			}
 			ErrorCtx(context.Background(), &w, errors.New(test.input))

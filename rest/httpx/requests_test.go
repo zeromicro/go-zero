@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -15,18 +16,37 @@ import (
 )
 
 func TestParseForm(t *testing.T) {
-	var v struct {
-		Name    string  `form:"name"`
-		Age     int     `form:"age"`
-		Percent float64 `form:"percent,optional"`
-	}
+	t.Run("slice", func(t *testing.T) {
+		var v struct {
+			Name    string  `form:"name"`
+			Age     int     `form:"age"`
+			Percent float64 `form:"percent,optional"`
+		}
 
-	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
-	assert.Nil(t, err)
-	assert.Nil(t, Parse(r, &v))
-	assert.Equal(t, "hello", v.Name)
-	assert.Equal(t, 18, v.Age)
-	assert.Equal(t, 3.4, v.Percent)
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&age=18&percent=3.4",
+			http.NoBody)
+		assert.Nil(t, err)
+		assert.Nil(t, Parse(r, &v))
+		assert.Equal(t, "hello", v.Name)
+		assert.Equal(t, 18, v.Age)
+		assert.Equal(t, 3.4, v.Percent)
+	})
+
+	t.Run("no value", func(t *testing.T) {
+		var v struct {
+			NoValue string `form:"noValue,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&age=18&percent=3.4&statuses=try&statuses=done&singleValue=one",
+			http.NoBody)
+		assert.Nil(t, err)
+		assert.Nil(t, Parse(r, &v))
+		assert.Equal(t, 0, len(v.NoValue))
+	})
 }
 
 func TestParseForm_Error(t *testing.T) {
@@ -326,6 +346,8 @@ func TestParseHeaders_Error(t *testing.T) {
 
 func TestParseWithValidator(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v struct {
 		Name    string  `form:"name"`
 		Age     int     `form:"age"`
@@ -343,6 +365,8 @@ func TestParseWithValidator(t *testing.T) {
 
 func TestParseWithValidatorWithError(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v struct {
 		Name    string  `form:"name"`
 		Age     int     `form:"age"`
@@ -356,10 +380,77 @@ func TestParseWithValidatorWithError(t *testing.T) {
 
 func TestParseWithValidatorRequest(t *testing.T) {
 	SetValidator(mockValidator{})
+	defer SetValidator(mockValidator{nop: true})
+
 	var v mockRequest
 	r, err := http.NewRequest(http.MethodGet, "/a?&age=18", http.NoBody)
 	assert.Nil(t, err)
 	assert.Error(t, Parse(r, &v))
+}
+
+func TestParseFormWithDot(t *testing.T) {
+	var v struct {
+		Age int `form:"user.age"`
+	}
+	r, err := http.NewRequest(http.MethodGet, "/a?user.age=18", http.NoBody)
+	assert.Nil(t, err)
+	assert.NoError(t, Parse(r, &v))
+	assert.Equal(t, 18, v.Age)
+}
+
+func TestParsePathWithDot(t *testing.T) {
+	var v struct {
+		Name string `path:"name.val"`
+		Age  int    `path:"age.val"`
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	r = pathvar.WithVars(r, map[string]string{
+		"name.val": "foo",
+		"age.val":  "18",
+	})
+	err := Parse(r, &v)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", v.Name)
+	assert.Equal(t, 18, v.Age)
+}
+
+func TestParseWithFloatPtr(t *testing.T) {
+	t.Run("has float32 pointer", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 *float32 `json:"weightFloat32,optional"`
+		}
+		body := `{"weightFloat32": 3.2}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
+
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, float32(3.2), *v.WeightFloat32)
+		}
+	})
+}
+
+func TestParseWithEscapedParams(t *testing.T) {
+	t.Run("escaped", func(t *testing.T) {
+		var v struct {
+			Dev string `form:"dev"`
+		}
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/api/v2/dev/test?dev=se205%5fy1205%5fj109%26verRelease=v01%26iid1=863494061186673%26iid2=863494061186681%26mcc=636%26mnc=1", http.NoBody)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, "se205_y1205_j109&verRelease=v01&iid1=863494061186673&iid2=863494061186681&mcc=636&mnc=1", v.Dev)
+		}
+	})
+}
+
+func TestCustomUnmarshalerStructRequest(t *testing.T) {
+	reqBody := `{"name": "hello"}`
+	r := httptest.NewRequest(http.MethodPost, "/a", bytes.NewReader([]byte(reqBody)))
+	r.Header.Set(ContentType, JsonContentType)
+	v := struct {
+		Foo *mockUnmarshaler `json:"name"`
+	}{}
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, "hello", v.Foo.Name)
 }
 
 func BenchmarkParseRaw(b *testing.B) {
@@ -406,9 +497,15 @@ func BenchmarkParseAuto(b *testing.B) {
 	}
 }
 
-type mockValidator struct{}
+type mockValidator struct {
+	nop bool
+}
 
 func (m mockValidator) Validate(r *http.Request, data any) error {
+	if m.nop {
+		return nil
+	}
+
 	if r.URL.Path == "/a" {
 		val := reflect.ValueOf(data).Elem().FieldByName("Name").String()
 		if val != "hello" {
@@ -428,5 +525,14 @@ func (m mockRequest) Validate() error {
 		return errors.New("name is not hello")
 	}
 
+	return nil
+}
+
+type mockUnmarshaler struct {
+	Name string
+}
+
+func (m *mockUnmarshaler) UnmarshalJSON(b []byte) error {
+	m.Name = string(b)
 	return nil
 }

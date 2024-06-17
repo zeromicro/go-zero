@@ -16,13 +16,13 @@ jobs:
           - goarch: "386"
             goos: darwin
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: zeromicro/go-zero-release-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          goversion: "https://dl.google.com/go/go1.18.10.linux-amd64.tar.gz"
+          goversion: "https://dl.google.com/go/go1.19.13.linux-amd64.tar.gz"
           project_path: "tools/goctl"
           binary_name: "goctl"
           extra_files: tools/goctl/readme.md tools/goctl/readme-cn.md

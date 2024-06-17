@@ -76,9 +76,9 @@ func TestGenCacheKeys(t *testing.T) {
 				VarExpression:     `cacheGoZeroUserIdPrefix = "cache:goZero:user:id:"`,
 				KeyLeft:           "goZeroUserIdKey",
 				KeyRight:          `fmt.Sprintf("%s%v", cacheGoZeroUserIdPrefix, id)`,
-				DataKeyRight:      `fmt.Sprintf("%s%v", cacheGoZeroUserIdPrefix, data.ID)`,
+				DataKeyRight:      `fmt.Sprintf("%s%v", cacheGoZeroUserIdPrefix, data.Id)`,
 				KeyExpression:     `goZeroUserIdKey := fmt.Sprintf("%s%v", cacheGoZeroUserIdPrefix, id)`,
-				DataKeyExpression: `goZeroUserIdKey := fmt.Sprintf("%s%v", cacheGoZeroUserIdPrefix, data.ID)`,
+				DataKeyExpression: `goZeroUserIdKey := fmt.Sprintf("%s%v", cacheGoZeroUserIdPrefix, data.Id)`,
 				FieldNameJoin:     []string{"id"},
 			})
 		}())
@@ -170,9 +170,9 @@ func TestGenCacheKeys(t *testing.T) {
 				VarExpression:     `cacheUserIdPrefix = "cache:user:id:"`,
 				KeyLeft:           "userIdKey",
 				KeyRight:          `fmt.Sprintf("%s%v", cacheUserIdPrefix, id)`,
-				DataKeyRight:      `fmt.Sprintf("%s%v", cacheUserIdPrefix, data.ID)`,
+				DataKeyRight:      `fmt.Sprintf("%s%v", cacheUserIdPrefix, data.Id)`,
 				KeyExpression:     `userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)`,
-				DataKeyExpression: `userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, data.ID)`,
+				DataKeyExpression: `userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, data.Id)`,
 				FieldNameJoin:     []string{"id"},
 			})
 		}())

@@ -17,6 +17,8 @@ type (
 	ServerMiddlewaresConf = internal.ServerMiddlewaresConf
 	// StatConf defines the stat config.
 	StatConf = internal.StatConf
+	// MethodTimeoutConf defines specified timeout for gRPC method.
+	MethodTimeoutConf = internal.MethodTimeoutConf
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
@@ -41,10 +43,12 @@ type (
 		StrictControl bool               `json:",optional"`
 		// setting 0 means no timeout
 		Timeout      int64 `json:",default=2000"`
-		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
+		CpuThreshold int64 `json:",default=900,range=[0:1000)"`
 		// grpc health check switch
 		Health      bool `json:",default=true"`
 		Middlewares ServerMiddlewaresConf
+		// setting specified timeout for gRPC method
+		MethodTimeouts []MethodTimeoutConf `json:",optional"`
 	}
 )
 

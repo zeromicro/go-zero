@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/zeromicro/go-zero/core/breaker"
 )
 
 type (
@@ -15,10 +17,26 @@ type (
 		Rollback() error
 	}
 
+	txConn struct {
+		Session
+	}
+
 	txSession struct {
 		*sql.Tx
 	}
 )
+
+func (s txConn) RawDB() (*sql.DB, error) {
+	return nil, errNoRawDBFromTx
+}
+
+func (s txConn) Transact(_ func(Session) error) error {
+	return errCantNestTx
+}
+
+func (s txConn) TransactCtx(_ context.Context, _ func(context.Context, Session) error) error {
+	return errCantNestTx
+}
 
 // NewSessionFromTx returns a Session with the given sql.Tx.
 // Use it with caution, it's provided for other ORM to interact with.
@@ -59,6 +77,7 @@ func (t txSession) PrepareCtx(ctx context.Context, q string) (stmtSession StmtSe
 	return statement{
 		query: q,
 		stmt:  stmt,
+		brk:   breaker.NopBreaker(),
 	}, nil
 }
 

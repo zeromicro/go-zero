@@ -13,7 +13,7 @@ import (
 )
 
 func FuzzMapReduce(f *testing.F) {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 
 	f.Add(int64(10), runtime.NumCPU())
 	f.Fuzz(func(t *testing.T, n int64, workers int) {

@@ -1,6 +1,9 @@
 package breaker
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 var (
 	lock     sync.RWMutex
@@ -14,6 +17,13 @@ func Do(name string, req func() error) error {
 	})
 }
 
+// DoCtx calls Breaker.DoCtx on the Breaker with given name.
+func DoCtx(ctx context.Context, name string, req func() error) error {
+	return do(name, func(b Breaker) error {
+		return b.DoCtx(ctx, req)
+	})
+}
+
 // DoWithAcceptable calls Breaker.DoWithAcceptable on the Breaker with given name.
 func DoWithAcceptable(name string, req func() error, acceptable Acceptable) error {
 	return do(name, func(b Breaker) error {
@@ -21,18 +31,41 @@ func DoWithAcceptable(name string, req func() error, acceptable Acceptable) erro
 	})
 }
 
+// DoWithAcceptableCtx calls Breaker.DoWithAcceptableCtx on the Breaker with given name.
+func DoWithAcceptableCtx(ctx context.Context, name string, req func() error,
+	acceptable Acceptable) error {
+	return do(name, func(b Breaker) error {
+		return b.DoWithAcceptableCtx(ctx, req, acceptable)
+	})
+}
+
 // DoWithFallback calls Breaker.DoWithFallback on the Breaker with given name.
-func DoWithFallback(name string, req func() error, fallback func(err error) error) error {
+func DoWithFallback(name string, req func() error, fallback Fallback) error {
 	return do(name, func(b Breaker) error {
 		return b.DoWithFallback(req, fallback)
 	})
 }
 
+// DoWithFallbackCtx calls Breaker.DoWithFallbackCtx on the Breaker with given name.
+func DoWithFallbackCtx(ctx context.Context, name string, req func() error, fallback Fallback) error {
+	return do(name, func(b Breaker) error {
+		return b.DoWithFallbackCtx(ctx, req, fallback)
+	})
+}
+
 // DoWithFallbackAcceptable calls Breaker.DoWithFallbackAcceptable on the Breaker with given name.
-func DoWithFallbackAcceptable(name string, req func() error, fallback func(err error) error,
+func DoWithFallbackAcceptable(name string, req func() error, fallback Fallback,
 	acceptable Acceptable) error {
 	return do(name, func(b Breaker) error {
 		return b.DoWithFallbackAcceptable(req, fallback, acceptable)
+	})
+}
+
+// DoWithFallbackAcceptableCtx calls Breaker.DoWithFallbackAcceptableCtx on the Breaker with given name.
+func DoWithFallbackAcceptableCtx(ctx context.Context, name string, req func() error,
+	fallback Fallback, acceptable Acceptable) error {
+	return do(name, func(b Breaker) error {
+		return b.DoWithFallbackAcceptableCtx(ctx, req, fallback, acceptable)
 	})
 }
 
@@ -59,7 +92,7 @@ func GetBreaker(name string) Breaker {
 // NoBreakerFor disables the circuit breaker for the given name.
 func NoBreakerFor(name string) {
 	lock.Lock()
-	breakers[name] = newNoOpBreaker()
+	breakers[name] = NopBreaker()
 	lock.Unlock()
 }
 

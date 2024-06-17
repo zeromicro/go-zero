@@ -2,10 +2,10 @@ package mon
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
@@ -39,10 +39,7 @@ type (
 // MustNewModel returns a Model, exits on errors.
 func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 	model, err := NewModel(uri, db, collection, opts...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return model
 }
 
@@ -72,27 +69,21 @@ func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Break
 
 // StartSession starts a new session.
 func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, err error) {
-	err = m.brk.DoWithAcceptable(func() error {
-		starTime := timex.Now()
-		defer func() {
-			logDuration(context.Background(), m.name, startSession, starTime, err)
-		}()
+	starTime := timex.Now()
+	defer func() {
+		logDuration(context.Background(), m.name, startSession, starTime, err)
+	}()
 
-		session, sessionErr := m.cli.StartSession(opts...)
-		if sessionErr != nil {
-			return sessionErr
-		}
+	session, sessionErr := m.cli.StartSession(opts...)
+	if sessionErr != nil {
+		return nil, sessionErr
+	}
 
-		sess = &wrappedSession{
-			Session: session,
-			name:    m.name,
-			brk:     m.brk,
-		}
-
-		return nil
-	}, acceptable)
-
-	return
+	return &wrappedSession{
+		Session: session,
+		name:    m.name,
+		brk:     m.brk,
+	}, nil
 }
 
 // Aggregate executes an aggregation pipeline.
@@ -187,7 +178,7 @@ func (w *wrappedSession) AbortTransaction(ctx context.Context) (err error) {
 		endSpan(span, err)
 	}()
 
-	return w.brk.DoWithAcceptable(func() error {
+	return w.brk.DoWithAcceptableCtx(ctx, func() error {
 		starTime := timex.Now()
 		defer func() {
 			logDuration(ctx, w.name, abortTransaction, starTime, err)
@@ -204,7 +195,7 @@ func (w *wrappedSession) CommitTransaction(ctx context.Context) (err error) {
 		endSpan(span, err)
 	}()
 
-	return w.brk.DoWithAcceptable(func() error {
+	return w.brk.DoWithAcceptableCtx(ctx, func() error {
 		starTime := timex.Now()
 		defer func() {
 			logDuration(ctx, w.name, commitTransaction, starTime, err)
@@ -225,7 +216,7 @@ func (w *wrappedSession) WithTransaction(
 		endSpan(span, err)
 	}()
 
-	err = w.brk.DoWithAcceptable(func() error {
+	err = w.brk.DoWithAcceptableCtx(ctx, func() error {
 		starTime := timex.Now()
 		defer func() {
 			logDuration(ctx, w.name, withTransaction, starTime, err)
@@ -246,7 +237,7 @@ func (w *wrappedSession) EndSession(ctx context.Context) {
 		endSpan(span, err)
 	}()
 
-	err = w.brk.DoWithAcceptable(func() error {
+	err = w.brk.DoWithAcceptableCtx(ctx, func() error {
 		starTime := timex.Now()
 		defer func() {
 			logDuration(ctx, w.name, endSession, starTime, err)

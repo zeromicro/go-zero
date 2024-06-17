@@ -8,7 +8,6 @@ import (
 
 	"github.com/zeromicro/ddl-parser/parser"
 	"github.com/zeromicro/go-zero/core/collection"
-
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/converter"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
@@ -39,6 +38,7 @@ type (
 	Field struct {
 		NameOriginal    string
 		Name            stringx.String
+		ThirdPkg        string
 		DataType        string
 		Comment         string
 		SeqInIndex      int
@@ -83,8 +83,9 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			primaryColumn    string
 			primaryColumnSet = collection.NewSet()
 			uniqueKeyMap     = make(map[string][]string)
-			normalKeyMap     = make(map[string][]string)
-			columns          = e.Columns
+			// Unused local variable
+			// normalKeyMap     = make(map[string][]string)
+			columns = e.Columns
 		)
 
 		for _, column := range columns {
@@ -127,6 +128,8 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			return nil, fmt.Errorf("%s: unexpected join primary key", prefix)
 		}
 
+		delete(uniqueKeyMap, indexNameGen(primaryColumn, "idx"))
+		delete(uniqueKeyMap, indexNameGen(primaryColumn, "unique"))
 		primaryKey, fieldM, err := convertColumns(columns, primaryColumn, strict)
 		if err != nil {
 			return nil, err
@@ -142,20 +145,15 @@ func Parse(filename, database string, strict bool) ([]*Table, error) {
 			}
 		}
 
-		var (
-			uniqueIndex = make(map[string][]*Field)
-			normalIndex = make(map[string][]*Field)
-		)
+		uniqueIndex := make(map[string][]*Field)
 
 		for indexName, each := range uniqueKeyMap {
 			for _, columnName := range each {
+				// Prevent a crash if there is a unique key constraint with a nil field.
+				if fieldM[columnName] == nil {
+					return nil, fmt.Errorf("table %s: unique key with error column name[%s]", e.Name, columnName)
+				}
 				uniqueIndex[indexName] = append(uniqueIndex[indexName], fieldM[columnName])
-			}
-		}
-
-		for indexName, each := range normalKeyMap {
-			for _, columnName := range each {
-				normalIndex[indexName] = append(normalIndex[indexName], fieldM[columnName])
 			}
 		}
 
@@ -222,7 +220,7 @@ func convertColumns(columns []*parser.Column, primaryColumn string, strict bool)
 			}
 		}
 
-		dataType, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull, column.DataType.Unsigned(), strict)
+		dataType, thirdPkg, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull, column.DataType.Unsigned(), strict)
 		if err != nil {
 			return Primary{}, nil, err
 		}
@@ -239,6 +237,7 @@ func convertColumns(columns []*parser.Column, primaryColumn string, strict bool)
 
 		var field Field
 		field.Name = stringx.From(column.Name)
+		field.ThirdPkg = thirdPkg
 		field.DataType = dataType
 		field.Comment = util.TrimNewLine(comment)
 
@@ -270,7 +269,7 @@ func (t *Table) ContainsTime() bool {
 func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"
 	isPrimaryUnsigned := strings.Contains(table.PrimaryKey.DbColumn.ColumnType, "unsigned")
-	primaryDataType, containsPQ, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull, isPrimaryUnsigned, strict)
+	primaryDataType, thirdPkg, containsPQ, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull, isPrimaryUnsigned, strict)
 	if err != nil {
 		return nil, err
 	}
@@ -288,6 +287,7 @@ func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	reply.PrimaryKey = Primary{
 		Field: Field{
 			Name:            stringx.From(table.PrimaryKey.Name),
+			ThirdPkg:        thirdPkg,
 			DataType:        primaryDataType,
 			Comment:         table.PrimaryKey.Comment,
 			SeqInIndex:      seqInIndex,
@@ -324,7 +324,7 @@ func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 		if len(each) == 1 {
 			one := each[0]
 			if one.Name == table.PrimaryKey.Name {
-				log.Warning("[ConvertDataType]: table q%, duplicate unique index with primary key:  %q", table.Table, one.Name)
+				log.Warning("[ConvertDataType]: table %q, duplicate unique index with primary key:  %q", table.Table, one.Name)
 				continue
 			}
 		}
@@ -354,7 +354,7 @@ func getTableFields(table *model.Table, strict bool) (map[string]*Field, error) 
 	for _, each := range table.Columns {
 		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
 		isPrimaryUnsigned := strings.Contains(each.ColumnType, "unsigned")
-		dt, containsPQ, err := converter.ConvertStringDataType(each.DataType, isDefaultNull, isPrimaryUnsigned, strict)
+		dt, thirdPkg, containsPQ, err := converter.ConvertStringDataType(each.DataType, isDefaultNull, isPrimaryUnsigned, strict)
 		if err != nil {
 			return nil, err
 		}
@@ -366,6 +366,7 @@ func getTableFields(table *model.Table, strict bool) (map[string]*Field, error) 
 		field := &Field{
 			NameOriginal:    each.Name,
 			Name:            stringx.From(each.Name),
+			ThirdPkg:        thirdPkg,
 			DataType:        dt,
 			Comment:         each.Comment,
 			SeqInIndex:      columnSeqInIndex,

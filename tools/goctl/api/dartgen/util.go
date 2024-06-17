@@ -71,7 +71,15 @@ func isListType(s string) bool {
 }
 
 func isClassListType(s string) bool {
-	return strings.HasPrefix(s, "List<") && !isAtomicType(getCoreType(s))
+	return isListType(s) && !isAtomicType(getCoreType(s))
+}
+
+func isAtomicListType(s string) bool {
+	return isListType(s) && isAtomicType(getCoreType(s))
+}
+
+func isListItemsNullable(s string) bool {
+	return isListType(s) && isNullableType(getCoreType(s))
 }
 
 func isMapType(s string) bool {

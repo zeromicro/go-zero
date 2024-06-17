@@ -3,7 +3,6 @@ package handler
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/color"
@@ -37,14 +35,11 @@ func LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
-		lrw := response.WithCodeResponseWriter{
-			Writer: w,
-			Code:   http.StatusOK,
-		}
+		lrw := response.NewWithCodeResponseWriter(w)
 
 		var dup io.ReadCloser
-		r.Body, dup = iox.DupReadCloser(r.Body)
-		next.ServeHTTP(&lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
+		r.Body, dup = iox.LimitDupReadCloser(r.Body, limitBodyBytes)
+		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logBrief(r, lrw.Code, timer, logs)
 	})
@@ -55,7 +50,8 @@ type detailLoggedResponseWriter struct {
 	buf    *bytes.Buffer
 }
 
-func newDetailLoggedResponseWriter(writer *response.WithCodeResponseWriter, buf *bytes.Buffer) *detailLoggedResponseWriter {
+func newDetailLoggedResponseWriter(writer *response.WithCodeResponseWriter,
+	buf *bytes.Buffer) *detailLoggedResponseWriter {
 	return &detailLoggedResponseWriter{
 		writer: writer,
 		buf:    buf,
@@ -94,15 +90,13 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		var buf bytes.Buffer
-		lrw := newDetailLoggedResponseWriter(&response.WithCodeResponseWriter{
-			Writer: w,
-			Code:   http.StatusOK,
-		}, &buf)
+		rw := response.NewWithCodeResponseWriter(w)
+		lrw := newDetailLoggedResponseWriter(rw, &buf)
 
 		var dup io.ReadCloser
 		r.Body, dup = iox.DupReadCloser(r.Body)
 		logs := new(internal.LogCollector)
-		next.ServeHTTP(lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
+		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
 		logDetails(r, lrw, timer, logs)
 	})
@@ -141,14 +135,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 
 	ok := isOkResponse(code)
 	if !ok {
-		fullReq := dumpRequest(r)
-		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
-		body, err := io.ReadAll(limitReader)
-		if err != nil {
-			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
-		} else {
-			buf.WriteString(fmt.Sprintf("\n%s", string(body)))
-		}
+		buf.WriteString(fmt.Sprintf("\n%s", dumpRequest(r)))
 	}
 
 	body := logs.Flush()

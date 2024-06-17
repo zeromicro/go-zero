@@ -142,8 +142,11 @@ func (m mockClientConn) GetOrBuildProducer(builder balancer.ProducerBuilder) (
 	return builder.Build(m)
 }
 
-func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {
+func (m mockClientConn) UpdateAddresses(_ []resolver.Address) {
 }
 
 func (m mockClientConn) Connect() {
+}
+
+func (m mockClientConn) Shutdown() {
 }

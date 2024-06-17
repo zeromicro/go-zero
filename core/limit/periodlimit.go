@@ -2,6 +2,7 @@ package limit
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"strconv"
 	"time"
@@ -28,20 +29,9 @@ var (
 	// ErrUnknownCode is an error that represents unknown status code.
 	ErrUnknownCode = errors.New("unknown status code")
 
-	// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
-	periodScript = redis.NewScript(`local limit = tonumber(ARGV[1])
-local window = tonumber(ARGV[2])
-local current = redis.call("INCRBY", KEYS[1], 1)
-if current == 1 then
-    redis.call("expire", KEYS[1], window)
-end
-if current < limit then
-    return 1
-elseif current == limit then
-    return 2
-else
-    return 0
-end`)
+	//go:embed periodscript.lua
+	periodLuaScript string
+	periodScript    = redis.NewScript(periodLuaScript)
 )
 
 type (

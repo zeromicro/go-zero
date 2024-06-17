@@ -11,7 +11,7 @@ import (
 )
 
 func FuzzNodeFind(f *testing.F) {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 
 	f.Add(10)
 	f.Fuzz(func(t *testing.T, keys int) {

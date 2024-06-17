@@ -66,3 +66,74 @@ func TestTimeoutInterceptor_panic(t *testing.T) {
 		})
 	}
 }
+
+func TestTimeoutInterceptor_TimeoutCallOption(t *testing.T) {
+	type args struct {
+		interceptorTimeout time.Duration
+		callOptionTimeout  time.Duration
+		runTime            time.Duration
+	}
+	var tests = []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "do not timeout without call option timeout",
+			args: args{
+				interceptorTimeout: time.Second,
+				runTime:            time.Millisecond * 50,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "timeout without call option timeout",
+			args: args{
+				interceptorTimeout: time.Second,
+				runTime:            time.Second * 2,
+			},
+			wantErr: context.DeadlineExceeded,
+		},
+		{
+			name: "do not timeout with call option timeout",
+			args: args{
+				interceptorTimeout: time.Second,
+				callOptionTimeout:  time.Second * 3,
+				runTime:            time.Second * 2,
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			interceptor := TimeoutInterceptor(tt.args.interceptorTimeout)
+
+			cc := new(grpc.ClientConn)
+			var co []grpc.CallOption
+			if tt.args.callOptionTimeout > 0 {
+				co = append(co, WithCallTimeout(tt.args.callOptionTimeout))
+			}
+
+			err := interceptor(context.Background(), "/foo", nil, nil, cc,
+				func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+					opts ...grpc.CallOption) error {
+					timer := time.NewTimer(tt.args.runTime)
+					defer timer.Stop()
+
+					select {
+					case <-timer.C:
+						return nil
+					case <-ctx.Done():
+						return ctx.Err()
+					}
+				}, co...,
+			)
+			t.Logf("error: %+v", err)
+
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}

@@ -1,7 +1,6 @@
 package zrpc
 
 import (
-	"log"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/load"
@@ -23,10 +22,7 @@ type RpcServer struct {
 // MustNewServer returns a RpcSever, exits on any error.
 func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	server, err := NewServer(c, register)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return server
 }
 
@@ -136,7 +132,7 @@ func setupInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.Metri
 
 	if c.Timeout > 0 {
 		svr.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
-			time.Duration(c.Timeout) * time.Millisecond))
+			time.Duration(c.Timeout)*time.Millisecond, c.MethodTimeouts...))
 	}
 
 	if c.Auth {

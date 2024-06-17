@@ -43,7 +43,7 @@ func TestStudentModel(t *testing.T) {
 		Valid: true,
 	}
 
-	err := mockStudent(func(mock sqlmock.Sqlmock) {
+	err := mockStudent(t, func(mock sqlmock.Sqlmock) {
 		mock.ExpectExec(fmt.Sprintf("insert into %s", testTable)).
 			WithArgs(data.Class, data.Name, data.Age, data.Score).
 			WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
@@ -61,7 +61,7 @@ func TestStudentModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = mockStudent(func(mock sqlmock.Sqlmock) {
+	err = mockStudent(t, func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s", testTable)).
 			WithArgs(testInsertId).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
@@ -79,7 +79,7 @@ func TestStudentModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = mockStudent(func(mock sqlmock.Sqlmock) {
+	err = mockStudent(t, func(mock sqlmock.Sqlmock) {
 		mock.ExpectExec(fmt.Sprintf("update %s", testTable)).WithArgs(data.Class, testUpdateName, data.Age, data.Score, testInsertId).WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
 	}, func(m StudentModel, redis *redis.Redis) {
 		data.Name = testUpdateName
@@ -93,7 +93,7 @@ func TestStudentModel(t *testing.T) {
 	assert.Nil(t, err)
 
 	data.Name = testUpdateName
-	err = mockStudent(func(mock sqlmock.Sqlmock) {
+	err = mockStudent(t, func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
 			WithArgs(testInsertId).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
@@ -111,7 +111,7 @@ func TestStudentModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = mockStudent(func(mock sqlmock.Sqlmock) {
+	err = mockStudent(t, func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
 			WithArgs(class, testUpdateName).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
@@ -126,7 +126,7 @@ func TestStudentModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = mockStudent(func(mock sqlmock.Sqlmock) {
+	err = mockStudent(t, func(mock sqlmock.Sqlmock) {
 		mock.ExpectExec(fmt.Sprintf("delete from %s where `id` = ?", testTable)).WithArgs(testInsertId).WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
 	}, func(m StudentModel, redis *redis.Redis) {
 		err = m.Delete(testInsertId, class, testUpdateName)
@@ -228,7 +228,7 @@ func TestUserModel(t *testing.T) {
 }
 
 // with cache
-func mockStudent(mockFn func(mock sqlmock.Sqlmock), fn func(m StudentModel, r *redis.Redis)) error {
+func mockStudent(t *testing.T, mockFn func(mock sqlmock.Sqlmock), fn func(m StudentModel, r *redis.Redis)) error {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		return err
@@ -241,13 +241,7 @@ func mockStudent(mockFn func(mock sqlmock.Sqlmock), fn func(m StudentModel, r *r
 	mock.ExpectCommit()
 
 	conn := mocksql.NewMockConn(db)
-	r, clean, err := redistest.CreateRedis()
-	if err != nil {
-		return err
-	}
-
-	defer clean()
-
+	r := redistest.CreateRedis(t)
 	m := NewStudentModel(conn, cache.CacheConf{
 		{
 			RedisConf: redis.RedisConf{

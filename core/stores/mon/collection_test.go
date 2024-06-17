@@ -3,12 +3,11 @@ package mon
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/bson"
@@ -69,7 +68,6 @@ func TestKeepPromise_keep(t *testing.T) {
 
 func TestNewCollection(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 	mt.Run("test", func(mt *mtest.T) {
 		coll := mt.Coll
 		assert.NotNil(t, coll)
@@ -80,7 +78,6 @@ func TestNewCollection(t *testing.T) {
 
 func TestCollection_Aggregate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 	mt.Run("test", func(mt *mtest.T) {
 		coll := mt.Coll
 		assert.NotNil(t, coll)
@@ -97,8 +94,6 @@ func TestCollection_Aggregate(t *testing.T) {
 
 func TestCollection_BulkWrite(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -120,8 +115,6 @@ func TestCollection_BulkWrite(t *testing.T) {
 
 func TestCollection_CountDocuments(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -146,8 +139,6 @@ func TestCollection_CountDocuments(t *testing.T) {
 
 func TestDecoratedCollection_DeleteMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -166,8 +157,6 @@ func TestDecoratedCollection_DeleteMany(t *testing.T) {
 
 func TestCollection_Distinct(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -186,8 +175,6 @@ func TestCollection_Distinct(t *testing.T) {
 
 func TestCollection_EstimatedDocumentCount(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -206,8 +193,6 @@ func TestCollection_EstimatedDocumentCount(t *testing.T) {
 
 func TestCollection_Find(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -254,8 +239,6 @@ func TestCollection_Find(t *testing.T) {
 
 func TestCollection_FindOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -298,8 +281,6 @@ func TestCollection_FindOne(t *testing.T) {
 
 func TestCollection_FindOneAndDelete(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -329,8 +310,6 @@ func TestCollection_FindOneAndDelete(t *testing.T) {
 
 func TestCollection_FindOneAndReplace(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -361,8 +340,6 @@ func TestCollection_FindOneAndReplace(t *testing.T) {
 
 func TestCollection_FindOneAndUpdate(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -394,8 +371,6 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 
 func TestCollection_InsertOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -414,8 +389,6 @@ func TestCollection_InsertOne(t *testing.T) {
 
 func TestCollection_InsertMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -438,8 +411,6 @@ func TestCollection_InsertMany(t *testing.T) {
 
 func TestCollection_DeleteOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -458,8 +429,6 @@ func TestCollection_DeleteOne(t *testing.T) {
 
 func TestCollection_DeleteMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -478,8 +447,6 @@ func TestCollection_DeleteMany(t *testing.T) {
 
 func TestCollection_ReplaceOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -501,8 +468,6 @@ func TestCollection_ReplaceOne(t *testing.T) {
 
 func TestCollection_UpdateOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -523,8 +488,6 @@ func TestCollection_UpdateOne(t *testing.T) {
 
 func TestCollection_UpdateByID(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -545,8 +508,6 @@ func TestCollection_UpdateByID(t *testing.T) {
 
 func TestCollection_UpdateMany(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
 	mt.Run("test", func(mt *mtest.T) {
 		c := decoratedCollection{
 			Collection: mt.Coll,
@@ -567,21 +528,12 @@ func TestCollection_UpdateMany(t *testing.T) {
 
 func TestDecoratedCollection_LogDuration(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 	c := decoratedCollection{
 		Collection: mt.Coll,
 		brk:        breaker.NewBreaker(),
 	}
 
-	var buf strings.Builder
-	w := logx.NewWriter(&buf)
-	o := logx.Reset()
-	logx.SetWriter(w)
-
-	defer func() {
-		logx.Reset()
-		logx.SetWriter(o)
-	}()
+	buf := logtest.NewCollector(t)
 
 	buf.Reset()
 	c.logDuration(context.Background(), "foo", timex.Now(), nil, "bar")
@@ -608,13 +560,11 @@ func TestDecoratedCollection_LogDuration(t *testing.T) {
 		errors.New("bar"), make(chan int))
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "bar")
-	assert.Contains(t, buf.String(), "slowcall")
 
 	buf.Reset()
 	c.logDuration(context.Background(), "foo", timex.Now()-slowThreshold.Load()*2,
 		errors.New("bar"))
 	assert.Contains(t, buf.String(), "foo")
-	assert.Contains(t, buf.String(), "slowcall")
 
 	buf.Reset()
 	c.logDuration(context.Background(), "foo", timex.Now()-slowThreshold.Load()*2, nil)
@@ -645,7 +595,15 @@ func (d *dropBreaker) Allow() (breaker.Promise, error) {
 	return nil, errDummy
 }
 
+func (d *dropBreaker) AllowCtx(_ context.Context) (breaker.Promise, error) {
+	return nil, errDummy
+}
+
 func (d *dropBreaker) Do(_ func() error) error {
+	return nil
+}
+
+func (d *dropBreaker) DoCtx(_ context.Context, _ func() error) error {
 	return nil
 }
 
@@ -653,11 +611,24 @@ func (d *dropBreaker) DoWithAcceptable(_ func() error, _ breaker.Acceptable) err
 	return errDummy
 }
 
-func (d *dropBreaker) DoWithFallback(_ func() error, _ func(err error) error) error {
+func (d *dropBreaker) DoWithAcceptableCtx(_ context.Context, _ func() error, _ breaker.Acceptable) error {
+	return errDummy
+}
+
+func (d *dropBreaker) DoWithFallback(_ func() error, _ breaker.Fallback) error {
 	return nil
 }
 
-func (d *dropBreaker) DoWithFallbackAcceptable(_ func() error, _ func(err error) error,
+func (d *dropBreaker) DoWithFallbackCtx(_ context.Context, _ func() error, _ breaker.Fallback) error {
+	return nil
+}
+
+func (d *dropBreaker) DoWithFallbackAcceptable(_ func() error, _ breaker.Fallback,
 	_ breaker.Acceptable) error {
+	return nil
+}
+
+func (d *dropBreaker) DoWithFallbackAcceptableCtx(_ context.Context, _ func() error,
+	_ breaker.Fallback, _ breaker.Acceptable) error {
 	return nil
 }

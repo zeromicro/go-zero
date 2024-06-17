@@ -3,7 +3,6 @@ package gen
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,16 +36,17 @@ type (
 	Option func(generator *defaultGenerator)
 
 	code struct {
-		importsCode string
-		varsCode    string
-		typesCode   string
-		newCode     string
-		insertCode  string
-		findCode    []string
-		updateCode  string
-		deleteCode  string
-		cacheExtra  string
-		tableName   string
+		importsCode    string
+		varsCode       string
+		typesCode      string
+		newCode        string
+		insertCode     string
+		findCode       []string
+		updateCode     string
+		deleteCode     string
+		cacheExtra     string
+		tableName      string
+		customizedCode string
 	}
 
 	codeTuple struct {
@@ -168,7 +168,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 
 		name := util.SafeString(modelFilename) + "_gen.go"
 		filename := filepath.Join(dirAbs, name)
-		err = ioutil.WriteFile(filename, []byte(codes.modelCode), os.ModePerm)
+		err = os.WriteFile(filename, []byte(codes.modelCode), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -179,7 +179,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 			g.Warning("%s already exists, ignored.", name)
 			continue
 		}
-		err = ioutil.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
+		err = os.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -324,17 +324,23 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
+	customizedCode, err := genCustomized(table, withCache, g.isPostgreSql)
+	if err != nil {
+		return "", err
+	}
+
 	code := &code{
-		importsCode: importsCode,
-		varsCode:    varsCode,
-		typesCode:   typesCode,
-		newCode:     newCode,
-		insertCode:  insertCode,
-		findCode:    findCode,
-		updateCode:  updateCode,
-		deleteCode:  deleteCode,
-		cacheExtra:  ret.cacheExtra,
-		tableName:   tableName,
+		importsCode:    importsCode,
+		varsCode:       varsCode,
+		typesCode:      typesCode,
+		newCode:        newCode,
+		insertCode:     insertCode,
+		findCode:       findCode,
+		updateCode:     updateCode,
+		deleteCode:     deleteCode,
+		cacheExtra:     ret.cacheExtra,
+		tableName:      tableName,
+		customizedCode: customizedCode,
 	}
 
 	output, err := g.executeModel(table, code)
@@ -388,6 +394,7 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		"extraMethod": code.cacheExtra,
 		"tableName":   code.tableName,
 		"data":        table,
+		"customized":  code.customizedCode,
 	})
 	if err != nil {
 		return nil, err

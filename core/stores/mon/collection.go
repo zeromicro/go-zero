@@ -2,11 +2,10 @@ package mon
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
@@ -142,7 +141,7 @@ func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		starTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, aggregate, starTime, err)
@@ -162,7 +161,7 @@ func (c *decoratedCollection) BulkWrite(ctx context.Context, models []mongo.Writ
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, bulkWrite, startTime, err)
@@ -182,7 +181,7 @@ func (c *decoratedCollection) CountDocuments(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, countDocuments, startTime, err)
@@ -202,7 +201,7 @@ func (c *decoratedCollection) DeleteMany(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, deleteMany, startTime, err)
@@ -222,7 +221,7 @@ func (c *decoratedCollection) DeleteOne(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, deleteOne, startTime, err, filter)
@@ -242,7 +241,7 @@ func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, fi
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, distinct, startTime, err)
@@ -262,7 +261,7 @@ func (c *decoratedCollection) EstimatedDocumentCount(ctx context.Context,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, estimatedDocumentCount, startTime, err)
@@ -282,7 +281,7 @@ func (c *decoratedCollection) Find(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, find, startTime, err, filter)
@@ -302,7 +301,7 @@ func (c *decoratedCollection) FindOne(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, findOne, startTime, err, filter)
@@ -323,7 +322,7 @@ func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, findOneAndDelete, startTime, err, filter)
@@ -345,7 +344,7 @@ func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, findOneAndReplace, startTime, err, filter, replacement)
@@ -366,7 +365,7 @@ func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter, upda
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, findOneAndUpdate, startTime, err, filter, update)
@@ -387,7 +386,7 @@ func (c *decoratedCollection) InsertMany(ctx context.Context, documents []any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, insertMany, startTime, err)
@@ -407,7 +406,7 @@ func (c *decoratedCollection) InsertOne(ctx context.Context, document any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, insertOne, startTime, err, document)
@@ -427,7 +426,7 @@ func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter, replacemen
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, replaceOne, startTime, err, filter, replacement)
@@ -447,7 +446,7 @@ func (c *decoratedCollection) UpdateByID(ctx context.Context, id, update any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, updateByID, startTime, err, id, update)
@@ -467,7 +466,7 @@ func (c *decoratedCollection) UpdateMany(ctx context.Context, filter, update any
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDurationSimple(ctx, updateMany, startTime, err)
@@ -487,7 +486,7 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update any,
 		endSpan(span, err)
 	}()
 
-	err = c.brk.DoWithAcceptable(func() error {
+	err = c.brk.DoWithAcceptableCtx(ctx, func() error {
 		startTime := timex.Now()
 		defer func() {
 			c.logDuration(ctx, updateOne, startTime, err, filter, update)
@@ -502,45 +501,11 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update any,
 
 func (c *decoratedCollection) logDuration(ctx context.Context, method string,
 	startTime time.Duration, err error, docs ...any) {
-	duration := timex.Since(startTime)
-	logger := logx.WithContext(ctx).WithDuration(duration)
-
-	content, jerr := json.Marshal(docs)
-	// jerr should not be non-nil, but we don't care much on this,
-	// if non-nil, we just log without docs.
-	if jerr != nil {
-		if err != nil {
-			if duration > slowThreshold.Load() {
-				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s)", c.name, method, err.Error())
-			} else {
-				logger.Infof("mongo(%s) - %s - fail(%s)", c.name, method, err.Error())
-			}
-		} else {
-			if duration > slowThreshold.Load() {
-				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", c.name, method)
-			} else {
-				logger.Infof("mongo(%s) - %s - ok", c.name, method)
-			}
-		}
-	} else if err != nil {
-		if duration > slowThreshold.Load() {
-			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
-				c.name, method, err.Error(), string(content))
-		} else {
-			logger.Infof("mongo(%s) - %s - fail(%s) - %s",
-				c.name, method, err.Error(), string(content))
-		}
-	} else {
-		if duration > slowThreshold.Load() {
-			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
-				c.name, method, string(content))
-		} else {
-			logger.Infof("mongo(%s) - %s - ok - %s", c.name, method, string(content))
-		}
-	}
+	logDurationWithDocs(ctx, c.name, method, startTime, err, docs...)
 }
 
-func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string, startTime time.Duration, err error) {
+func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string,
+	startTime time.Duration, err error) {
 	logDuration(ctx, c.name, method, startTime, err)
 }
 
@@ -562,11 +527,10 @@ func (p keepablePromise) keep(err error) error {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == mongo.ErrNoDocuments || err == mongo.ErrNilValue ||
-		err == mongo.ErrNilDocument || err == mongo.ErrNilCursor || err == mongo.ErrEmptySlice ||
+	return err == nil || errorx.In(err, mongo.ErrNoDocuments, mongo.ErrNilValue,
+		mongo.ErrNilDocument, mongo.ErrNilCursor, mongo.ErrEmptySlice,
 		// session errors
-		err == session.ErrSessionEnded || err == session.ErrNoTransactStarted ||
-		err == session.ErrTransactInProgress || err == session.ErrAbortAfterCommit ||
-		err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
-		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
+		session.ErrSessionEnded, session.ErrNoTransactStarted, session.ErrTransactInProgress,
+		session.ErrAbortAfterCommit, session.ErrAbortTwice, session.ErrCommitAfterAbort,
+		session.ErrUnackWCUnsupported, session.ErrSnapshotTransaction)
 }

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/env"
@@ -42,7 +42,7 @@ type Docker struct {
 func dockerCommand(_ *cobra.Command, _ []string) (err error) {
 	defer func() {
 		if err == nil {
-			fmt.Println(aurora.Green("Done."))
+			fmt.Println(color.Green.Render("Done."))
 		}
 	}()
 

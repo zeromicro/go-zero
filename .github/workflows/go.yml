@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.18
+          go-version: '1.19'
           check-latest: true
           cache: true
         id: go
@@ -40,20 +40,20 @@ jobs:
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
 
   test-win:
     name: Windows
     runs-on: windows-latest
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          # use 1.18 to guarantee Go 1.18 compatibility
-          go-version: 1.18
+          # use 1.19 to guarantee Go 1.19 compatibility
+          go-version: '1.19'
           check-latest: true
           cache: true
 
@@ -61,5 +61,5 @@ jobs:
         run: |
           go mod verify
           go mod download
-          go test -v -race ./...
+          go test ./...
           cd tools/goctl && go build -v goctl.go
