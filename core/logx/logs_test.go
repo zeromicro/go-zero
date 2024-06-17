@@ -348,6 +348,27 @@ func TestStructedLogInfow(t *testing.T) {
 	})
 }
 
+func TestStructedLogFieldNil(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	assert.NotPanics(t, func() {
+		var s *string
+		Infow("test", Field("bb", s))
+		var d *nilStringer
+		Infow("test", Field("bb", d))
+		var e *nilError
+		Errorw("test", Field("bb", e))
+	})
+	assert.NotPanics(t, func() {
+		var p panicStringer
+		Infow("test", Field("bb", p))
+		var ps innerPanicStringer
+		Infow("test", Field("bb", ps))
+	})
+}
+
 func TestStructedLogInfoConsoleAny(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -858,4 +879,37 @@ func validateFields(t *testing.T, content string, fields map[string]any) {
 			assert.Equal(t, v, m[k], content)
 		}
 	}
+}
+
+type nilError struct {
+	Name string
+}
+
+func (e *nilError) Error() string {
+	return e.Name
+}
+
+type nilStringer struct {
+	Name string
+}
+
+func (s *nilStringer) String() string {
+	return s.Name
+}
+
+type innerPanicStringer struct {
+	Inner *struct {
+		Name string
+	}
+}
+
+func (s innerPanicStringer) String() string {
+	return s.Inner.Name
+}
+
+type panicStringer struct {
+}
+
+func (s panicStringer) String() string {
+	panic("panic")
 }

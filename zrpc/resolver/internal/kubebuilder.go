@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/go-zero/zrpc/resolver/internal/kube"
 	"google.golang.org/grpc/resolver"
@@ -20,6 +19,24 @@ const (
 	resyncInterval = 5 * time.Minute
 	nameSelector   = "metadata.name="
 )
+
+type kubeResolver struct {
+	cc     resolver.ClientConn
+	inf    informers.SharedInformerFactory
+	stopCh chan struct{}
+}
+
+func (r *kubeResolver) ResolveNow(_ resolver.ResolveNowOptions) {}
+
+func (r *kubeResolver) start() {
+	threading.GoSafe(func() {
+		r.inf.Start(r.stopCh)
+	})
+}
+
+func (r *kubeResolver) Close() {
+	close(r.stopCh)
+}
 
 type kubeBuilder struct{}
 
@@ -41,10 +58,13 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	if svc.Port == 0 {
-		endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
+		// getting endpoints is only to get the port
+		endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(
+			context.Background(), svc.Name, v1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}
+
 		svc.Port = int(endpoints.Subsets[0].Ports[0].Port)
 	}
 
@@ -73,17 +93,24 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
-	threading.GoSafe(func() {
-		inf.Start(proc.Done())
-	})
-	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
+	// get the initial endpoints, cannot use the previous endpoints,
+	// because the endpoints may be updated before/after the informer is started.
+	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(
+		context.Background(), svc.Name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	handler.Update(endpoints)
 
-	return &nopResolver{cc: cc}, nil
+	r := &kubeResolver{
+		cc:     cc,
+		inf:    inf,
+		stopCh: make(chan struct{}),
+	}
+	r.start()
+
+	return r, nil
 }
 
 func (b *kubeBuilder) Scheme() string {

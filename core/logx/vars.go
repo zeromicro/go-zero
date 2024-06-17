@@ -48,6 +48,7 @@ const (
 	levelDebug  = "debug"
 
 	backupFileDelimiter = "-"
+	nilAngleString      = "<nil>"
 	flags               = 0x0
 )
 

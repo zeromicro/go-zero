@@ -194,7 +194,6 @@ go get -u github.com/zeromicro/go-zero
 
    ```shell
    cd greet
-   go mod init
    go mod tidy
    go run greet.go -f etc/greet-api.yaml
    ```

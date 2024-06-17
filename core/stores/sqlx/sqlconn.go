@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -83,7 +84,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 }
 
 // NewSqlConnFromDB returns a SqlConn with the given sql.DB.
-// Use it with caution, it's provided for other ORM to interact with.
+// Use it with caution; it's provided for other ORM to interact with.
 func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
 		connProv: func() (*sql.DB, error) {
@@ -120,7 +121,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
@@ -148,7 +149,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
@@ -256,7 +257,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
 	if errors.Is(err, breaker.ErrServiceUnavailable) {
@@ -267,8 +268,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
-	if err == nil || errors.Is(err, sql.ErrNoRows) || errors.Is(err, sql.ErrTxDone) ||
-		errors.Is(err, context.Canceled) {
+	if err == nil || errorx.In(err, sql.ErrNoRows, sql.ErrTxDone, context.Canceled) {
 		return true
 	}
 
@@ -287,7 +287,7 @@ func (db *commonSqlConn) acceptable(err error) bool {
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...any) (err error) {
 	var scanFailed bool
-	err = db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
 		conn, err := db.connProv()
 		if err != nil {
 			db.onError(ctx, err)

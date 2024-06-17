@@ -7,13 +7,13 @@ import (
 
 // A Logger represents a logger.
 type Logger interface {
-	// Debug logs a message at info level.
+	// Debug logs a message at debug level.
 	Debug(...any)
-	// Debugf logs a message at info level.
+	// Debugf logs a message at debug level.
 	Debugf(string, ...any)
-	// Debugv logs a message at info level.
+	// Debugv logs a message at debug level.
 	Debugv(any)
-	// Debugw logs a message at info level.
+	// Debugw logs a message at debug level.
 	Debugw(string, ...LogField)
 	// Error logs a message at error level.
 	Error(...any)
