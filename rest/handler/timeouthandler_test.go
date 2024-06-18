@@ -88,6 +88,20 @@ func TestTimeout(t *testing.T) {
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
 }
 
+func TestTimeHandlerCallback(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Millisecond, WithTimeoutCallback(func(w http.ResponseWriter, r *http.Request, err error) {
+		w.WriteHeader(486)
+	}))
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Minute)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, 486, resp.Code)
+}
+
 func TestWithinTimeout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Second)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +126,7 @@ func TestWithinTimeoutBadCode(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 }
 
-func TestWithTimeoutTimedout(t *testing.T) {
+func TestWithTimeoutTimeout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(time.Millisecond * 10)

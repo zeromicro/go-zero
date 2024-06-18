@@ -163,7 +163,8 @@ func WithCors(origin ...string) RunOption {
 // WithCustomCors returns a func to enable CORS for given origin, or default to all origins (*),
 // fn lets caller customizing the response.
 func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(http.ResponseWriter),
-	origin ...string) RunOption {
+	origin ...string,
+) RunOption {
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(notAllowedFn, origin...))
 		server.router = newCorsRouter(server.router, middlewareFn, origin...)
@@ -303,6 +304,13 @@ func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 	return func(svr *Server) {
 		svr.ngin.setUnsignedCallback(callback)
+	}
+}
+
+// WithTimeoutCallback returns a RunOption that with given timeout callback set.
+func WithTimeoutCallback(callback handler.TimeoutCallback) RunOption {
+	return func(svr *Server) {
+		svr.ngin.setTimeoutCallback(callback)
 	}
 }
 

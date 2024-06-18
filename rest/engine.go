@@ -31,6 +31,7 @@ type engine struct {
 	timeout              time.Duration
 	unauthorizedCallback handler.UnauthorizedCallback
 	unsignedCallback     handler.UnsignedCallback
+	timeoutCallback      handler.TimeoutCallback
 	chain                chain.Chain
 	middlewares          []Middleware
 	shedder              load.Shedder
@@ -64,7 +65,8 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
-	verifier func(chain.Chain) chain.Chain) chain.Chain {
+	verifier func(chain.Chain) chain.Chain,
+) chain.Chain {
 	if fr.jwt.enabled {
 		if len(fr.jwt.prevSecret) == 0 {
 			chn = chn.Append(handler.Authorize(fr.jwt.secret,
@@ -95,7 +97,8 @@ func (ng *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, met
 }
 
 func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
-	route Route, verifier func(chain.Chain) chain.Chain) error {
+	route Route, verifier func(chain.Chain) chain.Chain,
+) error {
 	chn := ng.chain
 	if chn == nil {
 		chn = ng.buildChainWithNativeMiddlewares(fr, route, metrics)
@@ -124,7 +127,8 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 }
 
 func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route,
-	metrics *stat.Metrics) chain.Chain {
+	metrics *stat.Metrics,
+) chain.Chain {
 	chn := chain.New()
 
 	if ng.conf.Middlewares.Trace {
@@ -148,7 +152,7 @@ func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route
 		chn = chn.Append(handler.SheddingHandler(ng.getShedder(fr.priority), metrics))
 	}
 	if ng.conf.Middlewares.Timeout {
-		chn = chn.Append(handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)))
+		chn = chn.Append(handler.TimeoutHandler(ng.checkedTimeout(fr.timeout), handler.WithTimeoutCallback(ng.timeoutCallback)))
 	}
 	if ng.conf.Middlewares.Recover {
 		chn = chn.Append(handler.RecoverHandler)
@@ -263,6 +267,10 @@ func (ng *engine) setUnauthorizedCallback(callback handler.UnauthorizedCallback)
 
 func (ng *engine) setUnsignedCallback(callback handler.UnsignedCallback) {
 	ng.unsignedCallback = callback
+}
+
+func (ng *engine) setTimeoutCallback(callback handler.TimeoutCallback) {
+	ng.timeoutCallback = callback
 }
 
 func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chain) chain.Chain, error) {

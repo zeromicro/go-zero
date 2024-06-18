@@ -28,10 +28,40 @@ const (
 	valueSSE                  = "text/event-stream"
 )
 
+type (
+	// TimeoutCallback defines the method of timeout callback.
+	TimeoutCallback func(w http.ResponseWriter, r *http.Request, err error)
+	// TimeoutOption defines the method to customize a TimeoutOptions.
+	TimeoutOptions struct {
+		Callback TimeoutCallback
+	}
+
+	// TimeoutOption defines the method to customize an TimeoutOptions.
+	TimeoutOption func(opts *TimeoutOptions)
+)
+
+var defaultTimeoutCallback TimeoutCallback = func(w http.ResponseWriter, r *http.Request, err error) {
+	if errors.Is(err, context.Canceled) {
+		w.WriteHeader(statusClientClosedRequest)
+	} else {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}
+	_, _ = io.WriteString(w, reason)
+}
+
 // TimeoutHandler returns the handler with given timeout.
 // If client closed request, code 499 will be logged.
 // Notice: even if canceled in server side, 499 will be logged as well.
-func TimeoutHandler(duration time.Duration) func(http.Handler) http.Handler {
+func TimeoutHandler(duration time.Duration, opt ...TimeoutOption) func(http.Handler) http.Handler {
+	var opts TimeoutOptions
+	for _, o := range opt {
+		o(&opts)
+	}
+
+	if opts.Callback == nil {
+		opts.Callback = defaultTimeoutCallback
+	}
+
 	return func(next http.Handler) http.Handler {
 		if duration <= 0 {
 			return next
@@ -40,6 +70,7 @@ func TimeoutHandler(duration time.Duration) func(http.Handler) http.Handler {
 		return &timeoutHandler{
 			handler: next,
 			dt:      duration,
+			cb:      opts.Callback,
 		}
 	}
 }
@@ -51,10 +82,7 @@ func TimeoutHandler(duration time.Duration) func(http.Handler) http.Handler {
 type timeoutHandler struct {
 	handler http.Handler
 	dt      time.Duration
-}
-
-func (h *timeoutHandler) errorBody() string {
-	return reason
+	cb      TimeoutCallback
 }
 
 func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -106,15 +134,10 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case <-ctx.Done():
 		tw.mu.Lock()
 		defer tw.mu.Unlock()
-		// there isn't any user-defined middleware before TimoutHandler,
+		// there isn't any user-defined middleware before TimeoutHandler,
 		// so we can guarantee that cancelation in biz related code won't come here.
 		httpx.ErrorCtx(r.Context(), w, ctx.Err(), func(w http.ResponseWriter, err error) {
-			if errors.Is(err, context.Canceled) {
-				w.WriteHeader(statusClientClosedRequest)
-			} else {
-				w.WriteHeader(http.StatusServiceUnavailable)
-			}
-			_, _ = io.WriteString(w, h.errorBody())
+			h.cb(w, r, err)
 		})
 		tw.timedOut = true
 	}
@@ -243,4 +266,11 @@ func relevantCaller() runtime.Frame {
 	}
 
 	return frame
+}
+
+// WithTimeoutCallback returns an AuthorizeOption with setting Timeout callback.
+func WithTimeoutCallback(callback TimeoutCallback) TimeoutOption {
+	return func(opts *TimeoutOptions) {
+		opts.Callback = callback
+	}
 }
