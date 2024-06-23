@@ -125,18 +125,13 @@ go get -u github.com/zeromicro/go-zero
    # For Mac
    brew install goctl
    
-   # docker for amd64 architecture
+   # docker for all platforms
    docker pull kevinwan/goctl
-   # run goctl like
+   # run goctl
    docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
-   
-   # docker for arm64(Mac) architecture
-   docker pull kevinwan/goctl:latest-arm64
-   # run goctl like
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 --help
    ```
    
-   make sure goctl is executable.
+   make sure goctl is executable and in your $PATH.
    
 3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 

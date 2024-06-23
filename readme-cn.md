@@ -118,18 +118,13 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     # For Mac
     brew install goctl
     
-    # docker for amd64 architecture
+    # docker for all platforms
     docker pull kevinwan/goctl
-    # run goctl like
+    # run goctl
     docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
-    
-    # docker for arm64(Mac) architecture
-    docker pull kevinwan/goctl:latest-arm64
-    # run goctl like
-    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
     ```
     
-    确保 goctl 可执行
+    确保 goctl 可执行，并且在 $PATH 环境变量里。
     
 2. 快速生成 api 服务
 
