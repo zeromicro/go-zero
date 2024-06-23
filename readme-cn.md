@@ -126,7 +126,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     # docker for arm64(Mac) architecture
     docker pull kevinwan/goctl:latest-arm64
     # run goctl like
-    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 --help
+    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
     ```
     
     确保 goctl 可执行
