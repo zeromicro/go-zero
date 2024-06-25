@@ -42,7 +42,18 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 	case *ast.AnyDataType:
 		return nil, ast.SyntaxError(v.Pos(), "unsupported any type")
 	case *ast.StructDataType:
-		// TODO(keson) feature: can be extended
+		var members []spec.Member
+		for _, item := range v.Elements {
+			m, err := a.fieldToMember(item)
+			if err != nil {
+				return nil, err
+			}
+			members = append(members, m)
+		}
+		return spec.DefineStruct{
+			RawName: v.RawText(),
+			Members: members,
+		}, nil
 	case *ast.InterfaceDataType:
 		return spec.InterfaceType{RawName: v.RawText()}, nil
 	case *ast.MapDataType:
@@ -323,12 +334,14 @@ func (a *Analyzer) fillTypes() error {
 			for _, member := range v.Members {
 				switch v := member.Type.(type) {
 				case spec.DefineStruct:
-					tp, err := a.findDefinedType(v.RawName)
-					if err != nil {
-						return err
-					}
+					if !v.IsNestedStruct() {
+						tp, err := a.findDefinedType(v.RawName)
+						if err != nil {
+							return err
+						}
 
-					member.Type = tp
+						member.Type = tp
+					}
 				}
 				members = append(members, member)
 			}

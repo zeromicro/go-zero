@@ -30,6 +30,11 @@ func (t DefineStruct) Documents() []string {
 	return t.Docs
 }
 
+// IsNestedStruct returns whether the structure is nested.
+func (t DefineStruct) IsNestedStruct() bool {
+	return len(t.Members) > 0
+}
+
 // Name returns a map string, such as map[string]int
 func (t MapType) Name() string {
 	return t.RawName
