@@ -57,6 +57,8 @@ var (
 	importTwiceApi string
 	//go:embed testdata/another_import_api.api
 	anotherImportApi string
+	//go:embed testdata/example.api
+	exampleAPI string
 )
 
 func TestParser(t *testing.T) {
@@ -316,15 +318,32 @@ func TestCamelStyle(t *testing.T) {
 	validateWithCamel(t, filename, "GoZero")
 }
 
+func TestExampleGen(t *testing.T) {
+	env.Set(t, env.GoctlExperimental, env.ExperimentalOn)
+	filename := "greet.api"
+	err := os.WriteFile(filename, []byte(exampleAPI), os.ModePerm)
+	assert.Nil(t, err)
+	t.Cleanup(func() {
+		_ = os.Remove(filename)
+	})
+
+	spec, err := parser.Parse(filename)
+	assert.Nil(t, err)
+	assert.Equal(t, len(spec.Types), 10)
+
+	validate(t, filename)
+}
+
 func validate(t *testing.T, api string) {
 	validateWithCamel(t, api, "gozero")
 }
 
 func validateWithCamel(t *testing.T, api, camel string) {
 	dir := "workspace"
-	defer func() {
-		os.RemoveAll(dir)
-	}()
+	t.Cleanup(func() {
+		_ = os.RemoveAll(dir)
+	})
+
 	err := pathx.MkdirIfNotExist(dir)
 	assert.Nil(t, err)
 	err = initMod(dir)
