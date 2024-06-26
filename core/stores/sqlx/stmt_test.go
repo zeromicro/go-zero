@@ -182,6 +182,16 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
+func TestSetMaskFn(t *testing.T) {
+	logSql.Set(true)
+	logSlowSql.Set(true)
+	SetMaskFn(func(sql string) string {
+		return sql
+	})
+	guard := newGuard("any")
+	guard.finish(context.Background(), nil)
+}
+
 func TestDisableLog(t *testing.T) {
 	assert.True(t, logSql.True())
 	assert.True(t, logSlowSql.True())

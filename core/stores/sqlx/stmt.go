@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/rescue"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
@@ -15,12 +16,14 @@ import (
 const defaultSlowThreshold = time.Millisecond * 500
 
 var (
-	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logSql        = syncx.ForAtomicBool(true)
-	logSlowSql    = syncx.ForAtomicBool(true)
+	slowThreshold        = syncx.ForAtomicDuration(defaultSlowThreshold)
+	logSql               = syncx.ForAtomicBool(true)
+	logSlowSql           = syncx.ForAtomicBool(true)
+	maskFn        MaskFn = nil
 )
 
 type (
+	MaskFn func(sql string) string
 	// StmtSession interface represents a session that can be used to execute statements.
 	StmtSession interface {
 		Close() error
@@ -170,6 +173,10 @@ func DisableStmtLog() {
 	logSql.Set(false)
 }
 
+func SetMaskFn(fn MaskFn) {
+	maskFn = fn
+}
+
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
@@ -265,17 +272,32 @@ func (n nilGuard) start(_ string, _ ...any) error {
 func (n nilGuard) finish(_ context.Context, _ error) {
 }
 
+func (e *realSqlGuard) mask(ctx context.Context, stmt string) string {
+	defer rescue.RecoverCtx(ctx)
+
+	return maskFn(stmt)
+}
+
 func (e *realSqlGuard) finish(ctx context.Context, err error) {
 	duration := timex.Since(e.startTime)
+
+	stmt := e.stmt
+	if maskFn != nil {
+		stmt = e.mask(ctx, e.stmt)
+		if len(stmt) == 0 {
+			stmt = e.stmt
+		}
+	}
+
 	if duration > slowThreshold.Load() {
-		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] %s: slowcall - %s", e.command, e.stmt)
+		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] %s: slowcall - %s", e.command, stmt)
 		metricSlowCount.Inc(e.command)
 	} else if logSql.True() {
-		logx.WithContext(ctx).WithDuration(duration).Infof("sql %s: %s", e.command, e.stmt)
+		logx.WithContext(ctx).WithDuration(duration).Infof("sql %s: %s", e.command, stmt)
 	}
 
 	if err != nil {
-		logSqlError(ctx, e.stmt, err)
+		logSqlError(ctx, stmt, err)
 	}
 
 	metricReqDur.ObserveFloat(float64(duration)/float64(time.Millisecond), e.command)
