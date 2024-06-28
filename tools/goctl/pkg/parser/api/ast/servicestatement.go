@@ -575,3 +575,7 @@ func (e *BodyExpr) Pos() token.Position {
 }
 
 func (e *BodyExpr) exprNode() {}
+
+func (e *BodyExpr) IsArrayType() bool {
+	return e.LBrack != nil
+}

@@ -268,14 +268,14 @@ func (a *Analyzer) fillService() error {
 			}
 
 			if astRoute.Route.Request != nil && astRoute.Route.Request.Body != nil {
-				requestType, err := a.getType(astRoute.Route.Request)
+				requestType, err := a.getType(astRoute.Route.Request, true)
 				if err != nil {
 					return err
 				}
 				route.RequestType = requestType
 			}
 			if astRoute.Route.Response != nil && astRoute.Route.Response.Body != nil {
-				responseType, err := a.getType(astRoute.Route.Response)
+				responseType, err := a.getType(astRoute.Route.Response, false)
 				if err != nil {
 					return err
 				}
@@ -404,8 +404,12 @@ func (a *Analyzer) findDefinedType(name string) (spec.Type, error) {
 	return nil, fmt.Errorf("type %s not defined", name)
 }
 
-func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
+func (a *Analyzer) getType(expr *ast.BodyStmt, req bool) (spec.Type, error) {
 	body := expr.Body
+	if req && body.IsArrayType() {
+		return nil, ast.SyntaxError(body.Pos(), "request body must be struct")
+	}
+
 	var tp spec.Type
 	var err error
 	var rawText = body.Format("")

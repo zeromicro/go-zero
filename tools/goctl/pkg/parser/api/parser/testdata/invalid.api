@@ -96,13 +96,6 @@ type Foo {
 }
 
 -----
-// test case:  map valu expected literal type
-syntax = "v1"
-type Foo {
-    Bar *map[string]{}  `json:"bar"`
-}
-
------
 // test case:  invalid slice
 syntax = "v1"
 type Foo {
@@ -193,4 +186,20 @@ syntax = "v1"
 service example {
     @handler nestDemo
     post /example/nest (NestDemoReq) returns (NestDemoResp)
+}
+
+-----
+// test case:  unsupported array object request body
+syntax = "v1"
+service example {
+    @handler nestDemo
+    post /example/nest ([]NestDemoReq) returns (NestDemoResp)
+}
+
+-----
+    // test case:  unsupported array request body
+syntax = "v1"
+service example {
+    @handler nestDemo2
+    post /example/nest2 ([]string) returns (NestDemoResp)
 }
