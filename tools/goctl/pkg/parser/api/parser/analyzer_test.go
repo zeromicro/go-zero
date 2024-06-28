@@ -62,10 +62,6 @@ func Test_Parse(t *testing.T) {
 		for _, v := range testFile {
 			_, err := Parse(v, nil)
 			assertx.Error(t, err)
-			if err == nil {
-				data, _ := os.ReadFile(v)
-				fmt.Println(string(data))
-			}
 		}
 	})
 
