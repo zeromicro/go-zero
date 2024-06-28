@@ -23,12 +23,12 @@ const (
 	Name = "p2c_ewma"
 
 	decayTime       = int64(time.Second * 10) // default value from finagle
-	forcePick       = int64(time.Second)
-	initSuccess     = 1000
-	throttleSuccess = initSuccess / 2
-	penalty         = int64(math.MaxInt32)
-	pickTimes       = 3
-	logInterval     = time.Minute
+	forcePick       = int64(time.Second)      // If a node is not selected for a period of time, it is forcibly selected.
+	initSuccess     = 1000                    // Initial success count
+	throttleSuccess = initSuccess / 2         // Success count to trigger throttling
+	penalty         = int64(math.MaxInt32)    // Penalty value for load calculation
+	pickTimes       = 3                       // Number of pick attempts
+	logInterval     = time.Minute             // Log interval for statistics
 )
 
 var emptyPickResult balancer.PickResult
@@ -121,6 +121,28 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 		if td < 0 {
 			td = 0
 		}
+
+		// The function curve of y = x^(-x) is as follows.
+		// *
+		//  *
+		//   *
+		//    *
+		//     *
+		//      *
+		//       *
+		//        *
+		//         *
+		//          *
+		//           **
+		//             *
+		//              ***
+		//                 **
+		//                   ****
+		//                       ******
+		//                             *********************
+		//                                                  *
+		//
+		// As the td/decayTime value increases, indicating an increase in delay, the value of w (y axis) will decrease, inversely proportional.
 		w := math.Exp(float64(-td) / float64(decayTime))
 		lag := int64(now) - start
 		if lag < 0 {
@@ -130,6 +152,8 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 		if olag == 0 {
 			w = 0
 		}
+
+		// The smaller the value of w, the lower the impact of historical data.
 		atomic.StoreUint64(&c.lag, uint64(float64(olag)*w+float64(lag)*(1-w)))
 		success := initSuccess
 		if info.Err != nil && !codes.Acceptable(info.Err) {
@@ -182,7 +206,10 @@ func (p *p2cPicker) logStats() {
 }
 
 type subConn struct {
-	lag      uint64
+	// The request latency measured by the weighted moving average algorithm.
+	lag uint64
+
+	// The value represents the number of requests that are either pending or just starting at the current node, and it is obtained through atomic addition.
 	inflight int64
 	success  uint64
 	requests int64
