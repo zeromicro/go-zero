@@ -116,11 +116,11 @@ func validateOptional(field reflect.StructField, value reflect.Value) error {
 	switch field.Type.Kind() {
 	case reflect.Ptr:
 		if value.IsNil() {
-			return fmt.Errorf("field %q is nil", field.Name)
+			return newError("field %q is nil", field.Name)
 		}
 	case reflect.Array, reflect.Slice, reflect.Map:
 		if value.IsNil() || value.Len() == 0 {
-			return fmt.Errorf("field %q is empty", field.Name)
+			return newError("field %q is empty", field.Name)
 		}
 	}
 
@@ -137,7 +137,7 @@ func validateOptions(value reflect.Value, opt *fieldOptions) error {
 		}
 	}
 	if !found {
-		return fmt.Errorf("field %q not in options", val)
+		return newError("field %q not in options", val)
 	}
 
 	return nil
@@ -171,7 +171,7 @@ func validateRange(value reflect.Value, opt *fieldOptions) error {
 	case float64:
 		val = v
 	default:
-		return fmt.Errorf("unknown support type for range %q", value.Type().String())
+		return newError("unknown support type for range %q", value.Type().String())
 	}
 
 	// validates [left, right], [left, right), (left, right], (left, right)
@@ -179,7 +179,7 @@ func validateRange(value reflect.Value, opt *fieldOptions) error {
 		(!opt.Range.leftInclude && val == opt.Range.left) ||
 		val > opt.Range.right ||
 		(!opt.Range.rightInclude && val == opt.Range.right) {
-		return fmt.Errorf("%v out of range", value.Interface())
+		return newError("%v out of range", value.Interface())
 	}
 
 	return nil

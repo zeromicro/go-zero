@@ -296,7 +296,7 @@ func TestSetValueFormatErrors(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.kind.String(), func(t *testing.T) {
 			err := setValueFromString(test.kind, test.target, test.value)
-			assert.NotEqual(t, errValueNotSettable, err)
+			assert.NotEqual(t, ErrValueNotSettable, err)
 			assert.NotNil(t, err)
 		})
 	}
