@@ -50,6 +50,10 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 			}
 			members = append(members, m)
 		}
+		if v.RawText() == "{}" {
+			return nil, ast.SyntaxError(v.Pos(), "unsupported empty struct")
+		}
+
 		return spec.DefineStruct{
 			RawName: v.RawText(),
 			Members: members,
@@ -58,10 +62,13 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 		return spec.InterfaceType{RawName: v.RawText()}, nil
 	case *ast.MapDataType:
 		if !isLiteralType(v.Key) {
-			return nil, ast.SyntaxError(v.Pos(), "expected literal type, got <%T>", v)
+			return nil, ast.SyntaxError(v.Pos(), "expected literal type, got <%T>", v.Key)
 		}
 		if !v.Key.CanEqual() {
-			return nil, ast.SyntaxError(v.Pos(), "map key <%T> must be equal data type", v)
+			return nil, ast.SyntaxError(v.Pos(), "map key <%T> must be equal data type", v.Key)
+		}
+		if v.Value.ContainsStruct() {
+			return nil, ast.SyntaxError(v.Pos(), "map value unsupported nested struct")
 		}
 
 		value, err := a.astTypeToSpec(v.Value)
@@ -91,9 +98,11 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 		}, nil
 	case *ast.ArrayDataType:
 		if v.Length.Token.Type == token.ELLIPSIS {
-			return nil, ast.SyntaxError(v.Pos(), "Array: unsupported dynamic length")
+			return nil, ast.SyntaxError(v.Pos(), "array length unsupported dynamic length")
 		}
-
+		if v.ContainsStruct() {
+			return nil, ast.SyntaxError(v.Pos(), "array elements unsupported nested struct")
+		}
 		value, err := a.astTypeToSpec(v.DataType)
 		if err != nil {
 			return nil, err
@@ -104,6 +113,10 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 			Value:   value,
 		}, nil
 	case *ast.SliceDataType:
+		if v.ContainsStruct() {
+			return nil, ast.SyntaxError(v.Pos(), "slice elements unsupported nested struct")
+		}
+
 		value, err := a.astTypeToSpec(v.DataType)
 		if err != nil {
 			return nil, err
