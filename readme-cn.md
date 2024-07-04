@@ -328,8 +328,8 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
 
-## 13. 赞助一下👍
+## 13. 知识星球
 
-如果觉得项目有帮助，可以请作者喝杯咖啡 🍹
+官方团队运营的知识星球
 
-<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/sponsor.png" alt="wechat" width="300" />
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zsxq.jpg" alt="知识星球" width="300" />
