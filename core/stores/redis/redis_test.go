@@ -160,7 +160,7 @@ func TestRedis_NonBlock(t *testing.T) {
 			Host:     s.Addr(),
 			NonBlock: true,
 			Type:     NodeType,
-		}, withHook(myHook{includePing: true}))
+		}, WithHook(myHook{includePing: true}))
 		assert.NoError(t, err)
 	})
 
@@ -170,7 +170,7 @@ func TestRedis_NonBlock(t *testing.T) {
 			Host:     s.Addr(),
 			NonBlock: false,
 			Type:     NodeType,
-		}, withHook(myHook{includePing: true}))
+		}, WithHook(myHook{includePing: true}))
 		assert.ErrorContains(t, err, "redis connect error")
 	})
 }
