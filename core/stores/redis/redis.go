@@ -90,8 +90,15 @@ type (
 	StringCmd = red.StringCmd
 	// Script is an alias of redis.Script.
 	Script = red.Script
+
 	// Hook is an alias of redis.Hook.
 	Hook = red.Hook
+	// DialHook is an alias of redis.DialHook.
+	DialHook = red.DialHook
+	// ProcessHook is an alias of redis.ProcessHook.
+	ProcessHook = red.ProcessHook
+	// ProcessPipelineHook is an alias of redis.ProcessPipelineHook.
+	ProcessPipelineHook = red.ProcessPipelineHook
 )
 
 // MustNewRedis returns a Redis with given options.
