@@ -90,6 +90,8 @@ type (
 	StringCmd = red.StringCmd
 	// Script is an alias of redis.Script.
 	Script = red.Script
+	// Hook is an alias of redis.Hook.
+	Hook = red.Hook
 )
 
 // MustNewRedis returns a Redis with given options.
@@ -2365,7 +2367,7 @@ func WithTLS() Option {
 
 // WithHook customizes the given Redis with given durationHook, only for private use now,
 // maybe expose later.
-func WithHook(hook red.Hook) Option {
+func WithHook(hook Hook) Option {
 	return func(r *Redis) {
 		r.hooks = append(r.hooks, hook)
 	}
