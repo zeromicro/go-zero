@@ -99,6 +99,9 @@ type (
 	ProcessHook = red.ProcessHook
 	// ProcessPipelineHook is an alias of redis.ProcessPipelineHook.
 	ProcessPipelineHook = red.ProcessPipelineHook
+
+	// Cmder is an alias of redis.Cmder.
+	Cmder = red.Cmder
 )
 
 // MustNewRedis returns a Redis with given options.
