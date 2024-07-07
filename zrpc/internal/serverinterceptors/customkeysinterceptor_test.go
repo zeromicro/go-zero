@@ -5,10 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/metainfo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-
-	"github.com/zeromicro/go-zero/core/metainfo"
 )
 
 func TestUnaryCustomKeysInterceptor(t *testing.T) {
@@ -21,7 +20,6 @@ func TestUnaryCustomKeysInterceptor(t *testing.T) {
 	}, func(ctx context.Context, req any) (any, error) {
 		md := metainfo.GetMapFromContext(ctx)
 		assert.Equal(t, testCustomKeysData, md)
-		// todo(cong): test logger fields.
 		return nil, nil
 	})
 
