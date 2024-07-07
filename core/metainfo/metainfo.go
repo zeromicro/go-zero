@@ -4,27 +4,22 @@ import (
 	"context"
 	"strings"
 
-	"go.opentelemetry.io/otel/propagation"
-
 	"github.com/zeromicro/go-zero/core/collection"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 const (
 	// PrefixPass means that header/metadata key with this prefix will be passed to the other servers.
 	PrefixPass = "x-pass-"
-
-	lenPP = len(PrefixPass)
+	lenPP      = len(PrefixPass)
 )
 
 var (
-	// CustomKeysMapPropagator impl propagation.TextMapPropagator for custom keys passing.
+	// CustomKeysMapPropagator implements propagation.TextMapPropagator for custom keys passing.
 	CustomKeysMapPropagator propagation.TextMapPropagator = (*customKeysPropagator)(nil)
 
 	ctxKey         ctxKeyType
-	customKeyStore = contextKeyStore{
-		keyArr: make([]string, 0),
-		keySet: collection.NewSet(),
-	}
+	customKeyStore = newContextKeyStore()
 )
 
 type (
@@ -37,78 +32,75 @@ type (
 	}
 )
 
-// RegisterCustomKeys register custom keys globally.
+func newContextKeyStore() contextKeyStore {
+	return contextKeyStore{
+		keyArr: make([]string, 0),
+		keySet: collection.NewSet(),
+	}
+}
+
+// RegisterCustomKeys registers custom keys globally.
 // Key must be lowercase.
 // Should only be called once before application start.
 func RegisterCustomKeys(keys []string) {
 	for _, k := range keys {
-		kk := strings.ToLower(k)
-		if k != kk {
-			panic("custom key only support lowercase")
+		lowerKey := strings.ToLower(k)
+		if k != lowerKey {
+			panic("custom keys must be lowercase")
 		}
-		customKeyStore.keySet.AddStr(k)
+		customKeyStore.keySet.AddStr(lowerKey)
 	}
 	customKeyStore.keyArr = customKeyStore.keySet.KeysStr()
 }
 
 // for test only
 func reset() {
-	customKeyStore = contextKeyStore{
-		keyArr: make([]string, 0),
-		keySet: collection.NewSet(),
-	}
+	customKeyStore = newContextKeyStore()
 }
 
 func getMap(ctx context.Context) map[string]string {
-	if ctx != nil {
-		if val, ok := ctx.Value(ctxKey).(map[string]string); ok {
-			return val
-		}
+	if val, ok := ctx.Value(ctxKey).(map[string]string); ok {
+		return val
 	}
 
-	return make(map[string]string, 0)
+	return make(map[string]string)
 }
 
 func setMap(ctx context.Context, m map[string]string) context.Context {
-	if ctx == nil {
-		return nil
-	}
-
 	return context.WithValue(ctx, ctxKey, m)
 }
 
-// GetMapFromContext retrieves all custom keys and values from context.
+// GetMapFromContext retrieves all custom keys and values from the context.
 func GetMapFromContext(ctx context.Context) map[string]string {
 	mp := getMap(ctx)
-
-	if len(mp) > 0 {
-		m := make(map[string]string, len(mp))
-		for k, v := range mp {
-			m[k] = v
-		}
-		return m
+	if len(mp) == 0 {
+		return mp
 	}
 
-	return mp
+	m := make(map[string]string, len(mp))
+	for k, v := range mp {
+		m[k] = v
+	}
+	return m
 }
 
-// GetMapFromPropagator retrieves all custom keys and values from propagation carrier.
+// GetMapFromPropagator retrieves all custom keys and values from the propagation carrier.
 func GetMapFromPropagator(carrier propagation.TextMapCarrier) map[string]string {
 	mp := make(map[string]string)
 	for _, k := range carrier.Keys() {
-		kk := strings.ToLower(k)
-
-		if customKeyStore.keySet.Contains(kk) || (len(kk) > lenPP && strings.HasPrefix(kk, PrefixPass)) {
-			v := carrier.Get(kk)
+		lowerKey := strings.ToLower(k)
+		if customKeyStore.keySet.Contains(lowerKey) || (len(lowerKey) > lenPP &&
+			strings.HasPrefix(lowerKey, PrefixPass)) {
+			v := carrier.Get(lowerKey)
 			if len(v) > 0 {
-				mp[kk] = v
+				mp[lowerKey] = v
 			}
 		}
 	}
 	return mp
 }
 
-// Inject impl TextMapPropagator for customKeysPropagator.
+// Inject implements TextMapPropagator for customKeysPropagator.
 func (c *customKeysPropagator) Inject(ctx context.Context, carrier propagation.TextMapCarrier) {
 	mp := getMap(ctx)
 	for k, v := range mp {
@@ -118,10 +110,9 @@ func (c *customKeysPropagator) Inject(ctx context.Context, carrier propagation.T
 	}
 }
 
-// Extract impl TextMapPropagator for customKeysPropagator.
+// Extract implements TextMapPropagator for customKeysPropagator.
 func (c *customKeysPropagator) Extract(ctx context.Context, carrier propagation.TextMapCarrier) context.Context {
 	mp := getMap(ctx)
-
 	cmp := GetMapFromPropagator(carrier)
 	if len(cmp) == 0 {
 		return ctx
@@ -134,7 +125,7 @@ func (c *customKeysPropagator) Extract(ctx context.Context, carrier propagation.
 	return setMap(ctx, mp)
 }
 
-// Fields not used
+// Fields returns nil as it's not used.
 func (c *customKeysPropagator) Fields() []string {
 	return nil
 }

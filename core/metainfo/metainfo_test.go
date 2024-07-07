@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -229,27 +230,85 @@ func TestRegisterCustomKeys_Mix(t *testing.T) {
 	assert.Equal(t, customMap, GetMapFromPropagator(propagation.HeaderCarrier(header)))
 }
 
-//goos: darwin
-//goarch: arm64
-//pkg: code.bydev.io/cht/fiat/backend/lib.git/pkg/transport
-//BenchmarkCustomKeys
-//BenchmarkCustomKeys-8              	 1414234	       762.8 ns/op
-//BenchmarkCustomKeys_10
-//BenchmarkCustomKeys_10-8           	  615555	      1849 ns/op
-//BenchmarkCustomKeys_50
-//BenchmarkCustomKeys_50-8           	  104818	     11497 ns/op
-//BenchmarkCustomKeysAutoPass
-//BenchmarkCustomKeysAutoPass-8      	  861883	      1333 ns/op
-//BenchmarkCustomKeysAutoPass_10
-//BenchmarkCustomKeysAutoPass_10-8   	  392179	      3085 ns/op
-//BenchmarkCustomKeysAutoPass_50
-//BenchmarkCustomKeysAutoPass_50-8   	   75937	     15628 ns/op
-//BenchmarkCustomKeysMix
-//BenchmarkCustomKeysMix-8           	 1201923	       972.0 ns/op
-//BenchmarkCustomKeysMix_10
-//BenchmarkCustomKeysMix_10-8        	  450882	      2786 ns/op
-//BenchmarkCustomKeysMix_50
-//BenchmarkCustomKeysMix_50-8        	   82384	     14543 ns/op
+func TestGetMap(t *testing.T) {
+	// Test when context has no map
+	ctx := context.Background()
+	assert.Empty(t, getMap(ctx))
+
+	// Test when context has a map
+	expectedMap := map[string]string{"key": "value"}
+	ctx = setMap(ctx, expectedMap)
+	assert.Equal(t, expectedMap, getMap(ctx))
+}
+
+func TestGetMapFromContext(t *testing.T) {
+	tests := []struct {
+		name string
+		ctx  context.Context
+		want map[string]string
+	}{
+		{
+			name: "Empty context",
+			ctx:  context.Background(),
+			want: map[string]string{},
+		},
+		{
+			name: "Context with custom map",
+			ctx: context.WithValue(context.Background(), ctxKey,
+				map[string]string{"key1": "value1", "key2": "value2"}),
+			want: map[string]string{"key1": "value1", "key2": "value2"},
+		},
+		{
+			name: "Context with empty custom map",
+			ctx:  context.WithValue(context.Background(), ctxKey, map[string]string{}),
+			want: map[string]string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetMapFromContext(tt.ctx)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetMapFromContext() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSetMap(t *testing.T) {
+	// Test when context is not nil
+	ctx := context.Background()
+	expectedMap := map[string]string{"key": "value"}
+	newCtx := setMap(ctx, expectedMap)
+	assert.NotNil(t, newCtx)
+	assert.Equal(t, expectedMap, getMap(newCtx))
+}
+
+func TestFields(t *testing.T) {
+	ck := &customKeysPropagator{}
+	assert.Nil(t, ck.Fields())
+}
+
+// Benchmark tests (remaining the same)
+// goos: darwin
+// goarch: arm64
+// pkg: code.bydev.io/cht/fiat/backend/lib.git/pkg/transport
+// BenchmarkCustomKeys
+// BenchmarkCustomKeys-8              	 1414234	       762.8 ns/op
+// BenchmarkCustomKeys_10
+// BenchmarkCustomKeys_10-8           	  615555	      1849 ns/op
+// BenchmarkCustomKeys_50
+// BenchmarkCustomKeys_50-8           	  104818	     11497 ns/op
+// BenchmarkCustomKeysAutoPass
+// BenchmarkCustomKeysAutoPass-8      	  861883	      1333 ns/op
+// BenchmarkCustomKeysAutoPass_10
+// BenchmarkCustomKeysAutoPass_10-8   	  392179	      3085 ns/op
+// BenchmarkCustomKeysAutoPass_50-8   	   75937	     15628 ns/op
+// BenchmarkCustomKeysMix
+// BenchmarkCustomKeysMix-8           	 1201923	       972.0 ns/op
+// BenchmarkCustomKeysMix_10
+// BenchmarkCustomKeysMix_10-8        	  450882	      2786 ns/op
+// BenchmarkCustomKeysMix_50-8        	   82384	     14543 ns/op
 
 func benchmarkLen(b *testing.B, l int) {
 	reset()
