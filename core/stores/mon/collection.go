@@ -2,6 +2,7 @@ package mon
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -15,7 +16,8 @@ import (
 const (
 	defaultSlowThreshold = time.Millisecond * 500
 	// spanName is the span name of the mongo calls.
-	spanName = "mongo"
+	spanName         = "mongo"
+	duplicateKeyCode = 11000
 
 	// mongodb method names
 	aggregate              = "Aggregate"
@@ -527,10 +529,20 @@ func (p keepablePromise) keep(err error) error {
 }
 
 func acceptable(err error) bool {
-	return err == nil || errorx.In(err, mongo.ErrNoDocuments, mongo.ErrNilValue,
-		mongo.ErrNilDocument, mongo.ErrNilCursor, mongo.ErrEmptySlice,
-		// session errors
-		session.ErrSessionEnded, session.ErrNoTransactStarted, session.ErrTransactInProgress,
-		session.ErrAbortAfterCommit, session.ErrAbortTwice, session.ErrCommitAfterAbort,
-		session.ErrUnackWCUnsupported, session.ErrSnapshotTransaction)
+	return err == nil || isDupKeyError(err) ||
+		errorx.In(err, mongo.ErrNoDocuments, mongo.ErrNilValue,
+			mongo.ErrNilDocument, mongo.ErrNilCursor, mongo.ErrEmptySlice,
+			// session errors
+			session.ErrSessionEnded, session.ErrNoTransactStarted, session.ErrTransactInProgress,
+			session.ErrAbortAfterCommit, session.ErrAbortTwice, session.ErrCommitAfterAbort,
+			session.ErrUnackWCUnsupported, session.ErrSnapshotTransaction)
+}
+
+func isDupKeyError(err error) bool {
+	var e mongo.WriteException
+	if !errors.As(err, &e) {
+		return false
+	}
+
+	return e.HasErrorCode(duplicateKeyCode)
 }
