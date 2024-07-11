@@ -282,6 +282,11 @@
       "clean": {
         "short": "Clean goctl config file"
       }
+    },
+    "tool": {
+      "web": {
+        "short": "Open goctl web locally"
+      }
     }
   },
   "global": {

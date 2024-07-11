@@ -1,0 +1,15 @@
+@font-face {
+    font-family: "钉钉进步体 Regular";
+    font-weight: 400;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/Otp8B6Xi3n7o.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/eANSj6uoZlzD.woff") format("woff");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "阿里巴巴普惠体 2.0 35 Thin";
+    font-weight: 250;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/v0vPwNLZFZTy.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/mlBGQXbCgZpH.woff") format("woff");
+    font-display: swap;
+}

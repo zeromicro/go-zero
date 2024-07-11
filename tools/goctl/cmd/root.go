@@ -3,12 +3,12 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/tool"
 	"os"
 	"runtime"
 	"strings"
 	"text/template"
 
-	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/withfig/autocomplete-tools/integrations/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api"
@@ -45,7 +45,6 @@ var (
 func Execute() {
 	os.Args = supportGoStdFlag(os.Args)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(color.Red.Render(err.Error()))
 		os.Exit(codeFailure)
 	}
 }
@@ -114,7 +113,7 @@ func init() {
 
 	rootCmd.SetUsageTemplate(usageTpl)
 	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, gateway.Cmd, model.Cmd)
-	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, config.Cmd)
+	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, config.Cmd, tool.Cmd)
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 	rootCmd.MustInit()
 }

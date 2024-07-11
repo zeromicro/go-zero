@@ -1,0 +1,50 @@
+syntax = "v1"
+
+type APIRouteGroup {
+	Jwt         bool        `json:"jwt"`
+	Prefix      string      `json:"prefix"`
+	Group       string      `json:"group"`
+	Timeout     string      `json:"timeout"`
+	Middlewares []string    `json:"middlewares"`
+	MaxBytes    int64       `json:"maxBytes"`
+	Routes      []*APIRoute `json:"routes"`
+}
+
+type Range {
+	Left  int `json:"left"`
+	Right int `json:"right"`
+}
+
+type FormItem {
+	Name         string   `json:"name"`
+	Type         string   `json:"type"`
+	Optional     bool     `json:"optional"`
+	EnumValue    []string `json:"enumValue"`
+	RangeValue   *Range   `json:"rangeValue"`
+	DefaultValue string   `json:"defaultValue"`
+}
+
+type Body {
+	Forms []*FormItem `json:"forms"`
+}
+
+type APIRoute {
+	Method       string `json:"method"`
+	Path         string `json:"path"`
+	ContentType  string `json:"contentType"`
+	RequestBody  *Body  `json:"requestBody"`
+	ResponseBody *Body  `json:"responseBody"`
+}
+
+type APIGenerateRequest {
+	Name string           `json:"name"`
+	List []*APIRouteGroup `json:"list"`
+}
+
+type APIGenerateResponse {
+}
+
+service server {
+	@handler apiGenerate
+	post /api/generate (APIGenerateRequest) returns (APIGenerateResponse)
+}
