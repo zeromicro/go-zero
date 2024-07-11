@@ -143,6 +143,7 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 		//                                                  *
 		//
 		// As the td/decayTime value increases, indicating an increase in delay, the value of w (y axis) will decrease, inversely proportional.
+		// https://github.com/zeromicro/zero-doc/blob/main/doc/images/y_e_x.png?raw=true
 		w := math.Exp(float64(-td) / float64(decayTime))
 		lag := int64(now) - start
 		if lag < 0 {
