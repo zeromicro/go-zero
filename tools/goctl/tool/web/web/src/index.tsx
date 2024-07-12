@@ -10,6 +10,7 @@ import "./i18n";
 import Welcome from "./components/welcome/Welcome";
 import NotFound from "./components/notfound/NotFound";
 import {ConfigProvider} from 'antd';
+import API from "./components/api/API";
 
 const router = createBrowserRouter([
     {
@@ -24,16 +25,16 @@ const router = createBrowserRouter([
         path: "/",
         element: <App/>,
         children: [
-            {
-                path: "home",
-                element: <Welcome/>
-            },
+            // {
+            //     path: "home",
+            //     element: <Home/>
+            // },
             {
                 path: "api",
                 children: [
                     {
                         path: "builder",
-                        element: <Welcome/>
+                        element: <API/>
                     },
                 ]
             }

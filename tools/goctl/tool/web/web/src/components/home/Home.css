@@ -14,14 +14,14 @@
     font-display: swap;
 }
 
-.welcome {
-    height: 100vh;
+.home {
+    height: 100%;
     background-image: url("../../assets/welcome.png");
     background-repeat: no-repeat;
     background-size: cover;
 }
 
-.welcome-text-gradient {
+.home-text-gradient {
     background-image: linear-gradient(to right, #2ea8ff, #165dff);
     -webkit-background-clip: text;
     color: transparent;
@@ -29,18 +29,18 @@
     font-family: 阿里妈妈方圆体 VF Regular;
 }
 
-.welcome-text {
+.home-text {
     color: #333333;
     -webkit-background-clip: text;
     font-size: 41px;
     font-family: 思源黑体 Regular;
 }
 
-.welcome-start-icon {
+.home-start-icon {
     font-size: 20px;
 }
 
-.welcome-tag {
+.home-tag {
     width: auto;
     height: 30px;
     padding: 0 10px;
@@ -55,7 +55,7 @@
     align-items: center
 }
 
-.welcome-language {
+.home-language {
     border-radius: 4px;
     background: white;
     height: 30px;
@@ -64,7 +64,7 @@
     font-font: 思源黑体 Regular;
 }
 
-.welcome-language:hover {
+.home-language:hover {
     border-radius: 4px;
     background: white;
     height: 30px;

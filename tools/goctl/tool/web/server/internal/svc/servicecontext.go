@@ -5,11 +5,11 @@ import (
 )
 
 type ServiceContext struct {
-	Config *config.Config
+	c *config.Config
 }
 
 func NewServiceContext(c *config.Config) *ServiceContext {
 	return &ServiceContext{
-		Config: c,
+		c: c,
 	}
 }

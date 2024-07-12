@@ -1,0 +1,34 @@
+@font-face {
+    font-family: "阿里妈妈方圆体 VF Regular";
+    font-weight: 600;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/Ur8nhvmyPCPt.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/nqpVboRKQwfv.woff") format("woff");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "思源黑体 Regular";
+    font-weight: 400;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/29rKljwJn4PX.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/XYY9XwdYq9sY.woff") format("woff");
+    font-display: swap;
+}
+
+.api{
+    background: 100%;
+    margin: 24px 16px;
+    background: white;
+}
+
+.api-container{
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+.api-panel{
+    height: 100%;
+    padding: 24px;
+    background: #2ea8ff;
+}

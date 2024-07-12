@@ -1,6 +1,6 @@
 .collapse-button-collapsed {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     margin-left: -14px;
     margin-top: 20px;
     border-radius: 26px;
@@ -19,8 +19,8 @@
 }
 
 .collapse-button-collapsed:hover {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     margin-left: -14px;
     margin-top: 20px;
     border-radius: 26px;
@@ -39,8 +39,8 @@
 }
 
 .collapse-button-uncollapsed {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     margin-left: -14px;
     margin-top: 20px;
     border-radius: 26px;
@@ -60,8 +60,8 @@
 }
 
 .collapse-button-uncollapsed:hover {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     margin-left: -14px;
     margin-top: 20px;
     border-radius: 26px;

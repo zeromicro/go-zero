@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {LeftOutlined, GithubFilled} from '@ant-design/icons';
-import {Button, Layout, Menu, theme, ConfigProvider, Flex, Avatar, Typography, Breadcrumb} from 'antd';
+import {Button, Layout, Menu, theme, ConfigProvider, Flex, Avatar, Typography, Breadcrumb, MenuProps} from 'antd';
 import '../../Base.css'
 import './App.css';
 import {menuItems} from "./_defaultProps";
@@ -9,8 +9,8 @@ import enUS from "antd/locale/en_US";
 import {ConverterIcon} from "../../util/icon";
 import {useTranslation} from "react-i18next";
 import {Outlet} from "react-router-dom";
-import {useNavigate} from "react-router-dom";
-import {MenuInfo} from "rc-menu/lib/interface";
+import {useNavigate, useLocation} from "react-router-dom";
+import {MenuInfo, SelectInfo} from "rc-menu/lib/interface";
 import {ItemType} from "antd/es/breadcrumb/Breadcrumb";
 import logo from "../../assets/logo.svg"
 
@@ -18,12 +18,15 @@ const {Text, Link} = Typography;
 const {Header, Sider, Content} = Layout;
 
 const App: React.FC = () => {
+    const location = useLocation();
     const navigate = useNavigate()
     const {t, i18n} = useTranslation();
     const [collapsed, setCollapsed] = useState(false);
     const [localeZH, setLocaleZh] = useState(false);
     const [locale, setLocale] = useState(zhCN);
-    const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([{title: t("welcome")}]);
+    const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([{title: t("home")}]);
+    const [openKeys, setOpenKeys] = useState<string[]>(["api"]);
+    const [selectedKeys, setSelectedKeys] = useState<string[]>();
 
     const {
         token: {colorBgContainer, borderRadiusLG},
@@ -31,6 +34,30 @@ const App: React.FC = () => {
 
     useEffect(() => {
         setLocaleZh(i18n.language != "zh")
+        const path = location.pathname
+        if (path != "/") {
+            const keys = path.split("/")
+            if (keys.length > 1) {
+                const openKey = keys[1]
+                setOpenKeys([openKey])
+            }
+
+            setSelectedKeys([keys[keys.length - 1]])
+            let breadcrumbItems: ItemType[] = []
+            keys.forEach((val: string) => {
+                if (val != "/" && val != "") {
+                    breadcrumbItems.push({
+                        title: t(val)
+                    })
+                } else {
+                    breadcrumbItems.push({
+                        title: t("home")
+                    })
+                }
+            })
+            setBreadcrumbItems(breadcrumbItems)
+
+        }
     }, [])
 
     const onLocaleClick = () => {
@@ -66,6 +93,14 @@ const App: React.FC = () => {
                 <ConverterIcon type={"icon-document"} className="sider-footer-icon"/>
             </Link>
         </>
+    }
+
+    const onOpenChange: MenuProps['onOpenChange'] = (openKeys) => {
+        setOpenKeys(openKeys)
+    }
+
+    const onSelect = (info: SelectInfo) => {
+        setSelectedKeys(info.selectedKeys)
     }
     return (
         <ConfigProvider
@@ -136,19 +171,25 @@ const App: React.FC = () => {
                             theme="light"
                             mode="inline"
                             items={menuItems(t)}
-                            defaultOpenKeys={["api"]}
+                            // defaultOpenKeys={openKeys}
+                            openKeys={openKeys}
+                            selectedKeys={selectedKeys}
+                            onOpenChange={onOpenChange}
+                            onSelect={onSelect}
                             onClick={(info: MenuInfo) => {
                                 let breadcrumbItems: ItemType[] = []
-                                if (info.key !== 'welcome') {
+                                if (info.key !== '/') {
                                     breadcrumbItems.push({
-                                        title: t("welcome"),
+                                        title: t("home"),
                                     })
                                 }
                                 const reverseArray = info.keyPath.reverse()
                                 reverseArray.forEach((val: string) => {
-                                    breadcrumbItems.push({
-                                        title: t(val)
-                                    })
+                                    if (val != "/") {
+                                        breadcrumbItems.push({
+                                            title: t(val)
+                                        })
+                                    }
                                 })
                                 setBreadcrumbItems(breadcrumbItems)
                                 const path = reverseArray.join("/")
@@ -185,7 +226,7 @@ const App: React.FC = () => {
                 {collapsed ?
                     <LeftOutlined className="collapse-button-uncollapsed" onClick={onCollapsedClick}/>
                     : <LeftOutlined className="collapse-button-collapsed" onClick={onCollapsedClick}/>}
-                <Layout>
+                <Layout style={{height: "100vh", overflowY: "scroll"}}>
                     <Breadcrumb
                         items={breadcrumbItems}
                         style={{
@@ -193,16 +234,7 @@ const App: React.FC = () => {
                             marginLeft: 16
                         }}
                     />
-                    <Content
-                        style={{
-                            margin: '24px 16px',
-                            minHeight: 280,
-                            background: colorBgContainer,
-                            borderRadius: borderRadiusLG,
-                        }}
-                    >
-                        <Outlet/>
-                    </Content>
+                    <Outlet/>
 
                 </Layout>
             </Layout>

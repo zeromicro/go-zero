@@ -14,7 +14,7 @@ import {
     MenuProps
 } from 'antd';
 import '../../Base.css'
-import './Welcome.css'
+import './Home.css'
 import {useTranslation} from "react-i18next";
 import {ConverterIcon} from "../../util/icon";
 import {useNavigate} from "react-router-dom";
@@ -59,12 +59,12 @@ const App: React.FC = () => {
         }
     };
     return (
-        <Layout className="welcome">
+        <Layout className="home">
             <Header style={{background: "transparent"}}>
                 <Dropdown menu={{items, onClick}}>
                     <a onClick={(e) => e.preventDefault()}>
                         <Space
-                            className={"welcome-language"}
+                            className={"home-language"}
                         >
                             Language: {localeZH ? "中" : "EN"}
                             <DownOutlined/>
@@ -83,40 +83,40 @@ const App: React.FC = () => {
                     style={{marginLeft: "10%"}}
                     gap={10}
                 >
-                    <span className="welcome-text-gradient">欢迎来到 goctl 网页端</span>
-                    <span className="welcome-text">Welcome to goctl web tool</span>
+                    <span className="home-text-gradient">欢迎来到 goctl 网页端</span>
+                    <span className="home-text">Welcome to goctl web tool</span>
                     <Flex
                         gap={0}
                         style={{fontSize: 20, color: "#525252"}}
                         align={"center"}>
                         <Tag
                             color="#f50"
-                            className="welcome-tag"># go-zero </Tag>
+                            className="home-tag"># go-zero </Tag>
                         <Tag
                             color="#2db7f5"
-                            className="welcome-tag"># goctl </Tag>
+                            className="home-tag"># goctl </Tag>
                         <Tag
                             color="#87d068"
-                            className="welcome-tag"># api </Tag>
+                            className="home-tag"># api </Tag>
                         <Tag
                             color="#108ee9"
-                            className="welcome-tag"># generator </Tag>
+                            className="home-tag"># generator </Tag>
                     </Flex>
                     <Flex style={{marginTop: 50, height: 50}} gap={30}>
 
                         <Button type={"primary"} style={{height: "100%", flex: 1}} onClick={() => {
-                            navigate("/api/builder")
+                            navigate("/home")
                         }}>
-                            <ConverterIcon type={"icon-terminal"} className="welcome-start-icon"/>
-                            {t("welcomeStart")}
+                            <ConverterIcon type={"icon-terminal"} className="home-start-icon"/>
+                            {t("homeStart")}
                         </Button>
 
 
                         <Button style={{height: "100%", flex: 1}} onClick={() => {
                             window.open("https://go-zero.dev", "_blank")
                         }}>
-                            <ConverterIcon type={"icon-document"} className="welcome-start-icon"/>
-                            {t("welcomeDoc")}
+                            <ConverterIcon type={"icon-document"} className="home-start-icon"/>
+                            {t("homeDoc")}
                         </Button>
 
                     </Flex>
