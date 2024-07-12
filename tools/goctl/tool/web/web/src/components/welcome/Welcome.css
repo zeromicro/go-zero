@@ -1,0 +1,56 @@
+@font-face {
+    font-family: "阿里妈妈方圆体 VF Regular";
+    font-weight: 600;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/Ur8nhvmyPCPt.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/nqpVboRKQwfv.woff") format("woff");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "思源黑体 Regular";
+    font-weight: 400;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/29rKljwJn4PX.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/XYY9XwdYq9sY.woff") format("woff");
+    font-display: swap;
+}
+
+.welcome {
+    height: 100vh;
+    background-image: url("../../assets/welcome.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.welcome-text-gradient {
+    background-image: linear-gradient(to right, #2ea8ff, #165dff);
+    -webkit-background-clip: text;
+    color: transparent;
+    font-size: 50px;
+    font-family: 阿里妈妈方圆体 VF Regular;
+}
+
+.welcome-text {
+    color: #333333;
+    -webkit-background-clip: text;
+    font-size: 36px;
+    font-family: 思源黑体 Regular;
+}
+
+.welcome-start-icon {
+    font-size: 20px;
+}
+
+.welcome-tag {
+    width: auto;
+    height: 30px;
+    padding: 0 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center
+}

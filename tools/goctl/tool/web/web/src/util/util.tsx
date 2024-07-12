@@ -5,7 +5,7 @@ const hash = (s: string) => {
         ch = s.charCodeAt(i)
         h ^= ((h << 5) + ch + (h >> 2))
     }
-    return (h&0x7FFFFFFF)
+    return (h & 0x7FFFFFFF)
 }
 
 export const getColor = (s: string) => {

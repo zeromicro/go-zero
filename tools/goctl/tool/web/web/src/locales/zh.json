@@ -1,0 +1,11 @@
+{
+  "welcome": "首页",
+  "logoText": "goctl 网页端",
+  "menuWelcome": "欢迎来到 goctl web",
+  "api": "API",
+  "builder": "构造器",
+  "notFoundDescription": "很抱歉，你访问的网页不存在！",
+  "backHome": "返回首页",
+  "welcomeStart": "开始使用",
+  "welcomeDoc": "官方文档"
+}

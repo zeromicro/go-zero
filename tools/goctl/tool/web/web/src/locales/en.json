@@ -1,0 +1,11 @@
+{
+  "welcome": "Home",
+  "logoText": "goctl web page",
+  "menuWelcome": "Welcome to goctl web",
+  "api": "API",
+  "builder": "Builder",
+  "notFoundDescription": "Sorry, the page you visited does not exist.",
+  "backHome": "Builder",
+  "welcomeStart": "Start Now",
+  "welcomeDoc": "Documents"
+}

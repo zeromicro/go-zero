@@ -85,3 +85,17 @@
     height: 26px;
     padding: 0;
 }
+
+.sider-footer-icon{
+    font-size: 20px;
+    margin-top: 2px;
+}
+
+.logo-text-gradient {
+    /*background-image: linear-gradient(to right, #2ea8ff, #165dff);*/
+    /*-webkit-background-clip: text;*/
+    color: #333333;
+    font-size: 20px;
+    padding: 0 10px;
+    font-family: 阿里妈妈方圆体 VF Regular;
+}
