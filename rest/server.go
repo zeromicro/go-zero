@@ -13,6 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
+	"github.com/zeromicro/go-zero/rest/internal/fileserver"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
@@ -167,6 +168,13 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(notAllowedFn, origin...))
 		server.router = newCorsRouter(server.router, middlewareFn, origin...)
+	}
+}
+
+// WithFileServer returns a RunOption to serve files from given dir with given path.
+func WithFileServer(path, dir string) RunOption {
+	return func(server *Server) {
+		server.router = newFileServingRouter(server.router, path, dir)
 	}
 }
 
@@ -336,4 +344,20 @@ func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...s
 
 func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.middleware(c.Router.ServeHTTP)(w, r)
+}
+
+type fileServingRouter struct {
+	httpx.Router
+	middleware Middleware
+}
+
+func newFileServingRouter(router httpx.Router, path, dir string) httpx.Router {
+	return &fileServingRouter{
+		Router:     router,
+		middleware: fileserver.Middleware(path, dir),
+	}
+}
+
+func (f *fileServingRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f.middleware(f.Router.ServeHTTP)(w, r)
 }
