@@ -1,110 +1,221 @@
-import React from 'react';
-import {Layout, Typography, ConfigProvider, theme} from 'antd';
-import {Col, Row} from 'antd';
+import React, {useState} from 'react';
+import {
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+    UploadOutlined,
+    UserOutlined,
+    VideoCameraOutlined,
+} from '@ant-design/icons';
+import {Button, Layout, Menu, theme, ConfigProvider, Space, Flex, Avatar, Typography} from 'antd';
+import logo from './assets/logo.svg'
 import './Base.css'
-import {ConverterIcon} from './util/icon'
-import {Outlet} from "react-router-dom";
-import {useNavigate} from "react-router-dom";
 
-const {Text, Link} = Typography;
-const {Header} = Layout;
+const {Title, Paragraph, Text, Link} = Typography;
+const {Header, Sider, Content} = Layout;
 
-function App() {
-    const navigate = useNavigate()
+const App: React.FC = () => {
+    const [collapsed, setCollapsed] = useState(false);
+    const {
+        token: {colorBgContainer, borderRadiusLG},
+    } = theme.useToken();
+
     return (
-        <>
+        <Layout>
             <ConfigProvider
                 theme={{
-                    algorithm: theme.compactAlgorithm,
-                    token: {
-                        colorPrimary: "#1890ff",
-                        colorInfo: "#54aeff"
-                    },
                     components: {
                         Layout: {
-                            headerHeight: 50,
-                            headerBg: 'rgb(22, 119, 255)'
+                            siderBg: "#fafafa",
                         },
                         Menu: {
-                            darkItemBg: 'rgb(22, 119, 255)',
-                            darkItemSelectedBg: 'rgb(3, 91, 215)',
-                            itemHoverBg: 'rgb(230, 244, 255)',
-                            activeBarWidth: 2,
-                            iconSize: 20,
-                            collapsedIconSize: 26,
-                            fontSize: 14
-                        },
-                        Alert: {
-                            colorInfo: 'rgb(22, 119, 255)'
-                        },
-                        Message: {
-                            colorInfo: 'rgb(22, 119, 255)'
-                        },
-                        Notification: {
-                            colorPrimary: 'rgb(22, 119, 255)'
-                        },
-                        Progress: {
-                            algorithm: true
-                        },
-                        Card: {
-                            headerBg: "#1890ff",
-                            colorText: "#0062bd",
-                            colorTextHeading: "white",
-                            fontFamily: "阿里巴巴普惠体 2.0 35 Thin",
-                            headerFontSize: 16
+                            itemSelectedBg: "#ebebeb",
+                            itemSelectedColor: "rgba(0, 0, 0, 0.88)",
                         }
                     }
                 }}
             >
-                <Layout style={{height: '100vh', overflowY: "hidden"}}>
-                    <Header style={{display: 'flex', alignItems: 'center', height: '50px', background: "#1890ff"}}>
-                        <Row style={{width: '100%', display: 'flex', justifyContent: "space-between"}}>
-                            <Col style={{display: 'flex', alignItems: 'center', cursor: "pointer"}} onClick={() => {
-                                navigate("/")
-                            }}>
-                                <ConverterIcon type="icon-jiandao" style={{
-                                    fontSize: 30,
-                                }}/>
-                                <Text style={{
-                                    color: "white",
-                                    fontSize: 22,
-                                    marginLeft: '10px',
-                                    letterSpacing: 1,
-                                    fontFamily: "钉钉进步体 Regular",
-                                }}>converter</Text>
-                            </Col>
-                            <Col>
-                                <Link href="https://github.com/kesonan/converter" target="_blank"
-                                      style={{color: "white", width: "100%"}}>
-                                    <Row style={{
-                                        height: '100%',
-                                        display: "flex",
-                                        alignItems: 'center',
-                                        justifyContent: "flex-end"
-                                    }}>
-                                        <Col style={{display: 'flex', alignItems: 'center'}}>
-                                            <img alt="GitHub Repo stars"
-                                                 src="https://img.shields.io/github/stars/kesonan/converter"/>
-                                        </Col>
-                                        <Col style={{marginLeft: '10px'}}>
-                                            <Text style={{
-                                                color: "white",
-                                                fontSize: 14,
-                                                letterSpacing: 1,
-                                                fontFamily: "阿里巴巴普惠体 2.0 35 Thin",
-                                                fontWeight: 400
-                                            }}> GitHub</Text>
-                                        </Col>
-                                    </Row>
-                                </Link>
-                            </Col>
-                        </Row>
-                    </Header>
-                    <Outlet/>
-                </Layout>
+                <Sider
+                    trigger={null}
+                    collapsible
+                    collapsed={collapsed}
+                    theme={"light"}
+                    width={256}
+                    collapsedWidth={66}
+                >
+                    <Flex wrap
+                          gap={10}
+                          style={{
+                              minHeight: "60px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: "100%",
+                              padding: "10px 0"
+                          }}
+                    >
+                        <Avatar src={<img src={logo} alt="avatar"/>} size={30}/>
+                        <Text ellipsis>Goctl Web</Text>
+                    </Flex>
+                    <div style={{height: "1px", background: "#f1f1f1"}}/>
+
+                    <Menu
+                        style={{height: 'calc(100vh - 240px)', overflowY: 'auto', padding: "20px 0"}}
+                        theme="light"
+                        mode="inline"
+                        defaultSelectedKeys={['1']}
+                        items={[
+                            {
+                                key: '1',
+                                icon: <UserOutlined/>,
+                                label: 'nav 1',
+                                children: [
+                                    {
+                                        key: '1',
+                                        icon: <UserOutlined/>,
+                                        label: 'nav 1',
+                                    },
+                                    {
+                                        key: '2',
+                                        icon: <VideoCameraOutlined/>,
+                                        label: 'nav 2',
+                                    },
+                                    {
+                                        key: '3',
+                                        icon: <UploadOutlined/>,
+                                        label: 'nav 3',
+                                    },
+                                    {
+                                        key: '4',
+                                        icon: <UserOutlined/>,
+                                        label: 'nav 1',
+                                    },
+                                    {
+                                        key: '5',
+                                        icon: <VideoCameraOutlined/>,
+                                        label: 'nav 2',
+                                    },
+                                    {
+                                        key: '6',
+                                        icon: <UploadOutlined/>,
+                                        label: 'nav 3',
+                                    },
+                                ]
+                            },
+                            {
+                                key: '2',
+                                icon: <VideoCameraOutlined/>,
+                                label: 'nav 2',
+                                children: [
+                                    {
+                                        key: '1',
+                                        icon: <UserOutlined/>,
+                                        label: 'nav 1',
+                                    },
+                                    {
+                                        key: '2',
+                                        icon: <VideoCameraOutlined/>,
+                                        label: 'nav 2',
+                                    },
+                                    {
+                                        key: '3',
+                                        icon: <UploadOutlined/>,
+                                        label: 'nav 3',
+                                    },
+                                    {
+                                        key: '4',
+                                        icon: <UserOutlined/>,
+                                        label: 'nav 1',
+                                    },
+                                    {
+                                        key: '5',
+                                        icon: <VideoCameraOutlined/>,
+                                        label: 'nav 2',
+                                    },
+                                    {
+                                        key: '6',
+                                        icon: <UploadOutlined/>,
+                                        label: 'nav 3',
+                                    },
+                                ]
+                            },
+                            {
+                                key: '3',
+                                icon: <UploadOutlined/>,
+                                label: 'nav 3',
+                                children: [
+                                    {
+                                        key: '1',
+                                        icon: <UserOutlined/>,
+                                        label: 'nav 1',
+                                    },
+                                    {
+                                        key: '2',
+                                        icon: <VideoCameraOutlined/>,
+                                        label: 'nav 2',
+                                    },
+                                    {
+                                        key: '3',
+                                        icon: <UploadOutlined/>,
+                                        label: 'nav 3',
+                                    },
+                                    {
+                                        key: '4',
+                                        icon: <UserOutlined/>,
+                                        label: 'nav 1',
+                                    },
+                                    {
+                                        key: '5',
+                                        icon: <VideoCameraOutlined/>,
+                                        label: 'nav 2',
+                                    },
+                                    {
+                                        key: '6',
+                                        icon: <UploadOutlined/>,
+                                        label: 'nav 3',
+                                    },
+                                ]
+                            },
+                        ]}
+                    />
+
+
+                    <div style={{height: "100px", background: "black"}}/>
+                </Sider>
             </ConfigProvider>
-        </>
+            <div style={{height: "100vh", width: "1px", background: "#f1f1f1"}}/>
+            <Layout>
+                <Header style={{padding: 0, background: colorBgContainer}}>
+                    <Button
+                        type="text"
+                        icon={collapsed ? <MenuUnfoldOutlined/> : <MenuFoldOutlined/>}
+                        onClick={() => setCollapsed(!collapsed)}
+                        style={{
+                            fontSize: '16px',
+                            width: 26,
+                            height: 26,
+                            marginLeft: -15,
+                            borderRadius: 26,
+                            background: "white",
+                            boxShadow: "1px 1px 10px #f1f1f1",
+                            borderStyle: "solid",
+                            borderWidth: 1
+                        }}
+                    />
+                </Header>
+                <Content
+                    style={{
+                        margin: '24px 16px',
+                        padding: 24,
+                        minHeight: 280,
+                        background: colorBgContainer,
+                        borderRadius: borderRadiusLG,
+                    }}
+                >
+                    Content
+                </Content>
+            </Layout>
+        </Layout>
     );
-}
+};
 
 export default App;
