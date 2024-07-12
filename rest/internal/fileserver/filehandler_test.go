@@ -34,8 +34,8 @@ func TestMiddleware(t *testing.T) {
 		},
 		{
 			name:            "Directory with trailing slash",
-			path:            "/assets/",
-			dir:             "./testdata",
+			path:            "/assets",
+			dir:             "testdata",
 			requestPath:     "/assets/sample.txt",
 			expectedStatus:  http.StatusOK,
 			expectedContent: "2",

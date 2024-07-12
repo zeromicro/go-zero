@@ -210,9 +210,9 @@ func TestWithFileServerMiddleware(t *testing.T) {
 		},
 		{
 			name:            "Directory with trailing slash",
-			path:            "/assets/",
-			dir:             "./testdata",
-			requestPath:     "/assets/sample.txt",
+			path:            "/static",
+			dir:             "testdata",
+			requestPath:     "/static/sample.txt",
 			expectedStatus:  http.StatusOK,
 			expectedContent: "sample content",
 		},
@@ -220,7 +220,7 @@ func TestWithFileServerMiddleware(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := MustNewServer(RestConf{}, WithFileServer("/assets", "testdata"))
+			server := MustNewServer(RestConf{}, WithFileServer(tt.path, tt.dir))
 			req := httptest.NewRequest(http.MethodGet, tt.requestPath, nil)
 			rr := httptest.NewRecorder()
 
