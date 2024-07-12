@@ -1,0 +1,87 @@
+.collapse-button-collapsed {
+    width: 26px;
+    height: 26px;
+    margin-left: -14px;
+    margin-top: 20px;
+    border-radius: 26px;
+    background: white;
+    box-shadow: 1px 1px 2px #f1f1f1;
+    border-style: solid;
+    border-width: 1px;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-color: #f1f1f1;
+    cursor: pointer;
+    color: #c1c1c1;
+    font-size: 10px;
+}
+
+.collapse-button-collapsed:hover {
+    width: 26px;
+    height: 26px;
+    margin-left: -14px;
+    margin-top: 20px;
+    border-radius: 26px;
+    background: white;
+    box-shadow: 1px 1px 5px #f1f1f1;
+    border-style: solid;
+    border-width: 1px;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-color: #f1f1f1;
+    cursor: pointer;
+    color: black;
+    font-size: 10px;
+}
+
+.collapse-button-uncollapsed {
+    width: 26px;
+    height: 26px;
+    margin-left: -14px;
+    margin-top: 20px;
+    border-radius: 26px;
+    background: white;
+    box-shadow: 1px 1px 2px #f1f1f1;
+    border-style: solid;
+    border-width: 1px;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-color: #f1f1f1;
+    cursor: pointer;
+    color: #c1c1c1;
+    font-size: 10px;
+    transform: rotate(180deg);
+}
+
+.collapse-button-uncollapsed:hover {
+    width: 26px;
+    height: 26px;
+    margin-left: -14px;
+    margin-top: 20px;
+    border-radius: 26px;
+    background: white;
+    box-shadow: 1px 1px 5px #f1f1f1;
+    border-style: solid;
+    border-width: 1px;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-color: #f1f1f1;
+    cursor: pointer;
+    color: black;
+    font-size: 10px;
+    transform: rotate(180deg);
+}
+
+.locale-btn{
+    width: 26px;
+    height: 26px;
+    padding: 0;
+}
