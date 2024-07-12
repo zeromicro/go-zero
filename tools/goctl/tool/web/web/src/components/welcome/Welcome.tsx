@@ -103,7 +103,7 @@ const App: React.FC = () => {
                     <Flex style={{marginTop: 50, height: 50}} gap={30}>
 
                         <Button type={"primary"} style={{height: "100%", flex: 1}} onClick={() => {
-                            navigate("/api/builder")
+                            navigate("/home")
                         }}>
                             <ConverterIcon type={"icon-terminal"} className="welcome-start-icon"/>
                             {t("welcomeStart")}

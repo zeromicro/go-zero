@@ -19,7 +19,7 @@ const subMenuIconStyle: CSSProperties = {
 export const menuItems = (t: TFunction) => {
     return [
         {
-            key: 'welcome',
+            key: '/',
             icon: <ConverterIcon style={iconStyle} type={"icon-welcome"}/>,
             label: t("menuWelcome")
         },
