@@ -10,11 +10,13 @@
   "welcomeDoc": "Documents",
   "formServiceTitle": "ServiceName",
   "formServiceTips": "Please input service name!",
+  "formServicePlaceholder": "Please input service name",
   "formRouteGroupTitle": "RouteGroup",
   "formRouteListTitle": "RouteSet",
   "formRouteTitle": "Route",
   "formJwtTitle": "JwtStatus",
   "formPrefixTitle": "RoutePrefix",
+  "formPrefixPlaceholder": "Please input path prefix if need",
   "formGroupTitle": "GroupName",
   "formTimeoutTitle": "Timeout",
   "formMiddlewareTitle": "MiddlewareName",
@@ -29,5 +31,10 @@
   "formButtonRouteAdd": "Add Route",
   "formRequestBodyFieldNameTitle": "FieldName",
   "formRequestBodyFieldTypeTitle": "FieldType",
-  "formRequestBodyFieldBtnAdd": "Add Request Field"
+  "formRequestBodyFieldBtnAdd": "Add Request Field",
+  "formRequestBodyFieldBtnImport": "Import from json text",
+  "formRequestBodyModalCancel": "Cancel",
+  "formRequestBodyModalConfirm": "Parse",
+  "tipsInvalidJSON": "invalid json",
+  "tipsInvalidJSONArray": "expected json object, got json array"
 }

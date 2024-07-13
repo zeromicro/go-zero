@@ -1,0 +1,47 @@
+@font-face {
+    font-family: "阿里妈妈方圆体 VF Regular";
+    font-weight: 600;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/Ur8nhvmyPCPt.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/nqpVboRKQwfv.woff") format("woff");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "思源黑体 Regular";
+    font-weight: 400;
+    src: url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/29rKljwJn4PX.woff2") format("woff2"),
+    url("//at.alicdn.com/wf/webfont/SVFiAuBamSOS/XYY9XwdYq9sY.woff") format("woff");
+    font-display: swap;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.form-container-divider {
+    height: 1px;
+    width: 100%;
+    background: #f1f1f1;
+    margin-bottom: 24px;
+}
+
+.form-panel {
+    height: 100%;
+    background: white;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+
+.form-panel-form {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.form-panel-form-item {
+    width: 100%;
+}

@@ -9,12 +9,14 @@
   "welcomeStart": "开始使用",
   "welcomeDoc": "官方文档",
   "formServiceTitle": "服务名称",
+  "formServicePlaceholder": "请输入服务名称",
   "formServiceTips": "请输入服务名称！",
   "formRouteGroupTitle": "路由分组",
   "formRouteListTitle": "路由列表",
   "formRouteTitle": "路由",
   "formJwtTitle": "是否开启JWT",
   "formPrefixTitle": "路由前缀",
+  "formPrefixPlaceholder": "请输入路由前缀（如果有需要）",
   "formGroupTitle": "分组名称",
   "formTimeoutTitle": "超时时长",
   "formMiddlewareTitle": "中间件名称",
@@ -29,5 +31,10 @@
   "formButtonRouteAdd": "新增路由",
   "formRequestBodyFieldNameTitle": "字段名称",
   "formRequestBodyFieldTypeTitle": "字段类型",
-  "formRequestBodyFieldBtnAdd": "新增请求字段"
+  "formRequestBodyFieldBtnAdd": "新增请求字段",
+  "formRequestBodyFieldBtnImport": "从 JSON 文本解析",
+  "formRequestBodyModalCancel": "取消",
+  "formRequestBodyModalConfirm": "开始解析",
+  "tipsInvalidJSON": "json 格式不合法",
+  "tipsInvalidJSONArray": "期望 json 对象，实际是 json 数组"
 }
