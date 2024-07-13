@@ -14,21 +14,33 @@
     font-display: swap;
 }
 
-.api{
+.api {
     background: 100%;
     margin: 24px 16px;
     background: white;
 }
 
-.api-container{
+.api-container {
     background: transparent;
     width: 100%;
     height: 100%;
     border-radius: 10px;
 }
 
-.api-panel{
+.api-panel {
     height: 100%;
     padding: 24px;
     background: #2ea8ff;
+    overflow-y: auto;
+}
+
+.api-panel-form {
+    width: 100%;
+}
+
+.api-panel-form-item {
+    width: 100%;
+    /*display: flex;*/
+    /*justify-content: flex-start;*/
+    /*align-items: center;*/
 }
