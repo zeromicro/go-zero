@@ -184,6 +184,56 @@ func TestWithMiddleware(t *testing.T) {
 	}, m)
 }
 
+func TestWithFileServerMiddleware(t *testing.T) {
+	tests := []struct {
+		name            string
+		path            string
+		dir             string
+		requestPath     string
+		expectedStatus  int
+		expectedContent string
+	}{
+		{
+			name:            "Serve static file",
+			path:            "/assets/",
+			dir:             "./testdata",
+			requestPath:     "/assets/example.txt",
+			expectedStatus:  http.StatusOK,
+			expectedContent: "example content",
+		},
+		{
+			name:           "Pass through non-matching path",
+			path:           "/static/",
+			dir:            "./testdata",
+			requestPath:    "/other/path",
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:            "Directory with trailing slash",
+			path:            "/static",
+			dir:             "testdata",
+			requestPath:     "/static/sample.txt",
+			expectedStatus:  http.StatusOK,
+			expectedContent: "sample content",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := MustNewServer(RestConf{}, WithFileServer(tt.path, tt.dir))
+			req := httptest.NewRequest(http.MethodGet, tt.requestPath, nil)
+			rr := httptest.NewRecorder()
+
+			server.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+			if len(tt.expectedContent) > 0 {
+				assert.Equal(t, tt.expectedContent, rr.Body.String())
+			}
+		})
+	}
+}
+
 func TestMultiMiddlewares(t *testing.T) {
 	m := make(map[string]string)
 	rt := router.NewRouter()
