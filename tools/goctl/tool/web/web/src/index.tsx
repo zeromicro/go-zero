@@ -46,16 +46,7 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 root.render(
-    <ConfigProvider
-        theme={{
-            token: {
-                colorPrimary: "#333333",
-                colorInfo: "#333333",
-            },
-        }}
-    >
-        <React.StrictMode>
-            <RouterProvider router={router}/>
-        </React.StrictMode>
-    </ConfigProvider>
+    <React.StrictMode>
+        <RouterProvider router={router}/>
+    </React.StrictMode>
 );

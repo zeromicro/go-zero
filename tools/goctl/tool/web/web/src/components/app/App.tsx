@@ -107,9 +107,14 @@ const App: React.FC = () => {
             locale={locale}
             theme={{
                 token: {
-                    colorPrimary: "#333333",
-                    colorInfo: "#333333",
+                    colorPrimary: "#000000",
+                    colorInfo:"#000000"
                 },
+                components:{
+                    Input:{
+                        activeShadow:"transparent"
+                    }
+                }
             }}
         >
             <Layout hasSider>
