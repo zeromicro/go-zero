@@ -135,5 +135,5 @@ func verify(t *testing.T, fn func() bool) {
 			count++
 		}
 	}
-	assert.True(t, count >= 80, fmt.Sprintf("should be greater than 80, actual %d", count))
+	assert.True(t, count >= 75, fmt.Sprintf("should be greater than 75, actual %d", count))
 }

@@ -22,13 +22,20 @@ const (
 	// Name is the name of p2c balancer.
 	Name = "p2c_ewma"
 
-	decayTime       = int64(time.Second * 10) // default value from finagle
-	forcePick       = int64(time.Second)      // If a node is not selected for a period of time, it is forcibly selected.
-	initSuccess     = 1000                    // Initial success count
-	throttleSuccess = initSuccess / 2         // Success count to trigger throttling
-	penalty         = int64(math.MaxInt32)    // Penalty value for load calculation
-	pickTimes       = 3                       // Number of pick attempts
-	logInterval     = time.Minute             // Log interval for statistics
+	// default value from finagle
+	decayTime = int64(time.Second * 10)
+	// if a node is not selected for a period of time, it is forcibly selected.
+	forcePick = int64(time.Second)
+	// initial success count
+	initSuccess = 1000
+	// success count to trigger throttling
+	throttleSuccess = initSuccess / 2
+	// penalty value for load calculation
+	penalty = int64(math.MaxInt32)
+	// number of pick attempts
+	pickTimes = 3
+	// log interval for statistics
+	logInterval = time.Minute
 )
 
 var emptyPickResult balancer.PickResult
@@ -122,8 +129,9 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 			td = 0
 		}
 
-		// As the td/decayTime value increases, indicating an increase in delay, the value of w (y axis) will decrease, inversely proportional.
-		// The function curve of y = x^(-x) is as follows.
+		// As the td/decayTime value increases, indicating an increase in delay,
+		// the value of w (y-axis) will decrease, inversely proportional.
+		// The function curve of y = x^(-x) is as follows:
 		// https://github.com/zeromicro/zero-doc/blob/main/doc/images/y_e_x.png?raw=true
 		w := math.Exp(float64(-td) / float64(decayTime))
 		lag := int64(now) - start
@@ -191,7 +199,8 @@ type subConn struct {
 	// The request latency measured by the weighted moving average algorithm.
 	lag uint64
 
-	// The value represents the number of requests that are either pending or just starting at the current node, and it is obtained through atomic addition.
+	// The value represents the number of requests that are either pending or just
+	// starting at the current node, and it is obtained through atomic addition.
 	inflight int64
 	success  uint64
 	requests int64
