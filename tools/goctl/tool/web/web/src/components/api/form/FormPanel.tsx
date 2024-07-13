@@ -14,7 +14,7 @@ const FormPanel: React.FC = () => {
 
     return (
         <Flex vertical className={"form-panel"} flex={1}>
-            <Title level={4}>{t("builder")}</Title>
+            <Title level={4}>{t("builderPanelTitle")}</Title>
             <div className={"form-container-divider"}/>
             <Form
                 name="basic"

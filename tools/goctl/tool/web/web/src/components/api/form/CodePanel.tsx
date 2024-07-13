@@ -11,7 +11,7 @@ const CodePanel: React.FC = () => {
     const {t, i18n} = useTranslation();
     return (
         <Flex vertical className={"code-panel"} flex={1}>
-            <Title level={4}>{t("builder")}</Title>
+            <Title level={4}>{t("apiPanelTitle")}</Title>
             <div className={"code-container-divider"}/>
             <CodeMirror
                 style={{overflowY:"auto"}}

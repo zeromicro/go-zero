@@ -4,6 +4,8 @@
   "menuWelcome": "Welcome to goctl web",
   "api": "API",
   "builder": "Builder",
+  "builderPanelTitle": "Builder",
+  "apiPanelTitle": "Goctl API",
   "notFoundDescription": "Sorry, the page you visited does not exist.",
   "backHome": "Builder",
   "welcomeStart": "Start Now",
