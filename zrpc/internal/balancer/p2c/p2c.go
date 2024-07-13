@@ -52,7 +52,7 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 
-	var conns []*subConn
+	conns := make([]*subConn, 0, len(readySCs))
 	for conn, connInfo := range readySCs {
 		conns = append(conns, &subConn{
 			addr:    connInfo.Address,
