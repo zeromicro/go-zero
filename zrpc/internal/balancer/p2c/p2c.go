@@ -122,27 +122,8 @@ func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
 			td = 0
 		}
 
-		// The function curve of y = x^(-x) is as follows.
-		// *
-		//  *
-		//   *
-		//    *
-		//     *
-		//      *
-		//       *
-		//        *
-		//         *
-		//          *
-		//           **
-		//             *
-		//              ***
-		//                 **
-		//                   ****
-		//                       ******
-		//                             *********************
-		//                                                  *
-		//
 		// As the td/decayTime value increases, indicating an increase in delay, the value of w (y axis) will decrease, inversely proportional.
+		// The function curve of y = x^(-x) is as follows.
 		// https://github.com/zeromicro/zero-doc/blob/main/doc/images/y_e_x.png?raw=true
 		w := math.Exp(float64(-td) / float64(decayTime))
 		lag := int64(now) - start
