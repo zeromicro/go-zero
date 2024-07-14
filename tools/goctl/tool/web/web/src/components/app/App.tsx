@@ -159,6 +159,14 @@ const App: React.FC = () => {
         <Sider
           trigger={null}
           collapsible
+          breakpoint={"xl"}
+          onBreakpoint={(broken) => {
+            if (broken) {
+              setCollapsed(true);
+            } else {
+              setCollapsed(false);
+            }
+          }}
           collapsed={collapsed}
           theme={"light"}
           width={256}
