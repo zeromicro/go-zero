@@ -14,11 +14,16 @@
   "formServiceTips": "Please input service name!",
   "formServicePlaceholder": "Please input service name",
   "formRouteGroupTitle": "RouteGroup",
+  "formRouteGroupTooltip": "After filling in, the generated code will group the files.",
   "formRouteListTitle": "RouteSet",
   "formRouteTitle": "Route",
   "formJwtTitle": "JwtStatus",
+  "formJWTTips": "Whether the route has JWT authentication enabled",
   "formPrefixTitle": "RoutePrefix",
   "formPrefixPlaceholder": "Please input path prefix if need",
+  "formGroupPlaceholder": "Please input group name",
+  "formMiddlewarePlaceholder": "Please input middlewares name",
+  "formMiddlewareTips": "Split by comma",
   "formGroupTitle": "GroupName",
   "formTimeoutTitle": "Timeout",
   "formMiddlewareTitle": "MiddlewareName",
@@ -38,5 +43,8 @@
   "formRequestBodyModalCancel": "Cancel",
   "formRequestBodyModalConfirm": "Parse",
   "tipsInvalidJSON": "invalid json",
-  "tipsInvalidJSONArray": "expected json object, got json array"
+  "tipsInvalidJSONArray": "expected json object, got json array",
+  "btnCopy": "Copy",
+  "btnCopyTips": "Copied",
+  "btnBuild": "Build"
 }

@@ -13,12 +13,17 @@
   "formServiceTitle": "服务名称",
   "formServicePlaceholder": "请输入服务名称",
   "formServiceTips": "请输入服务名称！",
+  "formRouteGroupTooltip": "填写后生成代码会进行文件分组",
   "formRouteGroupTitle": "路由分组",
   "formRouteListTitle": "路由列表",
   "formRouteTitle": "路由",
   "formJwtTitle": "是否开启JWT",
+  "formJWTTips": "路由是否启用 jwt 验证",
   "formPrefixTitle": "路由前缀",
-  "formPrefixPlaceholder": "请输入路由前缀（如果有需要）",
+  "formPrefixPlaceholder": "请输入路由前缀",
+  "formGroupPlaceholder": "请输入分组名称",
+  "formMiddlewarePlaceholder": "请输入中间名称",
+  "formMiddlewareTips": "多个中间件以英文逗号,分割",
   "formGroupTitle": "分组名称",
   "formTimeoutTitle": "超时时长",
   "formMiddlewareTitle": "中间件名称",
@@ -38,5 +43,8 @@
   "formRequestBodyModalCancel": "取消",
   "formRequestBodyModalConfirm": "开始解析",
   "tipsInvalidJSON": "json 格式不合法",
-  "tipsInvalidJSONArray": "期望 json 对象，实际是 json 数组"
+  "tipsInvalidJSONArray": "期望 json 对象，实际是 json 数组",
+  "btnCopy": "复制",
+  "btnCopyTips": "复制成功",
+  "btnBuild": "开始转换"
 }

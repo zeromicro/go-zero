@@ -1,20 +1,44 @@
 import React from "react";
-import {Button, Col, Collapse, Flex, Form, Input, InputNumber, Layout, Row, Select, Switch, Typography} from "antd";
-import {CloseOutlined} from "@ant-design/icons";
+import {
+    Button,
+    Collapse,
+    Flex,
+    Form,
+    Input,
+    message,
+    Typography
+} from "antd";
+import {CloseOutlined, CopyOutlined} from "@ant-design/icons";
 import {useTranslation} from "react-i18next";
 import './FormPanel.css'
 import RouteGroupPanel from './RouteGroupPanel'
+import {ConverterIcon} from "../../../util/icon";
 
 const {Title} = Typography;
 const {TextArea} = Input;
 
 const FormPanel: React.FC = () => {
+    const [api, contextHolder] = message.useMessage();
     const {t, i18n} = useTranslation();
     const [form] = Form.useForm();
-
+    const onBuild = () => {
+        const obj = form.getFieldsValue()
+        const data=JSON.stringify(obj)
+        console.log(data)
+        api.open({
+            type: 'success',
+            content: '转换成功',
+        });
+    }
     return (
         <Flex vertical className={"form-panel"} flex={1}>
-            <Title level={4}>{t("builderPanelTitle")}</Title>
+            {contextHolder}
+            <Flex justify={"space-between"} align={"center"}>
+                <Title level={4}>{t("builderPanelTitle")}</Title>
+                <Button size={"middle"} onClick={onBuild} type={"primary"}>
+                    <ConverterIcon type={"icon-terminal"} className="welcome-start-icon"/>{t("btnBuild")}
+                </Button>
+            </Flex>
             <div className={"form-container-divider"}/>
             <Form
                 name="basic"
@@ -50,7 +74,8 @@ const FormPanel: React.FC = () => {
                                                 {
                                                     key: routeGroupField.key,
                                                     label: t("formRouteGroupTitle") + `${routeGroupField.name + 1}`,
-                                                    children: <RouteGroupPanel routeGroupField={routeGroupField} form={form}/>,
+                                                    children: <RouteGroupPanel routeGroupField={routeGroupField}
+                                                                               form={form}/>,
                                                     extra: <CloseOutlined
                                                         onClick={() => {
                                                             routeGroupOperation.remove(routeGroupField.name);

@@ -24,7 +24,12 @@ const App: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [localeZH, setLocaleZh] = useState(false);
     const [locale, setLocale] = useState(zhCN);
-    const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([{title: t("home")}]);
+    const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
+        {
+            key: "home",
+            title: t("home")
+        }])
+    ;
     const [openKeys, setOpenKeys] = useState<string[]>(["api"]);
     const [selectedKeys, setSelectedKeys] = useState<string[]>();
 
@@ -47,16 +52,17 @@ const App: React.FC = () => {
             keys.forEach((val: string) => {
                 if (val != "/" && val != "") {
                     breadcrumbItems.push({
+                        key: val,
                         title: t(val)
                     })
                 } else {
                     breadcrumbItems.push({
+                        key: "home",
                         title: t("home")
                     })
                 }
             })
             setBreadcrumbItems(breadcrumbItems)
-
         }
     }, [])
 
@@ -70,6 +76,14 @@ const App: React.FC = () => {
             i18n.changeLanguage("zh")
             setLocale(enUS)
         }
+        let breadcrumbLocalItems: ItemType[] = []
+        breadcrumbItems.forEach((item) => {
+            breadcrumbLocalItems.push({
+                key: item.key,
+                title: t(item.key as string)
+            })
+        })
+        setBreadcrumbItems(breadcrumbLocalItems)
     }
 
     const onCollapsedClick = () => {
@@ -108,11 +122,11 @@ const App: React.FC = () => {
             theme={{
                 token: {
                     colorPrimary: "#000000",
-                    colorInfo:"#000000"
+                    colorInfo: "#000000"
                 },
-                components:{
-                    Input:{
-                        activeShadow:"transparent"
+                components: {
+                    Input: {
+                        activeShadow: "transparent"
                     }
                 }
             }}
@@ -185,6 +199,7 @@ const App: React.FC = () => {
                                 let breadcrumbItems: ItemType[] = []
                                 if (info.key !== '/') {
                                     breadcrumbItems.push({
+                                        key: "home",
                                         title: t("home"),
                                     })
                                 }
@@ -192,6 +207,7 @@ const App: React.FC = () => {
                                 reverseArray.forEach((val: string) => {
                                     if (val != "/") {
                                         breadcrumbItems.push({
+                                            key: val,
                                             title: t(val)
                                         })
                                     }

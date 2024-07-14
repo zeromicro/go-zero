@@ -1,6 +1,5 @@
 import React from "react";
-import {Button, Col, Collapse, Flex, Form, Input, InputNumber, Row, Select, Switch} from "antd";
-import {CloseOutlined} from "@ant-design/icons";
+import {Col, Form, Input, InputNumber, Row, Switch} from "antd";
 import {FormListFieldData} from "antd/es/form/FormList";
 import {useTranslation} from "react-i18next";
 
@@ -18,21 +17,26 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
             <Row gutter={16}>
                 <Col span={8}>
                     <Form.Item label={t("formJwtTitle")}
-                               name={[routeGroupField.name, 'jwt']}>
+                               name={[routeGroupField.name, 'jwt']}
+                               tooltip={t("formJWTTips")}
+                    >
                         <Switch defaultChecked/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>
                     <Form.Item label={t("formPrefixTitle")}
-                               name={[routeGroupField.name, 'prefix']}>
+                               name={[routeGroupField.name, 'prefix']}
+                    >
                         <Input prefix={"/"}
                                placeholder={t("formPrefixPlaceholder")}/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>
                     <Form.Item label={t("formGroupTitle")}
-                               name={[routeGroupField.name, 'group']}>
-                        <Input/>
+                               name={[routeGroupField.name, 'group']}
+                               tooltip={t("formRouteGroupTooltip")}
+                    >
+                        <Input placeholder={t("formGroupPlaceholder")}/>
                     </Form.Item>
                 </Col>
             </Row>
@@ -47,14 +51,16 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
                 </Col>
                 <Col span={8}>
                     <Form.Item label={t("formMiddlewareTitle")}
-                               name={[routeGroupField.name, 'prefix']}>
-                        <Input/>
+                               name={[routeGroupField.name, 'middleware']}
+                               tooltip={t("formMiddlewareTips")}
+                    >
+                        <Input placeholder={t("formMiddlewarePlaceholder")}/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>
                     <Form.Item label={t("formMaxByteTitle")}
-                               name={[routeGroupField.name, 'group']}>
-                        <Input/>
+                               name={[routeGroupField.name, 'maxByte']}>
+                        <InputNumber addonAfter="byte"/>
                     </Form.Item>
                 </Col>
             </Row>
