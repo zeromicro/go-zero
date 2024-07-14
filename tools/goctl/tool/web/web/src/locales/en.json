@@ -38,6 +38,8 @@
   "formButtonRouteAdd": "Add Route",
   "formRequestBodyFieldNameTitle": "FieldName",
   "formRequestBodyFieldTypeTitle": "FieldType",
+  "formRequestBodyFieldNameTooltip": "field name is same to struct tag",
+  "formRequestBodyFieldOptionalTitle": "Optional",
   "formRequestBodyFieldBtnAdd": "Add Request Field",
   "formRequestBodyFieldBtnImport": "Import from json text",
   "formResponseBodyModelTitle": "Response JSON Text",

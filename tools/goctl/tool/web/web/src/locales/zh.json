@@ -38,6 +38,8 @@
   "formButtonRouteAdd": "新增路由",
   "formRequestBodyFieldNameTitle": "字段名称",
   "formRequestBodyFieldTypeTitle": "字段类型",
+  "formRequestBodyFieldNameTooltip": "字段名称等于结构体中的 tag",
+  "formRequestBodyFieldOptionalTitle": "是否可选",
   "formRequestBodyFieldBtnAdd": "新增请求字段",
   "formRequestBodyFieldBtnImport": "从 JSON 文本解析",
   "formResponseBodyModelTitle": "响应体 JSON 文本编辑",

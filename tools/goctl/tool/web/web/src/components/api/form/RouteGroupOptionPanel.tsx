@@ -50,8 +50,7 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
                         <InputNumber
                             min={0}
                             precision={0}
-                            addonAfter="ms"
-                            defaultValue={2000}/>
+                            addonAfter="ms"/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>

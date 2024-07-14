@@ -130,6 +130,9 @@ const App: React.FC = () => {
                     },
                     InputNumber: {
                         activeShadow: "transparent"
+                    },
+                    Select: {
+                        optionSelectedBg: "rgba(0, 0, 0, 0.04)"
                     }
                 }
             }}
