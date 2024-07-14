@@ -9,6 +9,7 @@ import type { ViewUpdate } from "@codemirror/view";
 
 interface CodeMirrorPanelProps {
   value: string;
+  placeholder?: string;
 
   onChange?(value: string, viewUpdate?: ViewUpdate): void;
 }
@@ -97,7 +98,7 @@ const CodeMirrorPanel: React.FC<
           }),
         ]}
         value={code}
-        placeholder={t("formResponseBodyPlaceholder")}
+        placeholder={props.placeholder ? props.placeholder : ""}
         theme={githubLight}
         onChange={(value, viewUpdate) => {
           if (props.onChange) {

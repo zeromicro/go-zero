@@ -207,6 +207,7 @@ const RoutePanel: React.FC<
                           >
                             <CodeMirrorPanel
                               value={responseCode}
+                              placeholder={t("formResponseBodyPlaceholder")}
                               onChange={(code) => {
                                 setResponseCode(code);
                               }}
