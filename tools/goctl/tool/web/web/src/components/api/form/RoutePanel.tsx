@@ -7,7 +7,7 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import type { FormInstance } from "antd/es/form/hooks/useForm";
-import RequestLintPanel from "./RequestLinePanel";
+import RequestLinePanel from "./RequestLinePanel";
 import RequestBodyPanel from "./RequestBodyPanel";
 import CodeMirrorPanel from "./CodeMirrorPanel";
 
@@ -182,7 +182,7 @@ const RoutePanel: React.FC<
                       children: (
                         <div>
                           {/*request line component*/}
-                          <RequestLintPanel routeField={routeField} />
+                          <RequestLinePanel routeField={routeField} />
                           {/*request body*/}
                           <Form.Item label={t("formRequestBodyTitle")}>
                             <Form.List

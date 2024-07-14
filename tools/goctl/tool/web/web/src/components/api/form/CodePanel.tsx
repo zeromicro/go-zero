@@ -36,8 +36,14 @@ const CodePanel: React.FC<
   return (
     <Flex vertical className={"code-panel"} flex={1}>
       {contextHolder}
-      <Flex justify={"space-between"} align={"center"}>
-        <Title level={4}>{t("apiPanelTitle")}</Title>
+      <Flex
+        justify={"space-between"}
+        align={"center"}
+        className={"code-container-header"}
+      >
+        <Title ellipsis level={4} style={{ margin: 0 }}>
+          {t("apiPanelTitle")}
+        </Title>
         <Space>
           <Button
             size={"middle"}

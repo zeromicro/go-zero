@@ -2,9 +2,6 @@
     height: 100%;
     width: 100%;
     background: white;
-    padding-left: 24px;
-    padding-right: 24px;
-    padding-bottom: 24px;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     overflow-x: auto;
@@ -15,4 +12,8 @@
     height: 1px;
     width: 100%;
     background: #f1f1f1;
+}
+
+.code-container-header {
+    padding: 18px 24px;
 }

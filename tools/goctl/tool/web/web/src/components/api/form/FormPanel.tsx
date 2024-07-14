@@ -35,7 +35,10 @@ const FormPanel: React.FC<FormPanelProps> = (props) => {
         align={"center"}
         className={"form-container-header"}
       >
-        <Title level={4}>{t("builderPanelTitle")}</Title>
+        <Title level={4} ellipsis style={{ margin: 0 }}>
+          {t("builderPanelTitle")}
+        </Title>
+
         <Button size={"middle"} onClick={onBuild} type={"primary"}>
           <ConverterIcon
             type={"icon-terminal"}

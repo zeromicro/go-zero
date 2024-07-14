@@ -126,7 +126,7 @@ const RequestBodyPanel: React.FC<
         </span>
 
         {requestBodyFields.map((requestBodyField) => (
-          <Flex key={requestBodyField.key} gap={6}>
+          <Flex key={requestBodyField.key} gap={6} wrap>
             <Form.Item
               label={t("formRequestBodyFieldNameTitle")}
               name={[requestBodyField.name, "name"]}
