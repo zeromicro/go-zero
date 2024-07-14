@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import {
   Button,
   Flex,
@@ -9,23 +9,27 @@ import {
   notification,
   Switch,
   Tooltip,
+  Table,
+  Popconfirm,
 } from "antd";
-import { CloseOutlined, FullscreenOutlined } from "@ant-design/icons";
+import { CloseOutlined, DeleteOutlined } from "@ant-design/icons";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
 import { RoutePanelData } from "./_defaultProps";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { langs } from "@uiw/codemirror-extensions-langs";
-import type { FormInstance } from "antd/es/form/hooks/useForm";
 import { ConverterIcon } from "../../../util/icon";
+import type { GetRef, InputRef } from "antd";
+
+type FormInstance<T> = GetRef<typeof Form<T>>;
 
 interface RequestBodyPanelProps {
   routeGroupField: FormListFieldData;
   requestBodyFields: FormListFieldData[];
   requestBodyOpt: FormListOperation;
   routeField: FormListFieldData;
-  form: FormInstance;
+  form: FormInstance<any>;
 }
 
 const RequestBodyPanel: React.FC<
@@ -122,7 +126,7 @@ const RequestBodyPanel: React.FC<
         </span>
 
         {requestBodyFields.map((requestBodyField) => (
-          <Flex key={requestBodyField.key} gap={10} wrap>
+          <Flex key={requestBodyField.key} gap={6}>
             <Form.Item
               label={t("formRequestBodyFieldNameTitle")}
               name={[requestBodyField.name, "name"]}
