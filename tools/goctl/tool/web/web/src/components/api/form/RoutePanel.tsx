@@ -202,7 +202,7 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                                                                     noStyle
                                                                     name={[routeField.name, 'method']}>
                                                                     <Select
-                                                                        style={{width:100}}
+                                                                        style={{width: 100}}
                                                                         defaultValue={Method.POST}
                                                                         options={RoutePanelData.MethodOptions}
                                                                     />
@@ -326,7 +326,23 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                                                         placeholder={t("formResponseBodyPlaceholder")}
                                                         theme={githubLight}
                                                         onChange={(code) => {
-                                                            setResponseCode(code)
+                                                            const routeGroups = form.getFieldValue("routeGroups")
+                                                            if (!routeGroups) {
+                                                                return
+                                                            }
+                                                            const routeGroup = routeGroups[routeGroupField.key]
+                                                            if (!routeGroup) {
+                                                                return
+                                                            }
+                                                            const routes = routeGroup.routes
+                                                            if (!routes) {
+                                                                return;
+                                                            }
+                                                            const route = routes[routeField.key]
+                                                            if (!route) {
+                                                                return
+                                                            }
+                                                            route.responseBody = code
                                                         }}
                                                     />
                                                 </Form.Item>
