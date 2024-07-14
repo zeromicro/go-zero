@@ -8,8 +8,9 @@ import {
   Modal,
   notification,
   Switch,
+  Tooltip,
 } from "antd";
-import { CloseOutlined } from "@ant-design/icons";
+import { CloseOutlined, FullscreenOutlined } from "@ant-design/icons";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
 import { RoutePanelData } from "./_defaultProps";
@@ -17,6 +18,7 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import type { FormInstance } from "antd/es/form/hooks/useForm";
+import { ConverterIcon } from "../../../util/icon";
 
 interface RequestBodyPanelProps {
   routeGroupField: FormListFieldData;
@@ -36,51 +38,10 @@ const RequestBodyPanel: React.FC<
   const routeField = props.routeField;
   const form = props.form;
   const [initRequestValues, setInitRequestValues] = useState([]);
-  const [requestBodyModalOpen, setRequestBodyModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [requestBodyParseCode, setRequestBodyParseCode] = useState("");
   const [api, contextHolder] = notification.useNotification();
-  const [showImportButton, setShowImportButton] = useState(true);
 
-  const canChowImportButton = () => {
-    const routeGroups = form.getFieldValue(`routeGroups`);
-    if (!routeGroups) {
-      setShowImportButton(true);
-      return;
-    }
-
-    if (routeGroups.length <= routeGroupField.key) {
-      setShowImportButton(true);
-      return;
-    }
-
-    const routeGroup = routeGroups[routeGroupField.key];
-
-    if (!routeGroup) {
-      setShowImportButton(true);
-      return;
-    }
-    if (!routeGroup.routes) {
-      setShowImportButton(true);
-      return;
-    }
-
-    if (routeGroup.routes.length <= routeField.key) {
-      setShowImportButton(true);
-      return;
-    }
-
-    const route = routeGroup.routes[routeField.key];
-    if (!route) {
-      setShowImportButton(true);
-      return;
-    }
-    if (!route.requestBodyFields) {
-      setShowImportButton(true);
-      return;
-    }
-
-    setShowImportButton(route.requestBodyFields.length === 0);
-  };
   return (
     <div>
       {contextHolder}
@@ -88,7 +49,7 @@ const RequestBodyPanel: React.FC<
       <Modal
         title={t("formRequestBodyFieldBtnImport")}
         centered
-        open={requestBodyModalOpen}
+        open={modalOpen}
         maskClosable={false}
         keyboard={false}
         closable={false}
@@ -104,7 +65,7 @@ const RequestBodyPanel: React.FC<
             }
 
             // todo: 从后段解析数据
-            setRequestBodyModalOpen(false);
+            setModalOpen(false);
           } catch (err) {
             api.error({
               message: t("tipsInvalidJSON") + ": " + err,
@@ -112,7 +73,7 @@ const RequestBodyPanel: React.FC<
             return;
           }
         }}
-        onCancel={() => setRequestBodyModalOpen(false)}
+        onCancel={() => setModalOpen(false)}
         width={1000}
         cancelText={t("formRequestBodyModalCancel")}
         okText={t("formRequestBodyModalConfirm")}
@@ -141,6 +102,25 @@ const RequestBodyPanel: React.FC<
           flexDirection: "column",
         }}
       >
+        <span
+          style={{
+            position: "absolute",
+            top: -25,
+            right: 0,
+            zIndex: 1000,
+          }}
+        >
+          <Tooltip title={t("formRequestBodyFieldBtnImport")}>
+            <ConverterIcon
+              type={"icon-import"}
+              style={{ cursor: "pointer", fontSize: 18, color: "#333333" }}
+              onClick={() => {
+                setModalOpen(true);
+              }}
+            />
+          </Tooltip>
+        </span>
+
         {requestBodyFields.map((requestBodyField) => (
           <Flex key={requestBodyField.key} gap={10} wrap>
             <Form.Item
@@ -156,7 +136,7 @@ const RequestBodyPanel: React.FC<
               name={[requestBodyField.name, "type"]}
               style={{ flex: 1 }}
             >
-              <Select options={RoutePanelData.GolangTypeOptions} />
+              <Select options={RoutePanelData.GolangTypeOptions} showSearch />
             </Form.Item>
             <Form.Item
               label={t("formRequestBodyFieldOptionalTitle")}
@@ -167,28 +147,14 @@ const RequestBodyPanel: React.FC<
             <CloseOutlined
               onClick={() => {
                 requestBodyOpt.remove(requestBodyField.name);
-                canChowImportButton();
               }}
             />
           </Flex>
         ))}
-        {showImportButton ? (
-          <Button
-            style={{ marginBottom: 16 }}
-            type="dashed"
-            onClick={() => setRequestBodyModalOpen(true)}
-            block
-          >
-            🔍 {t("formRequestBodyFieldBtnImport")}
-          </Button>
-        ) : (
-          <></>
-        )}
         <Button
           type="dashed"
           onClick={() => {
             requestBodyOpt.add();
-            canChowImportButton();
           }}
           block
         >

@@ -71,7 +71,7 @@ const CodeMirrorPanel: React.FC<
       <span
         style={{
           position: "absolute",
-          top: -30,
+          top: -25,
           right: 0,
           zIndex: 1000,
         }}
