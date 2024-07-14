@@ -7,11 +7,13 @@ import "./CodePanel.css"
 import {useTranslation} from "react-i18next";
 import {CopyOutlined, DeleteOutlined} from '@ant-design/icons';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import {FormInstance} from "rc-field-form/es/interface";
 
 const {Title} = Typography;
 
 interface CodePanelProps {
     value: string
+    onChange?: (data: string) => void
 }
 
 
@@ -22,7 +24,7 @@ const CodePanel: React.FC<CodePanelProps & React.RefAttributes<HTMLDivElement>> 
 
     useEffect(() => {
         setCode(props.value)
-    });
+    },[props.value]);
 
     const onCopy = () => {
         api.open({
@@ -38,7 +40,9 @@ const CodePanel: React.FC<CodePanelProps & React.RefAttributes<HTMLDivElement>> 
                 <Title level={4}>{t("apiPanelTitle")}</Title>
                 <Space>
                     <Button size={"middle"} danger onClick={() => {
-                        setCode("")
+                        if (props.onChange) {
+                            props.onChange("")
+                        }
                     }}>
                         <DeleteOutlined/> {t("btnClear")}
                     </Button>

@@ -20,7 +20,11 @@ const App: React.FC = () => {
                     }}/>
                 </Col>
                 <Col span={12} className={"api-code-panel"}>
-                    <CodePanel value={code} />
+                    <CodePanel
+                        onChange={(code) => {
+                            setCode(code)
+                        }}
+                        value={code}/>
                 </Col>
             </Row>
         </Layout>
