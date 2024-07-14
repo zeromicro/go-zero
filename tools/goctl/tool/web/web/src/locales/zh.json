@@ -40,11 +40,16 @@
   "formRequestBodyFieldTypeTitle": "字段类型",
   "formRequestBodyFieldBtnAdd": "新增请求字段",
   "formRequestBodyFieldBtnImport": "从 JSON 文本解析",
+  "formResponseBodyModelTitle": "响应体 JSON 文本编辑",
   "formRequestBodyModalCancel": "取消",
   "formRequestBodyModalConfirm": "开始解析",
+  "formResponseBodyModalCancel": "取消",
+  "formResponseBodyModalConfirm": "保存",
   "tipsInvalidJSON": "json 格式不合法",
   "tipsInvalidJSONArray": "期望 json 对象，实际是 json 数组",
   "btnCopy": "复制",
+  "btnClear": "清空",
   "btnCopyTips": "复制成功",
-  "btnBuild": "开始转换"
+  "btnBuild": "开始转换",
+  "tooltipFullScreen": "展开全屏"
 }

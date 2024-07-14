@@ -40,11 +40,16 @@
   "formRequestBodyFieldTypeTitle": "FieldType",
   "formRequestBodyFieldBtnAdd": "Add Request Field",
   "formRequestBodyFieldBtnImport": "Import from json text",
+  "formResponseBodyModelTitle": "Response JSON Text",
   "formRequestBodyModalCancel": "Cancel",
   "formRequestBodyModalConfirm": "Parse",
+  "formResponseBodyModalCancel": "Cancel",
+  "formResponseBodyModalConfirm": "Save",
   "tipsInvalidJSON": "invalid json",
   "tipsInvalidJSONArray": "expected json object, got json array",
   "btnCopy": "Copy",
+  "btnClear": "Clear",
   "btnCopyTips": "Copied",
-  "btnBuild": "Build"
+  "btnBuild": "Build",
+  "tooltipFullScreen": "expand to fullscreen"
 }

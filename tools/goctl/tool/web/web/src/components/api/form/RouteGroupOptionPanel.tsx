@@ -3,8 +3,6 @@ import {Col, Form, Input, InputNumber, Row, Switch} from "antd";
 import {FormListFieldData} from "antd/es/form/FormList";
 import {useTranslation} from "react-i18next";
 
-const {TextArea} = Input;
-
 interface RouteGroupOptionPanelProps {
     routeGroupField: FormListFieldData
 }
@@ -27,8 +25,10 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
                     <Form.Item label={t("formPrefixTitle")}
                                name={[routeGroupField.name, 'prefix']}
                     >
-                        <Input prefix={"/"}
-                               placeholder={t("formPrefixPlaceholder")}/>
+                        <Input
+                            allowClear
+                            prefix={"/"}
+                            placeholder={t("formPrefixPlaceholder")}/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -36,7 +36,9 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
                                name={[routeGroupField.name, 'group']}
                                tooltip={t("formRouteGroupTooltip")}
                     >
-                        <Input placeholder={t("formGroupPlaceholder")}/>
+                        <Input
+                            allowClear
+                            placeholder={t("formGroupPlaceholder")}/>
                     </Form.Item>
                 </Col>
             </Row>
@@ -45,8 +47,11 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
                 <Col span={8}>
                     <Form.Item label={t("formTimeoutTitle")}
                                name={[routeGroupField.name, 'timeout']}>
-                        <InputNumber addonAfter="ms"
-                                     defaultValue={2000}/>
+                        <InputNumber
+                            min={0}
+                            precision={0}
+                            addonAfter="ms"
+                            defaultValue={2000}/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -54,13 +59,18 @@ const RouteGroupOptionPanel: React.FC<RouteGroupOptionPanelProps & React.RefAttr
                                name={[routeGroupField.name, 'middleware']}
                                tooltip={t("formMiddlewareTips")}
                     >
-                        <Input placeholder={t("formMiddlewarePlaceholder")}/>
+                        <Input
+                            allowClear
+                            placeholder={t("formMiddlewarePlaceholder")}/>
                     </Form.Item>
                 </Col>
                 <Col span={8}>
                     <Form.Item label={t("formMaxByteTitle")}
                                name={[routeGroupField.name, 'maxByte']}>
-                        <InputNumber addonAfter="byte"/>
+                        <InputNumber
+                            min={0}
+                            precision={0}
+                            addonAfter="byte"/>
                     </Form.Item>
                 </Col>
             </Row>

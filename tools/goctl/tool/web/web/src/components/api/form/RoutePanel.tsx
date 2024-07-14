@@ -6,17 +6,14 @@ import {
     Flex,
     Form,
     Input,
-    InputNumber,
     Row,
     Select,
-    Switch,
     Modal,
-    Dropdown,
-    Space,
     notification,
+    Tooltip,
     type MenuProps
 } from "antd";
-import {CloseOutlined, DownOutlined} from "@ant-design/icons";
+import {CloseOutlined, FullscreenOutlined} from "@ant-design/icons";
 import {FormListFieldData} from "antd/es/form/FormList";
 import {useTranslation} from "react-i18next";
 import {RoutePanelData, Method, ContentType, GolangType} from "./_defaultProps";
@@ -38,8 +35,10 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
     const routeGroupField = props.routeGroupField
     const form = props.form
     const [initRequestValues, setInitRequestValues] = useState([]);
-    const [open, setOpen] = useState(false);
+    const [requestBodyModalOpen, setRequestBodyModalOpen] = useState(false);
+    const [responseBodyModalOpen, setResponseBodyModalOpen] = useState(false);
     const [requestBodyParseCode, setRequestBodyParseCode] = useState('');
+    const [responseCode, setResponseCode] = useState('');
     const [api, contextHolder] = notification.useNotification();
     const [showImportButton, setShowImportButton] = useState(true);
 
@@ -87,10 +86,11 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
     return (
         <div>
             {contextHolder}
+            {/*request body import modal*/}
             <Modal
                 title={t("formRequestBodyFieldBtnImport")}
                 centered
-                open={open}
+                open={requestBodyModalOpen}
                 maskClosable={false}
                 keyboard={false}
                 closable={false}
@@ -106,7 +106,7 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                         }
 
                         // todo: 从后段解析数据
-                        setOpen(false)
+                        setRequestBodyModalOpen(false)
                     } catch (err) {
                         api.error({
                             message: t("tipsInvalidJSON") + ": " + err
@@ -114,7 +114,7 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                         return
                     }
                 }}
-                onCancel={() => setOpen(false)}
+                onCancel={() => setRequestBodyModalOpen(false)}
                 width={1000}
                 cancelText={t("formRequestBodyModalCancel")}
                 okText={t("formRequestBodyModalConfirm")}
@@ -130,6 +130,38 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                     height={'70vh'}
                     onChange={(code) => {
                         setRequestBodyParseCode(code)
+                    }}
+                />
+            </Modal>
+            {/*response body editor*/}
+            <Modal
+                title={t("formResponseBodyModelTitle")}
+                centered
+                open={responseBodyModalOpen}
+                maskClosable={false}
+                keyboard={false}
+                closable={false}
+                destroyOnClose
+                onOk={() => {
+                    setResponseBodyModalOpen(false)
+                }}
+                onCancel={() => setResponseBodyModalOpen(false)}
+                width={1000}
+                cancelText={t("formResponseBodyModalCancel")}
+                okText={t("formResponseBodyModalConfirm")}
+            >
+                <CodeMirror
+                    style={{marginTop: 10, overflow: "auto"}}
+                    extensions={[langs.json(), EditorView.theme({
+                        "&.cm-focused": {
+                            outline: "none",
+                        },
+                    })]}
+                    theme={githubLight}
+                    height={'70vh'}
+                    value={responseCode}
+                    onChange={(code) => {
+                        setResponseCode(code)
                     }}
                 />
             </Modal>
@@ -226,7 +258,7 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                                                                 {showImportButton ? <Button
                                                                     style={{marginBottom: 16}}
                                                                     type="dashed"
-                                                                    onClick={() => setOpen(true)}
+                                                                    onClick={() => setRequestBodyModalOpen(true)}
                                                                     block>
                                                                     🔍 {t("formRequestBodyFieldBtnImport")}
                                                                 </Button> : <></>
@@ -251,12 +283,35 @@ const RoutePanel: React.FC<RoutePanelProps & React.RefAttributes<HTMLDivElement>
                                                 <Form.Item
                                                     label={t("formResponseBodyTitle")}
                                                     name={[routeField.name, 'responseBody']}>
-                                                    <TextArea
-                                                        autoSize={{
-                                                            minRows: 3,
-                                                            maxRows: 5
+                                                    <span style={{
+                                                        position: "absolute",
+                                                        top: -30,
+                                                        right: 0,
+                                                        zIndex: 1000
+                                                    }}>
+                                                        <Tooltip title={t("tooltipFullScreen")}>
+                                                            <FullscreenOutlined
+                                                                style={{cursor: "pointer"}}
+                                                                onClick={() => {
+                                                                    setResponseBodyModalOpen(true)
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    </span>
+                                                    <CodeMirror
+                                                        style={{overflow: "scroll", minHeight: 100,maxHeight:200}}
+                                                        extensions={[langs.json(), EditorView.theme({
+                                                            "&.cm-focused": {
+                                                                outline: "none",
+                                                            },
+                                                        })]}
+                                                        value={responseCode}
+                                                        placeholder={t("formResponseBodyPlaceholder")}
+                                                        theme={githubLight}
+                                                        onChange={(code) => {
+                                                            setResponseCode(code)
                                                         }}
-                                                        placeholder={t("formResponseBodyPlaceholder")}/>
+                                                    />
                                                 </Form.Item>
                                             </div>,
                                             extra: <CloseOutlined

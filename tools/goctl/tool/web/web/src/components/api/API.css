@@ -14,18 +14,33 @@
     font-display: swap;
 }
 
-::-webkit-scrollbar {
-    display: none;
-}
-
 
 .api {
     background: 100%;
     margin: 24px 16px;
+    overflow-y: hidden;
 }
 
 .api-container {
     width: 100%;
     height: 100%;
     border-radius: 10px;
+}
+
+.api-form-panel {
+    height: 100%;
+    background: white;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.api-code-panel {
+    height: 100%;
+    width: 100%;
+    background: white;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }

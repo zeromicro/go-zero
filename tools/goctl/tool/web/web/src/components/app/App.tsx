@@ -127,6 +127,9 @@ const App: React.FC = () => {
                 components: {
                     Input: {
                         activeShadow: "transparent"
+                    },
+                    InputNumber: {
+                        activeShadow: "transparent"
                     }
                 }
             }}

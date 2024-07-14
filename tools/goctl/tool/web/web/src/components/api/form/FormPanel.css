@@ -14,10 +14,6 @@
     font-display: swap;
 }
 
-::-webkit-scrollbar {
-    display: none;
-}
-
 .form-container-divider {
     height: 1px;
     width: 100%;
@@ -28,17 +24,21 @@
 .form-panel {
     height: 100%;
     background: white;
-    padding-left: 24px;
-    padding-right: 24px;
-    padding-bottom: 24px;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
 
+.form-container-header{
+    padding-left: 24px;
+    padding-right: 24px;
+}
 
 .form-panel-form {
     width: 100%;
     height: 100%;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
     overflow-y: auto;
 }
 

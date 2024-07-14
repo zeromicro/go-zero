@@ -1,32 +1,28 @@
 import React, {useState, useEffect} from 'react';
 import {
     Layout,
-    Flex,
-    Form,
+    Form, Row, Col
 } from 'antd';
 import '../../Base.css'
 import './API.css'
-import {useTranslation} from "react-i18next";
-import {useNavigate} from "react-router-dom";
 import FormPanel from "./form/FormPanel";
 import CodePanel from "./form/CodePanel";
-import {codePlaceholder} from './_defaultProps'
 
 const App: React.FC = () => {
-    const navigate = useNavigate()
-    const {t, i18n} = useTranslation();
-    const [form] = Form.useForm();
-    const [code, setCode] = useState(codePlaceholder())
-
-    useEffect(() => {
-    }, [])
-
+    const [code, setCode] = useState("")
     return (
         <Layout className="api">
-            <Flex wrap className="api-container" gap={1}>
-                <FormPanel/>
-                <CodePanel value={code}/>
-            </Flex>
+            <Row wrap className="api-container" gutter={1}>
+                <Col span={12} className={"api-form-panel"}>
+                    <FormPanel onBuild={(data) => {
+                        const js = JSON.stringify(data)
+                        setCode(js)
+                    }}/>
+                </Col>
+                <Col span={12} className={"api-code-panel"}>
+                    <CodePanel value={code} />
+                </Col>
+            </Row>
         </Layout>
     )
 };
