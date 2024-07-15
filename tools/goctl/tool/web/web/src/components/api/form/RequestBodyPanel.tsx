@@ -19,6 +19,7 @@ import { githubLight } from "@uiw/codemirror-theme-github";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import { ConverterIcon } from "../../../util/icon";
 import type { GetRef } from "antd";
+import RequestFieldPanel from "./RequestFieldPanel";
 
 type FormInstance<T> = GetRef<typeof Form<T>>;
 
@@ -124,58 +125,10 @@ const RequestBodyPanel: React.FC<
         </span>
 
         {requestBodyFields.map((requestBodyField) => (
-          <Flex key={requestBodyField.key} gap={6} wrap>
-            <Form.Item
-              label={t("formRequestBodyFieldNameTitle")}
-              name={[requestBodyField.name, "name"]}
-              style={{ flex: 1 }}
-              tooltip={t("formRequestBodyFieldNameTooltip")}
-              rules={[
-                {
-                  required: true,
-                  message: `${t("formInputPrefix")}${t("formRequestBodyFieldNameTitle")}`,
-                },
-                {
-                  pattern: RoutePanelData.IDPattern,
-                  message: `${t("formRequestBodyFieldNameTitle")}${t("formRegexTooltip")}: ${RoutePanelData.IDPattern}`,
-                },
-              ]}
-            >
-              <Input
-                allowClear
-                placeholder={`${t("formInputPrefix")}${t("formRequestBodyFieldNameTitle")}`}
-              />
-            </Form.Item>
-            <Form.Item
-              label={t("formRequestBodyFieldTypeTitle")}
-              name={[requestBodyField.name, "type"]}
-              style={{ flex: 1 }}
-              rules={[
-                {
-                  required: true,
-                  message: `${t("formInputPrefix")}${t("formRequestBodyFieldTypeTitle")}`,
-                },
-              ]}
-            >
-              <Select
-                allowClear
-                placeholder={`${t("formInputPrefix")}${t("formRequestBodyFieldTypeTitle")}`}
-                options={RoutePanelData.GolangTypeOptions}
-                showSearch
-              />
-            </Form.Item>
-            <Form.Item
-              label={t("formRequestBodyFieldOptionalTitle")}
-              name={[requestBodyField.name, "optional"]}
-            >
-              <Switch />
-            </Form.Item>
-            <CloseOutlined
-              onClick={() => {
-                requestBodyOpt.remove(requestBodyField.name);
-              }}
-            />
-          </Flex>
+          <RequestFieldPanel
+            requestBodyField={requestBodyField}
+            requestBodyOpt={requestBodyOpt}
+          />
         ))}
         <Button
           type="dashed"

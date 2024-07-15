@@ -86,7 +86,7 @@ const RouteGroupOptionPanel: React.FC<
         <Form.Item
           style={{ flex: 1 }}
           label={t("formMaxByteTitle")}
-          name={[routeGroupField.name, "maxByte"]}
+          name={[routeGroupField.name, "maxBytes"]}
         >
           <InputNumber min={0} precision={0} addonAfter="byte" />
         </Form.Item>
