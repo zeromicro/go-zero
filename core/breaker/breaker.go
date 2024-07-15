@@ -269,7 +269,7 @@ func (ew *errorWindow) add(reason string) {
 }
 
 func (ew *errorWindow) String() string {
-	var reasons []string
+	reasons := make([]string, 0, ew.count)
 
 	ew.lock.Lock()
 	// reverse order
