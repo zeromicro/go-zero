@@ -1,46 +1,45 @@
 syntax = "v1"
 
-type Range {
-	Left  int `json:"left"`
-	Right int `json:"right"`
-}
 
 type FormItem {
-	Name         string   `json:"name"`
-	Type         string   `json:"type"`
-	Optional     bool     `json:"optional"`
-	EnumValue    []string `json:"enumValue"`
-	RangeValue   *Range   `json:"rangeValue"`
-	DefaultValue string   `json:"defaultValue"`
+    Name string `json:"name"`
+    Type string `json:"type"`
+    Optional bool `json:"optional,omitempty"`
+    DefaultValue string `json:"defaultValue,omitempty"`
+    CheckEnum bool `json:"checkEnum,omitempty"`
+    EnumValue []string `json:"enumValue,omitempty"`// // effect if checkEunm is true
+    LowerBound int64 `json:"lowerBound,omitempty"` // effect if checkEunm is false
+    UpperBound int64 `json:"upperBound,omitempty"` // // effect if checkEunm is false
 }
 
-type Body {
-	Forms []*FormItem `json:"forms"`
+type APIRouteGroup {
+    Jwt bool `json:"jwt,omitempty"`
+    Prefix string `json:"prefix,omitempty"`
+    Group string `json:"group,omitempty"`
+    Timeout int `json:"timeout,omitempty"`
+    Middleware string `json:"middleware,omitempty"`
+    MaxBytes int64 `json:"maxBytes,omitempty"`
+    Routes []*APIRoute `json:"routes,omitempty"`
 }
 
 type APIRoute {
-	Jwt          bool     `json:"jwt"`
-	Prefix       string   `json:"prefix"`
-	Group        string   `json:"group"`
-	Timeout      string   `json:"timeout"`
-	Middlewares  []string `json:"middlewares"`
-	MaxBytes     int64    `json:"maxBytes"`
-	Method       string   `json:"method"`
-	Path         string   `json:"path"`
-	ContentType  string   `json:"contentType"`
-	RequestBody  *Body    `json:"requestBody"`
-	ResponseBody *Body    `json:"responseBody"`
+    Method string `json:"method"`
+    Path string `json:"path"`
+    ContentType string `json:"contentType"`
+    RequestBody []*FormItem `json:"requestBodyFields"`
+    ResponseBody string `json:"responseBody"`
 }
 
 type APIGenerateRequest {
-	Name string      `json:"name"`
-	List []*APIRoute `json:"list"`
+    Name string `json:"serviceName"`
+    List []*APIRoute `json:"routeGroups,omitempty"`
 }
 
-type APIGenerateResponse {}
+type APIGenerateResponse {
+}
 
 service server {
-	@handler apiGenerate
-	post /api/generate (APIGenerateRequest) returns (APIGenerateResponse)
+    @handler apiGenerate
+    post /api/generate (APIGenerateRequest) returns (APIGenerateResponse)
 }
 
