@@ -26,6 +26,7 @@
     background: white;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
+    padding-bottom: 24px;
 }
 
 .form-container-header {
@@ -37,7 +38,6 @@
     height: 100%;
     padding-left: 24px;
     padding-right: 24px;
-    padding-bottom: 24px;
     overflow-y: auto;
 }
 

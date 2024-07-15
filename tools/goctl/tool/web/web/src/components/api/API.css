@@ -25,15 +25,17 @@
     width: 100%;
     height: 100%;
     border-radius: 10px;
+    overflow: scroll;
 }
 
 .api-form-panel {
     height: 100%;
+    flex: 1;
+    min-width: 400px;
 }
 
 .api-code-panel {
     height: 100%;
-    width: 100%;
-    padding-left: 24px;
-    padding-right: 24px;
+    flex: 1;
+    min-width: 400px;
 }
