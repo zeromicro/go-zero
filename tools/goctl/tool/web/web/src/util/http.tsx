@@ -5,6 +5,10 @@ const Paths = {
 };
 
 export type ParseBodyResult = {
+  form: ParseBodyForm[];
+};
+
+export type ParseBodyForm = {
   name: string;
   type: string;
   optional?: boolean;
@@ -18,7 +22,7 @@ export type ParseBodyResult = {
 function postJSON<T>(
   path: string,
   data: {},
-  callback: (data: T[]) => void,
+  callback: (data: T) => void,
   catchError: (err: string) => void,
 ): void {
   axios
@@ -27,7 +31,7 @@ function postJSON<T>(
       if (response.status === 200) {
         let data = response.data;
         if (data.code === 0) {
-          callback(data.data as T[]);
+          callback(data.data);
         } else {
           catchError(data.msg);
         }
@@ -42,7 +46,7 @@ function postJSON<T>(
 export const Http = {
   ParseBodyFromJson: (
     json: string,
-    callback: (data: ParseBodyResult[]) => void,
+    callback: (data: ParseBodyForm[]) => void,
     catchError: (err: string) => void,
   ) => {
     postJSON<ParseBodyResult>(
@@ -50,7 +54,9 @@ export const Http = {
       {
         json: json,
       },
-      callback,
+      (data) => {
+        callback(data.form);
+      },
       catchError,
     );
   },

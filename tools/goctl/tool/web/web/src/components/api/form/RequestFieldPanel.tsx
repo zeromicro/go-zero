@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Button,
   Flex,
   Form,
   Input,
@@ -10,18 +9,13 @@ import {
   Switch,
   Tooltip,
   Radio,
-  Space,
   RadioChangeEvent,
+  type GetRef,
 } from "antd";
-import {
-  CloseOutlined,
-  SettingOutlined,
-  MinusOutlined,
-} from "@ant-design/icons";
+import { CloseOutlined, SettingOutlined } from "@ant-design/icons";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
 import { RoutePanelData } from "./_defaultProps";
-import type { GetRef } from "antd";
 import { InputNumber } from "antd";
 
 type FormInstance<T> = GetRef<typeof Form<T>>;
@@ -29,12 +23,17 @@ type FormInstance<T> = GetRef<typeof Form<T>>;
 interface RequestFieldPanelProps {
   requestBodyField: FormListFieldData;
   requestBodyOpt: FormListOperation;
+
+  routeField: FormListFieldData;
+  form: FormInstance<any>;
 }
 
 const RequestFieldPanel: React.FC<
   RequestFieldPanelProps & React.RefAttributes<HTMLDivElement>
 > = (props) => {
   const { t } = useTranslation();
+  const form = props.form;
+  const routeField = props.routeField;
   const requestBodyField = props.requestBodyField;
   const requestBodyOpt = props.requestBodyOpt;
   const [initRequestValues, setInitRequestValues] = useState([]);
@@ -91,6 +90,7 @@ const RequestFieldPanel: React.FC<
             />
           </Form.Item>
           <Form.Item
+            shouldUpdate
             label={t("formRequestBodyFieldTypeTitle")}
             name={[requestBodyField.name, "type"]}
             style={{ flex: 1 }}
@@ -250,6 +250,23 @@ const RequestFieldPanel: React.FC<
             }}
             onClick={() => {
               setModalOpen(true);
+              let routeGroups = form.getFieldValue("routeGroups");
+              if (!routeGroups) {
+                return;
+              }
+              let routeGroup = routeGroups[routeField.key];
+              if (!routeGroup) {
+                return;
+              }
+              let route = routeGroup.routes[routeField.key];
+              if (!route) {
+                return;
+              }
+              let field = route.requestBodyFields[requestBodyField.key];
+              if (!field) {
+                return;
+              }
+              setTypeIsNumber(RoutePanelData.IsNumberType(field.type));
             }}
           />
         </Tooltip>

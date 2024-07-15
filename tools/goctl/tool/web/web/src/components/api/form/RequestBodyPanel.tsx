@@ -1,27 +1,14 @@
 import React, { useState } from "react";
-import {
-  Button,
-  Flex,
-  Form,
-  Input,
-  Select,
-  Modal,
-  notification,
-  Switch,
-  Tooltip,
-} from "antd";
-import { CloseOutlined } from "@ant-design/icons";
+import { Button, Form, Modal, notification, Tooltip } from "antd";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
-import { RoutePanelData } from "./_defaultProps";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import { ConverterIcon } from "../../../util/icon";
 import type { GetRef } from "antd";
 import RequestFieldPanel from "./RequestFieldPanel";
-import axios from "axios";
-import { Http, ParseBodyResult } from "../../../util/http";
+import { Http, ParseBodyForm } from "../../../util/http";
 
 type FormInstance<T> = GetRef<typeof Form<T>>;
 
@@ -42,7 +29,7 @@ const RequestBodyPanel: React.FC<
   const routeGroupField = props.routeGroupField;
   const routeField = props.routeField;
   const form = props.form;
-  const [initRequestValues, setInitRequestValues] = useState<ParseBodyResult[]>(
+  const [initRequestValues, setInitRequestValues] = useState<ParseBodyForm[]>(
     [],
   );
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,33 +60,35 @@ const RequestBodyPanel: React.FC<
 
             Http.ParseBodyFromJson(
               requestBodyParseCode,
-              (data: ParseBodyResult[]) => {
+              (data: ParseBodyForm[]) => {
                 if (!data || data.length === 0) {
                   return;
                 }
-                const routeGroups = form.getFieldValue("routeGroups");
+                let routeGroups = form.getFieldValue("routeGroups");
                 if (!routeGroups) {
                   return;
                 }
-                const routeGroup = routeGroups[routeGroupField.key];
+                let routeGroup = routeGroups[routeGroupField.key];
                 if (!routeGroup) {
                   return;
                 }
-                const routes = routeGroup.routes;
+                let routes = routeGroup.routes;
                 if (!routes.length) {
                   return;
                 }
-                const route = routes[routeField.key];
+                let route = routes[routeField.key];
                 if (!route) {
                   return;
                 }
-                const requestBodyFields = route.requestBodyFields;
+                let requestBodyFields = route.requestBodyFields;
                 if (!requestBodyFields) {
                   return;
                 }
-                for (let item in data) {
+                for (let i = 0; i < data.length; i++) {
+                  const item = data[i];
                   requestBodyFields.push(item);
                 }
+
                 form.setFieldValue("routeGroups", routeGroups);
                 setModalOpen(false);
               },
@@ -168,6 +157,8 @@ const RequestBodyPanel: React.FC<
           <RequestFieldPanel
             requestBodyField={requestBodyField}
             requestBodyOpt={requestBodyOpt}
+            routeField={routeField}
+            form={form}
           />
         ))}
         <Button
