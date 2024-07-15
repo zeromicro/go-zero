@@ -182,7 +182,7 @@ func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
 }
 
 func (p *p2cPicker) logStats() {
-	var stats []string
+	stats := make([]string, 0, len(p.conns))
 
 	p.lock.Lock()
 	defer p.lock.Unlock()

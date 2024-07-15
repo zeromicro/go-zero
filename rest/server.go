@@ -86,7 +86,7 @@ func (s *Server) PrintRoutes() {
 
 // Routes returns the HTTP routers that registered in the server.
 func (s *Server) Routes() []Route {
-	var routes []Route
+	routes := make([]Route, 0, len(s.ngin.routes))
 
 	for _, r := range s.ngin.routes {
 		routes = append(routes, r.routes...)
@@ -249,7 +249,7 @@ func WithNotAllowedHandler(handler http.Handler) RunOption {
 // WithPrefix adds group as a prefix to the route paths.
 func WithPrefix(group string) RouteOption {
 	return func(r *featuredRoutes) {
-		var routes []Route
+		routes := make([]Route, 0, len(r.routes))
 		for _, rt := range r.routes {
 			p := path.Join(group, rt.Path)
 			routes = append(routes, Route{
