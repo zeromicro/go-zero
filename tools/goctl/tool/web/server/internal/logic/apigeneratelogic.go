@@ -3,10 +3,9 @@ package logic
 import (
 	"context"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
 	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/types"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ApiGenerateLogic struct {
@@ -24,6 +23,7 @@ func NewApiGenerateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ApiGe
 }
 
 func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *types.APIGenerateResponse, err error) {
-	resp = new(types.APIGenerateResponse)
-	return resp, nil
+	// todo: add your logic here and delete this line
+
+	return
 }

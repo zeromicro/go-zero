@@ -1,45 +1,63 @@
 syntax = "v1"
 
+type (
+	APIRouteGroup {
+		Jwt        bool        `json:"jwt,omitempty"`
+		Prefix     string      `json:"prefix,omitempty"`
+		Group      string      `json:"group,omitempty"`
+		Timeout    int         `json:"timeout,omitempty"`
+		Middleware string      `json:"middleware,omitempty"`
+		MaxBytes   int64       `json:"maxBytes,omitempty"`
+		Routes     []*APIRoute `json:"routes,omitempty"`
+	}
 
-type FormItem {
-    Name string `json:"name"`
-    Type string `json:"type"`
-    Optional bool `json:"optional,omitempty"`
-    DefaultValue string `json:"defaultValue,omitempty"`
-    CheckEnum bool `json:"checkEnum,omitempty"`
-    EnumValue []string `json:"enumValue,omitempty"`// // effect if checkEunm is true
-    LowerBound int64 `json:"lowerBound,omitempty"` // effect if checkEunm is false
-    UpperBound int64 `json:"upperBound,omitempty"` // // effect if checkEunm is false
-}
+	APIRoute {
+		Method       string      `json:"method"`
+		Path         string      `json:"path"`
+		ContentType  string      `json:"contentType"`
+		RequestBody  []*FormItem `json:"requestBodyFields"`
+		ResponseBody string      `json:"responseBody"`
+	}
 
-type APIRouteGroup {
-    Jwt bool `json:"jwt,omitempty"`
-    Prefix string `json:"prefix,omitempty"`
-    Group string `json:"group,omitempty"`
-    Timeout int `json:"timeout,omitempty"`
-    Middleware string `json:"middleware,omitempty"`
-    MaxBytes int64 `json:"maxBytes,omitempty"`
-    Routes []*APIRoute `json:"routes,omitempty"`
-}
+	APIGenerateRequest {
+		Name string      `json:"serviceName"`
+		List []*APIRoute `json:"routeGroups,omitempty"`
+	}
 
-type APIRoute {
-    Method string `json:"method"`
-    Path string `json:"path"`
-    ContentType string `json:"contentType"`
-    RequestBody []*FormItem `json:"requestBodyFields"`
-    ResponseBody string `json:"responseBody"`
-}
+	APIGenerateResponse {
+		API string `json:"api"`
+	}
 
-type APIGenerateRequest {
-    Name string `json:"serviceName"`
-    List []*APIRoute `json:"routeGroups,omitempty"`
-}
+	FormItem {
+		Name         string `json:"name"`
+		Type         string `json:"type"`
+		Optional     bool   `json:"optional,omitempty"`
+		DefaultValue string `json:"defaultValue,omitempty"`
+		CheckEnum    bool   `json:"checkEnum,omitempty"`
+		EnumValue    string `json:"enumValue,omitempty"`  // // effect if checkEunm is true
+		LowerBound   int64  `json:"lowerBound,omitempty"` // effect if checkEunm is false
+		UpperBound   int64  `json:"upperBound,omitempty"` // // effect if checkEunm is false
+	}
+)
 
-type APIGenerateResponse {
+type (
+	ParseJsonRequest {
+		JSON string `json:"json"`
+	}
+	ParseJsonResponse {
+		Form []*FormItem `json:"form"`
+	}
+)
+
+@server(
+	middleware: Static
+)
+service server {
+	@handler apiGenerate
+	post /api/generate (APIGenerateRequest) returns (APIGenerateResponse)
 }
 
 service server {
-    @handler apiGenerate
-    post /api/generate (APIGenerateRequest) returns (APIGenerateResponse)
+	@handler requestBodyParse
+	post /api/request/body/parse (ParseJsonRequest) returns (ParseJsonResponse)
 }
-

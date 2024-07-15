@@ -4,18 +4,30 @@ package handler
 import (
 	"net/http"
 
-	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
-
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Static},
+			[]rest.Route{
+				{
+					Method:  http.MethodPost,
+					Path:    "/api/generate",
+					Handler: apiGenerateHandler(serverCtx),
+				},
+			}...,
+		),
+	)
+
+	server.AddRoutes(
 		[]rest.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/api/generate",
-				Handler: apiGenerateHandler(serverCtx),
+				Path:    "/api/request/body/parse",
+				Handler: requestBodyParseHandler(serverCtx),
 			},
 		},
 	)
