@@ -20,6 +20,8 @@ import { langs } from "@uiw/codemirror-extensions-langs";
 import { ConverterIcon } from "../../../util/icon";
 import type { GetRef } from "antd";
 import RequestFieldPanel from "./RequestFieldPanel";
+import axios from "axios";
+import { Http, ParseBodyResult } from "../../../util/http";
 
 type FormInstance<T> = GetRef<typeof Form<T>>;
 
@@ -40,7 +42,9 @@ const RequestBodyPanel: React.FC<
   const routeGroupField = props.routeGroupField;
   const routeField = props.routeField;
   const form = props.form;
-  const [initRequestValues, setInitRequestValues] = useState([]);
+  const [initRequestValues, setInitRequestValues] = useState<ParseBodyResult[]>(
+    [],
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [requestBodyParseCode, setRequestBodyParseCode] = useState("");
   const [api, contextHolder] = notification.useNotification();
@@ -67,8 +71,44 @@ const RequestBodyPanel: React.FC<
               return;
             }
 
-            // todo: 从后段解析数据
-            setModalOpen(false);
+            Http.ParseBodyFromJson(
+              requestBodyParseCode,
+              (data: ParseBodyResult[]) => {
+                if (!data || data.length === 0) {
+                  return;
+                }
+                const routeGroups = form.getFieldValue("routeGroups");
+                if (!routeGroups) {
+                  return;
+                }
+                const routeGroup = routeGroups[routeGroupField.key];
+                if (!routeGroup) {
+                  return;
+                }
+                const routes = routeGroup.routes;
+                if (!routes.length) {
+                  return;
+                }
+                const route = routes[routeField.key];
+                if (!route) {
+                  return;
+                }
+                const requestBodyFields = route.requestBodyFields;
+                if (!requestBodyFields) {
+                  return;
+                }
+                data.forEach((value: ParseBodyResult) => {
+                  requestBodyFields.push(value);
+                });
+                form.setFieldValue("routeGroups", routeGroups);
+                setModalOpen(false);
+              },
+              (error) => {
+                api.error({
+                  message: error,
+                });
+              },
+            );
           } catch (err) {
             api.error({
               message: t("tipsInvalidJSON") + ": " + err,
@@ -116,7 +156,7 @@ const RequestBodyPanel: React.FC<
           <Tooltip title={t("formRequestBodyFieldBtnImport")}>
             <ConverterIcon
               type={"icon-import"}
-              style={{ cursor: "pointer", fontSize: 18, color: "#333333" }}
+              style={{ cursor: "pointer", fontSize: 30 }}
               onClick={() => {
                 setModalOpen(true);
               }}

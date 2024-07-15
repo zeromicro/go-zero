@@ -4,36 +4,25 @@ import (
 	"embed"
 	"fmt"
 	"net"
+	"net/http"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/core/threading"
-	"github.com/zeromicro/go-zero/rest"
-	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/config"
 	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/handler"
 	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
 	"github.com/zeromicro/go-zero/tools/goctl/util/open"
 )
 
-//go:embed all:static
+//go:embed static/*
 var assets embed.FS
 
 func Run(port int) error {
 	if port <= 0 {
 		port = 8080
 	}
-	ctx := svc.NewServiceContext(config.Config{
-		RestConf: rest.RestConf{
-			ServiceConf: service.ServiceConf{
-				Name: "goctl-web",
-			},
-			Port: port,
-		},
-	}, assets)
 
-	server := rest.MustNewServer(rest.RestConf{Port: port})
-	handler.RegisterHandlers(server, ctx)
-	defer server.Stop()
+	ctx := svc.NewServiceContext(assets)
+	handler.RegisterCustomHandlers(ctx)
 
 	fmt.Printf(`serve on http://127.0.0.1:%d, goctl will automatically open the default browser and access it. 
 If it is not opened, please manually click  http://127.0.0.1:%d to access it.
@@ -52,6 +41,5 @@ If it is not opened, please manually click  http://127.0.0.1:%d to access it.
 			}
 		}
 	})
-	server.Start()
-	return nil
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }

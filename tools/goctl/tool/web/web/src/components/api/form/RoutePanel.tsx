@@ -3,9 +3,6 @@ import { Button, Collapse, Form, Modal, notification } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { FormListFieldData } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
-import CodeMirror, { EditorView } from "@uiw/react-codemirror";
-import { githubLight } from "@uiw/codemirror-theme-github";
-import { langs } from "@uiw/codemirror-extensions-langs";
 import type { FormInstance } from "antd/es/form/hooks/useForm";
 import RequestLinePanel from "./RequestLinePanel";
 import RequestBodyPanel from "./RequestBodyPanel";
@@ -37,103 +34,11 @@ const RoutePanel: React.FC<
       responseBody: "{}",
     },
   ]);
-  const [requestBodyModalOpen, setRequestBodyModalOpen] = useState(false);
-  const [responseBodyModalOpen, setResponseBodyModalOpen] = useState(false);
-  const [requestBodyParseCode, setRequestBodyParseCode] = useState("");
   const [responseCode, setResponseCode] = useState("");
   const [api, contextHolder] = notification.useNotification();
   return (
     <div>
       {contextHolder}
-      {/*request body import modal*/}
-      <Modal
-        title={t("formRequestBodyFieldBtnImport")}
-        centered
-        open={requestBodyModalOpen}
-        maskClosable={false}
-        keyboard={false}
-        closable={false}
-        destroyOnClose
-        onOk={() => {
-          try {
-            const obj = JSON.parse(requestBodyParseCode);
-            if (Array.isArray(obj)) {
-              api.error({
-                message: t("tipsInvalidJSONArray"),
-              });
-              return;
-            }
-
-            // todo: 从后段解析数据
-            setRequestBodyModalOpen(false);
-          } catch (err) {
-            api.error({
-              message: t("tipsInvalidJSON") + ": " + err,
-            });
-            return;
-          }
-        }}
-        onCancel={() => setRequestBodyModalOpen(false)}
-        width={1000}
-        cancelText={t("formRequestBodyModalCancel")}
-        okText={t("formRequestBodyModalConfirm")}
-      >
-        <CodeMirror
-          style={{ marginTop: 10, overflow: "auto" }}
-          extensions={[
-            langs.json(),
-            EditorView.theme({
-              "&.cm-focused": {
-                outline: "none",
-              },
-            }),
-          ]}
-          theme={githubLight}
-          height={"70vh"}
-          onChange={(code) => {
-            setRequestBodyParseCode(code);
-          }}
-        />
-      </Modal>
-      {/*response body editor*/}
-      <Modal
-        title={t("formResponseBodyModelTitle")}
-        centered
-        open={responseBodyModalOpen}
-        maskClosable={false}
-        keyboard={false}
-        closable={false}
-        destroyOnClose
-        onOk={() => {
-          Modal.destroyAll();
-          setResponseBodyModalOpen(false);
-        }}
-        onCancel={() => {
-          Modal.destroyAll();
-          setResponseBodyModalOpen(false);
-        }}
-        width={1000}
-        cancelText={t("formResponseBodyModalCancel")}
-        okText={t("formResponseBodyModalConfirm")}
-      >
-        <CodeMirror
-          style={{ marginTop: 10, overflow: "auto" }}
-          extensions={[
-            langs.json(),
-            EditorView.theme({
-              "&.cm-focused": {
-                outline: "none",
-              },
-            }),
-          ]}
-          theme={githubLight}
-          height={"70vh"}
-          value={responseCode}
-          onChange={(code) => {
-            setResponseCode(code);
-          }}
-        />
-      </Modal>
       <Form.Item label={t("formRouteListTitle")}>
         <Form.List
           initialValue={initRequestValues}
