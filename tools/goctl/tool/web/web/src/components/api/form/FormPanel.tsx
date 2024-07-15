@@ -6,6 +6,7 @@ import "./FormPanel.css";
 import RouteGroupPanel from "./RouteGroupPanel";
 import { ConverterIcon } from "../../../util/icon";
 import { FormInstance } from "rc-field-form/es/interface";
+import { RoutePanelData } from "./_defaultProps";
 
 const { Title } = Typography;
 
@@ -62,10 +63,23 @@ const FormPanel: React.FC<FormPanelProps> = (props) => {
         <Form.Item
           label={t("formServiceTitle")}
           name="serviceName"
-          rules={[{ required: true, message: t("formServiceTips") }]}
+          tooltip={t("")}
+          rules={[
+            {
+              required: true,
+              message: `${t("formInputPrefix")}${t("formServiceTitle")}`,
+            },
+            {
+              pattern: RoutePanelData.IDPattern,
+              message: `${t("formServiceTitle")}${t("formRegexTooltip")}: ${RoutePanelData.PathPattern}`,
+            },
+          ]}
           className={"form-panel-form-item"}
         >
-          <Input placeholder={t("formServicePlaceholder")} allowClear />
+          <Input
+            placeholder={`${t("formInputPrefix")}${t("formServiceTitle")}`}
+            allowClear
+          />
         </Form.Item>
 
         <Form.List name="routeGroups">

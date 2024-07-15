@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   Button,
   Flex,
@@ -9,10 +9,8 @@ import {
   notification,
   Switch,
   Tooltip,
-  Table,
-  Popconfirm,
 } from "antd";
-import { CloseOutlined, DeleteOutlined } from "@ant-design/icons";
+import { CloseOutlined } from "@ant-design/icons";
 import { FormListFieldData, FormListOperation } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
 import { RoutePanelData } from "./_defaultProps";
@@ -20,7 +18,7 @@ import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { githubLight } from "@uiw/codemirror-theme-github";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import { ConverterIcon } from "../../../util/icon";
-import type { GetRef, InputRef } from "antd";
+import type { GetRef } from "antd";
 
 type FormInstance<T> = GetRef<typeof Form<T>>;
 
@@ -132,15 +130,39 @@ const RequestBodyPanel: React.FC<
               name={[requestBodyField.name, "name"]}
               style={{ flex: 1 }}
               tooltip={t("formRequestBodyFieldNameTooltip")}
+              rules={[
+                {
+                  required: true,
+                  message: `${t("formInputPrefix")}${t("formRequestBodyFieldNameTitle")}`,
+                },
+                {
+                  pattern: RoutePanelData.IDPattern,
+                  message: `${t("formRequestBodyFieldNameTitle")}${t("formRegexTooltip")}: ${RoutePanelData.IDPattern}`,
+                },
+              ]}
             >
-              <Input />
+              <Input
+                allowClear
+                placeholder={`${t("formInputPrefix")}${t("formRequestBodyFieldNameTitle")}`}
+              />
             </Form.Item>
             <Form.Item
               label={t("formRequestBodyFieldTypeTitle")}
               name={[requestBodyField.name, "type"]}
               style={{ flex: 1 }}
+              rules={[
+                {
+                  required: true,
+                  message: `${t("formInputPrefix")}${t("formRequestBodyFieldTypeTitle")}`,
+                },
+              ]}
             >
-              <Select options={RoutePanelData.GolangTypeOptions} showSearch />
+              <Select
+                allowClear
+                placeholder={`${t("formInputPrefix")}${t("formRequestBodyFieldTypeTitle")}`}
+                options={RoutePanelData.GolangTypeOptions}
+                showSearch
+              />
             </Form.Item>
             <Form.Item
               label={t("formRequestBodyFieldOptionalTitle")}

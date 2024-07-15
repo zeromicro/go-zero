@@ -33,6 +33,10 @@ export const enum GolangType {
 }
 
 export const RoutePanelData = {
+  IDPattern: /^[a-zA-Z][\w]*$/gm,
+  IDCommaPattern: /^([a-zA-Z](\w)*)+(,([a-zA-Z](\w)*)+)*$/gm,
+  PrefixPathPattern: /^\/[\w\/-]*[\w]$/gm,
+  PathPattern: /^\/([\w\/-]|(:\w+))*[\w]$/gm,
   GolangTypeOptions: [
     {
       value: GolangType.Bool,

@@ -22,8 +22,20 @@ const RequestLinePanel: React.FC<
           style={{ flex: "0.75" }}
           label={t("formPathTitle")}
           name={[routeField.name, "path"]}
+          rules={[
+            {
+              required: true,
+              message: `${t("formInputPrefix")}${t("formPathTitle")}`,
+            },
+            {
+              pattern: RoutePanelData.PathPattern,
+              message: `${t("formPathTitle")}${t("formRegexTooltip")}: ${RoutePanelData.PathPattern}`,
+            },
+          ]}
         >
           <Input
+            placeholder={`${t("formInputPrefix")}${t("formPathTitle")}`}
+            allowClear
             addonBefore={
               <div>
                 <Form.Item noStyle name={[routeField.name, "method"]}>

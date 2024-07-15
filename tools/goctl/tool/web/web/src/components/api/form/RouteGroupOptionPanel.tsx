@@ -1,7 +1,8 @@
 import React from "react";
-import { Col, Flex, Form, Input, InputNumber, Row, Switch } from "antd";
+import { Flex, Form, Input, InputNumber, Switch } from "antd";
 import { FormListFieldData } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
+import { RoutePanelData } from "./_defaultProps";
 
 interface RouteGroupOptionPanelProps {
   routeGroupField: FormListFieldData;
@@ -14,23 +15,28 @@ const RouteGroupOptionPanel: React.FC<
   const routeGroupField = props.routeGroupField;
   return (
     <div>
-      <Flex gap={16} wrap>
+      <Flex gap={8} wrap>
         <Form.Item
           label={t("formJwtTitle")}
           name={[routeGroupField.name, "jwt"]}
           tooltip={t("formJWTTips")}
         >
-          <Switch defaultChecked />
+          <Switch />
         </Form.Item>
         <Form.Item
           style={{ flex: 1 }}
           label={t("formPrefixTitle")}
           name={[routeGroupField.name, "prefix"]}
+          rules={[
+            {
+              pattern: RoutePanelData.PrefixPathPattern,
+              message: `${t("formPrefixTitle")}${t("formRegexTooltip")}: ${RoutePanelData.PrefixPathPattern}`,
+            },
+          ]}
         >
           <Input
             allowClear
-            prefix={"/"}
-            placeholder={t("formPrefixPlaceholder")}
+            placeholder={`${t("formInputPrefix")}${t("formPrefixTitle")}`}
           />
         </Form.Item>
         <Form.Item
@@ -38,12 +44,21 @@ const RouteGroupOptionPanel: React.FC<
           label={t("formGroupTitle")}
           name={[routeGroupField.name, "group"]}
           tooltip={t("formRouteGroupTooltip")}
+          rules={[
+            {
+              pattern: RoutePanelData.IDPattern,
+              message: `${t("formGroupTitle")}${t("formRegexTooltip")}: ${RoutePanelData.IDPattern}`,
+            },
+          ]}
         >
-          <Input allowClear placeholder={t("formGroupPlaceholder")} />
+          <Input
+            allowClear
+            placeholder={`${t("formInputPrefix")}${t("formGroupTitle")}`}
+          />
         </Form.Item>
       </Flex>
 
-      <Flex gap={16} wrap>
+      <Flex gap={8} wrap>
         <Form.Item
           style={{ flex: 1 }}
           label={t("formTimeoutTitle")}
@@ -56,8 +71,17 @@ const RouteGroupOptionPanel: React.FC<
           label={t("formMiddlewareTitle")}
           name={[routeGroupField.name, "middleware"]}
           tooltip={t("formMiddlewareTips")}
+          rules={[
+            {
+              pattern: RoutePanelData.IDCommaPattern,
+              message: `${t("formMiddlewareTitle")}${t("formRegexTooltip")}: ${RoutePanelData.IDCommaPattern}`,
+            },
+          ]}
         >
-          <Input allowClear placeholder={t("formMiddlewarePlaceholder")} />
+          <Input
+            allowClear
+            placeholder={`${t("formInputPrefix")}${t("formMiddlewareTitle")}`}
+          />
         </Form.Item>
         <Form.Item
           style={{ flex: 1 }}

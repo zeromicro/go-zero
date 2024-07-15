@@ -22,54 +22,26 @@ const RoutePanel: React.FC<
   const { t } = useTranslation();
   const routeGroupField = props.routeGroupField;
   const form = props.form;
-  const [initRequestValues, setInitRequestValues] = useState([]);
+  const [initRequestValues, setInitRequestValues] = useState([
+    {
+      path: "/your/path",
+      contentType: "application/json",
+      method: "POST",
+      requestBodyFields: [
+        {
+          name: "FieldName",
+          type: "string",
+          optional: false,
+        },
+      ],
+      responseBody: "{}",
+    },
+  ]);
   const [requestBodyModalOpen, setRequestBodyModalOpen] = useState(false);
   const [responseBodyModalOpen, setResponseBodyModalOpen] = useState(false);
   const [requestBodyParseCode, setRequestBodyParseCode] = useState("");
   const [responseCode, setResponseCode] = useState("");
   const [api, contextHolder] = notification.useNotification();
-  const [showImportButton, setShowImportButton] = useState(true);
-
-  const canChowImportButton = (routeIdx: number) => {
-    const routeGroups = form.getFieldValue(`routeGroups`);
-    if (!routeGroups) {
-      setShowImportButton(true);
-      return;
-    }
-
-    if (routeGroups.length <= routeGroupField.key) {
-      setShowImportButton(true);
-      return;
-    }
-
-    const routeGroup = routeGroups[routeGroupField.key];
-
-    if (!routeGroup) {
-      setShowImportButton(true);
-      return;
-    }
-    if (!routeGroup.routes) {
-      setShowImportButton(true);
-      return;
-    }
-
-    if (routeGroup.routes.length <= routeIdx) {
-      setShowImportButton(true);
-      return;
-    }
-
-    const route = routeGroup.routes[routeIdx];
-    if (!route) {
-      setShowImportButton(true);
-      return;
-    }
-    if (!route.requestBodyFields) {
-      setShowImportButton(true);
-      return;
-    }
-
-    setShowImportButton(route.requestBodyFields.length === 0);
-  };
   return (
     <div>
       {contextHolder}
@@ -163,7 +135,10 @@ const RoutePanel: React.FC<
         />
       </Modal>
       <Form.Item label={t("formRouteListTitle")}>
-        <Form.List name={[routeGroupField.name, "routes"]}>
+        <Form.List
+          initialValue={initRequestValues}
+          name={[routeGroupField.name, "routes"]}
+        >
           {(routeFields, routeOpt) => (
             <div
               style={{
@@ -184,9 +159,11 @@ const RoutePanel: React.FC<
                           {/*request line component*/}
                           <RequestLinePanel routeField={routeField} />
                           {/*request body*/}
-                          <Form.Item label={t("formRequestBodyTitle")}>
+                          <Form.Item
+                            tooltip={t("formRequestBodyTooltip")}
+                            label={t("formRequestBodyTitle")}
+                          >
                             <Form.List
-                              initialValue={initRequestValues}
                               name={[routeField.name, "requestBodyFields"]}
                             >
                               {(requestBodyFields, requestBodyOpt) => (
