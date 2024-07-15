@@ -1,7 +1,6 @@
 package server
 
 import (
-	"embed"
 	"fmt"
 	"net"
 	"net/http"
@@ -13,15 +12,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/open"
 )
 
-//go:embed static/*
-var assets embed.FS
-
 func Run(port int) error {
 	if port <= 0 {
 		port = 8080
 	}
 
-	ctx := svc.NewServiceContext(assets)
+	ctx := svc.NewServiceContext()
 	handler.RegisterCustomHandlers(ctx)
 
 	fmt.Printf(`serve on http://127.0.0.1:%d, goctl will automatically open the default browser and access it. 

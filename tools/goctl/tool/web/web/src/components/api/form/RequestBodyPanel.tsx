@@ -97,9 +97,9 @@ const RequestBodyPanel: React.FC<
                 if (!requestBodyFields) {
                   return;
                 }
-                data.forEach((value: ParseBodyResult) => {
-                  requestBodyFields.push(value);
-                });
+                for (let item in data) {
+                  requestBodyFields.push(item);
+                }
                 form.setFieldValue("routeGroups", routeGroups);
                 setModalOpen(false);
               },
