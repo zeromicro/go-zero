@@ -12,30 +12,54 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/open"
 )
 
+const (
+	DefaultHost  = "127.0.0.1"
+	DefaultPort  = 2000
+	networkTCP   = "tcp"
+	outputFormat = `serve on %s, goctl will automatically open the default browser and access it. 
+If it is not opened, please manually click  %s to access it.
+`
+)
+
 func Run(port int) error {
 	if port <= 0 {
-		port = 8080
+		port = DefaultPort
 	}
 
+	url := fmt.Sprintf("%s:%d", DefaultHost, port)
+	address := fmt.Sprintf("http://%s", url)
 	ctx := svc.NewServiceContext()
-	handler.RegisterCustomHandlers(ctx)
+	if err := handler.RegisterCustomHandlers(ctx); err != nil {
+		return err
+	}
 
-	fmt.Printf(`serve on http://127.0.0.1:%d, goctl will automatically open the default browser and access it. 
-If it is not opened, please manually click  http://127.0.0.1:%d to access it.
-`, port, port)
+	fmt.Printf(outputFormat, address, address)
+	// listening port and open browser.
 	threading.GoSafe(func() {
 		for {
-			time.Sleep(2 * time.Second)
-			conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+			time.Sleep(500 * time.Millisecond)
+			ok, err := ping(url)
 			if err != nil {
 				fmt.Printf("listening port failed, error: %+v\n", err)
 				break
-			} else if conn != nil {
-				_ = conn.Close()
-				_ = open.Open(fmt.Sprintf("http://127.0.0.1:%d", port))
+			} else if ok {
+				_ = open.Open(address)
 				break
 			}
 		}
 	})
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+
+	return http.ListenAndServe(fmt.Sprintf("%s:%d", DefaultHost, port), nil)
+}
+
+func ping(address string) (bool, error) {
+	conn, err := net.Dial(networkTCP, address)
+	if err != nil {
+		return false, err
+	} else if conn != nil {
+		_ = conn.Close()
+		_ = open.Open(address)
+		return true, nil
+	}
+	return false, nil
 }

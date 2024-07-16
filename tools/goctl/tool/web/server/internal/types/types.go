@@ -34,7 +34,7 @@ type FormItem struct {
 	Type         string `json:"type"`
 	Optional     bool   `json:"optional,optional,omitempty"`
 	DefaultValue string `json:"defaultValue,optional,omitempty"`
-	CheckEnum    bool   `json:"checkEnum,optional,omitempty"`
+	CheckEnum    string `json:"checkEnum,optional,omitempty,options=enum|range"`
 	EnumValue    string `json:"enumValue,optional,omitempty"`  // // effect if checkEunm is true
 	LowerBound   int64  `json:"lowerBound,optional,omitempty"` // effect if checkEunm is false
 	UpperBound   int64  `json:"upperBound,optional,omitempty"` // // effect if checkEunm is false

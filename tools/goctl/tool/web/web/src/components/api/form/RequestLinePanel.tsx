@@ -14,7 +14,6 @@ const RequestLinePanel: React.FC<
   const { t } = useTranslation();
   const routeField = props.routeField;
   const [disableContentType, setDisableContentType] = useState(false);
-  const [contentType, setContentType] = useState(ContentType.ApplicationJson);
 
   return (
     <div>
@@ -48,7 +47,6 @@ const RequestLinePanel: React.FC<
                       onSelect={(value) => {
                         if (value === Method.GET.toLowerCase()) {
                           setDisableContentType(true);
-                          setContentType(ContentType.ApplicationForm);
                         } else {
                           setDisableContentType(false);
                         }
@@ -87,7 +85,6 @@ const RequestLinePanel: React.FC<
               defaultValue={ContentType.ApplicationJson}
               options={RoutePanelData.ContentTypeOptions}
               disabled={disableContentType}
-              value={contentType}
             />
           </Form.Item>
         </Flex>

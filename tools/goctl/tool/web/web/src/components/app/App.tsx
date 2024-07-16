@@ -4,7 +4,6 @@ import {
   Button,
   Layout,
   Menu,
-  theme,
   ConfigProvider,
   Flex,
   Avatar,
@@ -26,13 +25,13 @@ import { ItemType } from "antd/es/breadcrumb/Breadcrumb";
 import logo from "../../assets/logo.svg";
 
 const { Text, Link } = Typography;
-const { Header, Sider, Content } = Layout;
+const { Sider } = Layout;
 
 const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [localeZH, setLocaleZh] = useState(false);
   const [locale, setLocale] = useState(zhCN);
   const [breadcrumbItems, setBreadcrumbItems] = useState<ItemType[]>([
@@ -160,12 +159,9 @@ const App: React.FC = () => {
           trigger={null}
           collapsible
           breakpoint={"xl"}
+          defaultChecked={true}
           onBreakpoint={(broken) => {
-            if (broken) {
-              setCollapsed(true);
-            } else {
-              setCollapsed(false);
-            }
+            setCollapsed(broken);
           }}
           collapsed={collapsed}
           theme={"light"}

@@ -23,7 +23,6 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	"time"
 )
 
 const (
@@ -114,7 +113,7 @@ func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *typ
 		}
 		if group.Timeout > 0 {
 			hasServer = true
-			server["timeout"] = (time.Duration(group.Timeout) * time.Millisecond).String()
+			server["timeout"] = fmt.Sprintf("%dms", group.Timeout)
 		}
 		if len(group.Middleware) > 0 {
 			hasServer = true
@@ -253,10 +252,13 @@ func (l *ApiGenerateLogic) generateRequestType(typeName string, json bool, form 
 	fieldWriter := bytes.NewBuffer(nil)
 	for _, item := range form {
 		fieldWriter.Reset()
-		var rangeValue string
-		if !item.CheckEnum &&
+		var rangeValue, enumValue string
+		if item.CheckEnum == "range" &&
 			item.LowerBound != item.UpperBound {
 			rangeValue = fmt.Sprintf("range=%s", formatRange(item.LowerBound, item.UpperBound))
+		}
+		if item.CheckEnum == "enum" {
+			enumValue = item.EnumValue
 		}
 		err = t.Execute(fieldWriter, map[string]any{
 			"name":         item.Name,
@@ -264,8 +266,8 @@ func (l *ApiGenerateLogic) generateRequestType(typeName string, json bool, form 
 			"json":         json,
 			"optional":     item.Optional,
 			"defaultValue": item.DefaultValue,
-			"checkEnum":    item.CheckEnum,
-			"enumValue":    item.EnumValue,
+			"checkEnum":    item.CheckEnum == "enum",
+			"enumValue":    enumValue,
 			"rangeValue":   rangeValue,
 		})
 		if err != nil {

@@ -10,11 +10,13 @@ var (
 	portFlag int
 
 	// Cmd describes a rpc command.
-	Cmd = cobrax.NewCommand("web", cobrax.WithRunE(func(command *cobra.Command, strings []string) error {
-		return server.Run(portFlag)
-	}))
+	Cmd = cobrax.NewCommand("web", cobrax.WithRunE(
+		func(command *cobra.Command, strings []string) error {
+			return server.Run(portFlag)
+		}),
+	)
 )
 
 func init() {
-	Cmd.Flags().IntVarP(&portFlag, "port", "p", 8080, "server port")
+	Cmd.Flags().IntVarP(&portFlag, "port", "p", server.DefaultPort, "server port")
 }
