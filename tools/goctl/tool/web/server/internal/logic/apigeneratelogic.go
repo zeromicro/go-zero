@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,6 +28,8 @@ import (
 const (
 	indent          = "  "
 	applicationJSON = "application/json"
+	checkTypeRange  = "range"
+	checkTypeEnum   = "enum"
 )
 
 var (
@@ -172,9 +173,7 @@ func (l *ApiGenerateLogic) generateTypes(groups []*types.APIRouteGroup) ([]strin
 			}
 		}
 		if len(groupTypes) > 0 {
-			resp = append(resp, fmt.Sprintf(`type(
-%s
-)`, strings.Join(groupTypes, "\n\n")))
+			resp = append(resp, fmt.Sprintf("type(\n%s\n)", strings.Join(groupTypes, "\n\n")))
 		}
 	}
 	return resp, nil
@@ -183,8 +182,10 @@ func (l *ApiGenerateLogic) generateTypes(groups []*types.APIRouteGroup) ([]strin
 func (l *ApiGenerateLogic) generateType(route *types.APIRoute) ([]string, error) {
 	var requestTypes []string
 	if len(route.RequestBody) > 0 {
-		postJson := strings.EqualFold(route.Method, http.MethodPost) && route.ContentType == applicationJSON
-		requestType, err := l.generateRequestType(l.generateTypeName(route, true), postJson, route.RequestBody)
+		isMethodPost := strings.EqualFold(route.Method, http.MethodPost)
+		postJson := isMethodPost && route.ContentType == applicationJSON
+		requestTypeName := l.generateTypeName(route, true)
+		requestType, err := l.generateRequestType(requestTypeName, postJson, route.RequestBody)
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +194,8 @@ func (l *ApiGenerateLogic) generateType(route *types.APIRoute) ([]string, error)
 		}
 	}
 
-	responseType, err := l.generateResponseType(l.generateTypeName(route, false), route.ResponseBody)
+	responseTypeName := l.generateTypeName(route, false)
+	responseType, err := l.generateResponseType(responseTypeName, route.ResponseBody)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +205,7 @@ func (l *ApiGenerateLogic) generateType(route *types.APIRoute) ([]string, error)
 	return requestTypes, nil
 }
 
-func (l *ApiGenerateLogic) generateRequestType(typeName string, json bool, form []*types.FormItem) (string, error) {
+func (l *ApiGenerateLogic) generateRequestType(typeName string, postJSON bool, form []*types.FormItem) (string, error) {
 	t, err := template.New("field").Funcs(map[string]any{
 		"camel": func(s string) string {
 			x := stringx.From(s)
@@ -214,37 +216,36 @@ func (l *ApiGenerateLogic) generateRequestType(typeName string, json bool, form 
 		return "", err
 	}
 
-	w := writer.New("")
+	fieldsWriter := writer.New("")
 	fieldWriter := bytes.NewBuffer(nil)
 	for _, item := range form {
 		fieldWriter.Reset()
 		var rangeValue, enumValue string
-		if item.CheckEnum == "range" &&
+		if item.CheckEnum == checkTypeRange &&
 			item.LowerBound != item.UpperBound {
-			rangeValue = fmt.Sprintf("range=%s", formatRange(item.LowerBound, item.UpperBound))
+			rangeExpr := formatRange(item.LowerBound, item.UpperBound)
+			rangeValue = fmt.Sprintf("range=%s", rangeExpr)
 		}
-		if item.CheckEnum == "enum" {
+		if item.CheckEnum == checkTypeEnum {
 			enumValue = item.EnumValue
 		}
 		err = t.Execute(fieldWriter, map[string]any{
 			"name":         item.Name,
 			"type":         item.Type,
-			"json":         json,
+			"json":         postJSON,
 			"optional":     item.Optional,
 			"defaultValue": item.DefaultValue,
-			"checkEnum":    item.CheckEnum == "enum",
+			"checkEnum":    item.CheckEnum == checkTypeEnum,
 			"enumValue":    enumValue,
 			"rangeValue":   rangeValue,
 		})
 		if err != nil {
 			return "", err
 		}
-		w.WriteStringln(fieldWriter.String())
+		fieldsWriter.WriteStringln(fieldWriter.String())
 	}
 
-	return fmt.Sprintf(`%s {
-%s
-}`, typeName, w.String()), nil
+	return fmt.Sprintf("%s {\n%s\n}", typeName, fieldsWriter.String()), nil
 }
 
 func formatRange(lowerBound, upperBound int64) string {
@@ -261,18 +262,19 @@ func (l *ApiGenerateLogic) generateResponseType(typeName, s string) (string, err
 	if util.IsEmptyStringOrWhiteSpace(s) {
 		return "", nil
 	}
+
 	var v any
-	err := json.Unmarshal([]byte(s), &v)
-	var jsonSyntaxErr *json.SyntaxError
-	if errors.As(err, &jsonSyntaxErr) {
-		return "", fmt.Errorf("invalid json, offset: %d, msg: %s", jsonSyntaxErr.Offset, jsonSyntaxErr.Error())
+	if err := jsonDecode(s, &v); err != nil {
+		return "", err
 	}
+
 	tps, _, err := json2APIType(json2APITypeReq{
 		root:        true,
 		indentCount: 1,
 		typeName:    typeName,
 		v:           v,
 	})
+
 	return tps, err
 }
 
@@ -282,14 +284,15 @@ func json2APIType(req json2APITypeReq) (tp string, externalTypes []string, err e
 	if !ok {
 		return "", nil, fmt.Errorf("input must be object, got %T", req.v)
 	}
-	sm := sortmap.From(kv)
 
-	w := writer.New(getIdent(req.indentCount))
-	w.WriteWithIndentStringf("%s {\n", typeName)
+	// ensure fields sorted stable.
+	sm := sortmap.From(kv)
+	typeWriter := writer.New(getIdent(req.indentCount))
+	typeWriter.WriteWithIndentStringf("%s {\n", typeName)
 	if len(kv) == 0 {
-		w.UndoNewLine()
-		w.Writef("}")
-		return w.String(), nil, nil
+		typeWriter.UndoNewLine()
+		typeWriter.Writef("}")
+		return typeWriter.String(), nil, nil
 	}
 
 	var externalTypeList []string
@@ -314,15 +317,15 @@ func json2APIType(req json2APITypeReq) (tp string, externalTypes []string, err e
 		return "", nil, err
 	}
 
-	w.Writef(memberWriter.String())
-	w.WriteWithIndentStringf("}")
+	typeWriter.Writef(memberWriter.String())
+	typeWriter.WriteWithIndentStringf("}")
 
 	if req.root {
-		w.NewLine()
-		w.WriteStringln(strings.Join(externalTypeList, "\n\n"))
+		typeWriter.NewLine()
+		typeWriter.WriteStringln(strings.Join(externalTypeList, "\n\n"))
 	}
 
-	return w.String(), externalTypeList, nil
+	return typeWriter.String(), externalTypeList, nil
 }
 
 func convertGoctlAPIMemberType(indentCount int, parent, key string, value any) (*goctlAPIMemberResult, error) {
