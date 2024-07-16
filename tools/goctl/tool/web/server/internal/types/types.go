@@ -32,12 +32,12 @@ type APIGenerateResponse struct {
 type FormItem struct {
 	Name         string `json:"name"`
 	Type         string `json:"type"`
-	Optional     bool   `json:"optional,omitempty"`
-	DefaultValue string `json:"defaultValue,omitempty"`
-	CheckEnum    bool   `json:"checkEnum,omitempty"`
-	EnumValue    string `json:"enumValue,omitempty"`  // // effect if checkEunm is true
-	LowerBound   int64  `json:"lowerBound,omitempty"` // effect if checkEunm is false
-	UpperBound   int64  `json:"upperBound,omitempty"` // // effect if checkEunm is false
+	Optional     bool   `json:"optional,optional,omitempty"`
+	DefaultValue string `json:"defaultValue,optional,omitempty"`
+	CheckEnum    bool   `json:"checkEnum,optional,omitempty"`
+	EnumValue    string `json:"enumValue,optional,omitempty"`  // // effect if checkEunm is true
+	LowerBound   int64  `json:"lowerBound,optional,omitempty"` // effect if checkEunm is false
+	UpperBound   int64  `json:"upperBound,optional,omitempty"` // // effect if checkEunm is false
 }
 
 type ParseJsonRequest struct {

@@ -60,5 +60,6 @@
   "btnClear": "Clear",
   "btnCopyTips": "Copied",
   "btnBuild": "Build",
-  "tooltipFullScreen": "expand to fullscreen"
+  "tooltipFullScreen": "expand to fullscreen",
+  "buildSuccess": "build success"
 }

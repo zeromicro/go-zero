@@ -1,0 +1,1 @@
+{{camel .name}} {{.type}} `{{if .json}}json{{else}}form{{end}}:"{{.name}}{{if .optional}},optional{{end}}{{if .defaultValue}},default={{.defaultValue}}{{end}}{{if .checkEnum}}{{if .enumValue}},options={{.enumValue}}{{end}}{{else}}{{.rangeValue}}{{end}}"`

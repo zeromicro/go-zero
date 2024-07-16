@@ -7,29 +7,36 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
-	"strings"
-	"text/template"
-	"time"
-
 	"github.com/iancoleman/strcase"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	sortedmap "github.com/zeromicro/go-zero/tools/goctl/pkg/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/format"
+	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/logic/sortmap"
 	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
 	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/types"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 	typex "github.com/zeromicro/go-zero/tools/goctl/util/types"
 	"github.com/zeromicro/go-zero/tools/goctl/util/writer"
+	"net/http"
+	"sort"
+	"strings"
+	"text/template"
+	"time"
 )
 
-const indent = "  "
+const (
+	indent          = "  "
+	applicationJSON = "application/json"
+)
 
 var (
 	//go:embed tpl/api.api
-	apiTemplate           string
+	apiTemplate string
+	//go:embed tpl/field.tpl
+	filedTemplate string
+
 	errMissingServiceName = errors.New("missing service name")
 	errMissingRouteGroups = errors.New("missing route groups")
 )
@@ -91,20 +98,52 @@ func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *typ
 	var data []KV
 	for _, group := range mergedReq.List {
 		var groupData = KV{}
-		groupData["jwt"] = group.Jwt
-		groupData["prefix"] = group.Prefix
-		groupData["group"] = group.Group
-		groupData["timeout"] = (time.Duration(group.Timeout) * time.Millisecond).String()
-		groupData["middleware"] = group.Middleware
-		groupData["maxBytes"] = group.MaxBytes
+		var hasServer bool
+		var server = KV{}
+		if group.Jwt {
+			hasServer = true
+			server["jwt"] = group.Jwt
+		}
+		if len(group.Prefix) > 0 {
+			hasServer = true
+			server["prefix"] = group.Prefix
+		}
+		if len(group.Group) > 0 {
+			hasServer = true
+			server["group"] = group.Group
+		}
+		if group.Timeout > 0 {
+			hasServer = true
+			server["timeout"] = (time.Duration(group.Timeout) * time.Millisecond).String()
+		}
+		if len(group.Middleware) > 0 {
+			hasServer = true
+			server["middleware"] = group.Middleware
+		}
+		if group.MaxBytes > 0 {
+			hasServer = true
+			server["maxBytes"] = group.MaxBytes
+		}
+
+		if hasServer {
+			groupData["server"] = server
+		}
+
 		var routesData []KV
 		for _, route := range group.Routes {
+			var request, response string
+			if len(route.RequestBody) > 0 {
+				request = l.generateTypeName(route, true)
+			}
+			if !util.IsEmptyStringOrWhiteSpace(route.ResponseBody) {
+				response = l.generateTypeName(route, false)
+			}
 			routesData = append(routesData, KV{
 				"handlerName": l.generateHandlerName(route),
 				"method":      strings.ToLower(route.Method),
 				"path":        route.Path,
-				"request":     l.generateTypeName(route, true),
-				"response":    l.generateTypeName(route, false),
+				"request":     request,
+				"response":    response,
 			})
 		}
 		var service = KV{
@@ -117,7 +156,6 @@ func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *typ
 	t, err := template.
 		New("api").
 		Funcs(map[string]any{
-			"join": strings.Join,
 			"lessThan": func(idx int, length int) bool {
 				return idx < length-1
 			},
@@ -131,9 +169,13 @@ func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *typ
 		return nil, err
 	}
 
+	var typeString string
+	if len(tps) > 0 {
+		typeString = strings.Join(tps, "\n\n")
+	}
 	w := bytes.NewBuffer(nil)
 	err = t.Execute(w, map[string]any{
-		"types":  tps,
+		"types":  typeString,
 		"groups": data,
 	})
 	if err != nil {
@@ -176,7 +218,8 @@ func (l *ApiGenerateLogic) generateTypes(groups []*types.APIRouteGroup) ([]strin
 func (l *ApiGenerateLogic) generateType(route *types.APIRoute) ([]string, error) {
 	var requestTypes []string
 	if len(route.RequestBody) > 0 {
-		requestType, err := l.generateRequestType(l.generateTypeName(route, true), route.RequestBody)
+		postJson := strings.EqualFold(route.Method, http.MethodPost) && route.ContentType == applicationJSON
+		requestType, err := l.generateRequestType(l.generateTypeName(route, true), postJson, route.RequestBody)
 		if err != nil {
 			return nil, err
 		}
@@ -195,12 +238,61 @@ func (l *ApiGenerateLogic) generateType(route *types.APIRoute) ([]string, error)
 	return requestTypes, nil
 }
 
-func (l *ApiGenerateLogic) generateRequestType(typeName string, form []*types.FormItem) (string, error) {
-	//TODO
-	return "", nil
+func (l *ApiGenerateLogic) generateRequestType(typeName string, json bool, form []*types.FormItem) (string, error) {
+	t, err := template.New("field").Funcs(map[string]any{
+		"camel": func(s string) string {
+			x := stringx.From(s)
+			return strings.Title(x.ToCamel())
+		},
+	}).Parse(filedTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	w := writer.New("")
+	fieldWriter := bytes.NewBuffer(nil)
+	for _, item := range form {
+		fieldWriter.Reset()
+		var rangeValue string
+		if !item.CheckEnum &&
+			item.LowerBound != item.UpperBound {
+			rangeValue = fmt.Sprintf("range=%s", formatRange(item.LowerBound, item.UpperBound))
+		}
+		err = t.Execute(fieldWriter, map[string]any{
+			"name":         item.Name,
+			"type":         item.Type,
+			"json":         json,
+			"optional":     item.Optional,
+			"defaultValue": item.DefaultValue,
+			"checkEnum":    item.CheckEnum,
+			"enumValue":    item.EnumValue,
+			"rangeValue":   rangeValue,
+		})
+		if err != nil {
+			return "", err
+		}
+		w.WriteStringln(fieldWriter.String())
+	}
+
+	return fmt.Sprintf(`%s {
+%s
+}`, typeName, w.String()), nil
+}
+
+func formatRange(lowerBound, upperBound int64) string {
+	if lowerBound == -1 {
+		return fmt.Sprintf("[:%d]", upperBound)
+	}
+	if upperBound == -1 {
+		return fmt.Sprintf("[%d:]", lowerBound)
+	}
+	return fmt.Sprintf("[%d:%d]", lowerBound, upperBound)
 }
 
 func (l *ApiGenerateLogic) generateResponseType(typeName, s string) (string, error) {
+	if util.IsEmptyStringOrWhiteSpace(s) {
+		return "", nil
+	}
 	var v any
 	err := json.Unmarshal([]byte(s), &v)
 	var jsonSyntaxErr *json.SyntaxError
@@ -222,6 +314,7 @@ func json2APIType(req json2APITypeReq) (tp string, externalTypes []string, err e
 	if !ok {
 		return "", nil, fmt.Errorf("input must be object, got %T", req.v)
 	}
+	sm := sortmap.From(kv)
 
 	w := writer.New(getIdent(req.indentCount))
 	w.WriteWithIndentStringf("%s {\n", typeName)
@@ -233,10 +326,10 @@ func json2APIType(req json2APITypeReq) (tp string, externalTypes []string, err e
 
 	var externalTypeList []string
 	memberWriter := writer.New(getIdent(req.indentCount + 1))
-	for key, value := range kv {
+	err = sm.Range(func(_ int, key string, value any) error {
 		result, err := convertGoctlAPIMemberType(req.indentCount+1, typeName, key, value)
 		if err != nil {
-			return "", nil, err
+			return err
 		}
 		externalTypeList = append(externalTypeList, result.ExternalTypeExpr...)
 		if result.IsStruct {
@@ -247,7 +340,10 @@ func json2APIType(req json2APITypeReq) (tp string, externalTypes []string, err e
 		} else {
 			memberWriter.WriteWithIndentStringf("%s %s `json:\"%s\"`\n", strcase.ToCamel(key), result.TypeName, key)
 		}
-
+		return nil
+	})
+	if err != nil {
+		return "", nil, err
 	}
 
 	w.Writef(memberWriter.String())
@@ -372,13 +468,13 @@ func (l *ApiGenerateLogic) generateTypeName(route *types.APIRoute, req bool) str
 
 func (l *ApiGenerateLogic) generateHandlerName(route *types.APIRoute) string {
 	if len(route.Handler) > 0 {
-		return route.Handler
+		return strings.Title(route.Handler)
 	}
 	if route.Path == "/" {
 		return "Default"
 	}
 
-	r := strings.NewReplacer("/", "_", ":", "By")
+	r := strings.NewReplacer("/", "_", ":", "by_")
 	formatedPath := r.Replace(route.Path)
 	s := stringx.From(route.Method + "_" + formatedPath)
 	return strings.Title(s.ToCamel())
@@ -507,5 +603,8 @@ func (l *ApiGenerateLogic) validateAPIGenerateRequest(req *types.APIGenerateRequ
 		}
 	}
 
+	if len(err) == 0 {
+		return nil
+	}
 	return errors.New(strings.Join(err, "\n"))
 }

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Col, Flex, Form, Input, Row, Select } from "antd";
+import { Flex, Form, Input, Select } from "antd";
 import { FormListFieldData } from "antd/es/form/FormList";
 import { useTranslation } from "react-i18next";
-import { RoutePanelData, Method, ContentType } from "./_defaultProps";
+import { ContentType, Method, RoutePanelData } from "./_defaultProps";
 
 interface RequestLinePanelProps {
   routeField: FormListFieldData;
@@ -13,6 +13,8 @@ const RequestLinePanel: React.FC<
 > = (props) => {
   const { t } = useTranslation();
   const routeField = props.routeField;
+  const [disableContentType, setDisableContentType] = useState(false);
+  const [contentType, setContentType] = useState(ContentType.ApplicationJson);
 
   return (
     <div>
@@ -43,6 +45,14 @@ const RequestLinePanel: React.FC<
                       style={{ width: 100 }}
                       defaultValue={Method.POST}
                       options={RoutePanelData.MethodOptions}
+                      onSelect={(value) => {
+                        if (value === Method.GET.toLowerCase()) {
+                          setDisableContentType(true);
+                          setContentType(ContentType.ApplicationForm);
+                        } else {
+                          setDisableContentType(false);
+                        }
+                      }}
                     />
                   </Form.Item>
                 </div>
@@ -76,6 +86,8 @@ const RequestLinePanel: React.FC<
             <Select
               defaultValue={ContentType.ApplicationJson}
               options={RoutePanelData.ContentTypeOptions}
+              disabled={disableContentType}
+              value={contentType}
             />
           </Form.Item>
         </Flex>

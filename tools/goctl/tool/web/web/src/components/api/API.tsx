@@ -13,8 +13,7 @@ const App: React.FC = () => {
         <div className={"api-form-panel"}>
           <FormPanel
             onBuild={(data) => {
-              const js = JSON.stringify(data);
-              setCode(js);
+              setCode(data);
             }}
           />
         </div>

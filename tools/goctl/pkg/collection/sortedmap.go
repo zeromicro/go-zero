@@ -155,6 +155,18 @@ func (m *SortedMap) Range(iterator func(key, value any)) {
 		next = next.Next()
 	}
 }
+func (m *SortedMap) RangeErr(iterator func(key, value any) error) error {
+	next := m.kv.Front()
+	for next != nil {
+		value := next.Value.(KV)
+		err := iterator(value[0], value[1])
+		if err != nil {
+			return err
+		}
+		next = next.Next()
+	}
+	return nil
+}
 
 func (m *SortedMap) RangeIf(iterator func(key, value any) bool) {
 	next := m.kv.Front()

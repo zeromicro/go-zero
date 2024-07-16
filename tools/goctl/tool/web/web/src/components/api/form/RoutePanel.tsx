@@ -7,6 +7,7 @@ import type { FormInstance } from "antd/es/form/hooks/useForm";
 import RequestLinePanel from "./RequestLinePanel";
 import RequestBodyPanel from "./RequestBodyPanel";
 import CodeMirrorPanel from "./CodeMirrorPanel";
+import { RoutePanelData, Method } from "./_defaultProps";
 
 interface RoutePanelProps {
   routeGroupField: FormListFieldData;
@@ -23,7 +24,7 @@ const RoutePanel: React.FC<
     {
       path: "",
       contentType: "application/json",
-      method: "POST",
+      method: Method.POST.toLowerCase(),
       requestBodyFields: [
         {
           name: "",

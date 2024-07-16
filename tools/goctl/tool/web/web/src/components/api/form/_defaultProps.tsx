@@ -194,39 +194,39 @@ export const RoutePanelData = {
   ],
   MethodOptions: [
     {
-      value: Method.GET,
+      value: Method.GET.toLowerCase(),
       label: Method.GET,
     },
     {
-      value: Method.HEAD,
+      value: Method.HEAD.toLowerCase(),
       label: Method.HEAD,
     },
     {
-      value: Method.POST,
+      value: Method.POST.toLowerCase(),
       label: Method.POST,
     },
     {
-      value: Method.PUT,
+      value: Method.PUT.toLowerCase(),
       label: Method.PUT,
     },
     {
-      value: Method.PATCH,
+      value: Method.PATCH.toLowerCase(),
       label: Method.PATCH,
     },
     {
-      value: Method.DELETE,
+      value: Method.DELETE.toLowerCase(),
       label: Method.DELETE,
     },
     {
-      value: Method.CONNECT,
+      value: Method.CONNECT.toLowerCase(),
       label: Method.CONNECT,
     },
     {
-      value: Method.OPTIONS,
+      value: Method.OPTIONS.toLowerCase(),
       label: Method.OPTIONS,
     },
     {
-      value: Method.TRACE,
+      value: Method.TRACE.toLowerCase(),
       label: Method.TRACE,
     },
   ],

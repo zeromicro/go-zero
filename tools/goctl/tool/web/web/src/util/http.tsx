@@ -2,10 +2,15 @@ import axios from "axios";
 
 const Paths = {
   ParseBodyPath: "/api/request/body/parse",
+  APIBuildPath: "/api/generate",
 };
 
 export type ParseBodyResult = {
   form: ParseBodyForm[];
+};
+
+export type APIBuildResult = {
+  api: string;
 };
 
 export type ParseBodyForm = {
@@ -39,7 +44,7 @@ function postJSON<T>(
     })
     .catch((err) => {
       console.log(err);
-      callback(err.toString());
+      catchError(err.toString());
     });
 }
 
@@ -56,6 +61,20 @@ export const Http = {
       },
       (data) => {
         callback(data.form);
+      },
+      catchError,
+    );
+  },
+  Build: (
+    param: any,
+    callback: (data: string) => void,
+    catchError: (err: string) => void,
+  ) => {
+    postJSON<APIBuildResult>(
+      Paths.APIBuildPath,
+      param,
+      (data) => {
+        callback(data.api);
       },
       catchError,
     );

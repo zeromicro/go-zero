@@ -60,5 +60,6 @@
   "btnClear": "清空",
   "btnCopyTips": "复制成功",
   "btnBuild": "开始转换",
-  "tooltipFullScreen": "展开全屏"
+  "tooltipFullScreen": "展开全屏",
+  "buildSuccess": "转换成功"
 }

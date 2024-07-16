@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next";
 import "./FormPanel.css";
 import RouteGroupPanel from "./RouteGroupPanel";
 import { ConverterIcon } from "../../../util/icon";
+import { Http } from "../../../util/http";
 import { FormInstance } from "rc-field-form/es/interface";
 import { RoutePanelData } from "./_defaultProps";
 
 const { Title } = Typography;
 
 interface FormPanelProps {
-  onBuild?: (data: FormInstance) => void;
+  onBuild?: (data: string) => void;
 }
 
 const FormPanel: React.FC<FormPanelProps> = (props) => {
@@ -20,13 +21,24 @@ const FormPanel: React.FC<FormPanelProps> = (props) => {
   const [form] = Form.useForm();
   const onBuild = () => {
     const obj = form.getFieldsValue();
-    if (props.onBuild) {
-      props.onBuild(obj);
-    }
-    api.open({
-      type: "success",
-      content: "转换成功",
-    });
+    Http.Build(
+      obj,
+      (data) => {
+        if (props.onBuild) {
+          props.onBuild(data);
+        }
+        api.open({
+          type: "success",
+          content: t("buildSuccess"),
+        });
+      },
+      (err) => {
+        api.open({
+          type: "error",
+          content: err,
+        });
+      },
+    );
   };
   return (
     <Flex vertical className={"form-panel"} flex={1}>
