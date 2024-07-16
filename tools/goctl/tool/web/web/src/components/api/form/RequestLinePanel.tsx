@@ -13,52 +13,72 @@ const RequestLinePanel: React.FC<
 > = (props) => {
   const { t } = useTranslation();
   const routeField = props.routeField;
-  const [initRequestValues, setInitRequestValues] = useState([]);
 
   return (
     <div>
-      <Flex gap={16} wrap>
-        <Form.Item
-          style={{ flex: "0.75" }}
-          label={t("formPathTitle")}
-          name={[routeField.name, "path"]}
-          rules={[
-            {
-              required: true,
-              message: `${t("formInputPrefix")}${t("formPathTitle")}`,
-            },
-            {
-              pattern: RoutePanelData.PathPattern,
-              message: `${t("formPathTitle")}${t("formRegexTooltip")}: ${RoutePanelData.PathPattern}`,
-            },
-          ]}
-        >
-          <Input
-            placeholder={`${t("formInputPrefix")}${t("formPathTitle")}`}
-            allowClear
-            addonBefore={
-              <div>
-                <Form.Item noStyle name={[routeField.name, "method"]}>
-                  <Select
-                    style={{ width: 100 }}
-                    defaultValue={Method.POST}
-                    options={RoutePanelData.MethodOptions}
-                  />
-                </Form.Item>
-              </div>
-            }
-          />
-        </Form.Item>
-        <Form.Item
-          style={{ flex: "0.25" }}
-          label={t("formContentTypeTitle")}
-          name={[routeField.name, "contentType"]}
-        >
-          <Select
-            defaultValue={ContentType.ApplicationJson}
-            options={RoutePanelData.ContentTypeOptions}
-          />
-        </Form.Item>
+      <Flex vertical wrap>
+        <Flex gap={16} wrap>
+          <Form.Item
+            style={{ flex: 1 }}
+            label={t("formPathTitle")}
+            name={[routeField.name, "path"]}
+            rules={[
+              {
+                required: true,
+                message: `${t("formInputPrefix")}${t("formPathTitle")}`,
+              },
+              {
+                pattern: RoutePanelData.PathPattern,
+                message: `${t("formPathTitle")}${t("formRegexTooltip")}: ${RoutePanelData.PathPattern}`,
+              },
+            ]}
+          >
+            <Input
+              placeholder={`${t("formInputPrefix")}${t("formPathTitle")}`}
+              allowClear
+              addonBefore={
+                <div>
+                  <Form.Item noStyle name={[routeField.name, "method"]}>
+                    <Select
+                      style={{ width: 100 }}
+                      defaultValue={Method.POST}
+                      options={RoutePanelData.MethodOptions}
+                    />
+                  </Form.Item>
+                </div>
+              }
+            />
+          </Form.Item>
+        </Flex>
+        <Flex gap={8} wrap>
+          <Form.Item
+            style={{ flex: "0.75" }}
+            label={t("formHandlerTitle")}
+            name={[routeField.name, "handler"]}
+            tooltip={t("formHandlerTooltip")}
+            rules={[
+              {
+                pattern: RoutePanelData.IDPattern,
+                message: `${t("formHandlerTitle")}${t("formRegexTooltip")}: ${RoutePanelData.IDPattern}`,
+              },
+            ]}
+          >
+            <Input
+              placeholder={`${t("formInputPrefix")}${t("formHandlerTitle")}`}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item
+            style={{ flex: "0.25" }}
+            label={t("formContentTypeTitle")}
+            name={[routeField.name, "contentType"]}
+          >
+            <Select
+              defaultValue={ContentType.ApplicationJson}
+              options={RoutePanelData.ContentTypeOptions}
+            />
+          </Form.Item>
+        </Flex>
       </Flex>
     </div>
   );

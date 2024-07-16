@@ -21,17 +21,17 @@ const RoutePanel: React.FC<
   const form = props.form;
   const [initRequestValues, setInitRequestValues] = useState([
     {
-      path: "/your/path",
+      path: "",
       contentType: "application/json",
       method: "POST",
       requestBodyFields: [
         {
-          name: "FieldName",
-          type: "string",
+          name: "",
+          type: "",
           optional: false,
         },
       ],
-      responseBody: "{}",
+      responseBody: "",
     },
   ]);
   const [responseCode, setResponseCode] = useState("");

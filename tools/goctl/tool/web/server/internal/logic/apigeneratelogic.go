@@ -23,7 +23,7 @@ func NewApiGenerateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ApiGe
 }
 
 func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *types.APIGenerateResponse, err error) {
-	// todo: add your logic here and delete this line
+
 
 	return
 }

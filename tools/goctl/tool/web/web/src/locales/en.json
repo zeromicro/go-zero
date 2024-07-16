@@ -27,6 +27,8 @@
   "formMaxByteTitle": "MaxBytes",
   "formMethodTitle": "Method",
   "formPathTitle": "Path",
+  "formHandlerTitle": "HandlerName",
+  "formHandlerTooltip": "The handler name is used to generate the function name when the code is generated. If not, it will be calculated and generated according to the request method and request path value fields",
   "formRequestBodyTitle": "RequestBody",
   "formRequestBodySettings": "Settings",
   "formRequestBodyTooltip": "The request field below is not a request for data in the form of a post form, but a constructor for building the goctl API. Please do not confuse it with the post form. Deleting all request fields means there is no request body.",

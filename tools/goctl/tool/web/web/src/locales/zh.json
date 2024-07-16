@@ -26,6 +26,8 @@
   "formMiddlewareTitle": "中间件名称",
   "formMaxByteTitle": "MaxBytes",
   "formMethodTitle": "请求方法",
+  "formHandlerTitle": "handler 名称",
+  "formHandlerTooltip": "handler 名称用于生成代码时的函数名称，如果不填则会根据请求方法和请求路径值字段计算生成",
   "formPathTitle": "请求路径",
   "formRequestBodyTitle": "请求体",
   "formRequestBodySettings": "更多配置项",
