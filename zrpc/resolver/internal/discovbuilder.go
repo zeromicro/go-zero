@@ -22,8 +22,9 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ 
 	}
 
 	update := func() {
-		var addrs []resolver.Address
-		for _, val := range subset(sub.Values(), subsetSize) {
+		vals := subset(sub.Values(), subsetSize)
+		addrs := make([]resolver.Address, 0, len(vals))
+		for _, val := range vals {
 			addrs = append(addrs, resolver.Address{
 				Addr: val,
 			})
