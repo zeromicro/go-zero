@@ -14,7 +14,7 @@ syntax = "v1"
     {{if .maxBytes}}maxBytes: {{.maxBytes}}{{end}}
 ){{end}}
 {{/*generate service block*/}}
-{{with $group}}service {{.name}}{
+{{with $group.service}}service {{.name}}{
 {{ $routes := .routes}} {{/*define a variable to block the follows range block*/}}
 {{range $idx, $route : = .routes}}{{with $route}}{{/*releace $route to dot*/}}
     @handler {{.handlerName}}

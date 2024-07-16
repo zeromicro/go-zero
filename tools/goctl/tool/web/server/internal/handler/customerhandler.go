@@ -2,13 +2,14 @@ package handler
 
 import (
 	"embed"
-	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/zeromicro/go-zero/tools/goctl/tool/web/server/internal/svc"
 )
 
 //go:embed public/*
