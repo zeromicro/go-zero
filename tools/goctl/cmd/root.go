@@ -3,7 +3,6 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/tool"
 	"os"
 	"runtime"
 	"strings"
@@ -24,6 +23,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/model"
 	"github.com/zeromicro/go-zero/tools/goctl/quickstart"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc"
+	"github.com/zeromicro/go-zero/tools/goctl/tool"
 	"github.com/zeromicro/go-zero/tools/goctl/tpl"
 	"github.com/zeromicro/go-zero/tools/goctl/upgrade"
 )
