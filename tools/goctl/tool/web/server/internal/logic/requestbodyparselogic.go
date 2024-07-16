@@ -3,7 +3,6 @@ package logic
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -16,11 +15,12 @@ import (
 )
 
 const (
-	typeInterface = "interface{}"
-	typeInt64     = "int64"
-	typeFloat64   = "float64"
-	typeString    = "string"
-	prefixSlice   = "[]"
+	typeInterface  = "interface{}"
+	typeInt64      = "int64"
+	typeFloat64    = "float64"
+	typeString     = "string"
+	prefixSlice    = "[]"
+	typeJSONNumber = "json.Number"
 )
 
 type RequestBodyParseLogic struct {
@@ -43,6 +43,7 @@ func (l *RequestBodyParseLogic) RequestBodyParse(req *types.ParseJsonRequest) (r
 	if err != nil {
 		return nil, err
 	}
+
 	resp.Form = data
 	return resp, nil
 }
@@ -51,16 +52,9 @@ func parseJSON(s string) ([]*types.FormItem, error) {
 	if util.IsEmptyStringOrWhiteSpace(s) {
 		return []*types.FormItem{}, nil
 	}
+
 	var v any
-	encoder := json.NewDecoder(strings.NewReader(s))
-	encoder.UseNumber()
-	err := encoder.Decode(&v)
-	if err != nil {
-		var syntaxErr *json.SyntaxError
-		ok := errors.As(err, &syntaxErr)
-		if ok {
-			return nil, fmt.Errorf("offset: %d, error: %s", syntaxErr.Offset, syntaxErr.Error())
-		}
+	if err := jsonDecode(s, &v); err != nil {
 		return nil, err
 	}
 
@@ -75,12 +69,14 @@ func parseJSON(s string) ([]*types.FormItem, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		resp = append(resp, &types.FormItem{
 			Name:     fieldName,
 			Type:     tp,
 			Optional: false,
 		})
 	}
+
 	sort.SliceStable(resp, func(i, j int) bool {
 		return resp[i].Name < resp[j].Name
 	})
@@ -94,7 +90,7 @@ func parseType(childName string, v any) (string, error) {
 	}
 
 	switch {
-	case tp.String() == "json.Number":
+	case tp.String() == typeJSONNumber:
 		number := v.(json.Number)
 		_, err := number.Int64()
 		if err == nil {
@@ -107,17 +103,20 @@ func parseType(childName string, v any) (string, error) {
 		}
 
 		return typeString, nil
-	case tp.Kind() >= reflect.Bool && tp.Kind() <= reflect.Float64, tp.Kind() == reflect.String:
+	case tp.Kind() >= reflect.Bool && tp.Kind() <= reflect.Float64,
+		tp.Kind() == reflect.String:
 		return tp.String(), nil
 	case tp.Kind() == reflect.Slice:
 		slice := v.([]any)
 		if len(slice) == 0 {
 			return prefixSlice + typeInterface, nil
 		}
+
 		elemType, err := parseType(childName, slice[0])
 		if err != nil {
 			return "", err
 		}
+
 		if strings.HasPrefix(elemType, prefixSlice) {
 			return "", fmt.Errorf("child %q, slice item must be basic type, but got %s", childName, elemType)
 		}

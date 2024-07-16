@@ -7,6 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"sort"
+	"strings"
+	"text/template"
+
 	"github.com/iancoleman/strcase"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -19,10 +24,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 	typex "github.com/zeromicro/go-zero/tools/goctl/util/types"
 	"github.com/zeromicro/go-zero/tools/goctl/util/writer"
-	"net/http"
-	"sort"
-	"strings"
-	"text/template"
 )
 
 const (
@@ -40,46 +41,11 @@ var (
 	errMissingRouteGroups = errors.New("missing route groups")
 )
 
-type (
-	ApiGenerateLogic struct {
-		logx.Logger
-		ctx    context.Context
-		svcCtx *svc.ServiceContext
-	}
-
-	RouteGroup struct {
-		Jwt        bool
-		Prefix     string
-		Group      string
-		Timeout    int
-		Middleware string
-		MaxBytes   int64
-	}
-
-	APIRoute struct {
-		Handler     string
-		Method      string
-		Path        string
-		ContentType string
-	}
-
-	json2APITypeReq struct {
-		root           bool
-		indentCount    int
-		parentTypeName string
-		typeName       string
-		v              any
-	}
-
-	goctlAPIMemberResult struct {
-		TypeExpr         string
-		TypeName         string
-		IsStruct         bool
-		IsArray          bool
-		ExternalTypeExpr []string
-	}
-	KV map[string]any
-)
+type ApiGenerateLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
 
 func NewApiGenerateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ApiGenerateLogic {
 	return &ApiGenerateLogic{
@@ -152,13 +118,12 @@ func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *typ
 		groupData["service"] = service
 		data = append(data, groupData)
 	}
-	t, err := template.
-		New("api").
-		Funcs(map[string]any{
-			"lessThan": func(idx int, length int) bool {
-				return idx < length-1
-			},
-		}).Parse(apiTemplate)
+
+	t, err := template.New("api").Funcs(map[string]any{
+		"lessThan": func(idx int, length int) bool {
+			return idx < length-1
+		},
+	}).Parse(apiTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +137,7 @@ func (l *ApiGenerateLogic) ApiGenerate(req *types.APIGenerateRequest) (resp *typ
 	if len(tps) > 0 {
 		typeString = strings.Join(tps, "\n\n")
 	}
+
 	w := bytes.NewBuffer(nil)
 	err = t.Execute(w, map[string]any{
 		"types":  typeString,
@@ -594,12 +560,14 @@ func (l *ApiGenerateLogic) validateAPIGenerateRequest(req *types.APIGenerateRequ
 				handlerUniqueValue = fmt.Sprintf("group[%d]/%s", idx, route.Handler)
 				routeUniqueValue = fmt.Sprintf("group[%d]/%s:%s/%s", idx, route.Method, group.Prefix, route.Path)
 			}
+
 			if _, ok := handlerDuplicateCheck[handlerUniqueValue]; ok {
 				err = append(err, fmt.Sprintf("duplicate handler: %q", handlerUniqueValue))
 			}
 			if _, ok := routeDuplicateCheck[routeUniqueValue]; ok {
 				err = append(err, fmt.Sprintf("duplicate route: %q", routeUniqueValue))
 			}
+
 			handlerDuplicateCheck[handlerUniqueValue] = lang.Placeholder
 			routeDuplicateCheck[routeUniqueValue] = lang.Placeholder
 		}
@@ -608,5 +576,6 @@ func (l *ApiGenerateLogic) validateAPIGenerateRequest(req *types.APIGenerateRequ
 	if len(err) == 0 {
 		return nil
 	}
+
 	return errors.New(strings.Join(err, "\n"))
 }
