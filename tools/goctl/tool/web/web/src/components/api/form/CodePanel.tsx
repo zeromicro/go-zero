@@ -7,6 +7,7 @@ import "./CodePanel.css";
 import { useTranslation } from "react-i18next";
 import { CopyOutlined, DeleteOutlined } from "@ant-design/icons";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { StreamLanguage, StringStream } from "@codemirror/stream-parser";
 
 const { Title } = Typography;
 

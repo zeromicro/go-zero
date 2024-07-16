@@ -23,15 +23,8 @@ const RoutePanel: React.FC<
   const [initRequestValues, setInitRequestValues] = useState([
     {
       path: "",
-      contentType: "application/json",
       method: Method.POST.toLowerCase(),
-      requestBodyFields: [
-        {
-          name: "",
-          type: "",
-          optional: false,
-        },
-      ],
+      requestBodyFields: [],
       responseBody: "",
     },
   ]);

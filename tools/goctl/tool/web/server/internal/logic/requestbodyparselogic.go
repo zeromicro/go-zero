@@ -21,6 +21,7 @@ const (
 	typeString     = "string"
 	prefixSlice    = "[]"
 	typeJSONNumber = "json.Number"
+	typeBool       = "bool"
 )
 
 type RequestBodyParseLogic struct {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -264,7 +265,7 @@ func (l *ApiGenerateLogic) generateResponseType(typeName, s string) (string, err
 	}
 
 	var v any
-	if err := jsonDecode(s, &v); err != nil {
+	if err := json.Unmarshal([]byte(s), &v); err != nil {
 		return "", err
 	}
 
@@ -332,24 +333,28 @@ func convertGoctlAPIMemberType(indentCount int, parent, key string, value any) (
 	resp := new(goctlAPIMemberResult)
 	switch {
 	case typex.IsInteger(value):
-		resp.TypeExpr = "int64"
-		resp.TypeName = "int64"
+		resp.TypeExpr = typeInt64
+		resp.TypeName = typeInt64
 		return resp, nil
 	case typex.IsFloat(value):
-		resp.TypeExpr = "double"
-		resp.TypeName = "double"
+		resp.TypeExpr = typeFloat64
+		resp.TypeName = typeFloat64
 		return resp, nil
 	case typex.IsBool(value):
-		resp.TypeExpr = "bool"
-		resp.TypeName = "bool"
+		resp.TypeExpr = typeBool
+		resp.TypeName = typeBool
 		return resp, nil
 	case typex.IsTime(value):
-		resp.TypeExpr = "string"
-		resp.TypeName = "string"
+		resp.TypeExpr = typeString
+		resp.TypeName = typeString
 		return resp, nil
 	case typex.IsString(value):
-		resp.TypeExpr = "string"
-		resp.TypeName = "string"
+		resp.TypeExpr = typeString
+		resp.TypeName = typeString
+		return resp, nil
+	case typex.IsNil(value):
+		resp.TypeExpr = typeInterface
+		resp.TypeName = typeInterface
 		return resp, nil
 	default:
 		_, ok := value.(map[string]any)

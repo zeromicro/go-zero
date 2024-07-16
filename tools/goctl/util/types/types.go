@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -40,4 +41,9 @@ func IsTime(v any) bool {
 func IsString(v any) bool {
 	_, ok := v.(string)
 	return ok
+}
+
+func IsNil(v any) bool {
+	tp := reflect.TypeOf(v)
+	return tp == nil
 }
