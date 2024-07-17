@@ -2,8 +2,10 @@ package rest
 
 import (
 	"crypto/tls"
+	"embed"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,6 +21,11 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
 	"github.com/zeromicro/go-zero/rest/router"
+)
+
+const (
+	exampleContent = "example content"
+	sampleContent  = "sample content"
 )
 
 func TestNewServer(t *testing.T) {
@@ -199,7 +206,7 @@ func TestWithFileServerMiddleware(t *testing.T) {
 			dir:             "./testdata",
 			requestPath:     "/assets/example.txt",
 			expectedStatus:  http.StatusOK,
-			expectedContent: "example content",
+			expectedContent: exampleContent,
 		},
 		{
 			name:           "Pass through non-matching path",
@@ -214,13 +221,13 @@ func TestWithFileServerMiddleware(t *testing.T) {
 			dir:             "testdata",
 			requestPath:     "/static/sample.txt",
 			expectedStatus:  http.StatusOK,
-			expectedContent: "sample content",
+			expectedContent: sampleContent,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := MustNewServer(RestConf{}, WithFileServer(tt.path, tt.dir))
+			server := MustNewServer(RestConf{}, WithFileServer(tt.path, http.Dir(tt.dir)))
 			req := httptest.NewRequest(http.MethodGet, tt.requestPath, nil)
 			rr := httptest.NewRecorder()
 
@@ -687,4 +694,19 @@ Port: 54321
 			assert.Equal(t, test.code, w.Code)
 		})
 	}
+}
+
+//go:embed testdata
+var content embed.FS
+
+func TestServerEmbedFileSystem(t *testing.T) {
+	filesys, err := fs.Sub(content, "testdata")
+	assert.NoError(t, err)
+
+	server := MustNewServer(RestConf{}, WithFileServer("/assets", http.FS(filesys)))
+	req, err := http.NewRequest(http.MethodGet, "/assets/sample.txt", http.NoBody)
+	assert.Nil(t, err)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	assert.Equal(t, sampleContent, rr.Body.String())
 }
