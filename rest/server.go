@@ -172,9 +172,9 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 }
 
 // WithFileServer returns a RunOption to serve files from given dir with given path.
-func WithFileServer(path, dir string) RunOption {
+func WithFileServer(path string, fs http.FileSystem) RunOption {
 	return func(server *Server) {
-		server.router = newFileServingRouter(server.router, path, dir)
+		server.router = newFileServingRouter(server.router, path, fs)
 	}
 }
 
@@ -351,10 +351,10 @@ type fileServingRouter struct {
 	middleware Middleware
 }
 
-func newFileServingRouter(router httpx.Router, path, dir string) httpx.Router {
+func newFileServingRouter(router httpx.Router, path string, fs http.FileSystem) httpx.Router {
 	return &fileServingRouter{
 		Router:     router,
-		middleware: fileserver.Middleware(path, dir),
+		middleware: fileserver.Middleware(path, fs),
 	}
 }
 

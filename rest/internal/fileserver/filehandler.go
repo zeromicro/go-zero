@@ -5,8 +5,9 @@ import (
 	"strings"
 )
 
-func Middleware(path, dir string) func(http.HandlerFunc) http.HandlerFunc {
-	fileServer := http.FileServer(http.Dir(dir))
+// Middleware returns a middleware that serves files from the given file system.
+func Middleware(path string, fs http.FileSystem) func(http.HandlerFunc) http.HandlerFunc {
+	fileServer := http.FileServer(fs)
 	pathWithTrailSlash := ensureTrailingSlash(path)
 	pathWithoutTrailSlash := ensureNoTrailingSlash(path)
 
