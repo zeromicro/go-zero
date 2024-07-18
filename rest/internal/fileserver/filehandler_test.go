@@ -30,7 +30,7 @@ func TestMiddleware(t *testing.T) {
 			path:           "/static/",
 			dir:            "./testdata",
 			requestPath:    "/other/path",
-			expectedStatus: http.StatusNotFound,
+			expectedStatus: http.StatusAlreadyReported,
 		},
 		{
 			name:            "Directory with trailing slash",
@@ -40,25 +40,48 @@ func TestMiddleware(t *testing.T) {
 			expectedStatus:  http.StatusOK,
 			expectedContent: "2",
 		},
+		{
+			name:           "Not exist file",
+			path:           "/assets",
+			dir:            "testdata",
+			requestPath:    "/assets/not-exist.txt",
+			expectedStatus: http.StatusAlreadyReported,
+		},
+		{
+			name:           "Not exist file in root",
+			path:           "/",
+			dir:            "testdata",
+			requestPath:    "/not-exist.txt",
+			expectedStatus: http.StatusAlreadyReported,
+		},
+		{
+			name:           "websocket request",
+			path:           "/",
+			dir:            "testdata",
+			requestPath:    "/ws",
+			expectedStatus: http.StatusAlreadyReported,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			middleware := Middleware(tt.path, http.Dir(tt.dir))
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusNotFound)
+				w.WriteHeader(http.StatusAlreadyReported)
 			})
 
 			handlerToTest := middleware(nextHandler)
 
-			req := httptest.NewRequest("GET", tt.requestPath, nil)
-			rr := httptest.NewRecorder()
+			for i := 0; i < 2; i++ {
+				req := httptest.NewRequest(http.MethodGet, tt.requestPath, nil)
+				rr := httptest.NewRecorder()
 
-			handlerToTest.ServeHTTP(rr, req)
+				handlerToTest.ServeHTTP(rr, req)
 
-			assert.Equal(t, tt.expectedStatus, rr.Code)
-			if len(tt.expectedContent) > 0 {
-				assert.Equal(t, tt.expectedContent, rr.Body.String())
+				assert.Equal(t, tt.expectedStatus, rr.Code)
+				if len(tt.expectedContent) > 0 {
+					assert.Equal(t, tt.expectedContent, rr.Body.String())
+				}
 			}
 		})
 	}
