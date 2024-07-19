@@ -98,11 +98,12 @@ func GetGoctlHome() (home string, err error) {
 
 // GetDefaultGoctlHome returns the path value of the goctl home where Join $HOME with .goctl.
 func GetDefaultGoctlHome() (string, error) {
+	var goctlHomeDir = goctlDir
 	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
+	if err == nil {
+		goctlHomeDir = filepath.Join(home, goctlDir)
 	}
-	goctlHomeDir := filepath.Join(home, goctlDir)
+
 	_ = MkdirIfNotExist(goctlHomeDir)
 	return goctlHomeDir, nil
 }
