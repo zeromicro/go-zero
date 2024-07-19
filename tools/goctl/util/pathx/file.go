@@ -98,8 +98,8 @@ func GetGoctlHome() (home string, err error) {
 
 // GetDefaultGoctlHome returns the path value of the goctl home where Join $HOME with .goctl.
 func GetDefaultGoctlHome() (string, error) {
-	home, err := os.UserHomeDir()
 	var goctlHomeDir = goctlDir
+	home, err := os.UserHomeDir()
 	if err == nil {
 		goctlHomeDir = filepath.Join(home, goctlDir)
 	}
