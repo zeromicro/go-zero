@@ -61,25 +61,26 @@ func lastLine(filename string, file *os.File) (string, error) {
 		return "", err
 	}
 
-	bf := int64(bufSize)
 	var last []byte
+	bufLen := int64(bufSize)
 	offset := info.Size()
-	for {
-		if offset < bufSize {
-			bf = offset
+
+	for offset > 0 {
+		if offset < bufLen {
+			bufLen = offset
 			offset = 0
 		} else {
-			offset -= bf
+			offset -= bufLen
 		}
 
-		buf := make([]byte, bf)
+		buf := make([]byte, bufLen)
 		n, err := file.ReadAt(buf, offset)
 		if err != nil && err != io.EOF {
 			return "", err
 		}
 
 		if n == 0 {
-			return "", nil
+			break
 		}
 
 		if buf[n-1] == '\n' {
@@ -89,16 +90,14 @@ func lastLine(filename string, file *os.File) (string, error) {
 			buf = buf[:n]
 		}
 
-		for n--; n >= 0; n-- {
-			if buf[n] == '\n' {
-				return string(append(buf[n+1:], last...)), nil
+		for i := n - 1; i >= 0; i-- {
+			if buf[i] == '\n' {
+				return string(append(buf[i+1:], last...)), nil
 			}
 		}
 
 		last = append(buf, last...)
-
-		if offset == 0 {
-			return string(last), nil
-		}
 	}
+
+	return string(last), nil
 }
