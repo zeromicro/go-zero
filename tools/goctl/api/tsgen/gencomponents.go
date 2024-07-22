@@ -62,3 +62,7 @@ func buildTypes(types []spec.Type) (string, error) {
 
 	return builder.String(), nil
 }
+
+func BuildTypes(types []spec.Type) (string, error) {
+	return buildTypes(types)
+}
