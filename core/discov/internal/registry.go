@@ -78,7 +78,7 @@ type cluster struct {
 	listeners  map[string][]UpdateListener
 	watchGroup *threading.RoutineGroup
 	done       chan lang.PlaceholderType
-	lock       sync.Mutex
+	lock       sync.RWMutex
 }
 
 func newCluster(endpoints []string) *cluster {
@@ -108,8 +108,8 @@ func (c *cluster) getClient() (EtcdClient, error) {
 }
 
 func (c *cluster) getCurrent(key string) []KV {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
 	var kvs []KV
 	for k, v := range c.values[key] {
@@ -125,6 +125,7 @@ func (c *cluster) getCurrent(key string) []KV {
 func (c *cluster) handleChanges(key string, kvs []KV) {
 	var add []KV
 	var remove []KV
+
 	c.lock.Lock()
 	listeners := append([]UpdateListener(nil), c.listeners[key]...)
 	vals, ok := c.values[key]
@@ -173,9 +174,9 @@ func (c *cluster) handleChanges(key string, kvs []KV) {
 }
 
 func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
-	c.lock.Lock()
+	c.lock.RLock()
 	listeners := append([]UpdateListener(nil), c.listeners[key]...)
-	c.lock.Unlock()
+	c.lock.RUnlock()
 
 	for _, ev := range events {
 		switch ev.Type {
