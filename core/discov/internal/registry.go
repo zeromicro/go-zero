@@ -30,7 +30,7 @@ var (
 // A Registry is a registry that manages the etcd client connections.
 type Registry struct {
 	clusters map[string]*cluster
-	lock     sync.Mutex
+	lock     sync.RWMutex
 }
 
 // GetRegistry returns a global Registry.
@@ -60,12 +60,19 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) err
 
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 	clusterKey := getClusterKey(endpoints)
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	r.lock.RLock()
 	c, exists = r.clusters[clusterKey]
+	r.lock.RUnlock()
+
 	if !exists {
-		c = newCluster(endpoints)
-		r.clusters[clusterKey] = c
+		r.lock.Lock()
+		defer r.lock.Unlock()
+		// double-check locking
+		c, exists = r.clusters[clusterKey]
+		if !exists {
+			c = newCluster(endpoints)
+			r.clusters[clusterKey] = c
+		}
 	}
 
 	return
