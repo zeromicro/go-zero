@@ -63,8 +63,8 @@ func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, in
 		err            error
 		isNestedStruct bool
 	)
-	structType, ok := tp.(spec.DefineStruct)
-	if ok && structType.IsNestedStruct() {
+	structType, ok := tp.(spec.NestedStruct)
+	if ok {
 		isNestedStruct = true
 	}
 	if len(comment) > 0 {
