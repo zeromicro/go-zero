@@ -8,10 +8,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"golang.org/x/mod/modfile"
 )
 
 const goModuleWithoutGoFiles = "command-line-arguments"
@@ -73,28 +73,20 @@ func projectFromGoMod(workDir string) (*ProjectContext, error) {
 }
 
 func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
-	data, err := execRun("go list -json -m", workDir)
+	goModFile := filepath.Join(workDir, "go.mod")
+	buf, err := os.ReadFile(goModFile)
+	if err != nil {
+		return nil, err
+	}
+	modFile, err := modfile.Parse(filepath.Join(workDir, "go.mod"), buf, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	modules, err := decodePackages(strings.NewReader(data))
-	if err != nil {
-		return nil, err
-	}
-
-	for _, m := range modules {
-		realDir, err := pathx.ReadLink(m.Dir)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read go.mod, dir: %s, error: %w", m.Dir, err)
-		}
-
-		if strings.HasPrefix(workDir, realDir) {
-			return &m, nil
-		}
-	}
-
-	return nil, errors.New("no matched module")
+	return &Module{
+		Path: modFile.Module.Mod.Path,
+		Dir:  workDir,
+	}, nil
 }
 
 func decodePackages(reader io.Reader) ([]Module, error) {
