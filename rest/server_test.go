@@ -420,6 +420,64 @@ Port: 54321
 	opt(svr)
 }
 
+func TestWithCorsHeaders(t *testing.T) {
+	tests := []struct {
+		name    string
+		headers []string
+	}{
+		{
+			name:    "single header",
+			headers: []string{"UserHeader"},
+		},
+		{
+			name:    "multiple headers",
+			headers: []string{"UserHeader", "X-Requested-With"},
+		},
+		{
+			name:    "no headers",
+			headers: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const configYaml = `
+Name: foo
+Port: 54321
+`
+			var cnf RestConf
+			assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
+			rt := router.NewRouter()
+			svr, err := NewServer(cnf, WithRouter(rt))
+			assert.Nil(t, err)
+			defer svr.Stop()
+			option := WithCorsHeaders(tt.headers...)
+			option(svr)
+
+			// Assuming newCorsRouter sets headers correctly,
+			// we would need to verify the behavior here. Since we don't have
+			// direct access to headers, we'll mock newCorsRouter to capture it.
+			w := httptest.NewRecorder()
+			svr.ServeHTTP(w, httptest.NewRequest(http.MethodOptions, "/", nil))
+
+			vals := w.Header().Values("Access-Control-Allow-Headers")
+			respHeaders := make(map[string]struct{})
+			for _, header := range vals {
+				headers := strings.Split(header, ", ")
+				for _, h := range headers {
+					if len(h) > 0 {
+						respHeaders[h] = struct{}{}
+					}
+				}
+			}
+			for _, h := range tt.headers {
+				_, ok := respHeaders[h]
+				assert.Truef(t, ok, "expected header %s not found", h)
+			}
+		})
+	}
+}
+
 func TestServer_PrintRoutes(t *testing.T) {
 	const (
 		configYaml = `

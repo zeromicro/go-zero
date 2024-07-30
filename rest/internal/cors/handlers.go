@@ -26,6 +26,11 @@ const (
 	originHeader     = "Origin"
 )
 
+// AddAllowHeaders sets the allowed headers.
+func AddAllowHeaders(header http.Header, headers ...string) {
+	header.Add(allowHeaders, strings.Join(headers, ", "))
+}
+
 // NotAllowedHandler handles cross domain not allowed requests.
 // At most one origin can be specified, other origins are ignored if given, default to be *.
 func NotAllowedHandler(fn func(w http.ResponseWriter), origins ...string) http.Handler {

@@ -161,6 +161,18 @@ func WithCors(origin ...string) RunOption {
 	}
 }
 
+// WithCorsHeaders returns a RunOption to enable CORS with given headers.
+func WithCorsHeaders(headers ...string) RunOption {
+	const allDomains = "*"
+
+	return func(server *Server) {
+		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(nil, allDomains))
+		server.router = newCorsRouter(server.router, func(header http.Header) {
+			cors.AddAllowHeaders(header, headers...)
+		}, allDomains)
+	}
+}
+
 // WithCustomCors returns a func to enable CORS for given origin, or default to all origins (*),
 // fn lets caller customizing the response.
 func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(http.ResponseWriter),
