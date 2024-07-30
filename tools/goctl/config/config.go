@@ -3,7 +3,6 @@ package config
 import (
 	_ "embed"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,12 +18,8 @@ const (
 	configFile    = "goctl.yaml"
 )
 
-var (
-	//go:embed default.yaml
-	defaultConfig []byte
-
-	ExternalConfig *External
-)
+//go:embed default.yaml
+var defaultConfig []byte
 
 // Config defines the file naming style
 type (
@@ -77,14 +72,13 @@ func NewConfig(format string) (*Config, error) {
 	return cfg, err
 }
 
-func init() {
+func GetExternalConfig() (*External, error) {
 	var cfg External
 	err := loadConfig(&cfg)
 	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		ExternalConfig = &cfg
+		return nil, err
 	}
+	return &cfg, nil
 }
 
 func loadConfig(cfg *External) error {

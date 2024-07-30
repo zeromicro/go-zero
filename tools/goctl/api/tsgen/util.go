@@ -1,6 +1,7 @@
 package tsgen
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -19,7 +20,7 @@ const (
 
 func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	writeIndent(writer, indent)
-	ty, err := genTsType(member)
+	ty, err := genTsType(member, indent)
 	if err != nil {
 		return err
 	}
@@ -40,7 +41,7 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	}
 	if len(member.Docs) > 0 {
 		fmt.Fprintf(writer, "%s\n", strings.Join(member.Docs, ""))
-		writeIndent(writer, 1)
+		writeIndent(writer, indent)
 	}
 	_, err = fmt.Fprintf(writer, "%s%s: %s%s\n", name, optionalTag, ty, comment)
 	return err
@@ -52,7 +53,27 @@ func writeIndent(writer io.Writer, indent int) {
 	}
 }
 
-func genTsType(m spec.Member) (ty string, err error) {
+func genTsType(m spec.Member, indent int) (ty string, err error) {
+	v, ok := m.Type.(spec.NestedStruct)
+	if ok {
+		writer := bytes.NewBuffer(nil)
+		_, err := fmt.Fprintf(writer, "{\n")
+		if err != nil {
+			return "", err
+		}
+
+		if err := writeMembers(writer, v, false, indent+1); err != nil {
+			return "", err
+		}
+
+		writeIndent(writer, indent)
+		_, err = fmt.Fprintf(writer, "}")
+		if err != nil {
+			return "", err
+		}
+		return writer.String(), nil
+	}
+
 	ty, err = goTypeToTs(m.Type, false)
 	if enums := m.GetEnumOptions(); enums != nil {
 		if ty == "string" {
@@ -130,7 +151,7 @@ func primitiveType(tp string) (string, bool) {
 
 func writeType(writer io.Writer, tp spec.Type) error {
 	fmt.Fprintf(writer, "export interface %s {\n", util.Title(tp.Name()))
-	if err := writeMembers(writer, tp, false); err != nil {
+	if err := writeMembers(writer, tp, false, 1); err != nil {
 		return err
 	}
 
@@ -166,12 +187,12 @@ func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 	return nil
 }
 
-func writeMembers(writer io.Writer, tp spec.Type, isParam bool) error {
+func writeMembers(writer io.Writer, tp spec.Type, isParam bool, indent int) error {
 	definedType, ok := tp.(spec.DefineStruct)
 	if !ok {
 		pointType, ok := tp.(spec.PointerType)
 		if ok {
-			return writeMembers(writer, pointType.Type, isParam)
+			return writeMembers(writer, pointType.Type, isParam, indent)
 		}
 
 		return fmt.Errorf("type %s not supported", tp.Name())
@@ -183,13 +204,13 @@ func writeMembers(writer io.Writer, tp spec.Type, isParam bool) error {
 	}
 	for _, member := range members {
 		if member.IsInline {
-			if err := writeMembers(writer, member.Type, isParam); err != nil {
+			if err := writeMembers(writer, member.Type, isParam, indent); err != nil {
 				return err
 			}
 			continue
 		}
 
-		if err := writeProperty(writer, member, 1); err != nil {
+		if err := writeProperty(writer, member, indent); err != nil {
 			return apiutil.WrapErr(err, " type "+tp.Name())
 		}
 	}

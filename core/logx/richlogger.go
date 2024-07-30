@@ -141,23 +141,43 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 		return l
 	}
 
-	l.callerSkip = skip
-	return l
+	return &richLogger{
+		ctx:        l.ctx,
+		callerSkip: skip,
+		fields:     l.fields,
+	}
 }
 
 func (l *richLogger) WithContext(ctx context.Context) Logger {
-	l.ctx = ctx
-	return l
+	return &richLogger{
+		ctx:        ctx,
+		callerSkip: l.callerSkip,
+		fields:     l.fields,
+	}
 }
 
 func (l *richLogger) WithDuration(duration time.Duration) Logger {
-	l.fields = append(l.fields, Field(durationKey, timex.ReprOfDuration(duration)))
-	return l
+	fields := append(l.fields, Field(durationKey, timex.ReprOfDuration(duration)))
+
+	return &richLogger{
+		ctx:        l.ctx,
+		callerSkip: l.callerSkip,
+		fields:     fields,
+	}
 }
 
 func (l *richLogger) WithFields(fields ...LogField) Logger {
-	l.fields = append(l.fields, fields...)
-	return l
+	if len(fields) == 0 {
+		return l
+	}
+
+	f := append(l.fields, fields...)
+
+	return &richLogger{
+		ctx:        l.ctx,
+		callerSkip: l.callerSkip,
+		fields:     f,
+	}
 }
 
 func (l *richLogger) buildFields(fields ...LogField) []LogField {

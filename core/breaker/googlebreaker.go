@@ -5,27 +5,28 @@ import (
 
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/mathx"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
 	// 250ms for bucket duration
-	window                    = time.Second * 10
-	buckets                   = 40
-	maxFailBucketsToDecreaseK = 30
-	minBucketsToSpeedUp       = 3
-	k                         = 1.5
-	minK                      = 1.1
-	recoveryK                 = 3 - k
-	protection                = 5
+	window            = time.Second * 10
+	buckets           = 40
+	forcePassDuration = time.Second
+	k                 = 1.5
+	minK              = 1.1
+	protection        = 5
 )
 
 // googleBreaker is a netflixBreaker pattern from google.
 // see Client-Side Throttling section in https://landing.google.com/sre/sre-book/chapters/handling-overload/
 type (
 	googleBreaker struct {
-		k     float64
-		stat  *collection.RollingWindow[int64, *bucket]
-		proba *mathx.Proba
+		k        float64
+		stat     *collection.RollingWindow[int64, *bucket]
+		proba    *mathx.Proba
+		lastPass *syncx.AtomicDuration
 	}
 
 	windowResult struct {
@@ -42,22 +43,18 @@ func newGoogleBreaker() *googleBreaker {
 		return new(bucket)
 	}, buckets, bucketDuration)
 	return &googleBreaker{
-		stat:  st,
-		k:     k,
-		proba: mathx.NewProba(),
+		stat:     st,
+		k:        k,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
 	}
 }
 
 func (b *googleBreaker) accept() error {
 	var w float64
 	history := b.history()
-	if history.failingBuckets >= minBucketsToSpeedUp {
-		w = b.k - float64(history.failingBuckets-1)*(b.k-minK)/maxFailBucketsToDecreaseK
-		w = mathx.AtLeast(w, minK)
-	} else {
-		w = b.k
-	}
-	weightedAccepts := w * float64(history.accepts)
+	w = b.k - (b.k-minK)*float64(history.failingBuckets)/buckets
+	weightedAccepts := mathx.AtLeast(w, minK) * float64(history.accepts)
 	// https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101
 	// for better performance, no need to care about the negative ratio
 	dropRatio := (float64(history.total-protection) - weightedAccepts) / float64(history.total+1)
@@ -65,15 +62,19 @@ func (b *googleBreaker) accept() error {
 		return nil
 	}
 
-	// If we have more than 2 working buckets, we are in recovery mode,
-	// the latest bucket is the current one, so we ignore it.
-	if history.workingBuckets >= minBucketsToSpeedUp {
-		dropRatio /= recoveryK
+	lastPass := b.lastPass.Load()
+	if lastPass > 0 && timex.Since(lastPass) > forcePassDuration {
+		b.lastPass.Set(timex.Now())
+		return nil
 	}
+
+	dropRatio *= float64(buckets-history.workingBuckets) / buckets
 
 	if b.proba.TrueOnProba(dropRatio) {
 		return ErrServiceUnavailable
 	}
+
+	b.lastPass.Set(timex.Now())
 
 	return nil
 }
@@ -140,10 +141,10 @@ func (b *googleBreaker) history() windowResult {
 		} else if b.Success > 0 {
 			result.workingBuckets++
 		}
-		if b.Drop > 0 && b.Failure > 0 {
-			result.failingBuckets++
-		} else {
+		if b.Success > 0 {
 			result.failingBuckets = 0
+		} else if b.Failure > 0 {
+			result.failingBuckets++
 		}
 	})
 

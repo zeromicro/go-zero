@@ -10,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 const (
@@ -26,9 +27,10 @@ func getGoogleBreaker() *googleBreaker {
 		return new(bucket)
 	}, testBuckets, testInterval)
 	return &googleBreaker{
-		stat:  st,
-		k:     5,
-		proba: mathx.NewProba(),
+		stat:     st,
+		k:        5,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
 	}
 }
 
@@ -70,9 +72,10 @@ func TestGoogleBreakerRecover(t *testing.T) {
 		return new(bucket)
 	}, testBuckets*2, testInterval)
 	b := &googleBreaker{
-		stat:  st,
-		k:     k,
-		proba: mathx.NewProba(),
+		stat:     st,
+		k:        k,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
 	}
 	for i := 0; i < testBuckets; i++ {
 		for j := 0; j < 100; j++ {
@@ -115,6 +118,43 @@ func TestGoogleBreakerReject(t *testing.T) {
 	assert.Equal(t, ErrServiceUnavailable, b.doReq(func() error {
 		return ErrServiceUnavailable
 	}, nil, defaultAcceptable))
+}
+
+func TestGoogleBreakerMoreFallingBuckets(t *testing.T) {
+	t.Parallel()
+
+	t.Run("more falling buckets", func(t *testing.T) {
+		b := getGoogleBreaker()
+
+		func() {
+			stopChan := time.After(testInterval * 6)
+			for {
+				time.Sleep(time.Millisecond)
+				select {
+				case <-stopChan:
+					return
+				default:
+					assert.Error(t, b.doReq(func() error {
+						return errors.New("foo")
+					}, func(err error) error {
+						return err
+					}, func(err error) bool {
+						return err == nil
+					}))
+				}
+			}
+		}()
+
+		var count int
+		for i := 0; i < 100; i++ {
+			if errors.Is(b.doReq(func() error {
+				return ErrServiceUnavailable
+			}, nil, defaultAcceptable), ErrServiceUnavailable) {
+				count++
+			}
+		}
+		assert.True(t, count > 90)
+	})
 }
 
 func TestGoogleBreakerAcceptable(t *testing.T) {

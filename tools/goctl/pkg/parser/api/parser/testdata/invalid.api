@@ -96,13 +96,6 @@ type Foo {
 }
 
 -----
-// test case:  map valu expected literal type
-syntax = "v1"
-type Foo {
-    Bar *map[string]{}  `json:"bar"`
-}
-
------
 // test case:  invalid slice
 syntax = "v1"
 type Foo {
@@ -124,9 +117,89 @@ type Foo {
 }
 
 -----
+// test case:  invalid map key
+syntax = "v1"
+type Foo {
+  M map[{}]string `json:"m"`
+}
+
+-----
+// test case:  invalid map key
+syntax = "v1"
+type Foo {
+M map[{
+  Foo string `json:"foo"`
+}]string `json:"m"`
+}
+
+-----
+// test case:  invalid map value
+syntax = "v1"
+type Foo {
+M map[int]{} `json:"m"`
+}
+
+-----
+// test case:  invalid map value
+syntax = "v1"
+type Foo {
+M map[int]{
+  Foo int `json:"foo"`
+} `json:"m"`
+}
+
+-----
+// test case:  invalid array element
+syntax = "v1"
+type Foo {
+  Array [3]{} `json:"array"`
+}
+
+-----
+// test case:  invalid array element
+syntax = "v1"
+type Foo {
+Array [3]{
+Foo int `json:"foo"`
+} `json:"array"`
+}
+
+-----
+// test case:  invalid array element
+syntax = "v1"
+type Foo {
+Array []{} `json:"array"`
+}
+
+-----
+// test case:  invalid slice element
+syntax = "v1"
+type Foo {
+Array []{
+Foo int `json:"foo"`
+} `json:"array"`
+}
+
+-----
 // test case:  unresolved type
 syntax = "v1"
 service example {
     @handler nestDemo
     post /example/nest (NestDemoReq) returns (NestDemoResp)
+}
+
+-----
+// test case:  unsupported array object request body
+syntax = "v1"
+service example {
+    @handler nestDemo
+    post /example/nest ([]NestDemoReq) returns (NestDemoResp)
+}
+
+-----
+    // test case:  unsupported array request body
+syntax = "v1"
+service example {
+    @handler nestDemo2
+    post /example/nest2 ([]string) returns (NestDemoResp)
 }
