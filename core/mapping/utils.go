@@ -34,9 +34,15 @@ const (
 )
 
 var (
-	errUnsupportedType  = errors.New("unsupported type on setting field value")
-	errNumberRange      = errors.New("wrong number range setting")
-	errNilSliceElement  = errors.New("null element for slice")
+	// ErrMappingErrors is root error type
+	ErrMappingErrors = errors.New("")
+
+	ErrUnsupportedType = newError("unsupported type on setting field value")
+	ErrNumberRange     = newError("wrong number range setting")
+	ErrNilSliceElement = newError("null element for slice")
+)
+
+var (
 	optionsCache        = make(map[string]optionsCacheValue)
 	cacheLock           sync.RWMutex
 	structRequiredCache = make(map[reflect.Type]requiredCacheValue)
@@ -85,7 +91,7 @@ func ValidatePtr(v reflect.Value) error {
 	// sequence is very important, IsNil must be called after checking Kind() with reflect.Ptr,
 	// panic otherwise
 	if !v.IsValid() || v.Kind() != reflect.Ptr || v.IsNil() {
-		return fmt.Errorf("not a valid pointer: %v", v)
+		return newError("not a valid pointer: %v", v)
 	}
 
 	return nil
@@ -100,7 +106,7 @@ func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 		case "0", "false":
 			return false, nil
 		default:
-			return false, errTypeMismatch
+			return false, ErrTypeMismatch
 		}
 	case reflect.Int:
 		return strconv.ParseInt(str, 10, intSize)
@@ -129,7 +135,7 @@ func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 	case reflect.String:
 		return str, nil
 	default:
-		return nil, errUnsupportedType
+		return nil, ErrUnsupportedType
 	}
 }
 
@@ -227,7 +233,7 @@ func isLeftInclude(b byte) (bool, error) {
 	case '(':
 		return false, nil
 	default:
-		return false, errNumberRange
+		return false, ErrNumberRange
 	}
 }
 
@@ -238,7 +244,7 @@ func isRightInclude(b byte) (bool, error) {
 	case ')':
 		return false, nil
 	default:
-		return false, errNumberRange
+		return false, ErrNumberRange
 	}
 }
 
@@ -290,7 +296,7 @@ func parseKeyAndOptions(tagName string, field reflect.StructField) (string, *fie
 // [1:5] [1:5) (1:5] (1:5)
 func parseNumberRange(str string) (*numberRange, error) {
 	if len(str) == 0 {
-		return nil, errNumberRange
+		return nil, ErrNumberRange
 	}
 
 	leftInclude, err := isLeftInclude(str[0])
@@ -300,7 +306,7 @@ func parseNumberRange(str string) (*numberRange, error) {
 
 	str = str[1:]
 	if len(str) == 0 {
-		return nil, errNumberRange
+		return nil, ErrNumberRange
 	}
 
 	rightInclude, err := isRightInclude(str[len(str)-1])
@@ -311,11 +317,11 @@ func parseNumberRange(str string) (*numberRange, error) {
 	str = str[:len(str)-1]
 	fields := strings.Split(str, ":")
 	if len(fields) != 2 {
-		return nil, errNumberRange
+		return nil, ErrNumberRange
 	}
 
 	if len(fields[0]) == 0 && len(fields[1]) == 0 {
-		return nil, errNumberRange
+		return nil, ErrNumberRange
 	}
 
 	var left float64
@@ -339,7 +345,7 @@ func parseNumberRange(str string) (*numberRange, error) {
 	}
 
 	if left > right {
-		return nil, errNumberRange
+		return nil, ErrNumberRange
 	}
 
 	// [2:2] valid
@@ -348,7 +354,7 @@ func parseNumberRange(str string) (*numberRange, error) {
 	// (2:2) invalid
 	if left == right {
 		if !leftInclude || !rightInclude {
-			return nil, errNumberRange
+			return nil, ErrNumberRange
 		}
 	}
 
@@ -375,7 +381,7 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 			fieldOpts.Optional = true
 			fieldOpts.OptionalDep = segs[1]
 		default:
-			return fmt.Errorf("field %q has wrong optional", fieldName)
+			return newError("field %q has wrong optional", fieldName)
 		}
 	case strings.HasPrefix(option, optionsOption):
 		val, err := parseProperty(fieldName, optionsOption, option)
@@ -432,7 +438,7 @@ func parseOptions(val string) []string {
 func parseProperty(field, tag, val string) (string, error) {
 	segs := strings.Split(val, equalToken)
 	if len(segs) != 2 {
-		return "", fmt.Errorf("field %q has wrong tag value %q", field, tag)
+		return "", newError("field %q has wrong tag value %q", field, tag)
 	}
 
 	return strings.TrimSpace(segs[1]), nil
@@ -505,13 +511,13 @@ func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v any) err
 		value.SetString(v.(string))
 		return nil
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 }
 
 func setValueFromString(kind reflect.Kind, value reflect.Value, str string) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	value = ensureValue(value)
@@ -586,7 +592,7 @@ func usingDifferentKeys(key string, field reflect.StructField) bool {
 func validateAndSetValue(kind reflect.Kind, value reflect.Value, str string,
 	opts *fieldOptionsWithContext) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	v, err := convertTypeFromString(kind, str)
@@ -620,11 +626,11 @@ func validateNumberRange(fv float64, nr *numberRange) error {
 	}
 
 	if (nr.leftInclude && fv < nr.left) || (!nr.leftInclude && fv <= nr.left) {
-		return errNumberRange
+		return ErrNumberRange
 	}
 
 	if (nr.rightInclude && fv > nr.right) || (!nr.rightInclude && fv >= nr.right) {
-		return errNumberRange
+		return ErrNumberRange
 	}
 
 	return nil
@@ -635,11 +641,11 @@ func validateValueInOptions(val any, options []string) error {
 		switch v := val.(type) {
 		case string:
 			if !stringx.Contains(options, v) {
-				return fmt.Errorf(`error: value %q is not defined in options "%v"`, v, options)
+				return newError(`error: value %q is not defined in options "%v"`, v, options)
 			}
 		default:
 			if !stringx.Contains(options, Repr(v)) {
-				return fmt.Errorf(`error: value "%v" is not defined in options "%v"`, val, options)
+				return newError(`error: value "%v" is not defined in options "%v"`, val, options)
 			}
 		}
 	}
@@ -654,8 +660,19 @@ func validateValueRange(mapValue any, opts *fieldOptionsWithContext) error {
 
 	fv, ok := toFloat64(mapValue)
 	if !ok {
-		return errNumberRange
+		return ErrNumberRange
 	}
 
 	return validateNumberRange(fv, opts.Range)
+}
+
+// formats fmt.Errorf("%w", ErrMappingErrors)
+func newError(format string, a ...any) error {
+	_a := make([]any, len(a)+1)
+	_a[0] = ErrMappingErrors
+	if len(a) > 0 {
+		copy(_a[1:], a)
+	}
+
+	return fmt.Errorf("%w"+format, _a...)
 }

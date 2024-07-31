@@ -24,14 +24,14 @@ func TestUnmarshalWithFullNameNotStruct(t *testing.T) {
 	var s map[string]any
 	content := []byte(`{"name":"xiaoming"}`)
 	err := UnmarshalJsonBytes(content, &s)
-	assert.Equal(t, errTypeMismatch, err)
+	assert.Equal(t, ErrTypeMismatch, err)
 }
 
 func TestUnmarshalValueNotSettable(t *testing.T) {
 	var s map[string]any
 	content := []byte(`{"name":"xiaoming"}`)
 	err := UnmarshalJsonBytes(content, s)
-	assert.Equal(t, errValueNotSettable, err)
+	assert.Equal(t, ErrValueNotSettable, err)
 }
 
 func TestUnmarshalWithoutTagName(t *testing.T) {
@@ -421,7 +421,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 		}
 
 		var in inner
-		assert.ErrorIs(t, UnmarshalKey(m, &in), errNumberRange)
+		assert.ErrorIs(t, UnmarshalKey(m, &in), ErrNumberRange)
 	})
 
 	t.Run("int with wrong type", func(t *testing.T) {
@@ -1342,7 +1342,7 @@ func TestUnmarshalNullableSlice(t *testing.T) {
 		"slice": `[null,2]`,
 	}
 
-	assert.New(t).Equal(UnmarshalKey(m, &v), errNilSliceElement)
+	assert.New(t).Equal(UnmarshalKey(m, &v), ErrNilSliceElement)
 }
 
 func TestUnmarshalWithFloatPtr(t *testing.T) {
@@ -3700,16 +3700,16 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in1 inner1
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(1),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(0),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(5),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": json.Number("6"),
 	}, &in1))
 
@@ -3718,10 +3718,10 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in2 inner2
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(0),
 	}, &in2))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(5),
 	}, &in2))
 
@@ -3730,10 +3730,10 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in3 inner3
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(1),
 	}, &in3))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(6),
 	}, &in3))
 
@@ -3742,10 +3742,10 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in4 inner4
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(0),
 	}, &in4))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(6),
 	}, &in4))
 }
@@ -3876,16 +3876,16 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in1 inner1
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(1),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(0),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(5),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": json.Number("6"),
 	}, &in1))
 
@@ -3894,10 +3894,10 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in2 inner2
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(0),
 	}, &in2))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(5),
 	}, &in2))
 
@@ -3906,10 +3906,10 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in3 inner3
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(1),
 	}, &in3))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(6),
 	}, &in3))
 
@@ -3918,10 +3918,10 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in4 inner4
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(0),
 	}, &in4))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(6),
 	}, &in4))
 }
@@ -3931,7 +3931,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range="`
 	}
 	var in1 inner1
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in1))
 
@@ -3939,7 +3939,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=["`
 	}
 	var in2 inner2
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in2))
 
@@ -3947,7 +3947,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:"`
 	}
 	var in3 inner3
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in3))
 
@@ -3955,7 +3955,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:]"`
 	}
 	var in4 inner4
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in4))
 
@@ -3963,7 +3963,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range={:]"`
 	}
 	var in5 inner5
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in5))
 
@@ -3971,7 +3971,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:}"`
 	}
 	var in6 inner6
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in6))
 
@@ -3979,7 +3979,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[]"`
 	}
 	var in7 inner7
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in7))
 
@@ -4011,7 +4011,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[1,2]"`
 	}
 	var in11 inner11
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
+	assert.Equal(t, ErrNumberRange, UnmarshalKey(map[string]any{
 		"Value": "a",
 	}, &in11))
 }
@@ -5018,7 +5018,7 @@ func TestUnmarshalJsonReaderWithTypeMismatchBool(t *testing.T) {
 		Params map[string]bool `json:"params"`
 	}
 	body := `{"params":{"a":"123"}}`
-	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+	assert.Equal(t, ErrTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
 }
 
 func TestUnmarshalJsonReaderWithTypeString(t *testing.T) {
@@ -5037,7 +5037,7 @@ func TestUnmarshalJsonReaderWithTypeString(t *testing.T) {
 			Params map[string]string `json:"params"`
 		}
 		body := `{"params":{"a":{"a":123}}}`
-		assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+		assert.Equal(t, ErrTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
 	})
 
 	t.Run("customized string type", func(t *testing.T) {
@@ -5047,7 +5047,7 @@ func TestUnmarshalJsonReaderWithTypeString(t *testing.T) {
 			Params map[string]myString `json:"params"`
 		}
 		body := `{"params":{"a":"b"}}`
-		assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+		assert.Equal(t, ErrTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
 	})
 }
 
@@ -5058,7 +5058,7 @@ func TestUnmarshalJsonReaderWithMismatchType(t *testing.T) {
 
 	var req Req
 	body := `{"params":{"a":{"a":123}}}`
-	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+	assert.Equal(t, ErrTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
 }
 
 func TestUnmarshalJsonReaderWithTypeBool(t *testing.T) {
@@ -5118,7 +5118,7 @@ func TestUnmarshalJsonReaderWithTypeBool(t *testing.T) {
 			test := test
 			t.Run(test.name, func(t *testing.T) {
 				var req Req
-				assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(test.input), &req))
+				assert.Equal(t, ErrTypeMismatch, UnmarshalJsonReader(strings.NewReader(test.input), &req))
 			})
 		}
 	})
@@ -5144,7 +5144,7 @@ func TestUnmarshalJsonReaderWithTypeBoolMap(t *testing.T) {
 		var req struct {
 			Params map[string]string `json:"params"`
 		}
-		assert.Equal(t, errTypeMismatch, UnmarshalJsonMap(map[string]any{
+		assert.Equal(t, ErrTypeMismatch, UnmarshalJsonMap(map[string]any{
 			"params": map[string]any{
 				"a": true,
 			},
@@ -5472,7 +5472,7 @@ func Test_UnmarshalMap(t *testing.T) {
 		}
 
 		var customer Customer
-		assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+		assert.ErrorIs(t, UnmarshalKey(input, &customer), ErrTypeMismatch)
 	})
 
 	t.Run("map type mismatch", func(t *testing.T) {
@@ -5489,7 +5489,7 @@ func Test_UnmarshalMap(t *testing.T) {
 		}
 
 		var customer Customer
-		assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+		assert.ErrorIs(t, UnmarshalKey(input, &customer), ErrTypeMismatch)
 	})
 
 	t.Run("map from string", func(t *testing.T) {

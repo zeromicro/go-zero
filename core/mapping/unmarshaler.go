@@ -3,7 +3,6 @@ package mapping
 import (
 	"encoding"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -25,17 +24,21 @@ const (
 )
 
 var (
-	errTypeMismatch     = errors.New("type mismatch")
-	errValueNotSettable = errors.New("value is not settable")
-	errValueNotStruct   = errors.New("value type is not struct")
-	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
-	durationType        = reflect.TypeOf(time.Duration(0))
-	cacheKeys           = make(map[string][]string)
-	cacheKeysLock       sync.Mutex
-	defaultCache        = make(map[string]any)
-	defaultCacheLock    sync.Mutex
-	emptyMap            = map[string]any{}
-	emptyValue          = reflect.ValueOf(lang.Placeholder)
+	ErrTypeMismatch     = newError("type mismatch")
+	ErrValueIsNotSet    = newError("is not set")
+	ErrValueNotSettable = newError("value is not settable")
+	ErrValueNotStruct   = newError("value type is not struct")
+)
+
+var (
+	keyUnmarshaler   = NewUnmarshaler(defaultKeyName)
+	durationType     = reflect.TypeOf(time.Duration(0))
+	cacheKeys        = make(map[string][]string)
+	cacheKeysLock    sync.Mutex
+	defaultCache     = make(map[string]any)
+	defaultCacheLock sync.Mutex
+	emptyMap         = map[string]any{}
+	emptyValue       = reflect.ValueOf(lang.Placeholder)
 )
 
 type (
@@ -82,25 +85,25 @@ func (u *Unmarshaler) Unmarshal(i, v any) error {
 func (u *Unmarshaler) unmarshal(i, v any, fullName string) error {
 	valueType := reflect.TypeOf(v)
 	if valueType.Kind() != reflect.Ptr {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	elemType := Deref(valueType)
 	switch iv := i.(type) {
 	case map[string]any:
 		if elemType.Kind() != reflect.Struct {
-			return errTypeMismatch
+			return ErrTypeMismatch
 		}
 
 		return u.unmarshalValuer(mapValuer(iv), v, fullName)
 	case []any:
 		if elemType.Kind() != reflect.Slice {
-			return errTypeMismatch
+			return ErrTypeMismatch
 		}
 
 		return u.fillSlice(elemType, reflect.ValueOf(v).Elem(), iv, fullName)
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 }
 
@@ -116,7 +119,7 @@ func (u *Unmarshaler) unmarshalValuer(m Valuer, v any, fullName string) error {
 func (u *Unmarshaler) fillMap(fieldType reflect.Type, value reflect.Value,
 	mapValue any, fullName string) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	fieldKeyType := fieldType.Key()
@@ -127,7 +130,7 @@ func (u *Unmarshaler) fillMap(fieldType reflect.Type, value reflect.Value,
 	}
 
 	if !targetValue.Type().AssignableTo(value.Type()) {
-		return errTypeMismatch
+		return ErrTypeMismatch
 	}
 
 	value.Set(targetValue)
@@ -136,7 +139,7 @@ func (u *Unmarshaler) fillMap(fieldType reflect.Type, value reflect.Value,
 
 func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	switch v := mapValue.(type) {
@@ -149,7 +152,7 @@ func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error
 			return err
 		}
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 
 	return nil
@@ -158,7 +161,7 @@ func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error
 func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	mapValue any, fullName string) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	refValue := reflect.ValueOf(mapValue)
@@ -193,7 +196,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 			target := reflect.New(dereffedBaseType)
 			val, ok := ithValue.(map[string]any)
 			if !ok {
-				return errTypeMismatch
+				return ErrTypeMismatch
 			}
 
 			if err := u.unmarshal(val, target.Interface(), sliceFullName); err != nil {
@@ -232,7 +235,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 			return fmt.Errorf("fullName: `%s`, error: `%w`", fullName, err)
 		}
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 
 	baseFieldType := Deref(fieldType.Elem())
@@ -252,7 +255,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 	baseKind reflect.Kind, value any, fullName string) error {
 	if value == nil {
-		return errNilSliceElement
+		return ErrNilSliceElement
 	}
 
 	ithVal := slice.Index(index)
@@ -269,7 +272,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 		if ithVal.Kind() == reflect.Ptr {
 			baseType := Deref(ithVal.Type())
 			if !reflect.TypeOf(value).AssignableTo(baseType) {
-				return errTypeMismatch
+				return ErrTypeMismatch
 			}
 
 			target := reflect.New(baseType).Elem()
@@ -279,7 +282,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 		}
 
 		if !reflect.TypeOf(value).AssignableTo(ithVal.Type()) {
-			return errTypeMismatch
+			return ErrTypeMismatch
 		}
 
 		ithVal.Set(reflect.ValueOf(value))
@@ -312,7 +315,7 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
 	value reflect.Value, targetValue string) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	baseType := Deref(fieldType)
@@ -321,14 +324,14 @@ func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
 	case jsonTagKey:
 		unmarshaler, ok := target.Interface().(json.Unmarshaler)
 		if !ok {
-			return errUnsupportedType
+			return ErrUnsupportedType
 		}
 
 		if err := unmarshaler.UnmarshalJSON([]byte(targetValue)); err != nil {
 			return err
 		}
 	default:
-		return errUnsupportedType
+		return ErrUnsupportedType
 	}
 
 	value.Set(target)
@@ -344,7 +347,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 	}
 
 	if keyType != valueType.Key() {
-		return emptyValue, errTypeMismatch
+		return emptyValue, ErrTypeMismatch
 	}
 
 	refValue := reflect.ValueOf(mapValue)
@@ -368,7 +371,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 		case reflect.Struct:
 			keythMap, ok := keythData.(map[string]any)
 			if !ok {
-				return emptyValue, errTypeMismatch
+				return emptyValue, ErrTypeMismatch
 			}
 
 			target := reflect.New(dereffedElemType)
@@ -380,7 +383,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 		case reflect.Map:
 			keythMap, ok := keythData.(map[string]any)
 			if !ok {
-				return emptyValue, errTypeMismatch
+				return emptyValue, ErrTypeMismatch
 			}
 
 			innerValue, err := u.generateMap(elemType.Key(), elemType.Elem(), keythMap, mapFullName)
@@ -393,18 +396,18 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 			switch v := keythData.(type) {
 			case bool:
 				if dereffedElemKind != reflect.Bool {
-					return emptyValue, errTypeMismatch
+					return emptyValue, ErrTypeMismatch
 				}
 
 				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case string:
 				if dereffedElemKind != reflect.String {
-					return emptyValue, errTypeMismatch
+					return emptyValue, ErrTypeMismatch
 				}
 
 				val := reflect.ValueOf(v)
 				if !val.Type().AssignableTo(dereffedElemType) {
-					return emptyValue, errTypeMismatch
+					return emptyValue, ErrTypeMismatch
 				}
 
 				targetValue.SetMapIndex(key, val)
@@ -417,7 +420,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 				targetValue.SetMapIndex(key, target.Elem())
 			default:
 				if dereffedElemKind != keythValue.Kind() {
-					return emptyValue, errTypeMismatch
+					return emptyValue, ErrTypeMismatch
 				}
 
 				targetValue.SetMapIndex(key, keythValue)
@@ -567,7 +570,7 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 	}
 
 	if filled && required != requiredFilled {
-		return fmt.Errorf("%q is not fully set", key)
+		return newError("%q is not fully set", key)
 	}
 
 	return nil
@@ -597,7 +600,7 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		mv, ok := mapValue.(map[string]any)
 		if !ok {
-			return errTypeMismatch
+			return ErrTypeMismatch
 		}
 
 		return u.processFieldStruct(fieldType, value, &simpleValuer{
@@ -675,7 +678,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			derefedValue = derefedValue.Elem()
 		}
 		if derefedValue.CanFloat() && derefedValue.OverflowFloat(fValue) {
-			return fmt.Errorf("parsing %q as float32: value out of range", v.String())
+			return newError("parsing %q as float32: value out of range", v.String())
 		}
 
 		target.SetFloat(fValue)
@@ -804,7 +807,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
 		if !value.IsZero() {
-			return fmt.Errorf("set the default value, %q must be zero", fullName)
+			return newError("set the default value, %q must be zero", fullName)
 		}
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	} else if !hasValue {
@@ -825,11 +828,11 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 			return nil
 		}
 
-		return fmt.Errorf("field %q mustn't be nil", key)
+		return newError("field %q mustn't be nil", key)
 	}
 
 	if !value.CanSet() {
-		return fmt.Errorf("field %q is not settable", key)
+		return fmt.Errorf("field %q %w", key, ErrValueNotSettable)
 	}
 
 	maybeNewValue(fieldType, value)
@@ -856,7 +859,7 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 	mapValue any, key string, opts *fieldOptionsWithContext, fullName string) error {
 	valueKind := reflect.TypeOf(mapValue).Kind()
 	if valueKind != reflect.String {
-		return fmt.Errorf("the value in map is not string, but %s", valueKind)
+		return newError("the value in map is not string, but %s", valueKind)
 	}
 
 	options := opts.options()
@@ -868,12 +871,12 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 		case fmt.Stringer:
 			checkValue = mt.String()
 		default:
-			return fmt.Errorf("the value in map is not string or json.Number, but %s",
+			return newError("the value in map is not string or json.Number, but %s",
 				valueKind.String())
 		}
 
 		if !stringx.Contains(options, checkValue) {
-			return fmt.Errorf(`value "%s" for field %q is not defined in options "%v"`,
+			return newError(`value "%s" for field %q is not defined in options "%v"`,
 				mapValue, key, options)
 		}
 	}
@@ -922,7 +925,7 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 			}
 
 			if required {
-				return fmt.Errorf("%q is not set", fullName)
+				return fmt.Errorf("%q %w", fullName, ErrValueIsNotSet)
 			}
 
 			return u.processFieldNotFromString(fieldType, value, valueWithParent{
@@ -947,7 +950,7 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName 
 	valueType := reflect.TypeOf(v)
 	baseType := Deref(valueType)
 	if baseType.Kind() != reflect.Struct {
-		return errValueNotStruct
+		return ErrValueNotStruct
 	}
 
 	valElem := rv.Elem()
@@ -1026,7 +1029,7 @@ func fillDurationValue(fieldType reflect.Type, value reflect.Value, dur string) 
 func fillPrimitive(fieldType reflect.Type, value reflect.Value, mapValue any,
 	opts *fieldOptionsWithContext, fullName string) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	baseType := Deref(fieldType)
@@ -1055,7 +1058,7 @@ func fillPrimitive(fieldType reflect.Type, value reflect.Value, mapValue any,
 func fillWithSameType(fieldType reflect.Type, value reflect.Value, mapValue any,
 	opts *fieldOptionsWithContext) error {
 	if !value.CanSet() {
-		return errValueNotSettable
+		return ErrValueNotSettable
 	}
 
 	if err := validateValueRange(mapValue, opts); err != nil {
@@ -1123,16 +1126,16 @@ func join(elem ...string) string {
 }
 
 func newInitError(name string) error {
-	return fmt.Errorf("field %q is not set", name)
+	return fmt.Errorf("field %q %w", name, ErrValueIsNotSet)
 }
 
 func newTypeMismatchError(name string) error {
-	return fmt.Errorf("type mismatch for field %q", name)
+	return fmt.Errorf("%w for field %q", ErrTypeMismatch, name)
 }
 
 func newTypeMismatchErrorWithHint(name, expectType, actualType string) error {
-	return fmt.Errorf("type mismatch for field %q, expect %q, actual %q",
-		name, expectType, actualType)
+	return fmt.Errorf("%w for field %q, expect %q, actual %q",
+		ErrTypeMismatch, name, expectType, actualType)
 }
 
 func readKeys(key string, opaque bool) []string {
