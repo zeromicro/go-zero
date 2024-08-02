@@ -250,7 +250,7 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 
 ## Give a Star! ⭐
 
-If you like or are using this project to learn or start your solution, please give it a star. Thanks!
+If you like this project or are using it to learn or start your own solution, give it a star to get updates on new releases. Your support matters!
 
 ## Buy me a coffee
 
