@@ -30,7 +30,7 @@ const (
 
 type (
 	// TimeoutCallback defines the method of timeout callback.
-	TimeoutCallback func(w http.ResponseWriter, r *http.Request, err error)
+	TimeoutCallback = func(w http.ResponseWriter, r *http.Request, err error)
 	// TimeoutOption defines the method to customize a TimeoutOptions.
 	TimeoutOptions struct {
 		Callback TimeoutCallback

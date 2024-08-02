@@ -1,3 +1,0 @@
-type ImportData {
-    Name string `path:"name,options=you|me"`
-}

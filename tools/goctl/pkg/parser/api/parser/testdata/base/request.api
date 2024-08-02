@@ -1,6 +1,0 @@
-syntax = "v1"
-
-type Baz {
-    Foo string `json:"foo"`
-    Baz bool `json:"bar"`
-}

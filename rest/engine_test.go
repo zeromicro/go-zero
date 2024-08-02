@@ -215,6 +215,8 @@ Verbose: true
 					ng.setUnsignedCallback(func(w http.ResponseWriter, r *http.Request,
 						next http.Handler, strict bool, code int) {
 					})
+					ng.setTimeoutCallback(func(w http.ResponseWriter, r *http.Request, err error) {
+					})
 				}
 				ng.addRoutes(route)
 				ng.use(func(next http.HandlerFunc) http.HandlerFunc {
@@ -429,8 +431,7 @@ func TestEngine_start(t *testing.T) {
 	})
 }
 
-type mockedRouter struct {
-}
+type mockedRouter struct{}
 
 func (m mockedRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
 }

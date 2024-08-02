@@ -68,6 +68,10 @@ Port: 0
 			c:    cnf,
 			opts: []RunOption{WithUnsignedCallback(nil), WithRouter(mockedRouter{})},
 		},
+		{
+			c:    cnf,
+			opts: []RunOption{WithTimeoutCallback(nil), WithRouter(mockedRouter{})},
+		},
 	}
 
 	for _, test := range tests {

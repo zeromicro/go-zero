@@ -1,8 +1,0 @@
-test/
-.dockerignore
-.go-version
-Dockerfile
-goctl
-Makefile
-readme.md
-readme-cn.md
