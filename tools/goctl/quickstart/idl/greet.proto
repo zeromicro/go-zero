@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package ping;
+option go_package = "./pb";
+
+message Placeholder{}
+
+service Greet {
+    rpc ping (Placeholder) returns (Placeholder);
+}

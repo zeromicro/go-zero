@@ -1,0 +1,157 @@
+model:
+  types_map:
+    bigint:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    dec:
+      null_type: sql.NullFloat64
+      type: float64
+    decimal:
+      null_type: sql.NullFloat64
+      type: float64
+    double:
+      null_type: sql.NullFloat64
+      type: float64
+    float:
+      null_type: sql.NullFloat64
+      type: float64
+    float4:
+      null_type: sql.NullFloat64
+      type: float64
+    float8:
+      null_type: sql.NullFloat64
+      type: float64
+    int:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    int1:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    int2:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    int3:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    int4:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    int8:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    integer:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    mediumint:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    middleint:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    smallint:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    tinyint:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    date:
+      null_type: sql.NullTime
+      type: time.Time
+    datetime:
+      null_type: sql.NullTime
+      type: time.Time
+    timestamp:
+      null_type: sql.NullTime
+      type: time.Time
+    time:
+      null_type: sql.NullString
+      type: string
+    year:
+      null_type: sql.NullInt64
+      type: int64
+      unsigned_type: uint64
+    bit:
+      null_type: sql.NullByte
+      type: byte
+      unsigned_type: byte
+    bool:
+      null_type: sql.NullBool
+      type: bool
+    boolean:
+      null_type: sql.NullBool
+      type: bool
+    char:
+      null_type: sql.NullString
+      type: string
+    varchar:
+      null_type: sql.NullString
+      type: string
+    nvarchar:
+      null_type: sql.NullString
+      type: string
+    nchar:
+      null_type: sql.NullString
+      type: string
+    character:
+      null_type: sql.NullString
+      type: string
+    longvarchar:
+      null_type: sql.NullString
+      type: string
+    linestring:
+      null_type: sql.NullString
+      type: string
+    multilinestring:
+      null_type: sql.NullString
+      type: string
+    binary:
+      null_type: sql.NullString
+      type: string
+    varbinary:
+      null_type: sql.NullString
+      type: string
+    tinytext:
+      null_type: sql.NullString
+      type: string
+    text:
+      null_type: sql.NullString
+      type: string
+    mediumtext:
+      null_type: sql.NullString
+      type: string
+    longtext:
+      null_type: sql.NullString
+      type: string
+    enum:
+      null_type: sql.NullString
+      type: string
+    set:
+      null_type: sql.NullString
+      type: string
+    json:
+      null_type: sql.NullString
+      type: string
+    blob:
+      null_type: sql.NullString
+      type: string
+    longblob:
+      null_type: sql.NullString
+      type: string
+    mediumblob:
+      null_type: sql.NullString
+      type: string
+    tinyblob:
+      null_type: sql.NullString
+      type: string

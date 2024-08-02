@@ -1,0 +1,293 @@
+{
+  "goctl": {
+    "short": "A cli tool to generate go-zero code",
+    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/zeromicro/go-zero\nSite:   https://go-zero.dev",
+    "api": {
+      "short": "Generate api related files",
+      "o": "Output a sample api file",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "api": "The api file",
+      "dir": "The target dir",
+      "dart": {
+        "short": "Generate dart files for provided api in api file",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "legacy": "Legacy generator for flutter v1",
+        "hostname": "hostname of the server",
+        "scheme": "scheme of the server"
+      },
+      "doc": {
+        "short": "Generate doc files",
+        "dir": "{{.goctl.api.dir}}",
+        "o": "The output markdown directory"
+      },
+      "format": {
+        "short": "Format api files",
+        "dir": "{{.goctl.api.dir}}",
+        "iu": "Ignore update",
+        "stdin": "Use stdin to input api doc content, press \"ctrl + d\" to send EOF",
+        "declare": "Use to skip check api types already declare"
+      },
+      "go": {
+        "short": "Generate go files for provided api in api file",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "style": "{{.global.style}}"
+      },
+      "new": {
+        "short": "Fast create api service",
+        "Example": "goctl api new [options] service-name",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "style": "{{.global.style}}"
+      },
+      "validate": {
+        "short": "Validate api file",
+        "api": "{{.goctl.api.api}}"
+      },
+      "kt": {
+        "short": "Generate kotlin code for provided api file",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "pkg": "Define package name for kotlin file"
+      },
+      "plugin": {
+        "short": "Custom file generator",
+        "plugin": "The plugin file",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "style": "{{.global.style}}"
+      },
+      "ts": {
+        "short": "Generate ts files for provided api in api file",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "caller": "The web api caller",
+        "unwrap": "Unwrap the webapi caller for import"
+      }
+    },
+    "bug": {
+      "short": "Report a bug"
+    },
+    "docker": {
+      "short": "Generate Dockerfile",
+      "exe": "The executable name in the built image",
+      "go": "The file that contains main function",
+      "base": "The base image to build the docker image, default scratch",
+      "port": "The port to expose, default none",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "version": "The goctl builder golang image version",
+      "tz": "The timezone of the container"
+    },
+    "kube": {
+      "short": "Generate kubernetes files",
+      "deploy": {
+        "short": "Generate deployment yaml file",
+        "name": "The name of deployment (required)",
+        "namespace": "The namespace of deployment (required)",
+        "image": "The docker image of deployment (required)",
+        "secret": "The secret to image pull from registry",
+        "requestCpu": "The request cpu to deploy",
+        "requestMem": "The request memory to deploy",
+        "limitCpu": "The limit cpu to deploy",
+        "limitMem": "The limit memory to deploy",
+        "o": "The output yaml file (required)",
+        "replicas": "The number of replicas to deploy",
+        "revisions": "The number of revision history to limit",
+        "port": "The port of the deployment to listen on pod (required)",
+        "nodePort": "The nodePort of the deployment to expose",
+        "targetPort": "The targetPort of the deployment, default to port",
+        "minReplicas": "The min replicas to deploy",
+        "maxReplicas": "The max replicas to deploy",
+        "imagePullPolicy": "The image pull policy of the deployment, default to IfNotPresent",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "serviceAccount": "TheServiceAccount for the deployment"
+      }
+    },
+    "env": {
+      "short": "Check or edit goctl environment",
+      "write": "Edit goctl environment",
+      "force": "Silent installation of non-existent dependencies",
+      "verbose": "Enable log output",
+      "install": {
+        "short": "Goctl env installation"
+      },
+      "check": {
+        "short": "Detect goctl env and dependency tools",
+        "install": "Install dependencies if not found"
+      }
+    },
+    "gateway": {
+      "short": "gateway is a tool to generate gateway code",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "dir": "The output dir",
+      "protoc": {
+        "short": "generate gateway code from proto file"
+      },
+      "protoset": {
+        "short": "generate gateway code from protoset file"
+      },
+      "server": {
+        "short": "generate gateway code from grpc server"
+      }
+    },
+    "model": {
+      "short": "Generate model code",
+      "dir": "The target dir",
+      "mysql": {
+        "short": "Generate mysql model",
+        "strict": "Generate model in strict mode",
+        "ignore-columns": "Ignore columns while creating or updating rows",
+        "datasource": {
+          "short": "Generate model from datasource",
+          "url": "The data source of database,like \"root:password@tcp(127.0.0.1:3306)/database",
+          "table": "The table or table globbing patterns in the database",
+          "cache": "Generate code with cache [optional]",
+          "dir": "{{.goctl.model.dir}}",
+          "style": "{{.global.style}}",
+          "idea": "For idea plugin [optional]",
+          "home": "{{.global.home}}",
+          "remote": "{{.global.remote}}",
+          "branch": "{{.global.branch}}"
+        },
+        "ddl": {
+          "short": "Generate mysql model from ddl",
+          "src": "The path or path globbing patterns of the ddl",
+          "dir": "{{.goctl.model.dir}}",
+          "style": "{{.global.style}}",
+          "cache": "Generate code with cache [optional]",
+          "idea": "For idea plugin [optional]",
+          "home": "{{.global.home}}",
+          "remote": "{{.global.remote}}",
+          "branch": "{{.global.branch}}"
+        }
+      },
+      "pg": {
+        "short": "Generate postgresql model",
+        "datasource": {
+          "short": "Generate model from datasource",
+          "url": "The data source of database,like \"postgres://root:password@127.0.0.1:5432/database?sslmode=disable\"",
+          "table": "The table or table globbing patterns in the database",
+          "schema": "The schema or schema globbing patterns in the database",
+          "cache": "Generate code with cache [optional]",
+          "dir": "{{.goctl.model.dir}}",
+          "style": "{{.global.style}}",
+          "idea": "For idea plugin [optional]",
+          "strict": "Generate model in strict mode",
+          "home": "{{.global.home}}",
+          "remote": "{{.global.remote}}",
+          "branch": "{{.global.branch}}"
+        }
+      },
+      "mongo": {
+        "short": "Generate mongo model",
+        "type": "Specified model type name",
+        "cache": "Generate code with cache [optional]",
+        "easy": "Generate code with auto generated CollectionName for easy declare [optional]",
+        "dir": "{{.goctl.model.dir}}",
+        "style": "{{.global.style}}",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}"
+      }
+    },
+    "migrate": {
+      "short": "Migrate from tal-tech to zeromicro",
+      "long": "Migrate is a transition command to help users migrate their projects from tal-tech to zeromicro version",
+      "verbose": "Verbose enables extra logging",
+      "version": "The target release version of github.com/zeromicro/go-zero to migrate"
+    },
+    "quickstart": {
+      "short": "quickly start a project",
+      "service-type": "specify the service type, supported values: [mono, micro]"
+    },
+    "rpc": {
+      "short": "Generate rpc code",
+      "o": "Output a sample proto file",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "new": {
+        "short": "Generate rpc demo service",
+        "style": "{{.global.style}}",
+        "idea": "For idea plugin [optional]",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "verbose": "Enable log output",
+        "client": "Whether to generate rpc client"
+      },
+      "template": {
+        "short": "Generate proto template",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}"
+      },
+      "protoc": {
+        "short": "Generate grpc code",
+        "example": "goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.",
+        "multiple": "Generated in multiple rpc service mode",
+        "zrpc_out": "The zrpc output directory",
+        "style": "{{.global.style}}",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "verbose": "Enable log output",
+        "client": "Whether to generate rpc client"
+      }
+    },
+    "template": {
+      "short": "Template operation",
+      "home": "The goctl home path of the template",
+      "init": {
+        "short": "Initialize the all templates(force update)",
+        "home": "{{.goctl.template.home}}",
+        "category": "The category of template, enum [api,rpc,model,docker,kube]"
+      },
+      "clean": {
+        "short": "Clean the all cache templates",
+        "home": "{{.goctl.template.home}}"
+      },
+      "update": {
+        "short": "Update template of the target category to the latest",
+        "home": "{{.goctl.template.home}}",
+        "category": "{{.goctl.template.category}}"
+      },
+      "revert": {
+        "short": "Revert the target template to the latest",
+        "home": "{{.goctl.template.home}}",
+        "category": "{{.goctl.template.category}}",
+        "name": "The target file name of template"
+      }
+    },
+    "upgrade": {
+      "short": "Upgrade goctl to latest version"
+    },
+    "config": {
+      "init": {
+        "short": "Initialize goctl config file"
+      },
+      "clean": {
+        "short": "Clean goctl config file"
+      }
+    }
+  },
+  "global": {
+    "home": "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority",
+    "remote": "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure",
+    "branch": "The branch of the remote repo, it does work with --remote",
+    "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]"
+  }
+}

@@ -1,0 +1,160 @@
+// aaaa
+
+/*bb*/ syntax /*cc*/ = /*dd*/ "v1" /*syntax doc*/ // syntax stmt
+// bbb
+
+info ( // info stmt
+    title:   "type title here" // title expr
+    /*ee*/
+    desc:    "type desc here"
+    author:  "type author here"
+    email:   "type email here"
+    version: "type version here"
+)
+
+type AliasInt int
+type AliasString = string
+type AliasArray [2]int8
+type AliasArray2 [...]int8
+type AliasSlice []int8
+type AliasMap map[string]int
+type Any interface{}
+type AliasMapKeyStruct map[{
+Name string `json:"name"`
+Age  int    `json:"age"`
+        Bar {
+            Name string `json:"name"`
+            Age  int    `json:"age"`
+            Bar {
+                Name string `json:"name"`
+                Age  int    `json:"age"`
+                Bar {
+                    Name string `json:"name"`
+                    Age  int    `json:"age"`
+                }
+            }
+        }
+}]int
+type AliasMapValueStruct map[string]{
+Name string `json:"name"`
+Age  int    `json:"age"`
+        Bar {
+            Name string `json:"name"`
+            Age  int    `json:"age"`
+            Bar {
+                Name string `json:"name"`
+                Age  int    `json:"age"`
+                Bar {
+                    Name string `json:"name"`
+                    Age  int    `json:"age"`
+                }
+            }
+        }
+}
+type Foo {
+    Bar {
+        Name string `json:"name"`
+        Age  int    `json:"age"`
+        Bar {
+            Name string `json:"name"`
+            Age  int    `json:"age"`
+            Bar {
+                Name string `json:"name"`
+                Age  int    `json:"age"`
+            }
+        }
+    }
+}
+
+type Bar {
+    Base      int                 `json:"base"`
+    Array1    [2]int              `json:"array1"`
+    Array2    [...]int            `json:"array2"`
+    Slice     []int               `json:"slice"`
+    Map1      map[string]int      `json:"map1"`
+    Map2      map[string]*int     `json:"map2"`
+    Map3      map[string][]int    `json:"map3"`
+    Map4      map[string][]*int   `json:"map4"`
+    Map5      map[string][2]int   `json:"map5"`
+    Map6      map[string][...]int `json:"map6"`
+    Interface interface{}         `json:"interface"`
+    Any       any                 `json:"any"`
+    Foo       Foo                 `json:"foo"`
+    Baz {
+        F1 int `json:"f1"`
+        F2 int `json:"f2"`
+    } `json:"baz"`
+    Qux  *string `json:"qux"`
+    Quux bool    `json:"quux"`
+}
+
+type (
+GroupAliasInt int
+GroupAliasString = string
+GroupAliasArray [2]int8
+GroupAliasArray2 [...]int8
+GroupAliasSlice []int8
+GroupAliasMap map[string]int
+GroupAny interface{}
+GroupFoo {}
+GroupBar {
+Base      int                 `json:"base"`
+Array1    [2]int              `json:"array1"`
+Array2    [...]int            `json:"array2"`
+Slice     []int               `json:"slice"`
+Map1      map[string]int      `json:"map1"`
+Map2      map[string]*int     `json:"map2"`
+Map3      map[string][]int    `json:"map3"`
+Map4      map[string][]*int   `json:"map4"`
+Map5      map[string][2]int   `json:"map5"`
+Map6      map[string][...]int `json:"map6"`
+Interface interface{}         `json:"interface"`
+Any       any                 `json:"any"`
+Foo       Foo                 `json:"foo"`
+Baz {
+F1 int `json:"f1"`
+F2 int `json:"f2"`
+} `json:"baz"`
+Qux  *string `json:"qux"`
+Quux bool    `json:"quux"`
+}
+)
+
+@server ()
+service test {
+    @handler foo
+    get /test/foo
+}
+
+@server (
+    jwt: Auth
+    group: Group1
+)
+service test {
+    @doc "ping"
+    @handler foo
+    get /test/foo
+    @doc (
+        key1: "value1"
+        key2: "value2"
+    )
+    @handler bar
+    get /test/foo (Foo)
+    @handler baz
+    post /test/foo/baz returns (Bar)
+    @handler qux
+    post /test/foo/baz/:qux (Foo) returns (Bar)
+    @handler quux
+    post /test/foo/baz/:qux/qu-ux (Foo) returns (Bar)
+    @handler foobar
+    post /foo/bar (*Foo) returns ([]Bar)
+    @handler barbaz
+    post /bar/baz ([]*Foo) returns ([]int)
+}
+
+// terminal
+// terminal2
+/*
+kkk
+*/
+

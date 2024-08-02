@@ -1,0 +1,17 @@
+syntax = "v1"
+
+info(
+    title: "type title here"
+    desc: "type desc here"
+    author: "type author here"
+    email: "type email here"
+    version: "type version here"
+)
+
+type req{}
+type reply{}
+
+service kotlin-api{
+    @handler ping
+    post /ping
+}

@@ -1,0 +1,35 @@
+// server foo
+@server(// server
+// key-value form
+key1:value1
+key2:value2
+jwt:Auth // enable jwt
+prefix: /v1 // the route prefix
+)
+// service foo
+service foo{// foo
+    // example1
+    @doc "example1"
+    @handler example1 // handler declare
+    get /path/example1// no body
+@doc( // doc group
+key1:"value1"
+key11:"value11"
+key111:"value111"
+)
+    @handler example2 // handler example2
+get /path/example2/:id// path arg
+    @doc
+    "example3"
+    @handler
+example3
+    get     /path/example3/:id
+    ( Foo )// no response
+    @doc "example4"
+    @handler example4
+    post /path/example4/a-b returns ( Foo )// no request
+    @doc "example5"
+    @handler example5
+    // example5
+    post        /path/example5/a-b ( Foo ) returns ( Bar ) // do not comment between path and body
+}

@@ -1,0 +1,17 @@
+import "importApi.api"
+
+type Request {
+    Name string `path:"name,options=you|me"`
+}
+
+type Response {
+    Message string `json:"message"` // message
+}
+
+@server(
+    group: greet
+)
+service A-api {
+    @handler GreetHandler
+    get /greet/from/:name(Request) returns (Response)
+}

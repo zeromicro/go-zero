@@ -1,0 +1,20 @@
+type Request {
+    Name string `path:"name,options=you|me"`
+}
+
+type XXX {}
+
+type (
+    Response {
+        Message string `json:"message"`
+    }
+
+    A {}
+
+    B struct {}
+)
+
+service A-api {
+    @handler GreetHandler
+    get /greet/from/:name(Request) returns (Response)
+}
