@@ -1,7 +1,7 @@
 package errorx
 
 import (
-	"bytes"
+	"errors"
 	"sync"
 )
 
@@ -52,14 +52,10 @@ func (be *BatchError) NotNil() bool {
 
 // Error returns a string that represents inside errors.
 func (ea errorArray) Error() string {
-	var buf bytes.Buffer
+	return errors.Join(ea...).Error()
+}
 
-	for i := range ea {
-		if i > 0 {
-			buf.WriteByte('\n')
-		}
-		buf.WriteString(ea[i].Error())
-	}
-
-	return buf.String()
+// Unwrap combine the errors in the errorArray into a single error return
+func (ea errorArray) Unwrap() error {
+	return errors.Join(ea...)
 }
