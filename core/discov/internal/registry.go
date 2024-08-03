@@ -30,7 +30,7 @@ var (
 // A Registry is a registry that manages the etcd client connections.
 type Registry struct {
 	clusters map[string]*cluster
-	lock     sync.Mutex
+	lock     sync.RWMutex
 }
 
 // GetRegistry returns a global Registry.
@@ -60,12 +60,19 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) err
 
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 	clusterKey := getClusterKey(endpoints)
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	r.lock.RLock()
 	c, exists = r.clusters[clusterKey]
+	r.lock.RUnlock()
+
 	if !exists {
-		c = newCluster(endpoints)
-		r.clusters[clusterKey] = c
+		r.lock.Lock()
+		defer r.lock.Unlock()
+		// double-check locking
+		c, exists = r.clusters[clusterKey]
+		if !exists {
+			c = newCluster(endpoints)
+			r.clusters[clusterKey] = c
+		}
 	}
 
 	return
@@ -78,7 +85,7 @@ type cluster struct {
 	listeners  map[string][]UpdateListener
 	watchGroup *threading.RoutineGroup
 	done       chan lang.PlaceholderType
-	lock       sync.Mutex
+	lock       sync.RWMutex
 }
 
 func newCluster(endpoints []string) *cluster {
@@ -108,8 +115,8 @@ func (c *cluster) getClient() (EtcdClient, error) {
 }
 
 func (c *cluster) getCurrent(key string) []KV {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
 	var kvs []KV
 	for k, v := range c.values[key] {
@@ -125,6 +132,7 @@ func (c *cluster) getCurrent(key string) []KV {
 func (c *cluster) handleChanges(key string, kvs []KV) {
 	var add []KV
 	var remove []KV
+
 	c.lock.Lock()
 	listeners := append([]UpdateListener(nil), c.listeners[key]...)
 	vals, ok := c.values[key]
@@ -173,9 +181,9 @@ func (c *cluster) handleChanges(key string, kvs []KV) {
 }
 
 func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
-	c.lock.Lock()
+	c.lock.RLock()
 	listeners := append([]UpdateListener(nil), c.listeners[key]...)
-	c.lock.Unlock()
+	c.lock.RUnlock()
 
 	for _, ev := range events {
 		switch ev.Type {

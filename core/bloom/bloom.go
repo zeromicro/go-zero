@@ -105,7 +105,7 @@ func newRedisBitSet(store *redis.Redis, key string, bits uint) *redisBitSet {
 }
 
 func (r *redisBitSet) buildOffsetArgs(offsets []uint) ([]string, error) {
-	var args []string
+	args := make([]string, 0, len(offsets))
 
 	for _, offset := range offsets {
 		if offset >= r.bits {

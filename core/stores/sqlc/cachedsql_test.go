@@ -579,6 +579,48 @@ func TestQueryRowNoCache(t *testing.T) {
 	assert.True(t, ran)
 }
 
+func TestQueryRowPartialNoCache(t *testing.T) {
+	r := redistest.CreateRedis(t)
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	var user string
+	var ran bool
+	conn := dummySqlConn{queryRow: func(v any, q string, args ...any) error {
+		user = value
+		ran = true
+		return nil
+	}}
+	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
+	err := c.QueryRowPartialNoCache(&user, key)
+	assert.Nil(t, err)
+	assert.Equal(t, value, user)
+	assert.True(t, ran)
+}
+
+func TestQueryRowsPartialNoCache(t *testing.T) {
+	r := redistest.CreateRedis(t)
+
+	var (
+		key    = "user"
+		values = []string{"any", "any"}
+	)
+	var users []string
+	var ran bool
+	conn := dummySqlConn{queryRows: func(v any, q string, args ...any) error {
+		users = values
+		ran = true
+		return nil
+	}}
+	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
+	err := c.QueryRowsPartialNoCache(&users, key)
+	assert.Nil(t, err)
+	assert.Equal(t, values, users)
+	assert.True(t, ran)
+}
+
 func TestNewConnWithCache(t *testing.T) {
 	r := redistest.CreateRedis(t)
 
@@ -716,7 +758,8 @@ func resetStats() {
 }
 
 type dummySqlConn struct {
-	queryRow func(any, string, ...any) error
+	queryRow  func(any, string, ...any) error
+	queryRows func(any, string, ...any) error
 }
 
 func (d dummySqlConn) ExecCtx(_ context.Context, _ string, _ ...any) (sql.Result, error) {
@@ -727,7 +770,11 @@ func (d dummySqlConn) PrepareCtx(_ context.Context, _ string) (sqlx.StmtSession,
 	return nil, nil
 }
 
-func (d dummySqlConn) QueryRowPartialCtx(_ context.Context, _ any, _ string, _ ...any) error {
+func (d dummySqlConn) QueryRowPartialCtx(_ context.Context, v any, query string, args ...any) error {
+	if d.queryRow != nil {
+		return d.queryRow(v, query, args...)
+	}
+
 	return nil
 }
 
@@ -735,7 +782,11 @@ func (d dummySqlConn) QueryRowsCtx(_ context.Context, _ any, _ string, _ ...any)
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsPartialCtx(_ context.Context, _ any, _ string, _ ...any) error {
+func (d dummySqlConn) QueryRowsPartialCtx(_ context.Context, v any, query string, args ...any) error {
+	if d.queryRows != nil {
+		return d.queryRows(v, query, args...)
+	}
+
 	return nil
 }
 

@@ -7,6 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
 
+func init() {
+	_ = mtest.Setup()
+}
+
 func TestClientManger_getClient(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	mt.Run("test", func(mt *mtest.T) {

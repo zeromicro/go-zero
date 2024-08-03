@@ -69,8 +69,9 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	handler := kube.NewEventHandler(func(endpoints []string) {
-		var addrs []resolver.Address
-		for _, val := range subset(endpoints, subsetSize) {
+		endpoints = subset(endpoints, subsetSize)
+		addrs := make([]resolver.Address, 0, len(endpoints))
+		for _, val := range endpoints {
 			addrs = append(addrs, resolver.Address{
 				Addr: fmt.Sprintf("%s:%d", val, svc.Port),
 			})

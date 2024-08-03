@@ -143,7 +143,7 @@ func fillPath(u *nurl.URL, val map[string]any) error {
 			delete(val, key)
 		}
 
-		var unused []string
+		unused := make([]string, 0, len(val))
 		for key := range val {
 			unused = append(unused, key)
 		}

@@ -13,6 +13,7 @@ import (
 
 	fatihcolor "github.com/fatih/color"
 	"github.com/zeromicro/go-zero/core/color"
+	"github.com/zeromicro/go-zero/core/errorx"
 )
 
 type (
@@ -31,6 +32,10 @@ type (
 	atomicWriter struct {
 		writer Writer
 		lock   sync.RWMutex
+	}
+
+	comboWriter struct {
+		writers []Writer
 	}
 
 	concreteWriter struct {
@@ -86,6 +91,62 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 	old := w.writer
 	w.writer = v
 	return old
+}
+
+func (c comboWriter) Alert(v any) {
+	for _, w := range c.writers {
+		w.Alert(v)
+	}
+}
+
+func (c comboWriter) Close() error {
+	var be errorx.BatchError
+	for _, w := range c.writers {
+		be.Add(w.Close())
+	}
+	return be.Err()
+}
+
+func (c comboWriter) Debug(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Debug(v, fields...)
+	}
+}
+
+func (c comboWriter) Error(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Error(v, fields...)
+	}
+}
+
+func (c comboWriter) Info(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Info(v, fields...)
+	}
+}
+
+func (c comboWriter) Severe(v any) {
+	for _, w := range c.writers {
+		w.Severe(v)
+	}
+}
+
+func (c comboWriter) Slow(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Slow(v, fields...)
+	}
+}
+
+func (c comboWriter) Stack(v any) {
+	for _, w := range c.writers {
+		w.Stack(v)
+	}
+}
+
+func (c comboWriter) Stat(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Stat(v, fields...)
+	}
 }
 
 func newConsoleWriter() Writer {

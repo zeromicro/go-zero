@@ -22,6 +22,7 @@ go-zero is a web and rpc framework with lots of builtin engineering practices. I
 ## 🤷‍ What is go-zero?
 English | [简体中文](readme-cn.md)
 
+<a href="https://trendshift.io/repositories/3263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3263" alt="zeromicro%2Fgo-zero | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 
@@ -124,18 +125,13 @@ go get -u github.com/zeromicro/go-zero
    # For Mac
    brew install goctl
    
-   # docker for amd64 architecture
+   # docker for all platforms
    docker pull kevinwan/goctl
-   # run goctl like
+   # run goctl
    docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
-   
-   # docker for arm64(Mac) architecture
-   docker pull kevinwan/goctl:latest-arm64
-   # run goctl like
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 --help
    ```
    
-   make sure goctl is executable.
+   make sure goctl is executable and in your $PATH.
    
 3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 

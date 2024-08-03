@@ -14,13 +14,31 @@ import (
 //go:embed components.tpl
 var componentsTemplate string
 
+// BuildTypes generates the typescript code for the types.
+func BuildTypes(types []spec.Type) (string, error) {
+	var builder strings.Builder
+	first := true
+	for _, tp := range types {
+		if first {
+			first = false
+		} else {
+			builder.WriteString("\n")
+		}
+		if err := writeType(&builder, tp); err != nil {
+			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
+		}
+	}
+
+	return builder.String(), nil
+}
+
 func genComponents(dir string, api *spec.ApiSpec) error {
 	types := api.Types
 	if len(types) == 0 {
 		return nil
 	}
 
-	val, err := buildTypes(types)
+	val, err := BuildTypes(types)
 	if err != nil {
 		return err
 	}
@@ -44,21 +62,4 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 	return t.Execute(fp, map[string]string{
 		"componentTypes": val,
 	})
-}
-
-func buildTypes(types []spec.Type) (string, error) {
-	var builder strings.Builder
-	first := true
-	for _, tp := range types {
-		if first {
-			first = false
-		} else {
-			builder.WriteString("\n")
-		}
-		if err := writeType(&builder, tp); err != nil {
-			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
-		}
-	}
-
-	return builder.String(), nil
 }

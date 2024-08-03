@@ -13,6 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
+	"github.com/zeromicro/go-zero/rest/internal/fileserver"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
@@ -85,7 +86,7 @@ func (s *Server) PrintRoutes() {
 
 // Routes returns the HTTP routers that registered in the server.
 func (s *Server) Routes() []Route {
-	var routes []Route
+	routes := make([]Route, 0, len(s.ngin.routes))
 
 	for _, r := range s.ngin.routes {
 		routes = append(routes, r.routes...)
@@ -170,6 +171,13 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 	}
 }
 
+// WithFileServer returns a RunOption to serve files from given dir with given path.
+func WithFileServer(path string, fs http.FileSystem) RunOption {
+	return func(server *Server) {
+		server.router = newFileServingRouter(server.router, path, fs)
+	}
+}
+
 // WithJwt returns a func to enable jwt authentication in given route.
 func WithJwt(secret string) RouteOption {
 	return func(r *featuredRoutes) {
@@ -241,7 +249,7 @@ func WithNotAllowedHandler(handler http.Handler) RunOption {
 // WithPrefix adds group as a prefix to the route paths.
 func WithPrefix(group string) RouteOption {
 	return func(r *featuredRoutes) {
-		var routes []Route
+		routes := make([]Route, 0, len(r.routes))
 		for _, rt := range r.routes {
 			p := path.Join(group, rt.Path)
 			routes = append(routes, Route{
@@ -336,4 +344,20 @@ func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...s
 
 func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.middleware(c.Router.ServeHTTP)(w, r)
+}
+
+type fileServingRouter struct {
+	httpx.Router
+	middleware Middleware
+}
+
+func newFileServingRouter(router httpx.Router, path string, fs http.FileSystem) httpx.Router {
+	return &fileServingRouter{
+		Router:     router,
+		middleware: fileserver.Middleware(path, fs),
+	}
+}
+
+func (f *fileServingRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f.middleware(f.Router.ServeHTTP)(w, r)
 }
