@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"io"
 	"os"
 	"path"
@@ -64,6 +65,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		data: map[string]any{
 			"types":        val,
 			"containsTime": false,
+			"version":      version.BuildVersion,
 		},
 	})
 }

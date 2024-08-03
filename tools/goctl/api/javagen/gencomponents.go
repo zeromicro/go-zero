@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"io"
 	"path"
 	"strings"
@@ -131,6 +132,7 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 		"className":         util.Title(defineStruct.Name()),
 		"superClassName":    superClassName,
 		"HasProperty":       len(strings.TrimSpace(propertiesString)) > 0,
+		"version":           version.BuildVersion,
 	})
 	if err != nil {
 		return err

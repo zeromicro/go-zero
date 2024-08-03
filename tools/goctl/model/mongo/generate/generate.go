@@ -2,6 +2,7 @@ package generate
 
 import (
 	"errors"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/config"
@@ -59,6 +60,7 @@ func generateModel(ctx *Context) error {
 			"Type":      stringx.From(t).Title(),
 			"lowerType": stringx.From(t).Untitle(),
 			"Cache":     ctx.Cache,
+			"version":   version.BuildVersion,
 		}, output, true); err != nil {
 			return err
 		}

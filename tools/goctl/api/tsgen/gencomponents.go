@@ -2,6 +2,7 @@ package tsgen
 
 import (
 	_ "embed"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"path"
 	"strings"
 	"text/template"
@@ -61,5 +62,6 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 	t := template.Must(template.New("componentsTemplate").Parse(componentsTemplate))
 	return t.Execute(fp, map[string]string{
 		"componentTypes": val,
+		"version":        version.BuildVersion,
 	})
 }
