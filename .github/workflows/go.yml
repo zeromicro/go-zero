@@ -52,7 +52,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v5
         with:
-          # use 1.20 to guarantee Go 1.20 compatibility
+          # make sure Go version compatible with go-zero
           go-version-file: go.mod
           check-latest: true
           cache: true

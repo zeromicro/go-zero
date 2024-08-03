@@ -95,3 +95,53 @@ func TestBatchError_Unwrap(t *testing.T) {
 		assert.False(t, errors.Is(be.Err(), errBaz))
 	})
 }
+
+func TestBatchError_Add(t *testing.T) {
+	var be BatchError
+
+	// Test adding nil errors
+	be.Add(nil, nil)
+	assert.False(t, be.NotNil(), "Expected BatchError to be empty after adding nil errors")
+
+	// Test adding non-nil errors
+	err1 := errors.New("error 1")
+	err2 := errors.New("error 2")
+	be.Add(err1, err2)
+	assert.True(t, be.NotNil(), "Expected BatchError to be non-empty after adding errors")
+
+	// Test adding a mix of nil and non-nil errors
+	err3 := errors.New("error 3")
+	be.Add(nil, err3, nil)
+	assert.True(t, be.NotNil(), "Expected BatchError to be non-empty after adding a mix of nil and non-nil errors")
+}
+
+func TestBatchError_Err(t *testing.T) {
+	var be BatchError
+
+	// Test Err() on empty BatchError
+	assert.Nil(t, be.Err(), "Expected nil error for empty BatchError")
+
+	// Test Err() with multiple errors
+	err1 := errors.New("error 1")
+	err2 := errors.New("error 2")
+	be.Add(err1, err2)
+
+	combinedErr := be.Err()
+	assert.NotNil(t, combinedErr, "Expected nil error for BatchError with multiple errors")
+
+	// Check if the combined error contains both error messages
+	errString := combinedErr.Error()
+	assert.Truef(t, errors.Is(combinedErr, err1), "Combined error doesn't contain first error: %s", errString)
+	assert.Truef(t, errors.Is(combinedErr, err2), "Combined error doesn't contain second error: %s", errString)
+}
+
+func TestBatchError_NotNil(t *testing.T) {
+	var be BatchError
+
+	// Test NotNil() on empty BatchError
+	assert.Nil(t, be.Err(), "Expected nil error for empty BatchError")
+
+	// Test NotNil() after adding an error
+	be.Add(errors.New("test error"))
+	assert.NotNil(t, be.Err(), "Expected non-nil error after adding an error")
+}
