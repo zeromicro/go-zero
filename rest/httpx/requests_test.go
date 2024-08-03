@@ -1,8 +1,10 @@
 package httpx
 
 import (
+	"context"
 	"bytes"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -274,6 +276,38 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Equal(t, 1, len(v))
 		assert.Equal(t, "kevin", v[0].Name)
 		assert.Equal(t, 18, v[0].Age)
+	})
+}
+
+func TestParseCustomUnsetErr(t *testing.T) {
+	startCtx := context.Background()
+	ctxKey := "method"
+
+	SetCustomUnsetError(func(ctx context.Context, tag string) error {
+		return fmt.Errorf("%s: custom %s unset error", ctx.Value(ctxKey).(string), tag)
+	})
+	t.Run("request get", func(t *testing.T) {
+		v := struct {
+			Name    string  `form:"name"`
+			Percent float64 `form:"percent"`
+		}{}
+
+		gr, err := http.NewRequest(http.MethodGet, "/a?name=hello", http.NoBody)
+		gr = gr.WithContext(context.WithValue(startCtx, ctxKey, "GET"))
+		assert.Nil(t, err)
+		assert.EqualErrorf(t, Parse(gr, &v), "GET: custom percent unset error", "custom unset error")
+	})
+
+	t.Run("request post", func(t *testing.T) {
+		pv := struct {
+			Name    string  `json:"name"`
+			Percent float64 `json:"percent"`
+		}{}
+		body := `{"name":"hello"}`
+		pr := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		pr.Header.Set(ContentType, header.JsonContentType)
+		pr = pr.WithContext(context.WithValue(startCtx, ctxKey, "POST"))
+		assert.EqualErrorf(t, Parse(pr, &pv), "POST: custom percent unset error", "custom unset error")
 	})
 }
 
