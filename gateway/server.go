@@ -3,6 +3,9 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc/status"
+	"io"
 	"net/http"
 	"strings"
 
@@ -25,6 +28,7 @@ type (
 		upstreams     []Upstream
 		processHeader func(http.Header) []string
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		RespHandler   func(writer io.Writer, status *status.Status, message proto.Message)
 	}
 
 	// Option defines the method to customize Server.
@@ -128,7 +132,9 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		}
 
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
-		handler := internal.NewEventHandler(w, resolver)
+		handler := internal.NewEventHandler(w, resolver, func(eventHandler *internal.EventHandler) {
+			eventHandler.RespHandler = s.RespHandler
+		})
 		if err := grpcurl.InvokeRPC(r.Context(), source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
