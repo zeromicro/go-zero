@@ -315,12 +315,15 @@ func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 }
 
 func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
+	ctx, cancel := context.WithCancel(c.context(cli))
+	defer cancel()
+
 	var rch clientv3.WatchChan
 	if rev != 0 {
-		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key),
+		rch = cli.Watch(clientv3.WithRequireLeader(ctx), makeKeyPrefix(key),
 			clientv3.WithPrefix(), clientv3.WithRev(rev+1))
 	} else {
-		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key),
+		rch = cli.Watch(clientv3.WithRequireLeader(ctx), makeKeyPrefix(key),
 			clientv3.WithPrefix())
 	}
 
@@ -340,6 +343,8 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 			c.handleWatchEvents(key, wresp.Events)
 		case <-c.done:
 			return nil
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 }
