@@ -122,6 +122,9 @@ func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
 	if s.middlewares.Breaker {
 		interceptors = append(interceptors, serverinterceptors.UnaryBreakerInterceptor)
 	}
+	if s.middlewares.CustomKey {
+		interceptors = append(interceptors, serverinterceptors.UnaryCustomKeysInterceptor())
+	}
 
 	return append(interceptors, s.unaryInterceptors...)
 }

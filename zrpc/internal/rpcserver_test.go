@@ -21,6 +21,7 @@ func TestRpcServer(t *testing.T) {
 		Stat:       true,
 		Prometheus: true,
 		Breaker:    true,
+		CustomKey:  true,
 	}, WithMetrics(metrics), WithRpcHealth(true))
 	server.SetName("mock")
 	var wg, wgDone sync.WaitGroup

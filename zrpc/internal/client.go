@@ -119,6 +119,9 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 	if c.middlewares.Timeout {
 		interceptors = append(interceptors, clientinterceptors.TimeoutInterceptor(timeout))
 	}
+	if c.middlewares.CustomKey {
+		interceptors = append(interceptors, clientinterceptors.UnaryCustomKeysInterceptor)
+	}
 
 	return interceptors
 }

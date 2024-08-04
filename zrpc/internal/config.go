@@ -13,6 +13,7 @@ type (
 		Prometheus bool `json:",default=true"`
 		Breaker    bool `json:",default=true"`
 		Timeout    bool `json:",default=true"`
+		CustomKey  bool `json:",default=true"`
 	}
 
 	// ServerMiddlewaresConf defines whether to use server middlewares.
@@ -23,6 +24,7 @@ type (
 		StatConf   StatConf `json:",optional"`
 		Prometheus bool     `json:",default=true"`
 		Breaker    bool     `json:",default=true"`
+		CustomKey  bool     `json:",default=true"`
 	}
 
 	// MethodTimeoutConf defines specified timeout for gRPC methods.

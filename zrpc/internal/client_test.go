@@ -70,6 +70,7 @@ func TestBuildDialOptions(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 			Timeout:    true,
+			CustomKey:  true,
 		},
 	}
 	agent := grpc.WithUserAgent("chrome")
