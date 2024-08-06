@@ -52,8 +52,10 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	metrics.SetName(c.Name)
 	setupStreamInterceptors(server, c)
 	setupUnaryInterceptors(server, c, metrics)
-	if err = setupAuthInterceptors(server, c); err != nil {
-		return nil, err
+	if c.Auth {
+		if err = setupAuthInterceptors(server, c); err != nil {
+			return nil, err
+		}
 	}
 
 	rpcServer := &RpcServer{
