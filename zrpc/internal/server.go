@@ -3,7 +3,6 @@ package internal
 import (
 	"time"
 
-	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/keepalive"
@@ -27,7 +26,6 @@ type (
 	baseRpcServer struct {
 		address            string
 		health             *health.Server
-		metrics            *stat.Metrics
 		options            []grpc.ServerOption
 		streamInterceptors []grpc.StreamServerInterceptor
 		unaryInterceptors  []grpc.UnaryServerInterceptor
@@ -42,7 +40,6 @@ func newBaseRpcServer(address string, rpcServerOpts *rpcServerOptions) *baseRpcS
 	return &baseRpcServer{
 		address: address,
 		health:  h,
-		metrics: rpcServerOpts.metrics,
 		options: []grpc.ServerOption{grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: defaultConnectionIdleDuration,
 		})},
@@ -59,8 +56,4 @@ func (s *baseRpcServer) AddStreamInterceptors(interceptors ...grpc.StreamServerI
 
 func (s *baseRpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
 	s.unaryInterceptors = append(s.unaryInterceptors, interceptors...)
-}
-
-func (s *baseRpcServer) SetName(name string) {
-	s.metrics.SetName(name)
 }

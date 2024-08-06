@@ -13,7 +13,7 @@ func TestNewRpcPubServer(t *testing.T) {
 		User: "user",
 		Pass: "pass",
 		ID:   10,
-	}, "", ServerMiddlewaresConf{})
+	}, "")
 	assert.NoError(t, err)
 	assert.NotPanics(t, func() {
 		s.Start(nil)

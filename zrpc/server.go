@@ -40,7 +40,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	}
 
 	if c.HasEtcd() {
-		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, c.Middlewares, serverOptions...)
+		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, serverOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -49,6 +49,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	}
 
 	server.SetName(c.Name)
+	metrics.SetName(c.Name)
 	setupStreamInterceptors(server, c)
 	setupUnaryInterceptors(server, c, metrics)
 	if err = setupAuthInterceptors(server, c); err != nil {

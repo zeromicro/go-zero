@@ -42,7 +42,6 @@ func NewRpcServer(addr string, opts ...ServerOption) Server {
 
 func (s *rpcServer) SetName(name string) {
 	s.name = name
-	s.baseRpcServer.SetName(name)
 }
 
 func (s *rpcServer) Start(register RegisterFn) error {
