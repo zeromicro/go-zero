@@ -133,6 +133,7 @@ func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route
 			handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)))
 	}
 	if ng.conf.Middlewares.Log {
+		handler.SetSlowIgnorePaths(ng.conf.SlowIgnorePaths)
 		chn = chn.Append(ng.getLogHandler())
 	}
 	if ng.conf.Middlewares.Prometheus {
@@ -220,6 +221,7 @@ func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 		)
 
 		if ng.conf.Middlewares.Log {
+			handler.SetSlowIgnorePaths(ng.conf.SlowIgnorePaths)
 			chn = chn.Append(ng.getLogHandler())
 		}
 
