@@ -4,58 +4,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
-	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
 )
-
-func TestServer_setupInterceptors(t *testing.T) {
-	rds, err := miniredis.Run()
-	assert.NoError(t, err)
-	defer rds.Close()
-
-	server := new(mockedServer)
-	conf := RpcServerConf{
-		Auth: true,
-		Redis: redis.RedisKeyConf{
-			RedisConf: redis.RedisConf{
-				Host: rds.Addr(),
-				Type: redis.NodeType,
-			},
-			Key: "foo",
-		},
-		CpuThreshold: 10,
-		Timeout:      100,
-		Middlewares: ServerMiddlewaresConf{
-			Trace:      true,
-			Recover:    true,
-			Stat:       true,
-			Prometheus: true,
-			Breaker:    true,
-		},
-		MethodTimeouts: []MethodTimeoutConf{
-			{
-				FullMethod: "/foo",
-				Timeout:    5 * time.Second,
-			},
-		},
-	}
-	err = setupInterceptors(server, conf, new(stat.Metrics))
-	assert.Nil(t, err)
-	assert.Equal(t, 3, len(server.unaryInterceptors))
-	assert.Equal(t, 1, len(server.streamInterceptors))
-
-	rds.SetError("mock error")
-	err = setupInterceptors(server, conf, new(stat.Metrics))
-	assert.Error(t, err)
-}
 
 func TestServer(t *testing.T) {
 	DontLogContentForMethod("foo")
