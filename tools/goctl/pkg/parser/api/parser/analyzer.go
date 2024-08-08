@@ -78,7 +78,7 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 
 		return spec.MapType{
 			RawName: v.RawText(),
-			Key:     v.RawText(),
+			Key:     v.Key.RawText(),
 			Value:   value,
 		}, nil
 	case *ast.PointerDataType:
