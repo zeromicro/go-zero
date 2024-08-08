@@ -52,10 +52,8 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	metrics.SetName(c.Name)
 	setupStreamInterceptors(server, c)
 	setupUnaryInterceptors(server, c, metrics)
-	if c.Auth {
-		if err = setupAuthInterceptors(server, c); err != nil {
-			return nil, err
-		}
+	if err = setupAuthInterceptors(server, c); err != nil {
+		return nil, err
 	}
 
 	rpcServer := &RpcServer{
@@ -112,6 +110,9 @@ func SetServerSlowThreshold(threshold time.Duration) {
 }
 
 func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
+	if !c.Auth {
+		return nil
+	}
 	rds, err := redis.NewRedis(c.Redis.RedisConf)
 	if err != nil {
 		return err

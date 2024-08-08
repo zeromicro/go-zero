@@ -272,6 +272,15 @@ func Test_setupStreamInterceptors(t *testing.T) {
 }
 
 func Test_setupAuthInterceptors(t *testing.T) {
+	t.Run("no need set auth", func(t *testing.T) {
+		s := &mockedServer{}
+		err := setupAuthInterceptors(s, RpcServerConf{
+			Auth:  false,
+			Redis: redis.RedisKeyConf{},
+		})
+		assert.NoError(t, err)
+	})
+
 	t.Run("redis error", func(t *testing.T) {
 		s := &mockedServer{}
 		err := setupAuthInterceptors(s, RpcServerConf{
