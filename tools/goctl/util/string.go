@@ -79,7 +79,7 @@ func SafeString(in string) string {
 
 	headRune := rune(data[0])
 	if isNumber(headRune) {
-		return "_" + data
+		return "Z_" + data
 	}
 	return data
 }
