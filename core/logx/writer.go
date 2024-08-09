@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 
 	fatihcolor "github.com/fatih/color"
+
 	"github.com/zeromicro/go-zero/core/color"
 	"github.com/zeromicro/go-zero/core/errorx"
 )
@@ -60,17 +61,15 @@ type (
 	}
 )
 
-// NewWriter creates a new Writer with the given io.Writer.
-func NewWriter(w io.Writer) Writer {
-	lw := newLogWriter(log.New(w, "", flags))
-
+// NewWriter creates a new Writer with the given io.WriteCloser.
+func NewWriter(w io.WriteCloser) Writer {
 	return &concreteWriter{
-		infoLog:   lw,
-		errorLog:  lw,
-		severeLog: lw,
-		slowLog:   lw,
-		statLog:   lw,
-		stackLog:  lw,
+		infoLog:   w,
+		errorLog:  w,
+		severeLog: w,
+		slowLog:   w,
+		statLog:   w,
+		stackLog:  w,
 	}
 }
 
