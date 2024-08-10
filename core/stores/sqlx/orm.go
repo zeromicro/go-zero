@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
@@ -34,11 +35,8 @@ type rowsScanner interface {
 	Scan(v ...any) error
 }
 
-// RowsScanner is an alias of rowsScanner.
-type RowsScanner = rowsScanner
-
 // UnmarshalRowHandler defines the method to unmarshal row.
-type UnmarshalRowHandler func(v any, scanner RowsScanner, strict bool) error
+type UnmarshalRowHandler func(v any, rows *sql.Rows, strict bool) error
 
 // UnmarshalRowsHandler defines the method to unmarshal rows.
 // alias of UnmarshalRowHandler
@@ -169,9 +167,11 @@ func parseTagName(field reflect.StructField) string {
 
 func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 	if customUnmarshalRow != nil {
-		return customUnmarshalRow(v, scanner, strict)
+		rows, ok := scanner.(*sql.Rows)
+		if ok {
+			return customUnmarshalRow(v, rows, strict)
+		}
 	}
-
 	if !scanner.Next() {
 		if err := scanner.Err(); err != nil {
 			return err
@@ -216,9 +216,11 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 
 func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 	if customUnmarshalRows != nil {
-		return customUnmarshalRows(v, scanner, strict)
+		rows, ok := scanner.(*sql.Rows)
+		if ok {
+			return customUnmarshalRows(v, rows, strict)
+		}
 	}
-
 	rv := reflect.ValueOf(v)
 	if err := mapping.ValidatePtr(rv); err != nil {
 		return err
