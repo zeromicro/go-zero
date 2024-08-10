@@ -22,11 +22,36 @@ var (
 	ErrUnsupportedValueType = errors.New("unsupported unmarshal type")
 )
 
+var (
+	customUnmarshalRow  UnmarshalRowHandler
+	customUnmarshalRows UnmarshalRowsHandler
+)
+
 type rowsScanner interface {
 	Columns() ([]string, error)
 	Err() error
 	Next() bool
 	Scan(v ...any) error
+}
+
+// RowsScanner is an alias of rowsScanner.
+type RowsScanner = rowsScanner
+
+// UnmarshalRowHandler defines the method to unmarshal row.
+type UnmarshalRowHandler func(v any, scanner RowsScanner, strict bool) error
+
+// UnmarshalRowsHandler defines the method to unmarshal rows.
+// alias of UnmarshalRowHandler
+type UnmarshalRowsHandler = UnmarshalRowHandler
+
+// SetUnmarshalRowHandler sets the custom unmarshal row handler.
+func SetUnmarshalRowHandler(handler UnmarshalRowHandler) {
+	customUnmarshalRow = handler
+}
+
+// SetUnmarshalRowsHandler sets the custom unmarshal rows handler.
+func SetUnmarshalRowsHandler(handler UnmarshalRowsHandler) {
+	customUnmarshalRows = handler
 }
 
 func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
@@ -143,6 +168,10 @@ func parseTagName(field reflect.StructField) string {
 }
 
 func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
+	if customUnmarshalRow != nil {
+		return customUnmarshalRow(v, scanner, strict)
+	}
+
 	if !scanner.Next() {
 		if err := scanner.Err(); err != nil {
 			return err
@@ -186,6 +215,10 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 }
 
 func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
+	if customUnmarshalRows != nil {
+		return customUnmarshalRows(v, scanner, strict)
+	}
+
 	rv := reflect.ValueOf(v)
 	if err := mapping.ValidatePtr(rv); err != nil {
 		return err
