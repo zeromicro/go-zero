@@ -13,7 +13,7 @@ import (
 const serverNamespace = "http_server"
 
 var (
-	rpcServerReqDurBuckets = []float64{5, 10, 25, 50, 100, 250, 500, 750, 1000}
+	serverReqDurBuckets    = []float64{5, 10, 25, 50, 100, 250, 500, 750, 1000}
 	metricServerReqDurOnce sync.Once
 
 	metricServerReqDur metric.HistogramVec
@@ -30,7 +30,7 @@ var (
 // SetServerReqDurBuckets sets buckets for rest server requests duration.
 // It must be called before PrometheusHandler is used.
 func SetServerReqDurBuckets(buckets []float64) {
-	rpcServerReqDurBuckets = buckets
+	serverReqDurBuckets = buckets
 }
 
 // PrometheusHandler returns a middleware that reports stats to prometheus.
@@ -60,7 +60,7 @@ func initMetricServerReqDur() {
 			Name:      "duration_ms",
 			Help:      "http server requests duration(ms).",
 			Labels:    []string{"path", "method", "code"},
-			Buckets:   rpcServerReqDurBuckets,
+			Buckets:   serverReqDurBuckets,
 		})
 	})
 }

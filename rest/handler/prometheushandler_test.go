@@ -39,5 +39,5 @@ func TestPromMetricHandler_Enabled(t *testing.T) {
 
 func TestSetRpcServerReqDurBuckets(t *testing.T) {
 	SetServerReqDurBuckets([]float64{0.1})
-	assert.Equal(t, []float64{0.1}, rpcServerReqDurBuckets)
+	assert.Equal(t, []float64{0.1}, serverReqDurBuckets)
 }
