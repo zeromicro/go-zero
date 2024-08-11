@@ -25,6 +25,9 @@ var (
 	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
+	// SetRpcClientReqDurBuckets sets buckets for rpc client requests duration.
+	// It must be called before PrometheusInterceptor is used.
+	SetRpcClientReqDurBuckets = clientinterceptors.SetRpcClientReqDurBuckets
 )
 
 type (

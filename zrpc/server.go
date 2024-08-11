@@ -13,6 +13,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+// SetRpcServerReqDurBuckets sets buckets for rpc server requests duration.
+// It must be called before UnaryPrometheusInterceptor is used.
+var SetRpcServerReqDurBuckets = serverinterceptors.SetRpcServerReqDurBuckets
+
 // A RpcServer is a rpc server.
 type RpcServer struct {
 	server   internal.Server

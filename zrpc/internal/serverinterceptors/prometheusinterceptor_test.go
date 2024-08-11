@@ -30,3 +30,8 @@ func TestUnaryPromMetricInterceptor_Enabled(t *testing.T) {
 	})
 	assert.Nil(t, err)
 }
+
+func TestSetRpcServerReqDurBuckets(t *testing.T) {
+	SetRpcServerReqDurBuckets([]float64{0.1})
+	assert.Equal(t, []float64{0.1}, rpcServerReqDurBuckets)
+}

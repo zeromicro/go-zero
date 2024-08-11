@@ -36,3 +36,8 @@ func TestPromMetricHandler_Enabled(t *testing.T) {
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
+func TestSetRpcServerReqDurBuckets(t *testing.T) {
+	SetServerReqDurBuckets([]float64{0.1})
+	assert.Equal(t, []float64{0.1}, rpcServerReqDurBuckets)
+}

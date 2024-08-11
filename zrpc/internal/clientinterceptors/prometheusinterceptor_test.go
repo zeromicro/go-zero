@@ -48,3 +48,9 @@ func TestPromMetricInterceptor(t *testing.T) {
 		})
 	}
 }
+
+func TestSetRpcClientReqDurBuckets(t *testing.T) {
+	buckets := []float64{1, 2, 3}
+	SetRpcClientReqDurBuckets(buckets)
+	assert.Equal(t, buckets, rpcClientReqDurBuckets)
+}
