@@ -35,31 +35,39 @@ func TestRedisLock(t *testing.T) {
 		}
 	}
 
-	t.Run("normal", func(t *testing.T) {
-		runOnRedis(t, testFn(nil))
-	})
+	t.Run(
+		"normal", func(t *testing.T) {
+			runOnRedis(t, testFn(nil))
+		},
+	)
 
-	t.Run("withContext", func(t *testing.T) {
-		runOnRedis(t, testFn(context.Background()))
-	})
+	t.Run(
+		"withContext", func(t *testing.T) {
+			runOnRedis(t, testFn(context.Background()))
+		},
+	)
 }
 
 func TestRedisLock_Expired(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		key := stringx.Rand()
-		redisLock := NewRedisLock(client, key)
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-		_, err := redisLock.AcquireCtx(ctx)
-		assert.NotNil(t, err)
-	})
+	runOnRedis(
+		t, func(client *Redis) {
+			key := stringx.Rand()
+			redisLock := NewRedisLock(client, key)
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			_, err := redisLock.AcquireCtx(ctx)
+			assert.NotNil(t, err)
+		},
+	)
 
-	runOnRedis(t, func(client *Redis) {
-		key := stringx.Rand()
-		redisLock := NewRedisLock(client, key)
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-		_, err := redisLock.ReleaseCtx(ctx)
-		assert.NotNil(t, err)
-	})
+	runOnRedis(
+		t, func(client *Redis) {
+			key := stringx.Rand()
+			redisLock := NewRedisLock(client, key)
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			_, err := redisLock.ReleaseCtx(ctx)
+			assert.NotNil(t, err)
+		},
+	)
 }
