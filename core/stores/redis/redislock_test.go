@@ -3,11 +3,44 @@ package redis
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/zeromicro/go-zero/core/stringx"
 )
+
+func TestRedisLock_SameAcquire(t *testing.T) {
+
+	var (
+		s       = miniredis.RunT(t)
+		seconds = 5
+	)
+	client := MustNewRedis(
+		RedisConf{
+			Host: s.Addr(),
+			Type: NodeType,
+		},
+	)
+
+	key := stringx.Rand()
+	firstLock := NewRedisLock(client, key)
+	firstLock.SetExpire(seconds)
+	firstAcquire, err := firstLock.Acquire()
+	assert.Nil(t, err)
+	assert.True(t, firstAcquire)
+
+	secondAcquire, err := firstLock.Acquire()
+	assert.Nil(t, err)
+	assert.False(t, secondAcquire)
+
+	s.FastForward(time.Second * time.Duration(seconds+1))
+
+	thirdAcquire, err := firstLock.Acquire()
+	assert.Nil(t, err)
+	assert.True(t, thirdAcquire)
+}
 
 func TestRedisLock(t *testing.T) {
 	testFn := func(ctx context.Context) func(client *Redis) {
