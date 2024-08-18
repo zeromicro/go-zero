@@ -90,6 +90,18 @@ type (
 	StringCmd = red.StringCmd
 	// Script is an alias of redis.Script.
 	Script = red.Script
+
+	// Hook is an alias of redis.Hook.
+	Hook = red.Hook
+	// DialHook is an alias of redis.DialHook.
+	DialHook = red.DialHook
+	// ProcessHook is an alias of redis.ProcessHook.
+	ProcessHook = red.ProcessHook
+	// ProcessPipelineHook is an alias of redis.ProcessPipelineHook.
+	ProcessPipelineHook = red.ProcessPipelineHook
+
+	// Cmder is an alias of redis.Cmder.
+	Cmder = red.Cmder
 )
 
 // MustNewRedis returns a Redis with given options.
@@ -2363,9 +2375,9 @@ func WithTLS() Option {
 	}
 }
 
-// withHook customizes the given Redis with given durationHook, only for private use now,
+// WithHook customizes the given Redis with given durationHook, only for private use now,
 // maybe expose later.
-func withHook(hook red.Hook) Option {
+func WithHook(hook Hook) Option {
 	return func(r *Redis) {
 		r.hooks = append(r.hooks, hook)
 	}

@@ -52,6 +52,26 @@ type (
 	}
 )
 
+// AddWriter adds a new writer.
+// If there is already a writer, the new writer will be added to the writer chain.
+// For example, to write logs to both file and console, if there is already a file writer,
+// ```go
+// logx.AddWriter(logx.NewWriter(os.Stdout))
+// ```
+func AddWriter(w Writer) {
+	ow := Reset()
+	if ow == nil {
+		SetWriter(w)
+	} else {
+		// no need to check if the existing writer is a comboWriter,
+		// because it is not common to add more than one writer.
+		// even more than one writer, the behavior is the same.
+		SetWriter(comboWriter{
+			writers: []Writer{ow, w},
+		})
+	}
+}
+
 // Alert alerts v in alert level, and the message is written to error log.
 func Alert(v string) {
 	getWriter().Alert(v)

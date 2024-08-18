@@ -4,13 +4,12 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/tools/goctl/example/rpc/hello/internal/config"
 	greetServer "github.com/zeromicro/go-zero/tools/goctl/example/rpc/hello/internal/server/greet"
 	"github.com/zeromicro/go-zero/tools/goctl/example/rpc/hello/internal/svc"
 	"github.com/zeromicro/go-zero/tools/goctl/example/rpc/hello/pb/hello"
-
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
