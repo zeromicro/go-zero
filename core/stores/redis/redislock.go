@@ -18,6 +18,8 @@ const (
 )
 
 var (
+	//go:embed delscript.lua
+	delLuaScript string
 	delScript    = NewScript(delLuaScript)
 )
 
