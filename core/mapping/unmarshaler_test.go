@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -260,6 +261,7 @@ func TestUnmarshalInt(t *testing.T) {
 		Int64FromStr int64 `key:"int64str,string"`
 		DefaultInt   int64 `key:"defaultint,default=11"`
 		Optional     int   `key:"optional,optional"`
+		IntOptDef    int   `key:"intopt,optional,default=6"`
 	}
 	m := map[string]any{
 		"int":      1,
@@ -288,6 +290,7 @@ func TestUnmarshalInt(t *testing.T) {
 		ast.Equal(int64(9), in.Int64)
 		ast.Equal(int64(10), in.Int64FromStr)
 		ast.Equal(int64(11), in.DefaultInt)
+		ast.Equal(6, in.IntOptDef)
 	}
 }
 
@@ -976,6 +979,19 @@ func TestUnmarshalFloat32WithOverflow(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
+	t.Run("float32 from string less than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float, string"`
+		}
+
+		m := map[string]any{
+			"float": "-1.79769313486231570814527423731704356798070e+300", // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
 	t.Run("float32 from json.Number greater than float64", func(t *testing.T) {
 		type inner struct {
 			Value float32 `key:"float"`
@@ -996,6 +1012,19 @@ func TestUnmarshalFloat32WithOverflow(t *testing.T) {
 
 		m := map[string]any{
 			"float": json.Number("1.79769313486231570814527423731704356798070e+300"), // overflow
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("float32 from json number less than float32", func(t *testing.T) {
+		type inner struct {
+			Value float32 `key:"float"`
+		}
+
+		m := map[string]any{
+			"float": json.Number("-1.79769313486231570814527423731704356798070e+300"), // overflow
 		}
 
 		var in inner
@@ -1301,6 +1330,47 @@ func TestUnmarshalInt64Slice(t *testing.T) {
 		ast.ElementsMatch([]int64{1, 2}, v.Ages)
 		ast.Equal([]int64{}, v.Slice)
 	}
+}
+
+func TestUnmarshalNullableSlice(t *testing.T) {
+	var v struct {
+		Ages  []int64 `key:"ages"`
+		Slice []int8  `key:"slice"`
+	}
+	m := map[string]any{
+		"ages":  []int64{1, 2},
+		"slice": `[null,2]`,
+	}
+
+	assert.New(t).Equal(UnmarshalKey(m, &v), errNilSliceElement)
+}
+
+func TestUnmarshalWithFloatPtr(t *testing.T) {
+	t.Run("*float32", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 *float32 `key:"weightFloat32,optional"`
+		}
+		m := map[string]any{
+			"weightFloat32": json.Number("3.2"),
+		}
+
+		if assert.NoError(t, UnmarshalKey(m, &v)) {
+			assert.Equal(t, float32(3.2), *v.WeightFloat32)
+		}
+	})
+
+	t.Run("**float32", func(t *testing.T) {
+		var v struct {
+			WeightFloat32 **float32 `key:"weightFloat32,optional"`
+		}
+		m := map[string]any{
+			"weightFloat32": json.Number("3.2"),
+		}
+
+		if assert.NoError(t, UnmarshalKey(m, &v)) {
+			assert.Equal(t, float32(3.2), **v.WeightFloat32)
+		}
+	})
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
@@ -5344,6 +5414,15 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		assert.Equal(t, "c", st.C)
 	})
 
+	t.Run("optional !", func(t *testing.T) {
+		var st struct {
+			A string `json:",optional"`
+			B string `json:",optional=!A"`
+		}
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		assert.NoError(t, err)
+	})
+
 	t.Run("has value", func(t *testing.T) {
 		type St struct {
 			A string `json:",default=a"`
@@ -5684,6 +5763,49 @@ func TestUnmarshalWithIgnoreFields(t *testing.T) {
 	}
 }
 
+func TestUnmarshal_Unmarshaler(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshaler `json:"name"`
+		}{}
+		body := `{"name": "hello"}`
+		assert.NoError(t, UnmarshalJsonBytes([]byte(body), &v))
+		assert.Equal(t, "hello", v.Foo.Name)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshalerWithError `json:"name"`
+		}{}
+		body := `{"name": "hello"}`
+		assert.Error(t, UnmarshalJsonBytes([]byte(body), &v))
+	})
+
+	t.Run("not json unmarshaler", func(t *testing.T) {
+		v := struct {
+			Foo *struct {
+				Name string
+			} `key:"name"`
+		}{}
+		u := NewUnmarshaler(defaultKeyName)
+		assert.Error(t, u.Unmarshal(map[string]any{
+			"name": "hello",
+		}, &v))
+	})
+
+	t.Run("not with json key", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshaler `json:"name"`
+		}{}
+		u := NewUnmarshaler(defaultKeyName)
+		// with different key, ignore
+		assert.NoError(t, u.Unmarshal(map[string]any{
+			"name": "hello",
+		}, &v))
+		assert.Nil(t, v.Foo)
+	})
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
@@ -5790,10 +5912,27 @@ type mockValuerWithParent struct {
 	ok     bool
 }
 
-func (m mockValuerWithParent) Value(key string) (any, bool) {
+func (m mockValuerWithParent) Value(_ string) (any, bool) {
 	return m.value, m.ok
 }
 
 func (m mockValuerWithParent) Parent() valuerWithParent {
 	return m.parent
+}
+
+type mockUnmarshaler struct {
+	Name string
+}
+
+func (m *mockUnmarshaler) UnmarshalJSON(b []byte) error {
+	m.Name = string(b)
+	return nil
+}
+
+type mockUnmarshalerWithError struct {
+	Name string
+}
+
+func (m *mockUnmarshalerWithError) UnmarshalJSON(b []byte) error {
+	return errors.New("foo")
 }

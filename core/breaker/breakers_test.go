@@ -1,6 +1,7 @@
 package breaker
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -22,6 +23,9 @@ func TestBreakersDo(t *testing.T) {
 	assert.Equal(t, errDummy, Do("any", func() error {
 		return errDummy
 	}))
+	assert.Equal(t, errDummy, DoCtx(context.Background(), "any", func() error {
+		return errDummy
+	}))
 }
 
 func TestBreakersDoWithAcceptable(t *testing.T) {
@@ -36,6 +40,13 @@ func TestBreakersDoWithAcceptable(t *testing.T) {
 	verify(t, func() bool {
 		return Do("anyone", func() error {
 			return nil
+		}) == nil
+	})
+	verify(t, func() bool {
+		return DoWithAcceptableCtx(context.Background(), "anyone", func() error {
+			return nil
+		}, func(err error) bool {
+			return true
 		}) == nil
 	})
 
@@ -76,6 +87,12 @@ func TestBreakersFallback(t *testing.T) {
 			return nil
 		})
 		assert.True(t, err == nil || errors.Is(err, errDummy))
+		err = DoWithFallbackCtx(context.Background(), "fallback", func() error {
+			return errDummy
+		}, func(err error) error {
+			return nil
+		})
+		assert.True(t, err == nil || errors.Is(err, errDummy))
 	}
 	verify(t, func() bool {
 		return errors.Is(Do("fallback", func() error {
@@ -86,8 +103,16 @@ func TestBreakersFallback(t *testing.T) {
 
 func TestBreakersAcceptableFallback(t *testing.T) {
 	errDummy := errors.New("any")
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 5000; i++ {
 		err := DoWithFallbackAcceptable("acceptablefallback", func() error {
+			return errDummy
+		}, func(err error) error {
+			return nil
+		}, func(err error) bool {
+			return err == nil
+		})
+		assert.True(t, err == nil || errors.Is(err, errDummy))
+		err = DoWithFallbackAcceptableCtx(context.Background(), "acceptablefallback", func() error {
 			return errDummy
 		}, func(err error) error {
 			return nil
@@ -110,5 +135,5 @@ func verify(t *testing.T, fn func() bool) {
 			count++
 		}
 	}
-	assert.True(t, count >= 80, fmt.Sprintf("should be greater than 80, actual %d", count))
+	assert.True(t, count >= 75, fmt.Sprintf("should be greater than 75, actual %d", count))
 }

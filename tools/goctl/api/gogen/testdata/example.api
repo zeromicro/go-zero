@@ -1,0 +1,99 @@
+syntax = "v1"
+
+info(
+    title: "demo title"
+    desc: "demo desc"
+    author: "keson.an"
+    date: "2024-06-25"
+    version: "v1"
+)
+
+// empty structure
+type Foo {
+}
+
+// type lit
+type Bar {
+    Foo int `json:"foo"`
+    Bar bool `json:"bar"`
+    Baz []string `json:"baz"`
+    Qux map[string]string `json:"qux"`
+}
+
+type Baz {
+    Foo    `json:"foo"`
+    // array type
+    Arr [2]int `json:"arr"`
+    // nested type
+    Bar {
+        Foo string `json:"foo"`
+        Bar bool `json:"bar"`
+        Baz {
+            Foo string `json:"foo"`
+            Bar bool `json:"bar"`
+        }
+        Qux {
+            Foo string `json:"foo"`
+            Bar bool `json:"bar"`
+        } `json:"qux"`
+    } `json:"bar"`
+}
+
+
+type UpdateReq {
+    Arg1 string `json:"arg1"`
+}
+
+type ListItem {
+    Value1 string `json:"value1"`
+}
+
+type LoginReq {
+    Username string `json:"username"`
+    Password string `json:"password"`
+}
+
+type LoginResp {
+    Name string `json:"name"`
+}
+
+type FormExampleReq {
+    Name string `form:"name"`
+}
+
+type PathExampleReq {
+    ID string `path:"id"`
+}
+
+type PathExampleResp {
+    Name string `json:"name"`
+}
+
+@server(
+    jwt: Auth
+    prefix:     /v1
+    group: g1
+    timeout:    3s
+    middleware: AuthInterceptor
+    maxBytes:   1048576
+)
+service Foo {
+    @handler ping
+    get /ping
+
+    @handler update
+    post /update (UpdateReq)
+
+    @handler list
+    get /list returns ([]ListItem)
+
+    @handler login
+    post /login (LoginReq) returns (LoginResp)
+
+    @handler formExample
+    post /form/example (FormExampleReq)
+
+    @handler pathExample
+    get /path/example/:id (PathExampleReq) returns (PathExampleResp)
+}
+

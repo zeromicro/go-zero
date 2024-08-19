@@ -59,7 +59,13 @@ func StartAgent(c Config) {
 
 // StopAgent shuts down the span processors in the order they were registered.
 func StopAgent() {
-	_ = tp.Shutdown(context.Background())
+	lock.Lock()
+	defer lock.Unlock()
+
+	if tp != nil {
+		_ = tp.Shutdown(context.Background())
+		tp = nil
+	}
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
@@ -91,8 +97,11 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	case kindOtlpHttp:
 		// Not support flexible configuration now.
 		opts := []otlptracehttp.Option{
-			otlptracehttp.WithInsecure(),
 			otlptracehttp.WithEndpoint(c.Endpoint),
+		}
+
+		if !c.OtlpHttpSecure {
+			opts = append(opts, otlptracehttp.WithInsecure())
 		}
 		if len(c.OtlpHeaders) > 0 {
 			opts = append(opts, otlptracehttp.WithHeaders(c.OtlpHeaders))

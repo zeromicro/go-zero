@@ -56,12 +56,8 @@ func initProject() {
 	}
 
 	log.Must(pathx.MkdirIfNotExist(projectDir))
-	if hasGoMod, _ := ctx.IsGoMod(projectDir); hasGoMod {
-		return
-	}
-	if exitCode := execCommand(projectDir, "go mod init "+baseDir); exitCode != 0 {
-		log.Fatalln("Init process exit")
-	}
+	_, err = ctx.Prepare(projectDir)
+	logx.Must(err)
 }
 
 func run(_ *cobra.Command, _ []string) error {

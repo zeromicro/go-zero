@@ -121,7 +121,7 @@ func TestAddGlobalProbes(t *testing.T) {
 
 func TestCreateHttpHandler(t *testing.T) {
 	cleanupForTest(t)
-	srv := httptest.NewServer(CreateHttpHandler())
+	srv := httptest.NewServer(CreateHttpHandler("OK"))
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL)

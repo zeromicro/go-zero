@@ -22,6 +22,7 @@ go-zero is a web and rpc framework with lots of builtin engineering practices. I
 ## 🤷‍ What is go-zero?
 English | [简体中文](readme-cn.md)
 
+<a href="https://trendshift.io/repositories/3263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3263" alt="zeromicro%2Fgo-zero | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 
@@ -42,7 +43,6 @@ go-zero contains simple API description syntax and code generation tool called `
 
 ## Backgrounds of go-zero
 
-At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After research and comparison, we chose to:
 In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
 
 * Go Beyond with Golang
@@ -124,18 +124,13 @@ go get -u github.com/zeromicro/go-zero
    # For Mac
    brew install goctl
    
-   # docker for amd64 architecture
+   # docker for all platforms
    docker pull kevinwan/goctl
-   # run goctl like
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
-   
-   # docker for arm64(Mac) architecture
-   docker pull kevinwan/goctl:latest-arm64
-   # run goctl like
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
+   # run goctl
+   docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
    ```
    
-   make sure goctl is executable.
+   make sure goctl is executable and in your $PATH.
    
 3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 
@@ -194,7 +189,6 @@ go get -u github.com/zeromicro/go-zero
 
    ```shell
    cd greet
-   go mod init
    go mod tidy
    go run greet.go -f etc/greet-api.yaml
    ```
@@ -248,15 +242,15 @@ Join the chat via https://discord.gg/4JQvC5A4Fe
 ##  Cloud Native Landscape
 
 <p float="left">
-<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
-<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-landscape-logo.svg" width="150"/>
 </p>
 
 go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/?selected=go-zero).
 
 ## Give a Star! ⭐
 
-If you like or are using this project to learn or start your solution, please give it a star. Thanks!
+If you like this project or are using it to learn or start your own solution, give it a star to get updates on new releases. Your support matters!
 
 ## Buy me a coffee
 

@@ -13,6 +13,7 @@ import (
 
 	fatihcolor "github.com/fatih/color"
 	"github.com/zeromicro/go-zero/core/color"
+	"github.com/zeromicro/go-zero/core/errorx"
 )
 
 type (
@@ -31,6 +32,10 @@ type (
 	atomicWriter struct {
 		writer Writer
 		lock   sync.RWMutex
+	}
+
+	comboWriter struct {
+		writers []Writer
 	}
 
 	concreteWriter struct {
@@ -86,6 +91,62 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 	old := w.writer
 	w.writer = v
 	return old
+}
+
+func (c comboWriter) Alert(v any) {
+	for _, w := range c.writers {
+		w.Alert(v)
+	}
+}
+
+func (c comboWriter) Close() error {
+	var be errorx.BatchError
+	for _, w := range c.writers {
+		be.Add(w.Close())
+	}
+	return be.Err()
+}
+
+func (c comboWriter) Debug(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Debug(v, fields...)
+	}
+}
+
+func (c comboWriter) Error(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Error(v, fields...)
+	}
+}
+
+func (c comboWriter) Info(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Info(v, fields...)
+	}
+}
+
+func (c comboWriter) Severe(v any) {
+	for _, w := range c.writers {
+		w.Severe(v)
+	}
+}
+
+func (c comboWriter) Slow(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Slow(v, fields...)
+	}
+}
+
+func (c comboWriter) Stack(v any) {
+	for _, w := range c.writers {
+		w.Stack(v)
+	}
+}
+
+func (c comboWriter) Stat(v any, fields ...LogField) {
+	for _, w := range c.writers {
+		w.Stat(v, fields...)
+	}
 }
 
 func newConsoleWriter() Writer {
@@ -254,11 +315,10 @@ func (n nopWriter) Stack(_ any) {
 func (n nopWriter) Stat(_ any, _ ...LogField) {
 }
 
-func buildPlainFields(fields ...LogField) []string {
-	var items []string
-
-	for _, field := range fields {
-		items = append(items, fmt.Sprintf("%s=%+v", field.Key, field.Value))
+func buildPlainFields(fields logEntry) []string {
+	items := make([]string, 0, len(fields))
+	for k, v := range fields {
+		items = append(items, fmt.Sprintf("%s=%+v", k, v))
 	}
 
 	return items
@@ -278,6 +338,20 @@ func combineGlobalFields(fields []LogField) []LogField {
 	return ret
 }
 
+func marshalJson(t interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(t)
+	// go 1.5+ will append a newline to the end of the json string
+	// https://github.com/golang/go/issues/13520
+	if l := buf.Len(); l > 0 && buf.Bytes()[l-1] == '\n' {
+		buf.Truncate(l - 1)
+	}
+
+	return buf.Bytes(), err
+}
+
 func output(writer io.Writer, level string, val any, fields ...LogField) {
 	// only truncate string content, don't know how to truncate the values of other types.
 	if v, ok := val.(string); ok {
@@ -289,15 +363,17 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 	}
 
 	fields = combineGlobalFields(fields)
+	// +3 for timestamp, level and content
+	entry := make(logEntry, len(fields)+3)
+	for _, field := range fields {
+		entry[field.Key] = field.Value
+	}
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainAny(writer, level, val, buildPlainFields(fields...)...)
+		plainFields := buildPlainFields(entry)
+		writePlainAny(writer, level, val, plainFields...)
 	default:
-		entry := make(logEntry)
-		for _, field := range fields {
-			entry[field.Key] = field.Value
-		}
 		entry[timestampKey] = getTimestamp()
 		entry[levelKey] = level
 		entry[contentKey] = val
@@ -332,7 +408,7 @@ func wrapLevelWithColor(level string) string {
 }
 
 func writeJson(writer io.Writer, info any) {
-	if content, err := json.Marshal(info); err != nil {
+	if content, err := marshalJson(info); err != nil {
 		log.Printf("err: %s\n\n%s", err.Error(), debug.Stack())
 	} else if writer == nil {
 		log.Println(string(content))

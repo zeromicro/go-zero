@@ -17,6 +17,8 @@ type Config struct {
 	// For example
 	// /v1/traces
 	OtlpHttpPath string `json:",optional"`
+	// OtlpHttpSecure represents the scheme to use for OTLP HTTP transport.
+	OtlpHttpSecure bool `json:",optional"`
 	// Disabled indicates whether StartAgent starts the agent.
 	Disabled bool `json:",optional"`
 }

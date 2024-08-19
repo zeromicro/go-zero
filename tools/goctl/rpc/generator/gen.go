@@ -10,9 +10,9 @@ import (
 )
 
 type ZRpcContext struct {
-	// Sre is the source file of the proto.
+	// Src is the source file of the proto.
 	Src string
-	// ProtoCmd is the command to generate proto files.
+	// ProtocCmd is the command to generate proto files.
 	ProtocCmd string
 	// ProtoGenGrpcDir is the directory to store the generated proto files.
 	ProtoGenGrpcDir string

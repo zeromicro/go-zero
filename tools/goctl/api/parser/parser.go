@@ -17,9 +17,9 @@ type parser struct {
 	spec *spec.ApiSpec
 }
 
+// Parse parses the api file.
 // Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
 // it will be removed in the future.
-// Parse parses the api file.
 func Parse(filename string) (*spec.ApiSpec, error) {
 	if env.UseExperimental() {
 		return apiParser.Parse(filename, "")

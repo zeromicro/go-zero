@@ -8,11 +8,30 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 //go:embed components.tpl
 var componentsTemplate string
+
+// BuildTypes generates the typescript code for the types.
+func BuildTypes(types []spec.Type) (string, error) {
+	var builder strings.Builder
+	first := true
+	for _, tp := range types {
+		if first {
+			first = false
+		} else {
+			builder.WriteString("\n")
+		}
+		if err := writeType(&builder, tp); err != nil {
+			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
+		}
+	}
+
+	return builder.String(), nil
+}
 
 func genComponents(dir string, api *spec.ApiSpec) error {
 	types := api.Types
@@ -20,7 +39,7 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 		return nil
 	}
 
-	val, err := buildTypes(types)
+	val, err := BuildTypes(types)
 	if err != nil {
 		return err
 	}
@@ -43,22 +62,6 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 	t := template.Must(template.New("componentsTemplate").Parse(componentsTemplate))
 	return t.Execute(fp, map[string]string{
 		"componentTypes": val,
+		"version":        version.BuildVersion,
 	})
-}
-
-func buildTypes(types []spec.Type) (string, error) {
-	var builder strings.Builder
-	first := true
-	for _, tp := range types {
-		if first {
-			first = false
-		} else {
-			builder.WriteString("\n")
-		}
-		if err := writeType(&builder, tp); err != nil {
-			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
-		}
-	}
-
-	return builder.String(), nil
 }

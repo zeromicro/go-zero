@@ -12,7 +12,7 @@ type RestfulConf struct {
 	MaxConns     int           `json:",default=10000"`
 	MaxBytes     int64         `json:",default=1048576"`
 	Timeout      time.Duration `json:",default=3s"`
-	CpuThreshold int64         `json:",default=900,range=[0:1000]"`
+	CpuThreshold int64         `json:",default=900,range=[0:1000)"`
 }
 ```
 

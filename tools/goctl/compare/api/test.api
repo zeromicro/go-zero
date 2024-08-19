@@ -1,0 +1,151 @@
+syntax = "v1"
+
+@server (
+	group: base
+)
+service test {
+	@handler root
+	get /
+
+	@handler ping
+	get /ping
+
+	@handler postRoot
+	post /
+
+	@handler postPing
+	post /ping
+}
+
+type (
+	Subject {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+	Grade {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+	Class {
+		Id       int64      `json:"id"`
+		Name     string     `json:"name"`
+		GradeId  int64      `json:"gradeId"`
+		Teachers []*Teacher `json:"teachers"`
+		Master {
+			UserId int64 `json:"userId"`
+			Temp   bool  `json:"temp"`
+		} `json:"master"`
+	}
+	User {
+		Id     int64    `json:"id"`
+		Name   string   `json:"name"`
+		Gender int      `json:"gender"`
+		Active bool     `json:"active"`
+		Hobby  []string `json:"hobby"`
+	}
+	Teacher {
+		UserId    int64            `json:"userId"`
+		Id        int64            `json:"id"`
+		Name      string           `json:"name"`
+		SubjectId int64            `json:"subjectId"`
+		Class     map[int64]*Class `json:"class"`
+	}
+	Student {
+		UserId      int64                  `json:"userId"`
+		StudentId   int64                  `json:"studentId"`
+		Number      string                 `json:"number"`
+		ClassId     int64                  `json:"classId"`
+		SubjectId   []int64                `json:"subjectId"`
+		SubjectTop3 [3]int64               `json:"subjectTop3"`
+		Extra       map[string]interface{} `json:"extra"`
+	}
+	Base {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+)
+
+type (
+	LoginReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	LoginResp {
+		Base
+		Data *User `json:"data"`
+	}
+)
+
+@server (
+	group:  user
+	prefix: /user
+)
+service test {
+	@handler login
+	post /login (LoginReq) returns (LoginReq)
+}
+
+type (
+	UserInfoReq {
+		Id int64 `path:"id"`
+	}
+	UserInfoResp {
+		Base
+		Data *User `json:"data"`
+	}
+)
+
+@server (
+	group:      user
+	prefix:     /user
+	jwt:        JWT
+	middleware: Auth
+)
+service test {
+	@handler userInfo
+	post /info/:id (UserInfoReq) returns (UserInfoResp)
+}
+
+type (
+	StudentClassNameListReq {
+		Id int64 `string:"id"`
+	}
+	StudentInfoReq {
+		Id int64 `path:"id"`
+	}
+	SutdentInfoResp {
+		Base
+		Data *Student `json:"data"`
+	}
+	UpdateStudentInfoReq {
+		UserId      int64                  `form:"userId"`
+		StudentId   int64                  `form:"studentId"`
+		Number      string                 `form:"number"`
+		ClassId     int64                  `form:"classId"`
+		SubjectId   []int64                `form:"subjectId"`
+		SubjectTop3 [3]int64               `form:"subjectTop3"`
+		Extra       map[string]interface{} `form:"extra"`
+	}
+	UpdateSutdentInfoResp {
+		Base
+		Data *Student `json:"data"`
+	}
+)
+
+@server (
+	group:      student
+	prefix:     /student
+	jwt:        JWT
+	middleware: Auth
+)
+service test {
+	@handler studentInfo
+	get /info/:id (StudentInfoReq) returns (SutdentInfoResp)
+
+	@handler updateStudentInfo
+	post /info/update (UpdateStudentInfoReq) returns (UpdateSutdentInfoResp)
+
+	@handler studentClassNameList
+	post /class/name/list (StudentClassNameListReq) returns ([]string)
+}
+

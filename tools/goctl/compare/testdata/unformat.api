@@ -1,3 +1,0 @@
-syntax = "v1"
-
-type Foo struct{}

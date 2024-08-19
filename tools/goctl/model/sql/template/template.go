@@ -4,8 +4,14 @@ import (
 	_ "embed"
 	"fmt"
 
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
+
+// Customized defines a template for customized in model
+//
+//go:embed tpl/customized.tpl
+var Customized string
 
 // Vars defines a template for var block in model
 //
@@ -39,6 +45,8 @@ var ModelCustom string
 
 // ModelGen defines a template for model
 var ModelGen = fmt.Sprintf(`%s
+// versions:
+//  goctl version: %s
 
 package {{.pkg}}
 {{.imports}}
@@ -51,7 +59,8 @@ package {{.pkg}}
 {{.update}}
 {{.extraMethod}}
 {{.tableName}}
-`, util.DoNotEditHead)
+{{.customized}}
+`, util.DoNotEditHead, version.BuildVersion)
 
 // Insert defines a template for insert code in model
 //

@@ -13,6 +13,7 @@ import (
 	"github.com/withfig/autocomplete-tools/integrations/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api"
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
 	"github.com/zeromicro/go-zero/tools/goctl/gateway"
@@ -113,7 +114,7 @@ func init() {
 
 	rootCmd.SetUsageTemplate(usageTpl)
 	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, gateway.Cmd, model.Cmd)
-	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd)
+	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, config.Cmd)
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 	rootCmd.MustInit()
 }

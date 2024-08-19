@@ -5,7 +5,6 @@ import (
 	"go/build"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,12 +50,7 @@ func TestRpcGenerate(t *testing.T) {
 		err = g.Generate(ctx)
 		assert.Nil(t, err)
 		_, err = execx.Run("go test "+projectName, projectDir)
-		if err != nil {
-			assert.True(t, func() bool {
-				return strings.Contains(err.Error(),
-					"not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-			}())
-		}
+		assert.Error(t, err)
 	})
 
 	// case go mod

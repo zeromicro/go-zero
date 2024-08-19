@@ -1,18 +1,21 @@
 package errorx
 
-import "bytes"
-
-type (
-	// A BatchError is an error that can hold multiple errors.
-	BatchError struct {
-		errs errorArray
-	}
-
-	errorArray []error
+import (
+	"errors"
+	"sync"
 )
 
-// Add adds errs to be, nil errors are ignored.
+// BatchError is an error that can hold multiple errors.
+type BatchError struct {
+	errs []error
+	lock sync.RWMutex
+}
+
+// Add adds one or more non-nil errors to the BatchError instance.
 func (be *BatchError) Add(errs ...error) {
+	be.lock.Lock()
+	defer be.lock.Unlock()
+
 	for _, err := range errs {
 		if err != nil {
 			be.errs = append(be.errs, err)
@@ -20,33 +23,20 @@ func (be *BatchError) Add(errs ...error) {
 	}
 }
 
-// Err returns an error that represents all errors.
+// Err returns an error that represents all accumulated errors.
+// It returns nil if there are no errors.
 func (be *BatchError) Err() error {
-	switch len(be.errs) {
-	case 0:
-		return nil
-	case 1:
-		return be.errs[0]
-	default:
-		return be.errs
-	}
+	be.lock.RLock()
+	defer be.lock.RUnlock()
+
+	// If there are no non-nil errors, errors.Join(...) returns nil.
+	return errors.Join(be.errs...)
 }
 
-// NotNil checks if any error inside.
+// NotNil checks if there is at least one error inside the BatchError.
 func (be *BatchError) NotNil() bool {
+	be.lock.RLock()
+	defer be.lock.RUnlock()
+
 	return len(be.errs) > 0
-}
-
-// Error returns a string that represents inside errors.
-func (ea errorArray) Error() string {
-	var buf bytes.Buffer
-
-	for i := range ea {
-		if i > 0 {
-			buf.WriteByte('\n')
-		}
-		buf.WriteString(ea[i].Error())
-	}
-
-	return buf.String()
 }
