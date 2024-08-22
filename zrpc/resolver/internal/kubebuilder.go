@@ -1,3 +1,5 @@
+//go:build !no_k8s
+
 package internal
 
 import (
