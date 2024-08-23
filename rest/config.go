@@ -35,6 +35,22 @@ type (
 		PrivateKeys []PrivateKeyConf
 	}
 
+	// JWTConf Key and expiration time configuration required for JWT authentication
+	JWTConf struct {
+		AccessSecret string
+		AccessExpire int64
+		// extract a jwt from custom request header or url arguments
+		TokenKeys []string `json:",optional"`
+	}
+
+	// A JWTTransConf is a jwtTrans config.
+	JWTTransConf struct {
+		Secret     string
+		PrevSecret string
+		// extract a jwt from custom request header or url arguments
+		TokenKeys []string `json:",optional"`
+	}
+
 	// A RestConf is a http service config.
 	// Why not name it as Conf, because we need to consider usage like:
 	//  type Config struct {

@@ -22,6 +22,7 @@ type (
 		resetTime     time.Duration
 		resetDuration time.Duration
 		history       sync.Map
+		extractor     request.MultiExtractor
 	}
 )
 
@@ -30,6 +31,7 @@ func NewTokenParser(opts ...ParseOption) *TokenParser {
 	parser := &TokenParser{
 		resetTime:     timex.Now(),
 		resetDuration: claimHistoryResetDuration,
+		extractor:     request.MultiExtractor{request.AuthorizationHeaderExtractor},
 	}
 
 	for _, opt := range opts {
@@ -79,10 +81,11 @@ func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*
 }
 
 func (tp *TokenParser) doParseToken(r *http.Request, secret string) (*jwt.Token, error) {
-	return request.ParseFromRequest(r, request.AuthorizationHeaderExtractor,
-		func(token *jwt.Token) (any, error) {
-			return []byte(secret), nil
-		}, request.WithParser(newParser()))
+	keyFunc := func(token *jwt.Token) (any, error) {
+		return []byte(secret), nil
+	}
+
+	return request.ParseFromRequest(r, tp.extractor, keyFunc, request.WithParser(newParser()))
 }
 
 func (tp *TokenParser) incrementCount(secret string) {
@@ -116,6 +119,16 @@ func (tp *TokenParser) loadCount(secret string) uint64 {
 func WithResetDuration(duration time.Duration) ParseOption {
 	return func(parser *TokenParser) {
 		parser.resetDuration = duration
+	}
+}
+
+func WithExtractor(tokenKeys []string) ParseOption {
+	return func(parser *TokenParser) {
+		parser.extractor = request.MultiExtractor{
+			request.HeaderExtractor(tokenKeys),
+			request.ArgumentExtractor(tokenKeys),
+			parser.extractor,
+		}
 	}
 }
 

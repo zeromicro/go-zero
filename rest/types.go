@@ -23,6 +23,7 @@ type (
 		enabled    bool
 		secret     string
 		prevSecret string
+		tokenKeys  []string
 	}
 
 	signatureSetting struct {

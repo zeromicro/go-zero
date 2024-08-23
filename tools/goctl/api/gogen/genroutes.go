@@ -118,10 +118,10 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 
 		var jwt string
 		if g.jwtEnabled {
-			jwt = fmt.Sprintf("\n rest.WithJwt(serverCtx.Config.%s.AccessSecret),", g.authName)
+			jwt = fmt.Sprintf("\n rest.WithJwt(serverCtx.Config.%s),", g.authName)
 		}
 		if len(g.jwtTrans) > 0 {
-			jwt = jwt + fmt.Sprintf("\n rest.WithJwtTransition(serverCtx.Config.%s.PrevSecret,serverCtx.Config.%s.Secret),", g.jwtTrans, g.jwtTrans)
+			jwt = jwt + fmt.Sprintf("\n rest.WithJwtTransition(serverCtx.Config.%s),", g.jwtTrans)
 		}
 		var signature, prefix string
 		if g.signatureEnabled {

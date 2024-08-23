@@ -191,24 +191,27 @@ func WithFileServer(path string, fs http.FileSystem) RunOption {
 }
 
 // WithJwt returns a func to enable jwt authentication in given route.
-func WithJwt(secret string) RouteOption {
+func WithJwt(jwt JWTConf) RouteOption {
 	return func(r *featuredRoutes) {
-		validateSecret(secret)
+		validateSecret(jwt.AccessSecret)
 		r.jwt.enabled = true
-		r.jwt.secret = secret
+		r.jwt.secret = jwt.AccessSecret
+		r.jwt.tokenKeys = jwt.TokenKeys
 	}
 }
 
 // WithJwtTransition returns a func to enable jwt authentication as well as jwt secret transition.
 // Which means old and new jwt secrets work together for a period.
-func WithJwtTransition(secret, prevSecret string) RouteOption {
+func WithJwtTransition(jwt JWTTransConf) RouteOption {
 	return func(r *featuredRoutes) {
 		// why not validate prevSecret, because prevSecret is an already used one,
 		// even it not meet our requirement, we still need to allow the transition.
-		validateSecret(secret)
+		validateSecret(jwt.Secret)
 		r.jwt.enabled = true
-		r.jwt.secret = secret
-		r.jwt.prevSecret = prevSecret
+		r.jwt.secret = jwt.Secret
+		r.jwt.prevSecret = jwt.PrevSecret
+		r.jwt.tokenKeys = jwt.TokenKeys
+
 	}
 }
 

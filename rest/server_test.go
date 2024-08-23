@@ -90,8 +90,8 @@ Port: 0
 			Method:  http.MethodGet,
 			Path:    "/",
 			Handler: nil,
-		}, WithJwt("thesecret"), WithSignature(SignatureConf{}),
-			WithJwtTransition("preivous", "thenewone"))
+		}, WithJwt(JWTConf{AccessSecret: "thesecret"}), WithSignature(SignatureConf{}),
+			WithJwtTransition(JWTTransConf{Secret: "preivous", PrevSecret: "thenewone"}))
 
 		func() {
 			defer func() {

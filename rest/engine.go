@@ -66,14 +66,17 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
 	verifier func(chain.Chain) chain.Chain) chain.Chain {
 	if fr.jwt.enabled {
-		if len(fr.jwt.prevSecret) == 0 {
-			chn = chn.Append(handler.Authorize(fr.jwt.secret,
-				handler.WithUnauthorizedCallback(ng.unauthorizedCallback)))
-		} else {
-			chn = chn.Append(handler.Authorize(fr.jwt.secret,
-				handler.WithPrevSecret(fr.jwt.prevSecret),
-				handler.WithUnauthorizedCallback(ng.unauthorizedCallback)))
+		authOpts := []handler.AuthorizeOption{
+			handler.WithUnauthorizedCallback(ng.unauthorizedCallback),
 		}
+		if len(fr.jwt.prevSecret) > 0 {
+			authOpts = append(authOpts, handler.WithPrevSecret(fr.jwt.prevSecret))
+		}
+		if len(fr.jwt.tokenKeys) > 0 {
+			authOpts = append(authOpts, handler.WithTokenKeys(fr.jwt.tokenKeys))
+		}
+
+		chn = chn.Append(handler.Authorize(fr.jwt.secret, authOpts...))
 	}
 
 	return verifier(chn)
