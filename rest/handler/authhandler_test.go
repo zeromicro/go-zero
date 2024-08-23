@@ -57,6 +57,32 @@ func TestAuthHandler(t *testing.T) {
 	assert.Equal(t, "content", resp.Body.String())
 }
 
+func TestAuthHandler_WithTokenKeys(t *testing.T) {
+	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	token, err := buildToken(key, map[string]any{
+		"key": "value",
+	}, 3600)
+	assert.Nil(t, err)
+	req.Header.Set("X-Token", token)
+	handler := Authorize(key, WithTokenKeys([]string{"Token", "X-Token"}))(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Test", "test")
+			_, err := w.Write([]byte("content"))
+			assert.Nil(t, err)
+
+			flusher, ok := w.(http.Flusher)
+			assert.True(t, ok)
+			flusher.Flush()
+		}))
+
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, "test", resp.Header().Get("X-Test"))
+	assert.Equal(t, "content", resp.Body.String())
+}
+
 func TestAuthHandlerWithPrevSecret(t *testing.T) {
 	const (
 		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
