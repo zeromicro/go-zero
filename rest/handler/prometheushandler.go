@@ -13,7 +13,7 @@ import (
 const serverNamespace = "http_server"
 
 var (
-	serverReqDurBuckets    = []float64{5, 10, 25, 50, 100, 250, 500, 750, 1000}
+	serverReqDurBuckets    = []float64{1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000}
 	metricServerReqDurOnce sync.Once
 
 	metricServerReqDur metric.HistogramVec
