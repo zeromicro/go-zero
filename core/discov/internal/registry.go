@@ -323,14 +323,19 @@ func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 }
 
 func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
-	var rch clientv3.WatchChan
-	if rev != 0 {
-		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key),
-			clientv3.WithPrefix(), clientv3.WithRev(rev+1))
-	} else {
-		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key),
-			clientv3.WithPrefix())
+	var (
+		rch clientv3.WatchChan
+		ops []clientv3.OpOption
+	)
+	if !c.disablePrefix {
+		key = makeKeyPrefix(key)
+		ops = append(ops, clientv3.WithPrefix())
 	}
+	if rev != 0 {
+		ops = append(ops, clientv3.WithRev(rev+1))
+	}
+
+	rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), key, ops...)
 
 	for {
 		select {

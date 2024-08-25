@@ -59,7 +59,7 @@ func (s *EtcdSubscriber) AddListener(listener func()) error {
 func (s *EtcdSubscriber) Value() (string, error) {
 	vs := s.Subscriber.Values()
 	if len(vs) != 0 {
-		return vs[0], nil
+		return vs[len(vs)-1], nil
 	}
 	return "", nil
 }

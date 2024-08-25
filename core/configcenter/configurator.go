@@ -1,21 +1,31 @@
 package configurator
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/zeromicro/go-zero/core/configcenter/subscriber"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/threading"
+)
+
+var (
+	ErrorEmptyConfig         = errors.New("empty config value")
+	ErrorMissUnmarshalerType = errors.New("miss unmarshaler type")
 )
 
 // Configurator is the interface for configuration center.
 type Configurator[T any] interface {
 	// GetConfig returns the subscription value.
 	GetConfig() (T, error)
+	// AddListener adds a listener to the subscriber.
+	AddListener(listener func())
 }
 
 type (
@@ -36,6 +46,12 @@ type (
 		listeners []func()
 		lock      sync.Mutex
 		snapshot  atomic.Value
+	}
+
+	value[T any] struct {
+		data        string
+		marshalData T
+		err         error
 	}
 )
 
@@ -91,17 +107,21 @@ func (c *configCenter[T]) AddListener(listener func()) {
 // GetConfig return structured config.
 func (c *configCenter[T]) GetConfig() (T, error) {
 	var r T
-	err := c.unmarshaler([]byte(c.Value()), &r)
-	return r, err
+	v := c.value()
+	if v == nil || len(v.data) < 1 {
+		return r, ErrorEmptyConfig
+	}
+
+	return v.marshalData, v.err
 }
 
 // Value returns the subscription value.
 func (c *configCenter[T]) Value() string {
-	content := c.snapshot.Load()
-	if content == nil {
+	v := c.value()
+	if v == nil {
 		return ""
 	}
-	return content.(string)
+	return v.data
 }
 
 func (c *configCenter[T]) loadConfig() error {
@@ -117,7 +137,7 @@ func (c *configCenter[T]) loadConfig() error {
 		logx.Infof("ConfigCenter loads changed configuration, content [%s]", v)
 	}
 
-	c.snapshot.Store(v)
+	c.snapshot.Store(c.genValue(v))
 	return nil
 }
 
@@ -132,4 +152,55 @@ func (c *configCenter[T]) onChange() {
 	for _, l := range listeners {
 		threading.GoSafe(l)
 	}
+}
+
+func (c *configCenter[T]) value() *value[T] {
+	content := c.snapshot.Load()
+	if content == nil {
+		return nil
+	}
+	return content.(*value[T])
+}
+
+func (c *configCenter[T]) genValue(data string) *value[T] {
+	v := &value[T]{
+		data: data,
+	}
+	if len(data) <= 0 {
+		return v
+	}
+
+	t := reflect.TypeOf(v.marshalData)
+	// if the type is nil, it means that the user has not set the type of the configuration.
+	if t == nil {
+		v.err = ErrorMissUnmarshalerType
+		return v
+	}
+
+	t = mapping.Deref(t)
+
+	switch t.Kind() {
+	case reflect.Struct, reflect.Array, reflect.Slice:
+		err := c.unmarshaler([]byte(data), &v.marshalData)
+		if err != nil {
+			v.err = err
+			if c.conf.Log {
+				logx.Errorf("ConfigCenter unmarshal configuration failed, err: %+v, content [%s]", err.Error(), data)
+			}
+		}
+	case reflect.String:
+		if str, ok := any(data).(T); ok {
+			v.marshalData = str
+		} else {
+			v.err = ErrorMissUnmarshalerType
+		}
+	default:
+		if c.conf.Log {
+			logx.Errorf("ConfigCenter unmarshal configuration missing unmarshaler for type: %s, content [%s]",
+				t.Kind(), data)
+		}
+		v.err = ErrorMissUnmarshalerType
+	}
+
+	return v
 }

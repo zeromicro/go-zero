@@ -118,6 +118,64 @@ func TestConfigCenter_AddListener(t *testing.T) {
 	mutex.Unlock()
 }
 
+func TestConfigCenter_genValue(t *testing.T) {
+	t.Run("data is empty", func(t *testing.T) {
+		c := &configCenter[string]{
+			unmarshaler: defaultRegistry.unmarshalers["json"],
+		}
+		v := c.genValue("")
+		assert.Equal(t, "", v.data)
+	})
+
+	t.Run("invalid template type", func(t *testing.T) {
+		c := &configCenter[any]{
+			unmarshaler: defaultRegistry.unmarshalers["json"],
+		}
+		v := c.genValue("xxxx")
+		assert.Equal(t, ErrorMissUnmarshalerType, v.err)
+	})
+
+	t.Run("unsupported template type", func(t *testing.T) {
+		c := &configCenter[int]{
+			unmarshaler: defaultRegistry.unmarshalers["json"],
+		}
+		v := c.genValue("1")
+		assert.Equal(t, ErrorMissUnmarshalerType, v.err)
+	})
+
+	t.Run("supported template string type", func(t *testing.T) {
+		c := &configCenter[string]{
+			unmarshaler: defaultRegistry.unmarshalers["json"],
+		}
+		v := c.genValue("12345")
+		assert.NoError(t, v.err)
+		assert.Equal(t, "12345", v.data)
+	})
+
+	t.Run("unmarshal fail", func(t *testing.T) {
+		c := &configCenter[struct {
+			Name string `json:"name"`
+		}]{
+			unmarshaler: defaultRegistry.unmarshalers["json"],
+		}
+		v := c.genValue(`{"name":"new name}`)
+		assert.Equal(t, `{"name":"new name}`, v.data)
+		assert.Error(t, v.err)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		c := &configCenter[struct {
+			Name string `json:"name"`
+		}]{
+			unmarshaler: defaultRegistry.unmarshalers["json"],
+		}
+		v := c.genValue(`{"name":"new name"}`)
+		assert.Equal(t, `{"name":"new name"}`, v.data)
+		assert.Equal(t, "new name", v.marshalData.Name)
+		assert.NoError(t, v.err)
+	})
+}
+
 type mockSubscriber struct {
 	v              string
 	lisErr, valErr error
