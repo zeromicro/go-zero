@@ -142,7 +142,7 @@ func (c *configCenter[T]) loadConfig() error {
 }
 
 func (c *configCenter[T]) onChange() {
-	c.loadConfig()
+	_ = c.loadConfig()
 
 	c.lock.Lock()
 	listeners := make([]func(), len(c.listeners))
