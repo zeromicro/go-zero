@@ -10,10 +10,15 @@ import (
 )
 
 func TestNewConfigCenter(t *testing.T) {
-	_, err := NewConfigCenter[any](Config{}, &mockSubscriber{})
+	_, err := NewConfigCenter[any](Config{
+		Log: true,
+	}, &mockSubscriber{})
 	assert.Error(t, err)
 
-	_, err = NewConfigCenter[any](Config{Type: "json"}, &mockSubscriber{})
+	_, err = NewConfigCenter[any](Config{
+		Type: "json",
+		Log:  true,
+	}, &mockSubscriber{})
 	assert.NoError(t, err)
 }
 
@@ -24,7 +29,10 @@ func TestConfigCenter_GetConfig(t *testing.T) {
 	}
 
 	mock.v = `{"name": "go-zero"}`
-	c1, err := NewConfigCenter[Data](Config{Type: "json"}, mock)
+	c1, err := NewConfigCenter[Data](Config{
+		Type: "json",
+		Log:  true,
+	}, mock)
 	assert.NoError(t, err)
 
 	data, err := c1.GetConfig()
@@ -35,11 +43,23 @@ func TestConfigCenter_GetConfig(t *testing.T) {
 	c2, err := NewConfigCenter[Data](Config{Type: "json"}, mock)
 	assert.NoError(t, err)
 
+	mock.v = ``
+	c3, err := NewConfigCenter[string](Config{
+		Type: "json",
+		Log:  true,
+	}, mock)
+	assert.NoError(t, err)
+	_, err = c3.GetConfig()
+	assert.Error(t, err)
+
 	data, err = c2.GetConfig()
 	assert.Error(t, err)
 
 	mock.lisErr = errors.New("mock error")
-	_, err = NewConfigCenter[Data](Config{Type: "json"}, mock)
+	_, err = NewConfigCenter[Data](Config{
+		Type: "json",
+		Log:  true,
+	}, mock)
 	assert.Error(t, err)
 }
 
@@ -73,7 +93,10 @@ func TestConfigCenter_Value(t *testing.T) {
 	mock := &mockSubscriber{}
 	mock.v = "1234"
 
-	c, err := NewConfigCenter[any](Config{Type: "json"}, mock)
+	c, err := NewConfigCenter[any](Config{
+		Type: "json",
+		Log:  true,
+	}, mock)
 	assert.NoError(t, err)
 
 	cc := c.(*configCenter[any])
@@ -82,14 +105,20 @@ func TestConfigCenter_Value(t *testing.T) {
 
 	mock.valErr = errors.New("mock error")
 
-	_, err = NewConfigCenter[any](Config{Type: "json"}, mock)
+	_, err = NewConfigCenter[any](Config{
+		Type: "json",
+		Log:  true,
+	}, mock)
 	assert.Error(t, err)
 }
 
 func TestConfigCenter_AddListener(t *testing.T) {
 	mock := &mockSubscriber{}
 
-	c, err := NewConfigCenter[any](Config{Type: "json"}, mock)
+	c, err := NewConfigCenter[any](Config{
+		Type: "json",
+		Log:  true,
+	}, mock)
 	assert.NoError(t, err)
 
 	cc := c.(*configCenter[any])
@@ -122,6 +151,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 	t.Run("data is empty", func(t *testing.T) {
 		c := &configCenter[string]{
 			unmarshaler: defaultRegistry.unmarshalers["json"],
+			conf:        Config{Log: true},
 		}
 		v := c.genValue("")
 		assert.Equal(t, "", v.data)
@@ -130,6 +160,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 	t.Run("invalid template type", func(t *testing.T) {
 		c := &configCenter[any]{
 			unmarshaler: defaultRegistry.unmarshalers["json"],
+			conf:        Config{Log: true},
 		}
 		v := c.genValue("xxxx")
 		assert.Equal(t, ErrorMissUnmarshalerType, v.err)
@@ -138,6 +169,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 	t.Run("unsupported template type", func(t *testing.T) {
 		c := &configCenter[int]{
 			unmarshaler: defaultRegistry.unmarshalers["json"],
+			conf:        Config{Log: true},
 		}
 		v := c.genValue("1")
 		assert.Equal(t, ErrorMissUnmarshalerType, v.err)
@@ -146,6 +178,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 	t.Run("supported template string type", func(t *testing.T) {
 		c := &configCenter[string]{
 			unmarshaler: defaultRegistry.unmarshalers["json"],
+			conf:        Config{Log: true},
 		}
 		v := c.genValue("12345")
 		assert.NoError(t, v.err)
@@ -157,6 +190,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 			Name string `json:"name"`
 		}]{
 			unmarshaler: defaultRegistry.unmarshalers["json"],
+			conf:        Config{Log: true},
 		}
 		v := c.genValue(`{"name":"new name}`)
 		assert.Equal(t, `{"name":"new name}`, v.data)
@@ -168,6 +202,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 			Name string `json:"name"`
 		}]{
 			unmarshaler: defaultRegistry.unmarshalers["json"],
+			conf:        Config{Log: true},
 		}
 		v := c.genValue(`{"name":"new name"}`)
 		assert.Equal(t, `{"name":"new name"}`, v.data)
