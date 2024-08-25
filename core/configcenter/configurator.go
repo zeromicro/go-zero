@@ -55,6 +55,9 @@ type (
 	}
 )
 
+// Configurator is the interface for configuration center.
+var _ Configurator[any] = (*configCenter[any])(nil)
+
 // MustNewConfigCenter returns a Configurator, exits on errors.
 func MustNewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) Configurator[T] {
 	cc, err := NewConfigCenter[T](c, subscriber)
