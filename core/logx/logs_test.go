@@ -856,7 +856,7 @@ func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
 		Encoding:       plainEncoding,
 		Stat:           false,
 		TimeFormat:     time.RFC3339,
-		FileTimeFormat: time.RFC3339Nano,
+		FileTimeFormat: time.DateTime,
 	})
 	SetUp(LogConf{
 		Mode:  mode,
