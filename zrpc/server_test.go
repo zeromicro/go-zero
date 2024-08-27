@@ -7,6 +7,8 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
@@ -14,7 +16,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
 func TestServer(t *testing.T) {
@@ -218,7 +219,7 @@ func Test_setupUnaryInterceptors(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			metrics := stat.NewMetrics("abc")
-			setupUnaryInterceptors(test.r, test.conf, metrics)
+			setupUnaryInterceptors(test.r, test.conf, metrics, rpcServerOptions{})
 			assert.Equal(t, test.len, len(test.r.unaryInterceptors))
 		})
 	}
@@ -307,4 +308,11 @@ func Test_setupAuthInterceptors(t *testing.T) {
 		assert.Equal(t, 1, len(s.unaryInterceptors))
 		assert.Equal(t, 1, len(s.streamInterceptors))
 	})
+}
+
+func TestWithServerMetricReqDurBuckets(t *testing.T) {
+	opt := WithServerMetricReqDurBuckets([]float64{1, 2, 3})
+	options := &rpcServerOptions{}
+	opt(options)
+	assert.Equal(t, []float64{1, 2, 3}, options.metricReqDurBuckets)
 }

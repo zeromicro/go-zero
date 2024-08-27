@@ -3,13 +3,14 @@ package zrpc
 import (
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
+
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 )
 
 var (
@@ -25,9 +26,8 @@ var (
 	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
-	// SetRpcClientReqDurBuckets sets buckets for rpc client requests duration.
-	// It must be called before PrometheusInterceptor is used.
-	SetRpcClientReqDurBuckets = clientinterceptors.SetRpcClientReqDurBuckets
+	// WithClientMetricReqDurBuckets is an alias of internal.WithMetricReqDurBuckets.
+	WithClientMetricReqDurBuckets = internal.WithMetricReqDurBuckets
 )
 
 type (
