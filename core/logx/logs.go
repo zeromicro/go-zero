@@ -294,6 +294,10 @@ func SetUp(c LogConf) (err error) {
 			timeFormat = c.TimeFormat
 		}
 
+		if len(c.FileTimeFormat) > 0 {
+			fileTimeFormat = c.FileTimeFormat
+		}
+
 		atomic.StoreUint32(&maxContentLength, c.MaxContentLength)
 
 		switch c.Encoding {

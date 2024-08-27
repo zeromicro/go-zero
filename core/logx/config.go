@@ -42,4 +42,6 @@ type LogConf struct {
 	// daily: daily rotation.
 	// size: size limited rotation.
 	Rotation string `json:",default=daily,options=[daily,size]"`
+	// FileTimeFormat represents the time format for file name, default is `2006-01-02T15:04:05.000Z07:00`.
+	FileTimeFormat string `json:",optional"`
 }
