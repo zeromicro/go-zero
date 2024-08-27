@@ -3,7 +3,6 @@ package configurator
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -16,8 +15,8 @@ import (
 )
 
 var (
-	ErrorEmptyConfig         = errors.New("empty config value")
-	ErrorMissUnmarshalerType = errors.New("miss unmarshaler type")
+	errorEmptyConfig         = errors.New("empty config value")
+	errorMissUnmarshalerType = errors.New("miss unmarshaler type")
 )
 
 // Configurator is the interface for configuration center.
@@ -61,14 +60,7 @@ var _ Configurator[any] = (*configCenter[any])(nil)
 // MustNewConfigCenter returns a Configurator, exits on errors.
 func MustNewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) Configurator[T] {
 	cc, err := NewConfigCenter[T](c, subscriber)
-	if err != nil {
-		log.Fatalf("NewConfigCenter failed: %v", err)
-	}
-
-	_, err = cc.GetConfig()
-	if err != nil {
-		log.Fatalf("NewConfigCenter.GetConfig failed: %v", err)
-	}
+	logx.Must(err)
 
 	return cc
 }
@@ -97,6 +89,10 @@ func NewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) (Configu
 		return nil, err
 	}
 
+	if _, err := cc.GetConfig(); err != nil {
+		return nil, err
+	}
+
 	return cc, nil
 }
 
@@ -112,7 +108,7 @@ func (c *configCenter[T]) GetConfig() (T, error) {
 	var r T
 	v := c.value()
 	if v == nil || len(v.data) < 1 {
-		return r, ErrorEmptyConfig
+		return r, errorEmptyConfig
 	}
 
 	return v.marshalData, v.err
@@ -176,7 +172,7 @@ func (c *configCenter[T]) genValue(data string) *value[T] {
 	t := reflect.TypeOf(v.marshalData)
 	// if the type is nil, it means that the user has not set the type of the configuration.
 	if t == nil {
-		v.err = ErrorMissUnmarshalerType
+		v.err = errorMissUnmarshalerType
 		return v
 	}
 
@@ -195,14 +191,14 @@ func (c *configCenter[T]) genValue(data string) *value[T] {
 		if str, ok := any(data).(T); ok {
 			v.marshalData = str
 		} else {
-			v.err = ErrorMissUnmarshalerType
+			v.err = errorMissUnmarshalerType
 		}
 	default:
 		if c.conf.Log {
 			logx.Errorf("ConfigCenter unmarshal configuration missing unmarshaler for type: %s, content [%s]",
 				t.Kind(), data)
 		}
-		v.err = ErrorMissUnmarshalerType
+		v.err = errorMissUnmarshalerType
 	}
 
 	return v

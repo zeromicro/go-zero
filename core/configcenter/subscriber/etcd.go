@@ -1,35 +1,30 @@
 package subscriber
 
 import (
-	"log"
-
 	"github.com/zeromicro/go-zero/core/discov"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type (
-	// EtcdSubscriber is a subscriber that subscribes to etcd.
-	EtcdSubscriber struct {
+	// etcdSubscriber is a subscriber that subscribes to etcd.
+	etcdSubscriber struct {
 		*discov.Subscriber
 	}
 
-	// EtcdConfig is the configuration for etcd.
-	EtcdConfig struct {
-		discov.EtcdConf
-	}
+	// EtcdConf is the configuration for etcd.
+	EtcdConf discov.EtcdConf
 )
 
 // MustNewEtcdSubscriber returns an etcd Subscriber, exits on errors.
-func MustNewEtcdSubscriber(conf EtcdConfig) Subscriber {
+func MustNewEtcdSubscriber(conf EtcdConf) Subscriber {
 	s, err := NewEtcdSubscriber(conf)
-	if err != nil {
-		log.Fatal(err)
-	}
+	logx.Must(err)
 
 	return s
 }
 
 // NewEtcdSubscriber returns an etcd Subscriber.
-func NewEtcdSubscriber(conf EtcdConfig) (Subscriber, error) {
+func NewEtcdSubscriber(conf EtcdConf) (Subscriber, error) {
 	var opts = []discov.SubOption{
 		discov.WithDisablePrefix(),
 	}
@@ -41,22 +36,22 @@ func NewEtcdSubscriber(conf EtcdConfig) (Subscriber, error) {
 			discov.WithSubEtcdTLS(conf.CertFile, conf.CertKeyFile, conf.CACertFile, conf.InsecureSkipVerify))
 	}
 
-	s, err := discov.NewSubscriber(conf.EtcdConf.Hosts, conf.EtcdConf.Key, opts...)
+	s, err := discov.NewSubscriber(conf.Hosts, conf.Key, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &EtcdSubscriber{Subscriber: s}, nil
+	return &etcdSubscriber{Subscriber: s}, nil
 }
 
 // AddListener adds a listener to the subscriber.
-func (s *EtcdSubscriber) AddListener(listener func()) error {
+func (s *etcdSubscriber) AddListener(listener func()) error {
 	s.Subscriber.AddListener(listener)
 	return nil
 }
 
 // Value returns the value of the subscriber.
-func (s *EtcdSubscriber) Value() (string, error) {
+func (s *etcdSubscriber) Value() (string, error) {
 	vs := s.Subscriber.Values()
 	if len(vs) != 0 {
 		return vs[len(vs)-1], nil

@@ -163,7 +163,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 			conf:        Config{Log: true},
 		}
 		v := c.genValue("xxxx")
-		assert.Equal(t, ErrorMissUnmarshalerType, v.err)
+		assert.Equal(t, errorMissUnmarshalerType, v.err)
 	})
 
 	t.Run("unsupported template type", func(t *testing.T) {
@@ -172,7 +172,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 			conf:        Config{Log: true},
 		}
 		v := c.genValue("1")
-		assert.Equal(t, ErrorMissUnmarshalerType, v.err)
+		assert.Equal(t, errorMissUnmarshalerType, v.err)
 	})
 
 	t.Run("supported template string type", func(t *testing.T) {
