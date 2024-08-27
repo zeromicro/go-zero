@@ -30,7 +30,8 @@ const (
 var (
 	// ErrLogFileClosed is an error that indicates the log file is already closed.
 	ErrLogFileClosed = errors.New("error: log file closed")
-	fileTimeFormat   = time.RFC3339
+
+	fileTimeFormat = time.RFC3339
 )
 
 type (
