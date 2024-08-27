@@ -850,12 +850,13 @@ func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...any)) {
 func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
 	writer.Store(nil)
 	SetUp(LogConf{
-		Mode:       mode,
-		Level:      "debug",
-		Path:       "/dev/null",
-		Encoding:   plainEncoding,
-		Stat:       false,
-		TimeFormat: time.RFC3339,
+		Mode:           mode,
+		Level:          "debug",
+		Path:           "/dev/null",
+		Encoding:       plainEncoding,
+		Stat:           false,
+		TimeFormat:     time.RFC3339,
+		FileTimeFormat: time.RFC3339Nano,
 	})
 	SetUp(LogConf{
 		Mode:  mode,
