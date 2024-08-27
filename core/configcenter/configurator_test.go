@@ -19,7 +19,7 @@ func TestNewConfigCenter(t *testing.T) {
 		Type: "json",
 		Log:  true,
 	}, &mockSubscriber{})
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
 
 func TestConfigCenter_GetConfig(t *testing.T) {
@@ -39,21 +39,21 @@ func TestConfigCenter_GetConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "go-zero", data.Name)
 
-	mock.v = `{"name": 111"}`
+	mock.v = `{"name": "111"}`
 	c2, err := NewConfigCenter[Data](Config{Type: "json"}, mock)
 	assert.NoError(t, err)
 
-	mock.v = ``
+	mock.v = `{}`
 	c3, err := NewConfigCenter[string](Config{
 		Type: "json",
 		Log:  true,
 	}, mock)
 	assert.NoError(t, err)
 	_, err = c3.GetConfig()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	data, err = c2.GetConfig()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	mock.lisErr = errors.New("mock error")
 	_, err = NewConfigCenter[Data](Config{
@@ -93,13 +93,13 @@ func TestConfigCenter_Value(t *testing.T) {
 	mock := &mockSubscriber{}
 	mock.v = "1234"
 
-	c, err := NewConfigCenter[any](Config{
+	c, err := NewConfigCenter[string](Config{
 		Type: "json",
 		Log:  true,
 	}, mock)
 	assert.NoError(t, err)
 
-	cc := c.(*configCenter[any])
+	cc := c.(*configCenter[string])
 
 	assert.Equal(t, cc.Value(), "1234")
 
@@ -114,14 +114,14 @@ func TestConfigCenter_Value(t *testing.T) {
 
 func TestConfigCenter_AddListener(t *testing.T) {
 	mock := &mockSubscriber{}
-
-	c, err := NewConfigCenter[any](Config{
+	mock.v = "1234"
+	c, err := NewConfigCenter[string](Config{
 		Type: "json",
 		Log:  true,
 	}, mock)
 	assert.NoError(t, err)
 
-	cc := c.(*configCenter[any])
+	cc := c.(*configCenter[string])
 	var a, b int
 	var mutex sync.Mutex
 	cc.AddListener(func() {
