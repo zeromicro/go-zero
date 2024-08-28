@@ -12,36 +12,42 @@ type (
 	}
 
 	// EtcdConf is the configuration for etcd.
-	EtcdConf discov.EtcdConf
+	EtcdConf = discov.EtcdConf
 )
 
 // MustNewEtcdSubscriber returns an etcd Subscriber, exits on errors.
 func MustNewEtcdSubscriber(conf EtcdConf) Subscriber {
 	s, err := NewEtcdSubscriber(conf)
 	logx.Must(err)
-
 	return s
 }
 
 // NewEtcdSubscriber returns an etcd Subscriber.
 func NewEtcdSubscriber(conf EtcdConf) (Subscriber, error) {
-	var opts = []discov.SubOption{
-		discov.WithDisablePrefix(),
-	}
-	if len(conf.User) != 0 {
-		opts = append(opts, discov.WithSubEtcdAccount(conf.User, conf.Pass))
-	}
-	if len(conf.CertFile) != 0 || len(conf.CertKeyFile) != 0 || len(conf.CACertFile) != 0 {
-		opts = append(opts,
-			discov.WithSubEtcdTLS(conf.CertFile, conf.CertKeyFile, conf.CACertFile, conf.InsecureSkipVerify))
-	}
-
+	opts := buildSubOptions(conf)
 	s, err := discov.NewSubscriber(conf.Hosts, conf.Key, opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	return &etcdSubscriber{Subscriber: s}, nil
+}
+
+// buildSubOptions constructs the options for creating a new etcd subscriber.
+func buildSubOptions(conf EtcdConf) []discov.SubOption {
+	opts := []discov.SubOption{
+		discov.WithExactMatch(),
+	}
+
+	if len(conf.User) > 0 {
+		opts = append(opts, discov.WithSubEtcdAccount(conf.User, conf.Pass))
+	}
+	if len(conf.CertFile) > 0 || len(conf.CertKeyFile) > 0 || len(conf.CACertFile) > 0 {
+		opts = append(opts, discov.WithSubEtcdTLS(conf.CertFile, conf.CertKeyFile,
+			conf.CACertFile, conf.InsecureSkipVerify))
+	}
+
+	return opts
 }
 
 // AddListener adds a listener to the subscriber.
@@ -53,8 +59,9 @@ func (s *etcdSubscriber) AddListener(listener func()) error {
 // Value returns the value of the subscriber.
 func (s *etcdSubscriber) Value() (string, error) {
 	vs := s.Subscriber.Values()
-	if len(vs) != 0 {
+	if len(vs) > 0 {
 		return vs[len(vs)-1], nil
 	}
+
 	return "", nil
 }

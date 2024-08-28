@@ -150,7 +150,7 @@ func TestConfigCenter_AddListener(t *testing.T) {
 func TestConfigCenter_genValue(t *testing.T) {
 	t.Run("data is empty", func(t *testing.T) {
 		c := &configCenter[string]{
-			unmarshaler: defaultRegistry.unmarshalers["json"],
+			unmarshaler: registry.unmarshalers["json"],
 			conf:        Config{Log: true},
 		}
 		v := c.genValue("")
@@ -159,25 +159,25 @@ func TestConfigCenter_genValue(t *testing.T) {
 
 	t.Run("invalid template type", func(t *testing.T) {
 		c := &configCenter[any]{
-			unmarshaler: defaultRegistry.unmarshalers["json"],
+			unmarshaler: registry.unmarshalers["json"],
 			conf:        Config{Log: true},
 		}
 		v := c.genValue("xxxx")
-		assert.Equal(t, errorMissUnmarshalerType, v.err)
+		assert.Equal(t, errMissingUnmarshalerType, v.err)
 	})
 
 	t.Run("unsupported template type", func(t *testing.T) {
 		c := &configCenter[int]{
-			unmarshaler: defaultRegistry.unmarshalers["json"],
+			unmarshaler: registry.unmarshalers["json"],
 			conf:        Config{Log: true},
 		}
 		v := c.genValue("1")
-		assert.Equal(t, errorMissUnmarshalerType, v.err)
+		assert.Equal(t, errMissingUnmarshalerType, v.err)
 	})
 
 	t.Run("supported template string type", func(t *testing.T) {
 		c := &configCenter[string]{
-			unmarshaler: defaultRegistry.unmarshalers["json"],
+			unmarshaler: registry.unmarshalers["json"],
 			conf:        Config{Log: true},
 		}
 		v := c.genValue("12345")
@@ -189,7 +189,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 		c := &configCenter[struct {
 			Name string `json:"name"`
 		}]{
-			unmarshaler: defaultRegistry.unmarshalers["json"],
+			unmarshaler: registry.unmarshalers["json"],
 			conf:        Config{Log: true},
 		}
 		v := c.genValue(`{"name":"new name}`)
@@ -201,7 +201,7 @@ func TestConfigCenter_genValue(t *testing.T) {
 		c := &configCenter[struct {
 			Name string `json:"name"`
 		}]{
-			unmarshaler: defaultRegistry.unmarshalers["json"],
+			unmarshaler: registry.unmarshalers["json"],
 			conf:        Config{Log: true},
 		}
 		v := c.genValue(`{"name":"new name"}`)
