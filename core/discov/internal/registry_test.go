@@ -289,7 +289,7 @@ func TestRegistry_Monitor(t *testing.T) {
 		},
 	}
 	GetRegistry().lock.Unlock()
-	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", new(mockListener)))
+	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", new(mockListener), false))
 }
 
 type mockListener struct {
