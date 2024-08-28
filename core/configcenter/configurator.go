@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	errorEmptyConfig         = errors.New("empty config value")
-	errorMissUnmarshalerType = errors.New("miss unmarshaler type")
+	errEmptyConfig            = errors.New("empty config value")
+	errMissingUnmarshalerType = errors.New("missing unmarshaler type")
 )
 
 // Configurator is the interface for configuration center.
@@ -32,19 +32,17 @@ type (
 	Config struct {
 		// Type is the value type, yaml, json or toml.
 		Type string `json:",default=yaml,options=[yaml,json,toml]"`
-		// Log indicates whether to log the configuration.
-		Log bool `json:",default=ture"`
+		// Log is the flag to control logging.
+		Log bool `json:",default=true"`
 	}
 
 	configCenter[T any] struct {
 		conf        Config
 		unmarshaler LoaderFn
-
-		subscriber subscriber.Subscriber
-
-		listeners []func()
-		lock      sync.Mutex
-		snapshot  atomic.Value
+		subscriber  subscriber.Subscriber
+		listeners   []func()
+		lock        sync.Mutex
+		snapshot    atomic.Value
 	}
 
 	value[T any] struct {
@@ -61,7 +59,6 @@ var _ Configurator[any] = (*configCenter[any])(nil)
 func MustNewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) Configurator[T] {
 	cc, err := NewConfigCenter[T](c, subscriber)
 	logx.Must(err)
-
 	return cc
 }
 
@@ -76,9 +73,6 @@ func NewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) (Configu
 		conf:        c,
 		unmarshaler: unmarshaler,
 		subscriber:  subscriber,
-		listeners:   nil,
-		lock:        sync.Mutex{},
-		snapshot:    atomic.Value{},
 	}
 
 	if err := cc.loadConfig(); err != nil {
@@ -105,10 +99,10 @@ func (c *configCenter[T]) AddListener(listener func()) {
 
 // GetConfig return structured config.
 func (c *configCenter[T]) GetConfig() (T, error) {
-	var r T
 	v := c.value()
-	if v == nil || len(v.data) < 1 {
-		return r, errorEmptyConfig
+	if v == nil || len(v.data) == 0 {
+		var empty T
+		return empty, errEmptyConfig
 	}
 
 	return v.marshalData, v.err
@@ -141,7 +135,9 @@ func (c *configCenter[T]) loadConfig() error {
 }
 
 func (c *configCenter[T]) onChange() {
-	_ = c.loadConfig()
+	if err := c.loadConfig(); err != nil {
+		return
+	}
 
 	c.lock.Lock()
 	listeners := make([]func(), len(c.listeners))
@@ -165,40 +161,39 @@ func (c *configCenter[T]) genValue(data string) *value[T] {
 	v := &value[T]{
 		data: data,
 	}
-	if len(data) <= 0 {
+	if len(data) == 0 {
 		return v
 	}
 
 	t := reflect.TypeOf(v.marshalData)
 	// if the type is nil, it means that the user has not set the type of the configuration.
 	if t == nil {
-		v.err = errorMissUnmarshalerType
+		v.err = errMissingUnmarshalerType
 		return v
 	}
 
 	t = mapping.Deref(t)
-
 	switch t.Kind() {
 	case reflect.Struct, reflect.Array, reflect.Slice:
-		err := c.unmarshaler([]byte(data), &v.marshalData)
-		if err != nil {
+		if err := c.unmarshaler([]byte(data), &v.marshalData); err != nil {
 			v.err = err
 			if c.conf.Log {
-				logx.Errorf("ConfigCenter unmarshal configuration failed, err: %+v, content [%s]", err.Error(), data)
+				logx.Errorf("ConfigCenter unmarshal configuration failed, err: %+v, content [%s]",
+					err.Error(), data)
 			}
 		}
 	case reflect.String:
 		if str, ok := any(data).(T); ok {
 			v.marshalData = str
 		} else {
-			v.err = errorMissUnmarshalerType
+			v.err = errMissingUnmarshalerType
 		}
 	default:
 		if c.conf.Log {
 			logx.Errorf("ConfigCenter unmarshal configuration missing unmarshaler for type: %s, content [%s]",
 				t.Kind(), data)
 		}
-		v.err = errorMissUnmarshalerType
+		v.err = errMissingUnmarshalerType
 	}
 
 	return v

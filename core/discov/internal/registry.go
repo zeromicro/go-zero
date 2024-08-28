@@ -46,7 +46,7 @@ func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
 }
 
 // Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
-func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, disablePrefix bool) error {
+func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, exactMatch bool) error {
 	c, exists := r.getCluster(endpoints)
 	// if exists, the existing values should be updated to the listener.
 	if exists {
@@ -56,7 +56,7 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, dis
 		}
 	}
 
-	return c.monitor(key, l, disablePrefix)
+	return c.monitor(key, l, exactMatch)
 }
 
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
@@ -80,14 +80,14 @@ func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 }
 
 type cluster struct {
-	endpoints     []string
-	key           string
-	values        map[string]map[string]string
-	listeners     map[string][]UpdateListener
-	watchGroup    *threading.RoutineGroup
-	done          chan lang.PlaceholderType
-	lock          sync.RWMutex
-	disablePrefix bool
+	endpoints  []string
+	key        string
+	values     map[string]map[string]string
+	listeners  map[string][]UpdateListener
+	watchGroup *threading.RoutineGroup
+	done       chan lang.PlaceholderType
+	lock       sync.RWMutex
+	exactMatch bool
 }
 
 func newCluster(endpoints []string) *cluster {
@@ -226,7 +226,7 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 	for {
 		var err error
 		ctx, cancel := context.WithTimeout(c.context(cli), RequestTimeout)
-		if c.disablePrefix {
+		if c.exactMatch {
 			resp, err = cli.Get(ctx, key)
 		} else {
 			resp, err = cli.Get(ctx, makeKeyPrefix(key), clientv3.WithPrefix())
@@ -254,10 +254,10 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 	return resp.Header.Revision
 }
 
-func (c *cluster) monitor(key string, l UpdateListener, disablePrefix bool) error {
+func (c *cluster) monitor(key string, l UpdateListener, exactMatch bool) error {
 	c.lock.Lock()
 	c.listeners[key] = append(c.listeners[key], l)
-	c.disablePrefix = disablePrefix
+	c.exactMatch = exactMatch
 	c.lock.Unlock()
 
 	cli, err := c.getClient()
@@ -328,7 +328,7 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 		ops      []clientv3.OpOption
 		watchKey = key
 	)
-	if !c.disablePrefix {
+	if !c.exactMatch {
 		watchKey = makeKeyPrefix(key)
 		ops = append(ops, clientv3.WithPrefix())
 	}

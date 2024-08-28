@@ -6,41 +6,36 @@ import (
 	"github.com/zeromicro/go-zero/core/conf"
 )
 
+var registry = &unmarshalerRegistry{
+	unmarshalers: map[string]LoaderFn{
+		"json": conf.LoadFromJsonBytes,
+		"toml": conf.LoadFromTomlBytes,
+		"yaml": conf.LoadFromYamlBytes,
+	},
+}
+
 type (
+	// LoaderFn is the function type for loading configuration.
+	LoaderFn func([]byte, any) error
+
 	// unmarshalerRegistry is the registry for unmarshalers.
 	unmarshalerRegistry struct {
 		unmarshalers map[string]LoaderFn
-
-		mu sync.RWMutex
+		mu           sync.RWMutex
 	}
-
-	// LoaderFn is the function type for loading configuration.
-	LoaderFn func([]byte, any) error
 )
-
-var defaultRegistry *unmarshalerRegistry
-
-func init() {
-	defaultRegistry = &unmarshalerRegistry{
-		unmarshalers: map[string]LoaderFn{
-			"json": conf.LoadFromJsonBytes,
-			"toml": conf.LoadFromTomlBytes,
-			"yaml": conf.LoadFromYamlBytes,
-		},
-	}
-}
 
 // RegisterUnmarshaler registers an unmarshaler.
 func RegisterUnmarshaler(name string, fn LoaderFn) {
-	defaultRegistry.mu.Lock()
-	defaultRegistry.unmarshalers[name] = fn
-	defaultRegistry.mu.Unlock()
+	registry.mu.Lock()
+	defer registry.mu.Unlock()
+	registry.unmarshalers[name] = fn
 }
 
 // Unmarshaler returns the unmarshaler by name.
 func Unmarshaler(name string) (LoaderFn, bool) {
-	defaultRegistry.mu.RLock()
-	fn, ok := defaultRegistry.unmarshalers[name]
-	defaultRegistry.mu.RUnlock()
+	registry.mu.RLock()
+	defer registry.mu.RUnlock()
+	fn, ok := registry.unmarshalers[name]
 	return fn, ok
 }
