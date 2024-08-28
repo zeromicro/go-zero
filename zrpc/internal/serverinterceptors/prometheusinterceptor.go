@@ -3,7 +3,6 @@ package serverinterceptors
 import (
 	"context"
 	"strconv"
-	"sync"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
@@ -15,11 +14,7 @@ import (
 const serverNamespace = "rpc_server"
 
 var (
-	defaultServerReqDurBuckets = []float64{1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000}
-	metricServerReqDurOnce     sync.Once
-
-	metricServerReqDur metric.HistogramVec
-
+	defaultDurationBuckets   = []float64{1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000}
 	metricServerReqCodeTotal = metric.NewCounterVec(&metric.CounterVecOpts{
 		Namespace: serverNamespace,
 		Subsystem: "requests",
@@ -32,30 +27,28 @@ var (
 // UnaryPrometheusInterceptor reports the statistics to the prometheus server.
 func UnaryPrometheusInterceptor(buckets []float64) grpc.UnaryServerInterceptor {
 	if len(buckets) == 0 {
-		buckets = defaultServerReqDurBuckets
+		buckets = defaultDurationBuckets
 	}
 
-	initMetricServerReqDur(buckets)
+	metricDurationHistogram := initMetricServerReqDur(buckets)
 
 	return func(ctx context.Context, req any,
 		info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		startTime := timex.Now()
 		resp, err := handler(ctx, req)
-		metricServerReqDur.Observe(timex.Since(startTime).Milliseconds(), info.FullMethod)
+		metricDurationHistogram.Observe(timex.Since(startTime).Milliseconds(), info.FullMethod)
 		metricServerReqCodeTotal.Inc(info.FullMethod, strconv.Itoa(int(status.Code(err))))
 		return resp, err
 	}
 }
 
-func initMetricServerReqDur(buckets []float64) {
-	metricServerReqDurOnce.Do(func() {
-		metricServerReqDur = metric.NewHistogramVec(&metric.HistogramVecOpts{
-			Namespace: serverNamespace,
-			Subsystem: "requests",
-			Name:      "duration_ms",
-			Help:      "rpc server requests duration(ms).",
-			Labels:    []string{"method"},
-			Buckets:   buckets,
-		})
+func initMetricServerReqDur(buckets []float64) metric.HistogramVec {
+	return metric.NewHistogramVec(&metric.HistogramVecOpts{
+		Namespace: serverNamespace,
+		Subsystem: "requests",
+		Name:      "duration_ms",
+		Help:      "rpc server requests duration(ms).",
+		Labels:    []string{"method"},
+		Buckets:   buckets,
 	})
 }
