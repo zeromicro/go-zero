@@ -114,8 +114,8 @@ Verbose: true
 		{
 			priority: true,
 			jwt: jwtSetting{
-				enabled:   true,
-				tokenKeys: []string{"Token", "X-Token"},
+				enabled:      true,
+				tokenLookups: []string{"header:Token", "query:Token", "form:Token"},
 			},
 			signature: signatureSetting{},
 			routes: []Route{{
