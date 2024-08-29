@@ -1,17 +1,26 @@
 package token
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
-const claimHistoryResetDuration = time.Hour * 24
+const (
+	claimHistoryResetDuration = time.Hour * 24
+
+	jwtLookupHeader = "header"
+	jwtLookupQuery  = "query"
+	jwtLookupForm   = "form"
+)
 
 type (
 	// ParseOption defines the method to customize a TokenParser.
@@ -122,12 +131,30 @@ func WithResetDuration(duration time.Duration) ParseOption {
 	}
 }
 
-func WithExtractor(tokenKeys []string) ParseOption {
+// WithExtractor used to configure the token extraction method of the TokenParser.
+func WithExtractor(tokenLookups []string) ParseOption {
 	return func(parser *TokenParser) {
+		var headerNames, argumentNames []string
+		for _, lookup := range tokenLookups {
+			parts := strings.Split(strings.TrimSpace(lookup), ":")
+			if len(parts) < 2 {
+				logx.Must(fmt.Errorf("extractor source for lookup could not be split into needed parts: %v", lookup))
+			}
+
+			source := strings.TrimSpace(parts[0])
+			name := strings.TrimSpace(parts[1])
+			switch source {
+			case jwtLookupHeader:
+				headerNames = append(headerNames, name)
+			case jwtLookupQuery, jwtLookupForm:
+				argumentNames = append(argumentNames, name)
+			}
+		}
+
 		parser.extractor = request.MultiExtractor{
-			request.HeaderExtractor(tokenKeys),
-			request.ArgumentExtractor(tokenKeys),
-			parser.extractor,
+			request.HeaderExtractor(headerNames),
+			request.ArgumentExtractor(argumentNames),
+			request.AuthorizationHeaderExtractor,
 		}
 	}
 }

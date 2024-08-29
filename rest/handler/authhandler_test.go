@@ -57,7 +57,7 @@ func TestAuthHandler(t *testing.T) {
 	assert.Equal(t, "content", resp.Body.String())
 }
 
-func TestAuthHandler_WithTokenKeys(t *testing.T) {
+func TestAuthHandler_WithTokenLookups(t *testing.T) {
 	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	token, err := buildToken(key, map[string]any{
@@ -65,7 +65,7 @@ func TestAuthHandler_WithTokenKeys(t *testing.T) {
 	}, 3600)
 	assert.Nil(t, err)
 	req.Header.Set("X-Token", token)
-	handler := Authorize(key, WithTokenKeys([]string{"Token", "X-Token"}))(
+	handler := Authorize(key, WithTokenLookups([]string{"header:X-Token"}))(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("X-Test", "test")
 			_, err := w.Write([]byte("content"))

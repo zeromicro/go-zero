@@ -39,16 +39,28 @@ type (
 	JWTConf struct {
 		AccessSecret string
 		AccessExpire int64
-		// extract a jwt from custom request header or url arguments
-		TokenKeys []string `json:",optional"`
+		// TokenLookup is a slice in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional.
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "form:<name>"
+		TokenLookup []string `json:",optional"`
 	}
 
 	// A JWTTransConf is a jwtTrans config.
 	JWTTransConf struct {
 		Secret     string
 		PrevSecret string
-		// extract a jwt from custom request header or url arguments
-		TokenKeys []string `json:",optional"`
+		// TokenLookup is a slice in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional.
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "form:<name>"
+		TokenLookup []string `json:",optional"`
 	}
 
 	// A RestConf is a http service config.

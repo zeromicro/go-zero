@@ -196,7 +196,7 @@ func WithJwt(jwt JWTConf) RouteOption {
 		validateSecret(jwt.AccessSecret)
 		r.jwt.enabled = true
 		r.jwt.secret = jwt.AccessSecret
-		r.jwt.tokenKeys = jwt.TokenKeys
+		r.jwt.tokenLookups = jwt.TokenLookup
 	}
 }
 
@@ -210,7 +210,7 @@ func WithJwtTransition(jwt JWTTransConf) RouteOption {
 		r.jwt.enabled = true
 		r.jwt.secret = jwt.Secret
 		r.jwt.prevSecret = jwt.PrevSecret
-		r.jwt.tokenKeys = jwt.TokenKeys
+		r.jwt.tokenLookups = jwt.TokenLookup
 
 	}
 }

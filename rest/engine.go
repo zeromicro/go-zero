@@ -72,8 +72,8 @@ func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
 		if len(fr.jwt.prevSecret) > 0 {
 			authOpts = append(authOpts, handler.WithPrevSecret(fr.jwt.prevSecret))
 		}
-		if len(fr.jwt.tokenKeys) > 0 {
-			authOpts = append(authOpts, handler.WithTokenKeys(fr.jwt.tokenKeys))
+		if len(fr.jwt.tokenLookups) > 0 {
+			authOpts = append(authOpts, handler.WithTokenLookups(fr.jwt.tokenLookups))
 		}
 
 		chn = chn.Append(handler.Authorize(fr.jwt.secret, authOpts...))

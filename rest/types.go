@@ -20,10 +20,10 @@ type (
 	RouteOption func(r *featuredRoutes)
 
 	jwtSetting struct {
-		enabled    bool
-		secret     string
-		prevSecret string
-		tokenKeys  []string
+		enabled      bool
+		secret       string
+		prevSecret   string
+		tokenLookups []string
 	}
 
 	signatureSetting struct {

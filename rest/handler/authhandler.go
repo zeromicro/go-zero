@@ -31,9 +31,9 @@ var (
 type (
 	// An AuthorizeOptions is authorize options.
 	AuthorizeOptions struct {
-		PrevSecret string
-		Callback   UnauthorizedCallback
-		TokenKeys  []string
+		PrevSecret   string
+		Callback     UnauthorizedCallback
+		TokenLookups []string
 	}
 
 	// UnauthorizedCallback defines the method of unauthorized callback.
@@ -50,8 +50,8 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 	}
 
 	var parseOpts []token.ParseOption
-	if len(authOpts.TokenKeys) > 0 {
-		parseOpts = append(parseOpts, token.WithExtractor(authOpts.TokenKeys))
+	if len(authOpts.TokenLookups) > 0 {
+		parseOpts = append(parseOpts, token.WithExtractor(authOpts.TokenLookups))
 	}
 
 	parser := token.NewTokenParser(parseOpts...)
@@ -103,10 +103,10 @@ func WithUnauthorizedCallback(callback UnauthorizedCallback) AuthorizeOption {
 	}
 }
 
-// WithTokenKeys custom token key
-func WithTokenKeys(tokenKeys []string) AuthorizeOption {
+// WithTokenLookups used to set the source of the token
+func WithTokenLookups(tokenLookups []string) AuthorizeOption {
 	return func(opts *AuthorizeOptions) {
-		opts.TokenKeys = tokenKeys
+		opts.TokenLookups = tokenLookups
 	}
 }
 
