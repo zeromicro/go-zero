@@ -73,6 +73,7 @@ func dockerCommand(_ *cobra.Command, _ []string) (err error) {
 
 	base := varStringBase
 	port := varIntPort
+	etcDir := filepath.Join(filepath.Dir(goFile), etcDir)
 	if _, err := os.Stat(etcDir); os.IsNotExist(err) {
 		return generateDockerfile(goFile, base, port, version, timezone)
 	}
