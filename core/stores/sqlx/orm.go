@@ -2,7 +2,6 @@ package sqlx
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
@@ -23,11 +22,6 @@ var (
 	ErrUnsupportedValueType = errors.New("unsupported unmarshal type")
 )
 
-var (
-	customUnmarshalRow  UnmarshalRowHandler
-	customUnmarshalRows UnmarshalRowsHandler
-)
-
 type rowsScanner interface {
 	Columns() ([]string, error)
 	Err() error
@@ -35,22 +29,15 @@ type rowsScanner interface {
 	Scan(v ...any) error
 }
 
+// RowsScanner alias of rowsScanner
+type RowsScanner = rowsScanner
+
 // UnmarshalRowHandler defines the method to unmarshal row.
-type UnmarshalRowHandler func(v any, rows *sql.Rows, strict bool) error
+type UnmarshalRowHandler func(v any, rows RowsScanner, strict bool) error
 
 // UnmarshalRowsHandler defines the method to unmarshal rows.
 // alias of UnmarshalRowHandler
 type UnmarshalRowsHandler = UnmarshalRowHandler
-
-// SetUnmarshalRowHandler sets the custom unmarshal row handler.
-func SetUnmarshalRowHandler(handler UnmarshalRowHandler) {
-	customUnmarshalRow = handler
-}
-
-// SetUnmarshalRowsHandler sets the custom unmarshal rows handler.
-func SetUnmarshalRowsHandler(handler UnmarshalRowsHandler) {
-	customUnmarshalRows = handler
-}
 
 func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 	rt := mapping.Deref(v.Type())
@@ -166,12 +153,6 @@ func parseTagName(field reflect.StructField) string {
 }
 
 func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
-	if customUnmarshalRow != nil {
-		rows, ok := scanner.(*sql.Rows)
-		if ok {
-			return customUnmarshalRow(v, rows, strict)
-		}
-	}
 	if !scanner.Next() {
 		if err := scanner.Err(); err != nil {
 			return err
@@ -215,12 +196,6 @@ func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
 }
 
 func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
-	if customUnmarshalRows != nil {
-		rows, ok := scanner.(*sql.Rows)
-		if ok {
-			return customUnmarshalRows(v, rows, strict)
-		}
-	}
 	rv := reflect.ValueOf(v)
 	if err := mapping.ValidatePtr(rv); err != nil {
 		return err

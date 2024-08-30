@@ -47,11 +47,13 @@ type (
 	// Because CORBA doesn't support PREPARE, so we need to combine the
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
-		connProv connProvider
-		onError  func(context.Context, error)
-		beginTx  beginnable
-		brk      breaker.Breaker
-		accept   breaker.Acceptable
+		connProv             connProvider
+		onError              func(context.Context, error)
+		beginTx              beginnable
+		brk                  breaker.Breaker
+		accept               breaker.Acceptable
+		unmarshalRowHandler  UnmarshalRowHandler
+		unmarshalRowsHandler UnmarshalRowsHandler
 	}
 
 	connProvider func() (*sql.DB, error)
@@ -163,10 +165,12 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		}
 
 		stmt = statement{
-			query:  query,
-			stmt:   st,
-			brk:    db.brk,
-			accept: db.acceptable,
+			query:                query,
+			stmt:                 st,
+			brk:                  db.brk,
+			accept:               db.acceptable,
+			unmarshalRowHandler:  db.unmarshalRowHandler,
+			unmarshalRowsHandler: db.unmarshalRowsHandler,
 		}
 		return nil
 	}, db.acceptable)
@@ -189,6 +193,9 @@ func (db *commonSqlConn) QueryRowCtx(ctx context.Context, v any, q string,
 	}()
 
 	return db.queryRows(ctx, func(rows *sql.Rows) error {
+		if db.unmarshalRowHandler != nil {
+			return db.unmarshalRowHandler(v, rows, true)
+		}
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
 }
@@ -205,6 +212,9 @@ func (db *commonSqlConn) QueryRowPartialCtx(ctx context.Context, v any,
 	}()
 
 	return db.queryRows(ctx, func(rows *sql.Rows) error {
+		if db.unmarshalRowHandler != nil {
+			return db.unmarshalRowHandler(v, rows, false)
+		}
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
 }
@@ -221,6 +231,9 @@ func (db *commonSqlConn) QueryRowsCtx(ctx context.Context, v any, q string,
 	}()
 
 	return db.queryRows(ctx, func(rows *sql.Rows) error {
+		if db.unmarshalRowsHandler != nil {
+			return db.unmarshalRowsHandler(v, rows, true)
+		}
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
 }
@@ -237,6 +250,9 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v any,
 	}()
 
 	return db.queryRows(ctx, func(rows *sql.Rows) error {
+		if db.unmarshalRowsHandler != nil {
+			return db.unmarshalRowsHandler(v, rows, false)
+		}
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
 }
@@ -323,5 +339,21 @@ func WithAcceptable(acceptable func(err error) bool) SqlOption {
 				return pre(err) || acceptable(err)
 			}
 		}
+	}
+}
+
+// WithMysqlUnmarshalRowHandler returns a SqlOption that setting the UnmarshalRowHandler.
+// handler is the func to unmarshal a row.
+func WithMysqlUnmarshalRowHandler(handler UnmarshalRowHandler) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.unmarshalRowHandler = handler
+	}
+}
+
+// WithMysqlUnmarshalRowsHandler returns a SqlOption that setting the UnmarshalRowsHandler.
+// handler is the func to unmarshal rows.
+func WithMysqlUnmarshalRowsHandler(handler UnmarshalRowsHandler) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.unmarshalRowsHandler = handler
 	}
 }

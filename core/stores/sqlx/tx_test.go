@@ -80,7 +80,7 @@ func (mt *mockTx) Rollback() error {
 }
 
 func beginMock(mock *mockTx) beginnable {
-	return func(*sql.DB) (trans, error) {
+	return func(*sql.DB, ...TxOption) (trans, error) {
 		return mock, nil
 	}
 }
@@ -309,4 +309,20 @@ func runTxTest(t *testing.T, f func(conn SqlConn, mock sqlmock.Sqlmock)) {
 		conn := NewSqlConnFromSession(sess)
 		f(conn, mock)
 	})
+}
+
+func TestWithTxUnmarshalRowHandler(t *testing.T) {
+	var handler UnmarshalRowHandler = func(v any, scanner rowsScanner, _ bool) error {
+		return nil
+	}
+	tx := NewSessionFromTx(nil, WithTxUnmarshalRowHandler(handler))
+	assert.NotNil(t, tx.(txSession).unmarshalRowHandler)
+}
+
+func TestWithTxUnmarshalsRowHandler(t *testing.T) {
+	var handler UnmarshalRowsHandler = func(v any, scanner rowsScanner, _ bool) error {
+		return nil
+	}
+	tx := NewSessionFromTx(nil, WithTxUnmarshalRowsHandler(handler))
+	assert.NotNil(t, tx.(txSession).unmarshalRowsHandler)
 }
