@@ -51,6 +51,10 @@ func projectFromGoMod(workDir string) (*ProjectContext, error) {
 		return nil, err
 	}
 
+	if err := UpdateGoWorkIfExist(workDir); err != nil {
+		return nil, err
+	}
+
 	m, err := getRealModule(workDir, execx.Run)
 	if err != nil {
 		return nil, err
