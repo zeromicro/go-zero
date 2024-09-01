@@ -81,13 +81,13 @@ func Test_getRealModule(t *testing.T) {
 						"Path":"foo",
 						"Dir":"/home/foo",
 						"GoMod":"/home/foo/go.mod",
-						"GoVersion":"go1.19"
+						"GoVersion":"go1.20"
 					}
 					{
 						"Path":"bar",
 						"Dir":"/home/bar",
 						"GoMod":"/home/bar/go.mod",
-						"GoVersion":"go1.19"
+						"GoVersion":"go1.20"
 					}`, nil
 				},
 			},
@@ -95,7 +95,7 @@ func Test_getRealModule(t *testing.T) {
 				Path:      "bar",
 				Dir:       "/home/bar",
 				GoMod:     "/home/bar/go.mod",
-				GoVersion: "go1.19",
+				GoVersion: "go1.20",
 			},
 		},
 	}
@@ -143,26 +143,26 @@ func TestDecodePackages(t *testing.T) {
 						"Path":"foo",
 						"Dir":"/home/foo",
 						"GoMod":"/home/foo/go.mod",
-						"GoVersion":"go1.19"
+						"GoVersion":"go1.20"
 					}
 					{
 						"Path":"bar",
 						"Dir":"/home/bar",
 						"GoMod":"/home/bar/go.mod",
-						"GoVersion":"go1.19"
+						"GoVersion":"go1.20"
 					}`),
 			want: []Module{
 				{
 					Path:      "foo",
 					Dir:       "/home/foo",
 					GoMod:     "/home/foo/go.mod",
-					GoVersion: "go1.19",
+					GoVersion: "go1.20",
 				},
 				{
 					Path:      "bar",
 					Dir:       "/home/bar",
 					GoMod:     "/home/bar/go.mod",
-					GoVersion: "go1.19",
+					GoVersion: "go1.20",
 				},
 			},
 		},
@@ -173,14 +173,14 @@ func TestDecodePackages(t *testing.T) {
 						"Path":"foo",
 						"Dir":"/home/foo",
 						"GoMod":"/home/foo/go.mod",
-						"GoVersion":"go1.19"
+						"GoVersion":"go1.20"
 					}`),
 			want: []Module{
 				{
 					Path:      "foo",
 					Dir:       "/home/foo",
 					GoMod:     "/home/foo/go.mod",
-					GoVersion: "go1.19",
+					GoVersion: "go1.20",
 				},
 			},
 		},
