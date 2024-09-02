@@ -28,8 +28,7 @@ type kubeResolver struct {
 	stopCh chan struct{}
 }
 
-func (r *kubeResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-}
+func (r *kubeResolver) ResolveNow(_ resolver.ResolveNowOptions) {}
 
 func (r *kubeResolver) start() {
 	threading.GoSafe(func() {
