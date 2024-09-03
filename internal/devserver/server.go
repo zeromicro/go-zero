@@ -80,6 +80,7 @@ func StartAgent(c Config) {
 	if !c.Enabled {
 		return
 	}
+
 	once.Do(func() {
 		s := NewServer(c)
 		s.StartAsync(c)
