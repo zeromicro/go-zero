@@ -2,8 +2,8 @@ FROM golang:alpine AS builder
 
 LABEL stage=gobuilder
 
-ENV CGO_ENABLED 0
-ENV GOPROXY https://goproxy.cn,direct
+ENV CGO_ENABLED=0
+ENV GOPROXY=https://goproxy.cn,direct
 
 RUN apk update --no-cache && apk add --no-cache tzdata
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -24,7 +24,7 @@ RUN apk update --no-cache && apk add --no-cache protoc
 COPY --from=builder /etc/passwd /etc/group /etc/
 COPY --from=builder /usr/share/zoneinfo/ /usr/share/zoneinfo/
 COPY --from=builder --chown=1000:1000 /go/bin/protoc-gen-go* /app/goctl /usr/local/bin/
-ENV TZ Asia/Shanghai
+ENV TZ=Asia/Shanghai
 
 WORKDIR /app
 USER app
