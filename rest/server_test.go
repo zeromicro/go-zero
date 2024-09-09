@@ -627,7 +627,7 @@ func TestServer_WithChain(t *testing.T) {
 		}
 	}
 
-	server := MustNewServer(RestConf{}, WithChain(chain.New(middleware1(), middleware2())))
+	server := MustNewServer(RestConf{AddNativeMiddlewares: true, Middlewares: MiddlewaresConf{Log: true}}, WithChain(chain.New(middleware1(), middleware2())))
 	server.AddRoutes(
 		[]Route{
 			{
