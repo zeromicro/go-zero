@@ -28,6 +28,23 @@ func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser) {
 	return io.NopCloser(tee), io.NopCloser(&buf)
 }
 
+// DupReadCloserForLargeFile returns two io.ReadCloser that read from the first will be written to the second.
+// The first returned reader needs to be read first, because the content
+// read from it will be written to the underlying buffer of the second reader.
+// the fourth returned close func , After the caller finishes using reader, close the temporary file
+func DupReadCloserForLargeFile(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser,error,func()error) {
+	f,_:=os.CreateTemp(os.TempDir(),"go-zero-body")
+	tee := io.TeeReader(reader, f)
+	readTempFile,err:=os.Open(f.Name())
+	if err != nil {
+		return nil,nil,err,nil
+	}
+	closeFunc:= func()error {
+		return os.Remove(readTempFile.Name())
+	}
+	return io.NopCloser(tee), io.NopCloser(readTempFile),nil,closeFunc
+}
+
 // KeepSpace customizes the reading functions to keep leading and tailing spaces.
 func KeepSpace() TextReadOption {
 	return func(o *textReadOptions) {
