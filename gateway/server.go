@@ -22,9 +22,10 @@ type (
 	// Server is a gateway server.
 	Server struct {
 		*rest.Server
-		upstreams     []Upstream
-		processHeader func(http.Header) []string
-		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		upstreams          []Upstream
+		processHeader      func(http.Header) []string
+		dialer             func(conf zrpc.RpcClientConf) zrpc.Client
+		allowUnknownFields bool
 	}
 
 	// Option defines the method to customize Server.
@@ -121,7 +122,7 @@ func (s *Server) build() error {
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
 	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		parser, err := internal.NewRequestParser(r, resolver)
+		parser, err := internal.NewRequestParser(r, resolver, s.allowUnknownFields)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
@@ -192,5 +193,11 @@ func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server)
 func withDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
 	return func(s *Server) {
 		s.dialer = dialer
+	}
+}
+
+func WithAllowUnknownFields(allowUnknownFields bool) func(*Server) {
+	return func(s *Server) {
+		s.allowUnknownFields = allowUnknownFields
 	}
 }
