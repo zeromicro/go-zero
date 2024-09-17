@@ -216,19 +216,20 @@ func (a *Analyzer) fillRouteType(route *spec.Route) error {
 	if route.RequestType != nil {
 		switch route.RequestType.(type) {
 		case spec.DefineStruct:
-			tp, err := a.findDefinedType(route.RequestType.Name())
+			tp, tagNames, err := a.findDefinedType(route.RequestType.Name())
 			if err != nil {
 				return err
 			}
 
 			route.RequestType = tp
+			route.OpenFiles = tagNames
 		}
 	}
 
 	if route.ResponseType != nil {
 		switch route.ResponseType.(type) {
 		case spec.DefineStruct:
-			tp, err := a.findDefinedType(route.ResponseType.Name())
+			tp, _, err := a.findDefinedType(route.ResponseType.Name())
 			if err != nil {
 				return err
 			}
@@ -347,7 +348,7 @@ func (a *Analyzer) fillTypes() error {
 			for _, member := range v.Members {
 				switch v := member.Type.(type) {
 				case spec.DefineStruct:
-					tp, err := a.findDefinedType(v.RawName)
+					tp, _, err := a.findDefinedType(v.RawName)
 					if err != nil {
 						return err
 					}
@@ -390,16 +391,24 @@ func (a *Analyzer) fillTypeExpr(expr *ast.TypeExpr) error {
 	}
 }
 
-func (a *Analyzer) findDefinedType(name string) (spec.Type, error) {
+func (a *Analyzer) findDefinedType(name string) (spec.Type, []string, error) {
 	for _, item := range a.spec.Types {
-		if _, ok := item.(spec.DefineStruct); ok {
+		if s, ok := item.(spec.DefineStruct); ok {
 			if item.Name() == name {
-				return item, nil
+				var fileTagNames []string
+				for _, m := range s.Members {
+					for _, t := range m.Tags() {
+						if t.Key == "file" {
+							fileTagNames = append(fileTagNames, t.Name)
+						}
+					}
+				}
+				return item, fileTagNames, nil
 			}
 		}
 	}
 
-	return nil, fmt.Errorf("type %s not defined", name)
+	return nil, nil, fmt.Errorf("type %s not defined", name)
 }
 
 func (a *Analyzer) getType(expr *ast.BodyStmt, req bool) (spec.Type, error) {
@@ -414,7 +423,7 @@ func (a *Analyzer) getType(expr *ast.BodyStmt, req bool) (spec.Type, error) {
 	if IsBaseType(body.Value.Token.Text) {
 		tp = spec.PrimitiveType{RawName: body.Value.Token.Text}
 	} else {
-		tp, err = a.findDefinedType(body.Value.Token.Text)
+		tp, _, err = a.findDefinedType(body.Value.Token.Text)
 		if err != nil {
 			return nil, err
 		}
