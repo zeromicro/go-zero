@@ -8,6 +8,7 @@ import (
 	"time"
 
 	red "github.com/redis/go-redis/v9"
+
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -53,12 +54,13 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr               string
+		Type               string
+		Pass               string
+		tls                bool
+		brk                breaker.Breaker
+		hooks              []red.Hook
+		verifyBigKeyConfig BigKeyHookConfig
 	}
 
 	// RedisNode interface represents a redis node.
@@ -131,6 +133,13 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
+	}
+	if conf.VerifyBigKey.Enable {
+		bigKeyHook, err := NewBigKeyHook(conf.VerifyBigKey)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, WithHook(bigKeyHook))
 	}
 
 	rds := newRedis(conf.Host, opts...)
