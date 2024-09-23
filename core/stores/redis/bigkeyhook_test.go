@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"testing"
-	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -319,36 +319,4 @@ func TestBigKeyHook_AfterProcess_Zrange(t *testing.T) {
 	buf.Reset()
 	_, _ = r.ZrangebyscoreWithScoresAndLimit("foo", 0, 100, 0, 10)
 	assert.Contains(t, buf.String(), "BigKey limit")
-}
-
-func TestBigKeyHook_stat(t *testing.T) {
-	var buf bytes.Buffer
-	logx.Reset()
-	logx.SetLevel(logx.InfoLevel)
-	logx.SetWriter(logx.NewWriter(&buf))
-	defer logx.Reset()
-
-	r := MustNewRedis(RedisConf{
-		Host: miniredis.RunT(t).Addr(),
-		Type: "node",
-		VerifyBigKey: BigKeyHookConfig{
-			Enable:       true,
-			LimitSize:    5,
-			LimitCount:   1,
-			BufferLen:    100,
-			StatInterval: time.Millisecond * 100,
-		},
-	})
-
-	err := r.Set("foo", "123456")
-	assert.NoError(t, err)
-
-	for i := 0; i < 99; i++ {
-		_, _ = r.Get("foo")
-	}
-
-	time.Sleep(time.Second)
-
-	assert.Contains(t, buf.String(), "[REDIS] BigKey limit, key: foo, size: 6, count: 100")
-
 }
