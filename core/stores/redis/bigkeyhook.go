@@ -115,7 +115,7 @@ func (h *bigKeyHook) cmdCheck(ctx context.Context, cmd red.Cmder) {
 			return
 		}
 
-		if c.Err() == nil && len(c.Val()) > 0 {
+		if len(c.Val()) > 0 {
 			size = len(c.Val())
 		} else if len(c.Args()) >= 3 {
 			size = len(mapping.Repr(c.Args()[2]))
@@ -125,14 +125,10 @@ func (h *bigKeyHook) cmdCheck(ctx context.Context, cmd red.Cmder) {
 		if !ok {
 			return
 		}
-		println(c.Val())
 		for _, v := range c.Val() {
 			size += len(v)
 		}
 	case "hget":
-		if cmd.Err() != nil {
-			return
-		}
 		c, ok := cmd.(*red.StringCmd)
 		if !ok {
 			return
