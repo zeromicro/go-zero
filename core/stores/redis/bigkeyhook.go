@@ -218,34 +218,35 @@ func (h *bigKeyHook) stat() {
 		return
 	}
 
-	// getIntervalData returns the data of the interval.
-	getIntervalData := func() map[string]bigKeyData {
-		timeout := time.NewTimer(h.config.StatInterval)
-		var m = make(map[string]bigKeyData)
-		for {
-			select {
-			case data := <-h.buffer:
-				if _, ok := m[data.key]; !ok {
-					m[data.key] = data
-				}
-
-				m[data.key] = bigKeyData{
-					key:   data.key,
-					size:  data.size,
-					count: m[data.key].count + 1,
-				}
-			case <-timeout.C:
-				return m
-			}
-		}
-	}
-
 	// log the big key.
 	for {
-		for key, data := range getIntervalData() {
+		for key, data := range h.getIntervalData() {
 			if data.count >= h.config.LimitCount {
 				logx.Infof("[REDIS] BigKey limit, key: %s, size: %d, count: %d", key, data.size, data.count)
 			}
+		}
+	}
+}
+
+func (h *bigKeyHook) getIntervalData() map[string]bigKeyData {
+	var m = make(map[string]bigKeyData)
+
+	timeout := time.NewTimer(h.config.StatInterval)
+
+	for {
+		select {
+		case data := <-h.buffer:
+			if _, ok := m[data.key]; !ok {
+				m[data.key] = data
+			}
+
+			m[data.key] = bigKeyData{
+				key:   data.key,
+				size:  data.size,
+				count: m[data.key].count + 1,
+			}
+		case <-timeout.C:
+			return m
 		}
 	}
 }

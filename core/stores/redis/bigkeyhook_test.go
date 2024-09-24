@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
@@ -335,4 +336,24 @@ func TestBigKeyHook_AfterProcess_Zrange(t *testing.T) {
 	buf.Reset()
 	_, _ = r.ZrangebyscoreWithScoresAndLimit("foo", 0, 100, 0, 10)
 	assert.Contains(t, buf.String(), "BigKey limit")
+}
+
+func TestBigKeyHook_getIntervalData(t *testing.T) {
+	h := &bigKeyHook{
+		config: BigKeyHookConfig{
+			LimitSize:    5,
+			LimitCount:   1,
+			StatInterval: time.Millisecond,
+		},
+		buffer: make(chan bigKeyData, 10),
+	}
+
+	h.buffer <- bigKeyData{
+		key:   "foo",
+		size:  10,
+		count: 1,
+	}
+
+	data := h.getIntervalData()
+	assert.Equal(t, 1, len(data))
 }
