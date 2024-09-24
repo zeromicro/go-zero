@@ -7,9 +7,25 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
+
+func TestNewBigKeyHook(t *testing.T) {
+	t.Run("invalid limit size", func(t *testing.T) {
+		_, err := NewBigKeyHook(BigKeyHookConfig{
+			LimitSize: 0,
+		})
+		assert.Error(t, err)
+	})
+
+	t.Run("invalid buf size", func(t *testing.T) {
+		_, err := NewBigKeyHook(BigKeyHookConfig{
+			LimitSize: 10240,
+			BufferLen: 10,
+		})
+		assert.Error(t, err)
+	})
+}
 
 func TestBigKeyHook_AfterProcess_Get(t *testing.T) {
 	var buf bytes.Buffer

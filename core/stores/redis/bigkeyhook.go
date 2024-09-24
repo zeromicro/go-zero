@@ -34,7 +34,7 @@ type (
 	}
 )
 
-func NewBigKeyHook(config BigKeyHookConfig) (*bigKeyHook, error) {
+func NewBigKeyHook(config BigKeyHookConfig) (red.Hook, error) {
 	if config.LimitSize <= 0 {
 		return nil, errors.New("limit size must be greater than 0")
 	}
