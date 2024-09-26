@@ -78,16 +78,42 @@ type (
 	}
 )
 
+func GenRoutesString(rootPkg string, cfg *config.Config, api *spec.ApiSpec) (string, error) {
+	fgc, err := genRoutesConfig("", rootPkg, cfg, api)
+	if err != nil {
+		return "", err
+	}
+	return genFileString(*fgc)
+}
+
 func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
-	var builder strings.Builder
-	groups, err := getRoutes(api)
+	fgc, err := genRoutesConfig(dir, rootPkg, cfg, api)
 	if err != nil {
 		return err
 	}
 
-	templateText, err := pathx.LoadTemplate(category, routesAdditionTemplateFile, routesAdditionTemplate)
+	routeFilename, err := format.FileNamingFormat(cfg.NamingFormat, routesFilename)
 	if err != nil {
 		return err
+	}
+
+	routeFilename = routeFilename + ".go"
+	filename := path.Join(dir, handlerDir, routeFilename)
+	_ = os.Remove(filename)
+
+	return genFile(*fgc)
+}
+
+func genRoutesConfig(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) (*fileGenConfig, error) {
+	var builder strings.Builder
+	groups, err := getRoutes(api)
+	if err != nil {
+		return nil, err
+	}
+
+	templateText, err := pathx.LoadTemplate(category, routesAdditionTemplateFile, routesAdditionTemplate)
+	if err != nil {
+		return nil, err
 	}
 
 	var hasTimeout bool
@@ -136,12 +162,12 @@ rest.WithPrefix("%s"),`, g.prefix)
 		if len(g.timeout) > 0 {
 			duration, err := time.ParseDuration(g.timeout)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// why we check this, maybe some users set value 1, it's 1ns, not 1s.
 			if duration < timeoutThreshold {
-				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
+				return nil, fmt.Errorf("timeout should not less than 1ms, now %v", duration)
 			}
 
 			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration.Milliseconds())
@@ -152,7 +178,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 		if len(g.maxBytes) > 0 {
 			_, err := strconv.ParseInt(g.maxBytes, 10, 64)
 			if err != nil {
-				return fmt.Errorf("maxBytes %s parse error,it is an invalid number", g.maxBytes)
+				return nil, fmt.Errorf("maxBytes %s parse error,it is an invalid number", g.maxBytes)
 			}
 
 			maxBytes = fmt.Sprintf("\n rest.WithMaxBytes(%s),", g.maxBytes)
@@ -181,20 +207,17 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"timeout":   timeout,
 			"maxBytes":  maxBytes,
 		}); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	routeFilename, err := format.FileNamingFormat(cfg.NamingFormat, routesFilename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	routeFilename = routeFilename + ".go"
-	filename := path.Join(dir, handlerDir, routeFilename)
-	os.Remove(filename)
-
-	return genFile(fileGenConfig{
+	return &fileGenConfig{
 		dir:             dir,
 		subdir:          handlerDir,
 		filename:        routeFilename,
@@ -208,7 +231,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"routesAdditions": strings.TrimSpace(builder.String()),
 			"version":         version.BuildVersion,
 		},
-	})
+	}, nil
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
