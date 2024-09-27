@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"encoding"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -609,6 +610,19 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	case valueKind == reflect.String && typeKind == reflect.Map:
 		return u.fillMapFromString(value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
+		// try to find out if it's a byte slice, golang use []byte Marshal to base64 but there only SliceOf uint8/bytes can convert to []byte
+		// more details https://pkg.go.dev/encoding/json#Marshal
+		//> Array and slice values encode as JSON arrays, except that []byte encodes as a base64-encoded string, and a nil slice encodes as the null JSON value.
+		//and also u can find this https://stackoverflow.com/questions/34089750/marshal-byte-to-json-giving-a-strange-string
+		if fieldType.Elem().Kind() == reflect.Uint8 {
+			strVal := mapValue.(string)
+			decodedBytes, err := base64.StdEncoding.DecodeString(strVal)
+			// if err !=nil do next
+			if err == nil {
+				value.Set(reflect.ValueOf(decodedBytes))
+				return nil
+			}
+		}
 		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
 	case valueKind == reflect.String && derefedFieldType == durationType:
 		return fillDurationValue(fieldType, value, mapValue.(string))
