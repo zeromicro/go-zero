@@ -24,15 +24,17 @@ var (
 )
 
 type patRouter struct {
-	trees      map[string]*search.Tree
-	notFound   http.Handler
-	notAllowed http.Handler
+	routePathsCaseSensitive bool
+	trees                   map[string]*search.Tree
+	notFound                http.Handler
+	notAllowed              http.Handler
 }
 
 // NewRouter returns a httpx.Router.
-func NewRouter() httpx.Router {
+func NewRouter(routePathsCaseSensitive bool) httpx.Router {
 	return &patRouter{
-		trees: make(map[string]*search.Tree),
+		routePathsCaseSensitive: routePathsCaseSensitive,
+		trees:                   make(map[string]*search.Tree),
 	}
 }
 
@@ -59,7 +61,7 @@ func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error 
 func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reqPath := path.Clean(r.URL.Path)
 	if tree, ok := pr.trees[r.Method]; ok {
-		if result, ok := tree.Search(reqPath); ok {
+		if result, ok := tree.Search(reqPath, pr.routePathsCaseSensitive); ok {
 			if len(result.Params) > 0 {
 				r = pathvar.WithVars(r, result.Params)
 			}
@@ -106,7 +108,7 @@ func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 			continue
 		}
 
-		_, ok := tree.Search(path)
+		_, ok := tree.Search(path, pr.routePathsCaseSensitive)
 		if ok {
 			allows = append(allows, treeMethod)
 		}
