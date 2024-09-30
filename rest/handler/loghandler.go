@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/color"
 	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -28,7 +29,10 @@ const (
 	defaultSlowThreshold = time.Millisecond * 500
 )
 
-var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+var (
+	slowThreshold   = syncx.ForAtomicDuration(defaultSlowThreshold)
+	slowIgnorePaths = collection.NewSet()
+)
 
 // LogHandler returns a middleware that logs http request and response.
 func LogHandler(next http.Handler) http.Handler {
@@ -107,6 +111,11 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
+// SetSlowIgnorePaths sets the slow threshold.
+func SetSlowIgnorePaths(paths []string) {
+	slowIgnorePaths.AddStr(paths...)
+}
+
 func dumpRequest(r *http.Request) string {
 	reqContent, err := httputil.DumpRequest(r, true)
 	if err != nil {
@@ -127,7 +136,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	logger := logx.WithContext(r.Context()).WithDuration(duration)
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %s %s - %s - %s",
 		wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
-	if duration > slowThreshold.Load() {
+	if !slowIgnorePaths.Contains(r.URL.Path) && duration > slowThreshold.Load() {
 		logger.Slowf("[HTTP] %s - %s %s - %s - %s - slowcall(%s)",
 			wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),
 			timex.ReprOfDuration(duration))
@@ -158,7 +167,7 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	logger := logx.WithContext(r.Context())
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s\n=> %s\n",
 		r.Method, code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
-	if duration > defaultSlowThreshold {
+	if !slowIgnorePaths.Contains(r.URL.Path) && duration > defaultSlowThreshold {
 		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n", r.Method, code, r.RemoteAddr,
 			fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)), dumpRequest(r))
 	}

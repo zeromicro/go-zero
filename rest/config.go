@@ -59,5 +59,7 @@ type (
 		Middlewares MiddlewaresConf
 		// TraceIgnorePaths is paths blacklist for trace middleware.
 		TraceIgnorePaths []string `json:",optional"`
+		// SlowIgnorePaths is paths blacklist for log middleware.
+		SlowIgnorePaths []string `json:",optional"`
 	}
 )
