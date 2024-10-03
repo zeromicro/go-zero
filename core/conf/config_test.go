@@ -1194,6 +1194,53 @@ Email = "bar"`)
 	})
 }
 
+func Test_FieldRecursion(t *testing.T) {
+	t.Run("map recursion", func(t *testing.T) {
+		type Inner struct {
+			Name     string
+			Children map[string]Inner
+		}
+
+		type Config struct {
+			Inner Inner
+		}
+
+		input := []byte(`{"Inner": {"Name": "foo"}}`)
+		var c Config
+		assert.NoError(t, LoadFromJsonBytes(input, &c))
+	})
+
+	t.Run("array recursion", func(t *testing.T) {
+		type Inner struct {
+			Name     string
+			Children map[string]Inner
+		}
+
+		type Config struct {
+			Inners []Inner
+		}
+
+		input := []byte(`{"Inners": [{"Name": "foo"}]}`)
+		var c Config
+		assert.NoError(t, LoadFromJsonBytes(input, &c))
+	})
+
+	t.Run("map anonymous recursion", func(t *testing.T) {
+		type Inner struct {
+			Name     string
+			Children map[string]Inner
+		}
+
+		type Config struct {
+			Inner
+		}
+
+		input := []byte(`{"Name": "foo"}`)
+		var c Config
+		assert.NoError(t, LoadFromJsonBytes(input, &c))
+	})
+}
+
 func Test_getFullName(t *testing.T) {
 	assert.Equal(t, "a.b", getFullName("a", "b"))
 	assert.Equal(t, "a", getFullName("", "a"))
@@ -1277,7 +1324,7 @@ func Test_buildFieldsInfo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := buildFieldsInfo(tt.t, "")
+			_, err := buildFieldsInfo(tt.t, "", make(fieldCache))
 			if tt.ok {
 				assert.NoError(t, err)
 			} else {
