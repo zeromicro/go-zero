@@ -1192,6 +1192,29 @@ Email = "bar"`)
 			assert.Len(t, c.Value, 2)
 		}
 	})
+
+	t.Run("multi layer map", func(t *testing.T) {
+		type Value struct {
+			User struct {
+				Name string
+			}
+		}
+
+		type Config struct {
+			Value map[string]map[string]Value
+		}
+
+		var input = []byte(`
+[Value.first.User1.User]
+Name = "foo"
+[Value.second.User2.User]
+Name = "bar"
+`)
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.Value, 2)
+		}
+	})
 }
 
 func Test_getFullName(t *testing.T) {
