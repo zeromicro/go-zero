@@ -3,6 +3,7 @@ package search
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -80,17 +81,21 @@ func (t *Tree) Add(route string, item any) error {
 }
 
 // Search searches item that associates with given route.
-func (t *Tree) Search(route string) (Result, bool) {
+func (t *Tree) Search(route string, routeCaseSensitive bool) (Result, bool) {
 	if len(route) == 0 || route[0] != slash {
 		return NotFound, false
 	}
 
 	var result Result
-	ok := t.next(t.root, route[1:], &result)
+	ok := t.next(t.root, route[1:], routeCaseSensitive, &result)
 	return result, ok
 }
 
-func (t *Tree) next(n *node, route string, result *Result) bool {
+func (t *Tree) next(n *node, route string, routeCaseSensitive bool, result *Result) bool {
+	if !routeCaseSensitive {
+		route = strings.ToLower(route)
+	}
+
 	if len(route) == 0 && n.item != nil {
 		result.Item = n.item
 		return true
@@ -102,9 +107,16 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 		}
 
 		token := route[:i]
+
 		return n.forEach(func(k string, v *node) bool {
+			if !routeCaseSensitive {
+				k = strings.ToLower(k)
+			}
+
+			fmt.Println(token, k)
+
 			r := match(k, token)
-			if !r.found || !t.next(v, route[i+1:], result) {
+			if !r.found || !t.next(v, route[i+1:], routeCaseSensitive, result) {
 				return false
 			}
 			if r.named {
@@ -116,6 +128,10 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	}
 
 	return n.forEach(func(k string, v *node) bool {
+		if !routeCaseSensitive {
+			k = strings.ToLower(k)
+		}
+
 		if r := match(k, route); r.found && v.item != nil {
 			result.Item = v.item
 			if r.named {

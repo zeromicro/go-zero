@@ -52,7 +52,7 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 
 	server := &Server{
 		ngin:   newEngine(c),
-		router: router.NewRouter(),
+		router: router.NewRouter(c.RoutePathsCaseSensitive),
 	}
 
 	opts = append([]RunOption{WithNotFoundHandler(nil)}, opts...)

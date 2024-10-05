@@ -44,13 +44,14 @@ type (
 	// if with the name Conf, there will be two Conf inside Config.
 	RestConf struct {
 		service.ServiceConf
-		Host     string `json:",default=0.0.0.0"`
-		Port     int
-		CertFile string `json:",optional"`
-		KeyFile  string `json:",optional"`
-		Verbose  bool   `json:",optional"`
-		MaxConns int    `json:",default=10000"`
-		MaxBytes int64  `json:",default=1048576"`
+		Host                    string `json:",default=0.0.0.0"`
+		Port                    int
+		CertFile                string `json:",optional"`
+		KeyFile                 string `json:",optional"`
+		Verbose                 bool   `json:",optional"`
+		MaxConns                int    `json:",default=10000"`
+		MaxBytes                int64  `json:",default=1048576"`
+		RoutePathsCaseSensitive bool   `json:",default=true"`
 		// milliseconds
 		Timeout      int64         `json:",default=3000"`
 		CpuThreshold int64         `json:",default=900,range=[0:1000)"`

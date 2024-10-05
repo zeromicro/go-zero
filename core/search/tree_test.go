@@ -98,7 +98,7 @@ func TestSearch(t *testing.T) {
 			for _, r := range routes {
 				tree.Add(r.route, r.value)
 			}
-			result, ok := tree.Search(test.query)
+			result, ok := tree.Search(test.query, true)
 			assert.Equal(t, test.contains, ok)
 			if ok {
 				actual := result.Item.(int)
@@ -122,7 +122,7 @@ func TestStrictSearch(t *testing.T) {
 	}
 
 	for i := 0; i < 1000; i++ {
-		result, ok := tree.Search(query)
+		result, ok := tree.Search(query, true)
 		assert.True(t, ok)
 		assert.Equal(t, 1, result.Item.(int))
 	}
@@ -142,9 +142,20 @@ func TestStrictSearchSibling(t *testing.T) {
 		tree.Add(r.route, r.value)
 	}
 
-	result, ok := tree.Search(query)
+	result, ok := tree.Search(query, true)
 	assert.True(t, ok)
 	assert.Equal(t, 3, result.Item.(int))
+}
+
+func TestRoutePathCaseInsensitive(t *testing.T) {
+	tree := NewTree()
+	tree.Add("/api/:user/profile/name", 1)
+
+	query := "/aPI/123/prOfiLe/NaMe"
+
+	result, ok := tree.Search(query, false)
+	assert.True(t, ok)
+	assert.Equal(t, 1, result.Item.(int))
 }
 
 func TestAddDuplicate(t *testing.T) {
@@ -163,7 +174,7 @@ func TestPlain(t *testing.T) {
 	assert.Nil(t, err)
 	err = tree.Add("/a/c", 2)
 	assert.Nil(t, err)
-	_, ok := tree.Search("/a/d")
+	_, ok := tree.Search("/a/d", true)
 	assert.False(t, ok)
 }
 
@@ -227,6 +238,6 @@ func BenchmarkSearchTree(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		tree.Search(query)
+		tree.Search(query, true)
 	}
 }

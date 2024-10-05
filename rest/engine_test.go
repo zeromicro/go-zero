@@ -414,7 +414,7 @@ func TestEngine_start(t *testing.T) {
 			Host: "localhost",
 			Port: -1,
 		})
-		assert.Error(t, ng.start(router.NewRouter()))
+		assert.Error(t, ng.start(router.NewRouter(true)))
 	})
 
 	t.Run("https", func(t *testing.T) {
@@ -425,7 +425,7 @@ func TestEngine_start(t *testing.T) {
 			KeyFile:  "bar",
 		})
 		ng.tlsConfig = &tls.Config{}
-		assert.Error(t, ng.start(router.NewRouter()))
+		assert.Error(t, ng.start(router.NewRouter(true)))
 	})
 }
 

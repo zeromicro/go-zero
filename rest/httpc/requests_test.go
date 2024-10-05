@@ -70,7 +70,7 @@ func TestDo(t *testing.T) {
 		Body   string `json:"body"`
 	}
 
-	rt := router.NewRouter()
+	rt := router.NewRouter(true)
 	err := rt.Handle(http.MethodPost, "/nodes/:key",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var req Data
@@ -107,7 +107,7 @@ func TestDo_Ptr(t *testing.T) {
 		Body   string `json:"body"`
 	}
 
-	rt := router.NewRouter()
+	rt := router.NewRouter(true)
 	err := rt.Handle(http.MethodPost, "/nodes/:key",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var req Data
@@ -192,7 +192,7 @@ func TestDo_Json(t *testing.T) {
 		Body   chan int `json:"body"`
 	}
 
-	rt := router.NewRouter()
+	rt := router.NewRouter(true)
 	err := rt.Handle(http.MethodPost, "/nodes/:key",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var req Data

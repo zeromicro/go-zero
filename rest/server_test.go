@@ -136,7 +136,7 @@ func TestWithMaxBytes(t *testing.T) {
 
 func TestWithMiddleware(t *testing.T) {
 	m := make(map[string]string)
-	rt := router.NewRouter()
+	rt := router.NewRouter(false)
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
 			Nickname string `form:"nickname"`
@@ -243,7 +243,7 @@ func TestWithFileServerMiddleware(t *testing.T) {
 
 func TestMultiMiddlewares(t *testing.T) {
 	m := make(map[string]string)
-	rt := router.NewRouter()
+	rt := router.NewRouter(false)
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
 			Nickname string `form:"nickname"`
@@ -392,7 +392,7 @@ Port: 54321
 `
 	var cnf RestConf
 	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
-	rt := router.NewRouter()
+	rt := router.NewRouter(cnf.RoutePathsCaseSensitive)
 	svr, err := NewServer(cnf, WithRouter(rt))
 	assert.Nil(t, err)
 	defer svr.Stop()
@@ -408,7 +408,7 @@ Port: 54321
 `
 	var cnf RestConf
 	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
-	rt := router.NewRouter()
+	rt := router.NewRouter(cnf.RoutePathsCaseSensitive)
 	svr, err := NewServer(cnf, WithRouter(rt))
 	assert.Nil(t, err)
 
@@ -447,7 +447,7 @@ Port: 54321
 `
 			var cnf RestConf
 			assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
-			rt := router.NewRouter()
+			rt := router.NewRouter(cnf.RoutePathsCaseSensitive)
 			svr, err := NewServer(cnf, WithRouter(rt))
 			assert.Nil(t, err)
 			defer svr.Stop()
@@ -639,7 +639,7 @@ func TestServer_WithChain(t *testing.T) {
 			},
 		},
 	)
-	rt := router.NewRouter()
+	rt := router.NewRouter(true)
 	assert.Nil(t, server.ngin.bindRoutes(rt))
 	req, err := http.NewRequest(http.MethodGet, "/", http.NoBody)
 	assert.Nil(t, err)
@@ -655,7 +655,7 @@ func TestServer_WithCors(t *testing.T) {
 			next.ServeHTTP(w, r)
 		})
 	}
-	r := router.NewRouter()
+	r := router.NewRouter(true)
 	assert.Nil(t, r.Handle(http.MethodOptions, "/", middleware(http.NotFoundHandler())))
 
 	cr := &corsRouter{
