@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 
 	fatihcolor "github.com/fatih/color"
+
 	"github.com/zeromicro/go-zero/core/color"
 	"github.com/zeromicro/go-zero/core/errorx"
 )
@@ -59,6 +60,20 @@ func NewWriter(w io.Writer) Writer {
 		slowLog:   lw,
 		statLog:   lw,
 		stackLog:  lw,
+	}
+}
+
+// NewAsyncWriter creates a new Writer with the given io.WriteCloser.
+//
+//	If your Writer uses chan for asynchronous processing, please use NewAsyncWriter instead of NewWriter.
+func NewAsyncWriter(w io.WriteCloser) Writer {
+	return &concreteWriter{
+		infoLog:   w,
+		errorLog:  w,
+		severeLog: w,
+		slowLog:   w,
+		statLog:   w,
+		stackLog:  w,
 	}
 }
 
