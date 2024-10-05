@@ -57,6 +57,31 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
+func genFileString(c fileGenConfig) (string, error) {
+	var (
+		text string
+		err  error
+	)
+	if len(c.category) == 0 || len(c.templateFile) == 0 {
+		text = c.builtinTemplate
+	} else {
+		text, err = pathx.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	t := template.Must(template.New(c.templateName).Parse(text))
+	buffer := new(bytes.Buffer)
+	err = t.Execute(buffer, c.data)
+	if err != nil {
+		return "", err
+	}
+
+	code := golang.FormatCode(buffer.String())
+	return code, nil
+}
+
 func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
 	util.WriteIndent(writer, indent)
 	var (
