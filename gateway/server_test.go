@@ -55,7 +55,7 @@ func TestMustNewServer(t *testing.T) {
 		return zrpc.MustNewClient(conf, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
 	}), WithHeaderProcessor(func(header http.Header) []string {
 		return []string{"foo"}
-	}))
+	}), WithAllowUnknownFields(true))
 	s.upstreams = []Upstream{
 		{
 			Mappings: []RouteMapping{
