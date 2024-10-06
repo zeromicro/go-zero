@@ -74,6 +74,21 @@ func TestGetEndpoints(t *testing.T) {
 			url:  "direct:///localhost:8080,localhost:8081",
 			want: "localhost:8080,localhost:8081",
 		},
+		{
+			name: "test with etcd root key target",
+			url:  "etcd://127.0.0.1:2379//some_service/some_rpc.rpc",
+			want: "/some_service/some_rpc.rpc",
+		},
+		{
+			name: "test with etcd relative path target",
+			url:  "etcd://127.0.0.1:2379/some_service/some_rpc.rpc",
+			want: "some_service/some_rpc.rpc",
+		},
+		{
+			name: "test with etcd dot path target",
+			url:  "etcd://127.0.0.1:2379/some_service.some_rpc.rpc",
+			want: "some_service.some_rpc.rpc",
+		},
 	}
 
 	for _, test := range tests {
