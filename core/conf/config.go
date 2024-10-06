@@ -186,7 +186,6 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 
 func buildFieldsInfo(tp reflect.Type, fullName string, cache fieldCache) (*fieldInfo, error) {
 	tp = mapping.Deref(tp)
-
 	if info, ok := cache[tp]; ok {
 		return info, nil
 	}
