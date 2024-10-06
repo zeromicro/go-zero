@@ -194,7 +194,7 @@ func buildFieldsInfo(tp reflect.Type, fullName string, cache fieldCache) (*field
 	switch tp.Kind() {
 	case reflect.Struct:
 		return buildStructFieldsInfo(tp, fullName, cache)
-	case reflect.Array, reflect.Slice:
+	case reflect.Array, reflect.Slice, reflect.Map:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName, cache)
 	case reflect.Chan, reflect.Func:
 		return nil, fmt.Errorf("unsupported type: %s", tp.Kind())
@@ -334,6 +334,8 @@ func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
 			res[lk] = toLowerCaseInterface(v, ti)
 		} else if info.mapField != nil {
 			res[k] = toLowerCaseInterface(v, info.mapField)
+		} else if vv, ok := v.(map[string]any); ok {
+			res[k] = toLowerCaseKeyMap(vv, info)
 		} else {
 			res[k] = v
 		}
