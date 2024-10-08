@@ -55,9 +55,6 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 			Token: c.Token,
 		})))
 	}
-	if c.NonBlock {
-		opts = append(opts, WithNonBlock())
-	}
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}

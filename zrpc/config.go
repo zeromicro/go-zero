@@ -22,14 +22,15 @@ type (
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
-		Etcd          discov.EtcdConf `json:",optional,inherit"`
-		Endpoints     []string        `json:",optional"`
-		Target        string          `json:",optional"`
-		App           string          `json:",optional"`
-		Token         string          `json:",optional"`
-		NonBlock      bool            `json:",optional"`
-		Timeout       int64           `json:",default=2000"`
-		KeepaliveTime time.Duration   `json:",optional"`
+		Etcd      discov.EtcdConf `json:",optional,inherit"`
+		Endpoints []string        `json:",optional"`
+		Target    string          `json:",optional"`
+		App       string          `json:",optional"`
+		Token     string          `json:",optional"`
+		// Deprecated: remove in the future
+		NonBlock      bool          `json:",optional"`
+		Timeout       int64         `json:",default=2000"`
+		KeepaliveTime time.Duration `json:",optional"`
 		Middlewares   ClientMiddlewaresConf
 	}
 

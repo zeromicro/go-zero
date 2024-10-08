@@ -32,6 +32,7 @@ type (
 
 	// A ClientOptions is a client options.
 	ClientOptions struct {
+		// Deprecated: remove in the future
 		NonBlock    bool
 		Timeout     time.Duration
 		Secure      bool
@@ -79,10 +80,6 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
-	if !cliOpts.NonBlock {
-		options = append(options, grpc.WithBlock())
-	}
-
 	options = append(options,
 		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts.Timeout)...),
 		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
@@ -125,9 +122,7 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 
 func (c *client) dial(server string, opts ...ClientOption) error {
 	options := c.buildDialOptions(opts...)
-	timeCtx, cancel := context.WithTimeout(context.Background(), dialTimeout)
-	defer cancel()
-	conn, err := grpc.DialContext(timeCtx, server, options...)
+	conn, err := grpc.NewClient(server, options...)
 	if err != nil {
 		service := server
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -153,6 +148,7 @@ func WithDialOption(opt grpc.DialOption) ClientOption {
 }
 
 // WithNonBlock sets the dialing to be nonblock.
+// Deprecated: remove in the future
 func WithNonBlock() ClientOption {
 	return func(options *ClientOptions) {
 		options.NonBlock = true
