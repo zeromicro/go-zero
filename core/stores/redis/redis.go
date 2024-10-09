@@ -2457,3 +2457,11 @@ func toStrings(vals []any) []string {
 
 	return ret
 }
+
+func (s *Redis) TxPipeline() (Pipeliner, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.TxPipeline(), nil
+}
