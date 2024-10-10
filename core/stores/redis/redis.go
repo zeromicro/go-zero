@@ -2465,3 +2465,44 @@ func (s *Redis) TxPipeline() (Pipeliner, error) {
 	}
 	return conn.TxPipeline(), nil
 }
+
+func (s *Redis) Unlink(keys []string) (int64, error) {
+	return s.UnlinkCtx(context.Background(), keys)
+}
+
+func (s *Redis) UnlinkCtx(ctx context.Context, keys []string) (
+	int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+
+	return conn.Unlink(ctx, keys...).Result()
+}
+
+func (s *Redis) Publish(channel string, message interface{}) (int64, error) {
+	return s.PublishCtx(context.Background(), channel, message)
+}
+
+func (s *Redis) PublishCtx(ctx context.Context, channel string, message interface{}) (
+	int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+
+	return conn.Publish(ctx, channel, message).Result()
+}
+
+func (s *Redis) RPopLPush(source string, destination string) (string, error) {
+	return s.RPopLPushCtx(context.Background(), source, destination)
+}
+
+func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.RPopLPush(ctx, source, destination).Result()
+}
