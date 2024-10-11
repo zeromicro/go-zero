@@ -2084,6 +2084,8 @@ func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.
 func TestRedisPublish(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).Publish("Test", "message")
+		assert.NotNil(t, err)
+		_, err = client.Publish("Test", "message")
 		assert.Nil(t, err)
 	})
 }
@@ -2091,6 +2093,10 @@ func TestRedisPublish(t *testing.T) {
 func TestRedisRPopLPush(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).RPopLPush("Source", "Destination")
+		assert.NotNil(t, err)
+		_, err = client.Rpush("Source", "Destination")
+		assert.Nil(t, err)
+		_, err = client.RPopLPush("Source", "Destination")
 		assert.Nil(t, err)
 	})
 }
@@ -2098,7 +2104,7 @@ func TestRedisRPopLPush(t *testing.T) {
 func TestRedisUnlink(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).Unlink("Key1", "Key2")
-		assert.Nil(t, err)
+		assert.NotNil(t, err)
 	})
 }
 
@@ -2106,6 +2112,8 @@ func TestRedisTxPipeline(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		ctx := context.Background()
 		pipe, err := newRedis(client.Addr, badType()).TxPipeline()
+		assert.NotNil(t, err)
+		pipe, err = client.TxPipeline()
 		assert.Nil(t, err)
 		key := "key"
 		hashKey := "field"
