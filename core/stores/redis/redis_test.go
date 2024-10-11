@@ -2080,3 +2080,40 @@ func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.
 
 	return cmd
 }
+
+func TestRedisPublish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Publish("Test", "message")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisRPopLPush(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).RPopLPush("Source", "Destination")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisUnlink(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Unlink("Key1", "Key2")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisTxPipeline(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		ctx := context.Background()
+		pipe, err := newRedis(client.Addr, badType()).TxPipeline()
+		assert.NotNil(t, err)
+		key := "key"
+
+		_, err = pipe.Exists(ctx, key).Result()
+		assert.NotNil(t, err)
+
+		_, err = pipe.HMGet(ctx, key).Result()
+		assert.NotNil(t, err)
+	})
+}

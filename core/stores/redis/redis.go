@@ -1197,6 +1197,23 @@ func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) erro
 	return err
 }
 
+func (s *Redis) Publish(channel string, message interface{}) (int64, error) {
+	return s.PublishCtx(context.Background(), channel, message)
+}
+
+func (s *Redis) PublishCtx(ctx context.Context, channel string, message interface{}) (
+	int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+	v, err := conn.Publish(ctx, channel, message).Result()
+	if err != nil {
+		return 0, err
+	}
+	return v, nil
+}
+
 // Rpop is the implementation of redis rpop command.
 func (s *Redis) Rpop(key string) (string, error) {
 	return s.RpopCtx(context.Background(), key)
@@ -1245,6 +1262,23 @@ func (s *Redis) RpushCtx(ctx context.Context, key string, values ...any) (int, e
 	}
 
 	return int(v), nil
+}
+
+func (s *Redis) RPopLPush(source string, destination string) (string, error) {
+	return s.RPopLPushCtx(context.Background(), source, destination)
+}
+
+func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	v, err := conn.RPopLPush(ctx, source, destination).Result()
+	if err != nil {
+		return "", err
+	}
+	return v, nil
 }
 
 // Sadd is the implementation of redis sadd command.
@@ -1643,6 +1677,30 @@ func (s *Redis) TtlCtx(ctx context.Context, key string) (int, error) {
 	// -2 means key does not exist
 	// -1 means key exists but has no expire
 	return int(duration), nil
+}
+
+func (s *Redis) TxPipeline() (Pipeliner, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.TxPipeline(), nil
+}
+
+func (s *Redis) Unlink(keys ...string) (int64, error) {
+	return s.UnlinkCtx(context.Background(), keys...)
+}
+
+func (s *Redis) UnlinkCtx(ctx context.Context, keys ...string) (int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+	v, err := conn.Unlink(ctx, keys...).Result()
+	if err != nil {
+		return 0, err
+	}
+	return v, nil
 }
 
 // Zadd is the implementation of redis zadd command.
@@ -2456,53 +2514,4 @@ func toStrings(vals []any) []string {
 	}
 
 	return ret
-}
-
-func (s *Redis) TxPipeline() (Pipeliner, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return nil, err
-	}
-	return conn.TxPipeline(), nil
-}
-
-func (s *Redis) Unlink(keys []string) (int64, error) {
-	return s.UnlinkCtx(context.Background(), keys)
-}
-
-func (s *Redis) UnlinkCtx(ctx context.Context, keys []string) (
-	int64, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return 0, err
-	}
-
-	return conn.Unlink(ctx, keys...).Result()
-}
-
-func (s *Redis) Publish(channel string, message interface{}) (int64, error) {
-	return s.PublishCtx(context.Background(), channel, message)
-}
-
-func (s *Redis) PublishCtx(ctx context.Context, channel string, message interface{}) (
-	int64, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return 0, err
-	}
-
-	return conn.Publish(ctx, channel, message).Result()
-}
-
-func (s *Redis) RPopLPush(source string, destination string) (string, error) {
-	return s.RPopLPushCtx(context.Background(), source, destination)
-}
-
-func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return "", err
-	}
-
-	return conn.RPopLPush(ctx, source, destination).Result()
 }
