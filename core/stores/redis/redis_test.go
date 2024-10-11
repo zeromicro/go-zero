@@ -2105,6 +2105,14 @@ func TestRedisUnlink(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).Unlink("Key1", "Key2")
 		assert.NotNil(t, err)
+		err = client.Set("Key1", "Key2")
+		assert.Nil(t, err)
+		get, err := client.Get("Key1")
+		assert.Nil(t, err)
+		assert.Equal(t, "Key2", get)
+		res, err := client.Unlink("Key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), res)
 	})
 }
 

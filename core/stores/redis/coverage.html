@@ -1,0 +1,3465 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>redis: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/zeromicro/go-zero/core/stores/redis/breakerhook.go (100.0%)</option>
+				
+				<option value="file1">github.com/zeromicro/go-zero/core/stores/redis/conf.go (100.0%)</option>
+				
+				<option value="file2">github.com/zeromicro/go-zero/core/stores/redis/durationhook.go (100.0%)</option>
+				
+				<option value="file3">github.com/zeromicro/go-zero/core/stores/redis/metrics.go (100.0%)</option>
+				
+				<option value="file4">github.com/zeromicro/go-zero/core/stores/redis/redis.go (99.9%)</option>
+				
+				<option value="file5">github.com/zeromicro/go-zero/core/stores/redis/redisblockingnode.go (90.9%)</option>
+				
+				<option value="file6">github.com/zeromicro/go-zero/core/stores/redis/redisclientmanager.go (92.9%)</option>
+				
+				<option value="file7">github.com/zeromicro/go-zero/core/stores/redis/redisclustermanager.go (90.9%)</option>
+				
+				<option value="file8">github.com/zeromicro/go-zero/core/stores/redis/redislock.go (84.6%)</option>
+				
+				<option value="file9">github.com/zeromicro/go-zero/core/stores/redis/scriptcache.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package redis
+
+import (
+        "context"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/breaker"
+        "github.com/zeromicro/go-zero/core/lang"
+)
+
+var ignoreCmds = map[string]lang.PlaceholderType{
+        "blpop": {},
+}
+
+type breakerHook struct {
+        brk breaker.Breaker
+}
+
+func (h breakerHook) DialHook(next red.DialHook) red.DialHook <span class="cov8" title="1">{
+        return next
+}</span>
+
+func (h breakerHook) ProcessHook(next red.ProcessHook) red.ProcessHook <span class="cov8" title="1">{
+        return func(ctx context.Context, cmd red.Cmder) error </span><span class="cov8" title="1">{
+                if _, ok := ignoreCmds[cmd.Name()]; ok </span><span class="cov8" title="1">{
+                        return next(ctx, cmd)
+                }</span>
+
+                <span class="cov8" title="1">return h.brk.DoWithAcceptableCtx(ctx, func() error </span><span class="cov8" title="1">{
+                        return next(ctx, cmd)
+                }</span>, acceptable)
+        }
+}
+
+func (h breakerHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook <span class="cov8" title="1">{
+        return func(ctx context.Context, cmds []red.Cmder) error </span><span class="cov8" title="1">{
+                return h.brk.DoWithAcceptableCtx(ctx, func() error </span><span class="cov8" title="1">{
+                        return next(ctx, cmds)
+                }</span>, acceptable)
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package redis
+
+import (
+        "errors"
+        "time"
+)
+
+var (
+        // ErrEmptyHost is an error that indicates no redis host is set.
+        ErrEmptyHost = errors.New("empty redis host")
+        // ErrEmptyType is an error that indicates no redis type is set.
+        ErrEmptyType = errors.New("empty redis type")
+        // ErrEmptyKey is an error that indicates no redis key is set.
+        ErrEmptyKey = errors.New("empty redis key")
+)
+
+type (
+        // A RedisConf is a redis config.
+        RedisConf struct {
+                Host     string
+                Type     string `json:",default=node,options=node|cluster"`
+                Pass     string `json:",optional"`
+                Tls      bool   `json:",optional"`
+                NonBlock bool   `json:",default=true"`
+                // PingTimeout is the timeout for ping redis.
+                PingTimeout time.Duration `json:",default=1s"`
+        }
+
+        // A RedisKeyConf is a redis config with key.
+        RedisKeyConf struct {
+                RedisConf
+                Key string
+        }
+)
+
+// NewRedis returns a Redis.
+// Deprecated: use MustNewRedis or NewRedis instead.
+func (rc RedisConf) NewRedis() *Redis <span class="cov8" title="1">{
+        var opts []Option
+        if rc.Type == ClusterType </span><span class="cov8" title="1">{
+                opts = append(opts, Cluster())
+        }</span>
+        <span class="cov8" title="1">if len(rc.Pass) &gt; 0 </span><span class="cov8" title="1">{
+                opts = append(opts, WithPass(rc.Pass))
+        }</span>
+        <span class="cov8" title="1">if rc.Tls </span><span class="cov8" title="1">{
+                opts = append(opts, WithTLS())
+        }</span>
+
+        <span class="cov8" title="1">return newRedis(rc.Host, opts...)</span>
+}
+
+// Validate validates the RedisConf.
+func (rc RedisConf) Validate() error <span class="cov8" title="1">{
+        if len(rc.Host) == 0 </span><span class="cov8" title="1">{
+                return ErrEmptyHost
+        }</span>
+
+        <span class="cov8" title="1">if len(rc.Type) == 0 </span><span class="cov8" title="1">{
+                return ErrEmptyType
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Validate validates the RedisKeyConf.
+func (rkc RedisKeyConf) Validate() error <span class="cov8" title="1">{
+        if err := rkc.RedisConf.Validate(); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if len(rkc.Key) == 0 </span><span class="cov8" title="1">{
+                return ErrEmptyKey
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package redis
+
+import (
+        "context"
+        "errors"
+        "io"
+        "net"
+        "strings"
+        "time"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/breaker"
+        "github.com/zeromicro/go-zero/core/logx"
+        "github.com/zeromicro/go-zero/core/mapping"
+        "github.com/zeromicro/go-zero/core/timex"
+        "github.com/zeromicro/go-zero/core/trace"
+        "go.opentelemetry.io/otel/attribute"
+        "go.opentelemetry.io/otel/codes"
+        oteltrace "go.opentelemetry.io/otel/trace"
+)
+
+// spanName is the span name of the redis calls.
+const spanName = "redis"
+
+var (
+        defaultDurationHook   = durationHook{}
+        redisCmdsAttributeKey = attribute.Key("redis.cmds")
+)
+
+type durationHook struct {
+}
+
+func (h durationHook) DialHook(next red.DialHook) red.DialHook <span class="cov8" title="1">{
+        return next
+}</span>
+
+func (h durationHook) ProcessHook(next red.ProcessHook) red.ProcessHook <span class="cov8" title="1">{
+        return func(ctx context.Context, cmd red.Cmder) error </span><span class="cov8" title="1">{
+                start := timex.Now()
+                ctx, endSpan := h.startSpan(ctx, cmd)
+
+                err := next(ctx, cmd)
+
+                endSpan(err)
+                duration := timex.Since(start)
+
+                if duration &gt; slowThreshold.Load() </span><span class="cov8" title="1">{
+                        logDuration(ctx, []red.Cmder{cmd}, duration)
+                        metricSlowCount.Inc(cmd.Name())
+                }</span>
+
+                <span class="cov8" title="1">metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
+                if msg := formatError(err); len(msg) &gt; 0 </span><span class="cov8" title="1">{
+                        metricReqErr.Inc(cmd.Name(), msg)
+                }</span>
+
+                <span class="cov8" title="1">return err</span>
+        }
+}
+
+func (h durationHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook <span class="cov8" title="1">{
+        return func(ctx context.Context, cmds []red.Cmder) error </span><span class="cov8" title="1">{
+                if len(cmds) == 0 </span><span class="cov8" title="1">{
+                        return next(ctx, cmds)
+                }</span>
+
+                <span class="cov8" title="1">start := timex.Now()
+                ctx, endSpan := h.startSpan(ctx, cmds...)
+
+                err := next(ctx, cmds)
+
+                endSpan(err)
+                duration := timex.Since(start)
+                if duration &gt; slowThreshold.Load()*time.Duration(len(cmds)) </span><span class="cov8" title="1">{
+                        logDuration(ctx, cmds, duration)
+                }</span>
+
+                <span class="cov8" title="1">metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
+                if msg := formatError(err); len(msg) &gt; 0 </span><span class="cov8" title="1">{
+                        metricReqErr.Inc("Pipeline", msg)
+                }</span>
+
+                <span class="cov8" title="1">return err</span>
+        }
+}
+
+func (h durationHook) startSpan(ctx context.Context, cmds ...red.Cmder) (context.Context, func(err error)) <span class="cov8" title="1">{
+        tracer := trace.TracerFromContext(ctx)
+
+        ctx, span := tracer.Start(ctx,
+                spanName,
+                oteltrace.WithSpanKind(oteltrace.SpanKindClient),
+        )
+
+        cmdStrs := make([]string, 0, len(cmds))
+        for _, cmd := range cmds </span><span class="cov8" title="1">{
+                cmdStrs = append(cmdStrs, cmd.Name())
+        }</span>
+        <span class="cov8" title="1">span.SetAttributes(redisCmdsAttributeKey.StringSlice(cmdStrs))
+
+        return ctx, func(err error) </span><span class="cov8" title="1">{
+                defer span.End()
+
+                if err == nil || errors.Is(err, red.Nil) </span><span class="cov8" title="1">{
+                        span.SetStatus(codes.Ok, "")
+                        return
+                }</span>
+
+                <span class="cov8" title="1">span.SetStatus(codes.Error, err.Error())
+                span.RecordError(err)</span>
+        }
+}
+
+func formatError(err error) string <span class="cov8" title="1">{
+        if err == nil || errors.Is(err, red.Nil) </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">var opErr *net.OpError
+        ok := errors.As(err, &amp;opErr)
+        if ok &amp;&amp; opErr.Timeout() </span><span class="cov8" title="1">{
+                return "timeout"
+        }</span>
+
+        <span class="cov8" title="1">switch </span>{
+        case errors.Is(err, io.EOF):<span class="cov8" title="1">
+                return "eof"</span>
+        case errors.Is(err, context.DeadlineExceeded):<span class="cov8" title="1">
+                return "context deadline"</span>
+        case errors.Is(err, breaker.ErrServiceUnavailable):<span class="cov8" title="1">
+                return "breaker open"</span>
+        default:<span class="cov8" title="1">
+                return "unexpected error"</span>
+        }
+}
+
+func logDuration(ctx context.Context, cmds []red.Cmder, duration time.Duration) <span class="cov8" title="1">{
+        var buf strings.Builder
+        for k, cmd := range cmds </span><span class="cov8" title="1">{
+                if k &gt; 0 </span><span class="cov8" title="1">{
+                        buf.WriteByte('\n')
+                }</span>
+                <span class="cov8" title="1">var build strings.Builder
+                for i, arg := range cmd.Args() </span><span class="cov8" title="1">{
+                        if i &gt; 0 </span><span class="cov8" title="1">{
+                                build.WriteByte(' ')
+                        }</span>
+                        <span class="cov8" title="1">build.WriteString(mapping.Repr(arg))</span>
+                }
+                <span class="cov8" title="1">buf.WriteString(build.String())</span>
+        }
+        <span class="cov8" title="1">logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package redis
+
+import (
+        "sync"
+
+        "github.com/prometheus/client_golang/prometheus"
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/metric"
+)
+
+const namespace = "redis_client"
+
+var (
+        metricReqDur = metric.NewHistogramVec(&amp;metric.HistogramVecOpts{
+                Namespace: namespace,
+                Subsystem: "requests",
+                Name:      "duration_ms",
+                Help:      "redis client requests duration(ms).",
+                Labels:    []string{"command"},
+                Buckets:   []float64{0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 15000},
+        })
+        metricReqErr = metric.NewCounterVec(&amp;metric.CounterVecOpts{
+                Namespace: namespace,
+                Subsystem: "requests",
+                Name:      "error_total",
+                Help:      "redis client requests error count.",
+                Labels:    []string{"command", "error"},
+        })
+        metricSlowCount = metric.NewCounterVec(&amp;metric.CounterVecOpts{
+                Namespace: namespace,
+                Subsystem: "requests",
+                Name:      "slow_total",
+                Help:      "redis client requests slow count.",
+                Labels:    []string{"command"},
+        })
+
+        connLabels                         = []string{"key", "client_type"}
+        connCollector                      = newCollector()
+        _             prometheus.Collector = (*collector)(nil)
+)
+
+type (
+        statGetter struct {
+                clientType string
+                key        string
+                poolSize   int
+                poolStats  func() *red.PoolStats
+        }
+
+        // collector collects statistics from a redis client.
+        // It implements the prometheus.Collector interface.
+        collector struct {
+                hitDesc     *prometheus.Desc
+                missDesc    *prometheus.Desc
+                timeoutDesc *prometheus.Desc
+                totalDesc   *prometheus.Desc
+                idleDesc    *prometheus.Desc
+                staleDesc   *prometheus.Desc
+                maxDesc     *prometheus.Desc
+
+                clients []*statGetter
+                lock    sync.Mutex
+        }
+)
+
+func newCollector() *collector <span class="cov8" title="1">{
+        c := &amp;collector{
+                hitDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_hit_total"),
+                        "Number of times a connection was found in the pool",
+                        connLabels, nil,
+                ),
+                missDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_miss_total"),
+                        "Number of times a connection was not found in the pool",
+                        connLabels, nil,
+                ),
+                timeoutDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_timeout_total"),
+                        "Number of times a timeout occurred when looking for a connection in the pool",
+                        connLabels, nil,
+                ),
+                totalDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_conn_total_current"),
+                        "Current number of connections in the pool",
+                        connLabels, nil,
+                ),
+                idleDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_conn_idle_current"),
+                        "Current number of idle connections in the pool",
+                        connLabels, nil,
+                ),
+                staleDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_conn_stale_total"),
+                        "Number of times a connection was removed from the pool because it was stale",
+                        connLabels, nil,
+                ),
+                maxDesc: prometheus.NewDesc(
+                        prometheus.BuildFQName(namespace, "", "pool_conn_max"),
+                        "Max number of connections in the pool",
+                        connLabels, nil,
+                ),
+        }
+
+        prometheus.MustRegister(c)
+
+        return c
+}</span>
+
+// Describe implements the prometheus.Collector interface.
+func (s *collector) Describe(descs chan&lt;- *prometheus.Desc) <span class="cov8" title="1">{
+        descs &lt;- s.hitDesc
+        descs &lt;- s.missDesc
+        descs &lt;- s.timeoutDesc
+        descs &lt;- s.totalDesc
+        descs &lt;- s.idleDesc
+        descs &lt;- s.staleDesc
+        descs &lt;- s.maxDesc
+}</span>
+
+// Collect implements the prometheus.Collector interface.
+func (s *collector) Collect(metrics chan&lt;- prometheus.Metric) <span class="cov8" title="1">{
+        s.lock.Lock()
+        defer s.lock.Unlock()
+
+        for _, client := range s.clients </span><span class="cov8" title="1">{
+                key, clientType := client.key, client.clientType
+                stats := client.poolStats()
+
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.hitDesc,
+                        prometheus.CounterValue,
+                        float64(stats.Hits),
+                        key,
+                        clientType,
+                )
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.missDesc,
+                        prometheus.CounterValue,
+                        float64(stats.Misses),
+                        key,
+                        clientType,
+                )
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.timeoutDesc,
+                        prometheus.CounterValue,
+                        float64(stats.Timeouts),
+                        key,
+                        clientType,
+                )
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.totalDesc,
+                        prometheus.GaugeValue,
+                        float64(stats.TotalConns),
+                        key,
+                        clientType,
+                )
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.idleDesc,
+                        prometheus.GaugeValue,
+                        float64(stats.IdleConns),
+                        key,
+                        clientType,
+                )
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.staleDesc,
+                        prometheus.CounterValue,
+                        float64(stats.StaleConns),
+                        key,
+                        clientType,
+                )
+                metrics &lt;- prometheus.MustNewConstMetric(
+                        s.maxDesc,
+                        prometheus.CounterValue,
+                        float64(client.poolSize),
+                        key,
+                        clientType,
+                )
+        }</span>
+}
+
+func (s *collector) registerClient(client *statGetter) <span class="cov8" title="1">{
+        s.lock.Lock()
+        defer s.lock.Unlock()
+
+        s.clients = append(s.clients, client)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package redis
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "strconv"
+        "time"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/breaker"
+        "github.com/zeromicro/go-zero/core/errorx"
+        "github.com/zeromicro/go-zero/core/logx"
+        "github.com/zeromicro/go-zero/core/mapping"
+        "github.com/zeromicro/go-zero/core/syncx"
+)
+
+const (
+        // ClusterType means redis cluster.
+        ClusterType = "cluster"
+        // NodeType means redis node.
+        NodeType = "node"
+        // Nil is an alias of redis.Nil.
+        Nil = red.Nil
+
+        blockingQueryTimeout = 5 * time.Second
+        readWriteTimeout     = 2 * time.Second
+        defaultSlowThreshold = time.Millisecond * 100
+        defaultPingTimeout   = time.Second
+)
+
+var (
+        // ErrNilNode is an error that indicates a nil redis node.
+        ErrNilNode    = errors.New("nil redis node")
+        slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+)
+
+type (
+        // Option defines the method to customize a Redis.
+        Option func(r *Redis)
+
+        // A Pair is a key/pair set used in redis zset.
+        Pair struct {
+                Key   string
+                Score int64
+        }
+
+        // A FloatPair is a key/pair for float set used in redis zet.
+        FloatPair struct {
+                Key   string
+                Score float64
+        }
+
+        // Redis defines a redis node/cluster. It is thread-safe.
+        Redis struct {
+                Addr  string
+                Type  string
+                Pass  string
+                tls   bool
+                brk   breaker.Breaker
+                hooks []red.Hook
+        }
+
+        // RedisNode interface represents a redis node.
+        RedisNode interface {
+                red.Cmdable
+                red.BitMapCmdable
+        }
+
+        // GeoLocation is used with GeoAdd to add geospatial location.
+        GeoLocation = red.GeoLocation
+        // GeoRadiusQuery is used with GeoRadius to query geospatial index.
+        GeoRadiusQuery = red.GeoRadiusQuery
+        // GeoPos is used to represent a geo position.
+        GeoPos = red.GeoPos
+
+        // Pipeliner is an alias of redis.Pipeliner.
+        Pipeliner = red.Pipeliner
+
+        // Z represents sorted set member.
+        Z = red.Z
+        // ZStore is an alias of redis.ZStore.
+        ZStore = red.ZStore
+
+        // IntCmd is an alias of redis.IntCmd.
+        IntCmd = red.IntCmd
+        // FloatCmd is an alias of redis.FloatCmd.
+        FloatCmd = red.FloatCmd
+        // StringCmd is an alias of redis.StringCmd.
+        StringCmd = red.StringCmd
+        // Script is an alias of redis.Script.
+        Script = red.Script
+
+        // Hook is an alias of redis.Hook.
+        Hook = red.Hook
+        // DialHook is an alias of redis.DialHook.
+        DialHook = red.DialHook
+        // ProcessHook is an alias of redis.ProcessHook.
+        ProcessHook = red.ProcessHook
+        // ProcessPipelineHook is an alias of redis.ProcessPipelineHook.
+        ProcessPipelineHook = red.ProcessPipelineHook
+
+        // Cmder is an alias of redis.Cmder.
+        Cmder = red.Cmder
+)
+
+// MustNewRedis returns a Redis with given options.
+func MustNewRedis(conf RedisConf, opts ...Option) *Redis <span class="cov8" title="1">{
+        rds, err := NewRedis(conf, opts...)
+        logx.Must(err)
+        return rds
+}</span>
+
+// New returns a Redis with given options.
+// Deprecated: use MustNewRedis or NewRedis instead.
+func New(addr string, opts ...Option) *Redis <span class="cov8" title="1">{
+        return newRedis(addr, opts...)
+}</span>
+
+// NewRedis returns a Redis with given options.
+func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) <span class="cov8" title="1">{
+        if err := conf.Validate(); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if conf.Type == ClusterType </span><span class="cov8" title="1">{
+                opts = append([]Option{Cluster()}, opts...)
+        }</span>
+        <span class="cov8" title="1">if len(conf.Pass) &gt; 0 </span><span class="cov8" title="1">{
+                opts = append([]Option{WithPass(conf.Pass)}, opts...)
+        }</span>
+        <span class="cov8" title="1">if conf.Tls </span><span class="cov8" title="1">{
+                opts = append([]Option{WithTLS()}, opts...)
+        }</span>
+
+        <span class="cov8" title="1">rds := newRedis(conf.Host, opts...)
+        if !conf.NonBlock </span><span class="cov8" title="1">{
+                if err := rds.checkConnection(conf.PingTimeout); err != nil </span><span class="cov8" title="1">{
+                        return nil, errorx.Wrap(err, fmt.Sprintf("redis connect error, addr: %s", conf.Host))
+                }</span>
+        }
+
+        <span class="cov8" title="1">return rds, nil</span>
+}
+
+func newRedis(addr string, opts ...Option) *Redis <span class="cov8" title="1">{
+        r := &amp;Redis{
+                Addr: addr,
+                Type: NodeType,
+                brk:  breaker.NewBreaker(),
+        }
+
+        for _, opt := range opts </span><span class="cov8" title="1">{
+                opt(r)
+        }</span>
+
+        <span class="cov8" title="1">return r</span>
+}
+
+// NewScript returns a new Script instance.
+func NewScript(script string) *Script <span class="cov8" title="1">{
+        return red.NewScript(script)
+}</span>
+
+// BitCount is redis bitcount command implementation.
+func (s *Redis) BitCount(key string, start, end int64) (int64, error) <span class="cov8" title="1">{
+        return s.BitCountCtx(context.Background(), key, start, end)
+}</span>
+
+// BitCountCtx is redis bitcount command implementation.
+func (s *Redis) BitCountCtx(ctx context.Context, key string, start, end int64) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.BitCount(ctx, key, &amp;red.BitCount{
+                Start: start,
+                End:   end,
+        }).Result()</span>
+}
+
+// BitOpAnd is redis bit operation (and) command implementation.
+func (s *Redis) BitOpAnd(destKey string, keys ...string) (int64, error) <span class="cov8" title="1">{
+        return s.BitOpAndCtx(context.Background(), destKey, keys...)
+}</span>
+
+// BitOpAndCtx is redis bit operation (and) command implementation.
+func (s *Redis) BitOpAndCtx(ctx context.Context, destKey string, keys ...string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.BitOpAnd(ctx, destKey, keys...).Result()</span>
+}
+
+// BitOpNot is redis bit operation (not) command implementation.
+func (s *Redis) BitOpNot(destKey, key string) (int64, error) <span class="cov8" title="1">{
+        return s.BitOpNotCtx(context.Background(), destKey, key)
+}</span>
+
+// BitOpNotCtx is redis bit operation (not) command implementation.
+func (s *Redis) BitOpNotCtx(ctx context.Context, destKey, key string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.BitOpNot(ctx, destKey, key).Result()</span>
+}
+
+// BitOpOr is redis bit operation (or) command implementation.
+func (s *Redis) BitOpOr(destKey string, keys ...string) (int64, error) <span class="cov8" title="1">{
+        return s.BitOpOrCtx(context.Background(), destKey, keys...)
+}</span>
+
+// BitOpOrCtx is redis bit operation (or) command implementation.
+func (s *Redis) BitOpOrCtx(ctx context.Context, destKey string, keys ...string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.BitOpOr(ctx, destKey, keys...).Result()</span>
+}
+
+// BitOpXor is redis bit operation (xor) command implementation.
+func (s *Redis) BitOpXor(destKey string, keys ...string) (int64, error) <span class="cov8" title="1">{
+        return s.BitOpXorCtx(context.Background(), destKey, keys...)
+}</span>
+
+// BitOpXorCtx is redis bit operation (xor) command implementation.
+func (s *Redis) BitOpXorCtx(ctx context.Context, destKey string, keys ...string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.BitOpXor(ctx, destKey, keys...).Result()</span>
+}
+
+// BitPos is redis bitpos command implementation.
+func (s *Redis) BitPos(key string, bit, start, end int64) (int64, error) <span class="cov8" title="1">{
+        return s.BitPosCtx(context.Background(), key, bit, start, end)
+}</span>
+
+// BitPosCtx is redis bitpos command implementation.
+func (s *Redis) BitPosCtx(ctx context.Context, key string, bit, start, end int64) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.BitPos(ctx, key, bit, start, end).Result()</span>
+}
+
+// Blpop uses passed in redis connection to execute blocking queries.
+// Doesn't benefit from pooling redis connections of blocking queries
+func (s *Redis) Blpop(node RedisNode, key string) (string, error) <span class="cov8" title="1">{
+        return s.BlpopCtx(context.Background(), node, key)
+}</span>
+
+// BlpopCtx uses passed in redis connection to execute blocking queries.
+// Doesn't benefit from pooling redis connections of blocking queries
+func (s *Redis) BlpopCtx(ctx context.Context, node RedisNode, key string) (string, error) <span class="cov8" title="1">{
+        return s.BlpopWithTimeoutCtx(ctx, node, blockingQueryTimeout, key)
+}</span>
+
+// BlpopEx uses passed in redis connection to execute blpop command.
+// The difference against Blpop is that this method returns a bool to indicate success.
+func (s *Redis) BlpopEx(node RedisNode, key string) (string, bool, error) <span class="cov8" title="1">{
+        return s.BlpopExCtx(context.Background(), node, key)
+}</span>
+
+// BlpopExCtx uses passed in redis connection to execute blpop command.
+// The difference against Blpop is that this method returns a bool to indicate success.
+func (s *Redis) BlpopExCtx(ctx context.Context, node RedisNode, key string) (string, bool, error) <span class="cov8" title="1">{
+        if node == nil </span><span class="cov8" title="1">{
+                return "", false, ErrNilNode
+        }</span>
+
+        <span class="cov8" title="1">vals, err := node.BLPop(ctx, blockingQueryTimeout, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return "", false, err
+        }</span>
+
+        <span class="cov8" title="1">if len(vals) &lt; 2 </span><span class="cov8" title="1">{
+                return "", false, fmt.Errorf("no value on key: %s", key)
+        }</span>
+
+        <span class="cov8" title="1">return vals[1], true, nil</span>
+}
+
+// BlpopWithTimeout uses passed in redis connection to execute blpop command.
+// Control blocking query timeout
+func (s *Redis) BlpopWithTimeout(node RedisNode, timeout time.Duration, key string) (string, error) <span class="cov8" title="1">{
+        return s.BlpopWithTimeoutCtx(context.Background(), node, timeout, key)
+}</span>
+
+// BlpopWithTimeoutCtx uses passed in redis connection to execute blpop command.
+// Control blocking query timeout
+func (s *Redis) BlpopWithTimeoutCtx(ctx context.Context, node RedisNode, timeout time.Duration,
+        key string) (string, error) <span class="cov8" title="1">{
+        if node == nil </span><span class="cov8" title="1">{
+                return "", ErrNilNode
+        }</span>
+
+        <span class="cov8" title="1">vals, err := node.BLPop(ctx, timeout, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">if len(vals) &lt; 2 </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("no value on key: %s", key)
+        }</span>
+
+        <span class="cov8" title="1">return vals[1], nil</span>
+}
+
+// Decr is the implementation of redis decr command.
+func (s *Redis) Decr(key string) (int64, error) <span class="cov8" title="1">{
+        return s.DecrCtx(context.Background(), key)
+}</span>
+
+// DecrCtx is the implementation of redis decr command.
+func (s *Redis) DecrCtx(ctx context.Context, key string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Decr(ctx, key).Result()</span>
+}
+
+// Decrby is the implementation of redis decrby command.
+func (s *Redis) Decrby(key string, decrement int64) (int64, error) <span class="cov8" title="1">{
+        return s.DecrbyCtx(context.Background(), key, decrement)
+}</span>
+
+// DecrbyCtx is the implementation of redis decrby command.
+func (s *Redis) DecrbyCtx(ctx context.Context, key string, decrement int64) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.DecrBy(ctx, key, decrement).Result()</span>
+}
+
+// Del deletes keys.
+func (s *Redis) Del(keys ...string) (int, error) <span class="cov8" title="1">{
+        return s.DelCtx(context.Background(), keys...)
+}</span>
+
+// DelCtx deletes keys.
+func (s *Redis) DelCtx(ctx context.Context, keys ...string) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.Del(ctx, keys...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Eval is the implementation of redis eval command.
+func (s *Redis) Eval(script string, keys []string, args ...any) (any, error) <span class="cov8" title="1">{
+        return s.EvalCtx(context.Background(), script, keys, args...)
+}</span>
+
+// EvalCtx is the implementation of redis eval command.
+func (s *Redis) EvalCtx(ctx context.Context, script string, keys []string,
+        args ...any) (any, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Eval(ctx, script, keys, args...).Result()</span>
+}
+
+// EvalSha is the implementation of redis evalsha command.
+func (s *Redis) EvalSha(sha string, keys []string, args ...any) (any, error) <span class="cov8" title="1">{
+        return s.EvalShaCtx(context.Background(), sha, keys, args...)
+}</span>
+
+// EvalShaCtx is the implementation of redis evalsha command.
+func (s *Redis) EvalShaCtx(ctx context.Context, sha string, keys []string,
+        args ...any) (any, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.EvalSha(ctx, sha, keys, args...).Result()</span>
+}
+
+// Exists is the implementation of redis exists command.
+func (s *Redis) Exists(key string) (bool, error) <span class="cov8" title="1">{
+        return s.ExistsCtx(context.Background(), key)
+}</span>
+
+// ExistsCtx is the implementation of redis exists command.
+func (s *Redis) ExistsCtx(ctx context.Context, key string) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.Exists(ctx, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return v == 1, nil</span>
+}
+
+// ExistsMany is the implementation of redis exists command.
+// checks the existence of multiple keys in Redis using the EXISTS command.
+func (s *Redis) ExistsMany(keys ...string) (int64, error) <span class="cov8" title="1">{
+        return s.ExistsManyCtx(context.Background(), keys...)
+}</span>
+
+// ExistsManyCtx is the implementation of redis exists command.
+// checks the existence of multiple keys in Redis using the EXISTS command.
+func (s *Redis) ExistsManyCtx(ctx context.Context, keys ...string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Exists(ctx, keys...).Result()</span>
+}
+
+// Expire is the implementation of redis expire command.
+func (s *Redis) Expire(key string, seconds int) error <span class="cov8" title="1">{
+        return s.ExpireCtx(context.Background(), key, seconds)
+}</span>
+
+// ExpireCtx is the implementation of redis expire command.
+func (s *Redis) ExpireCtx(ctx context.Context, key string, seconds int) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Expire(ctx, key, time.Duration(seconds)*time.Second).Err()</span>
+}
+
+// Expireat is the implementation of redis expireat command.
+func (s *Redis) Expireat(key string, expireTime int64) error <span class="cov8" title="1">{
+        return s.ExpireatCtx(context.Background(), key, expireTime)
+}</span>
+
+// ExpireatCtx is the implementation of redis expireat command.
+func (s *Redis) ExpireatCtx(ctx context.Context, key string, expireTime int64) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ExpireAt(ctx, key, time.Unix(expireTime, 0)).Err()</span>
+}
+
+// GeoAdd is the implementation of redis geoadd command.
+func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (int64, error) <span class="cov8" title="1">{
+        return s.GeoAddCtx(context.Background(), key, geoLocation...)
+}</span>
+
+// GeoAddCtx is the implementation of redis geoadd command.
+func (s *Redis) GeoAddCtx(ctx context.Context, key string, geoLocation ...*GeoLocation) (
+        int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.GeoAdd(ctx, key, geoLocation...).Result()</span>
+}
+
+// GeoDist is the implementation of redis geodist command.
+func (s *Redis) GeoDist(key, member1, member2, unit string) (float64, error) <span class="cov8" title="1">{
+        return s.GeoDistCtx(context.Background(), key, member1, member2, unit)
+}</span>
+
+// GeoDistCtx is the implementation of redis geodist command.
+func (s *Redis) GeoDistCtx(ctx context.Context, key, member1, member2, unit string) (
+        float64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.GeoDist(ctx, key, member1, member2, unit).Result()</span>
+}
+
+// GeoHash is the implementation of redis geohash command.
+func (s *Redis) GeoHash(key string, members ...string) ([]string, error) <span class="cov8" title="1">{
+        return s.GeoHashCtx(context.Background(), key, members...)
+}</span>
+
+// GeoHashCtx is the implementation of redis geohash command.
+func (s *Redis) GeoHashCtx(ctx context.Context, key string, members ...string) (
+        []string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.GeoHash(ctx, key, members...).Result()</span>
+}
+
+// GeoRadius is the implementation of redis georadius command.
+func (s *Redis) GeoRadius(key string, longitude, latitude float64, query *GeoRadiusQuery) (
+        []GeoLocation, error) <span class="cov8" title="1">{
+        return s.GeoRadiusCtx(context.Background(), key, longitude, latitude, query)
+}</span>
+
+// GeoRadiusCtx is the implementation of redis georadius command.
+func (s *Redis) GeoRadiusCtx(ctx context.Context, key string, longitude, latitude float64,
+        query *GeoRadiusQuery) ([]GeoLocation, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.GeoRadius(ctx, key, longitude, latitude, query).Result()</span>
+}
+
+// GeoRadiusByMember is the implementation of redis georadiusbymember command.
+func (s *Redis) GeoRadiusByMember(key, member string, query *GeoRadiusQuery) ([]GeoLocation, error) <span class="cov8" title="1">{
+        return s.GeoRadiusByMemberCtx(context.Background(), key, member, query)
+}</span>
+
+// GeoRadiusByMemberCtx is the implementation of redis georadiusbymember command.
+func (s *Redis) GeoRadiusByMemberCtx(ctx context.Context, key, member string,
+        query *GeoRadiusQuery) ([]GeoLocation, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.GeoRadiusByMember(ctx, key, member, query).Result()</span>
+}
+
+// GeoPos is the implementation of redis geopos command.
+func (s *Redis) GeoPos(key string, members ...string) ([]*GeoPos, error) <span class="cov8" title="1">{
+        return s.GeoPosCtx(context.Background(), key, members...)
+}</span>
+
+// GeoPosCtx is the implementation of redis geopos command.
+func (s *Redis) GeoPosCtx(ctx context.Context, key string, members ...string) (
+        []*GeoPos, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.GeoPos(ctx, key, members...).Result()</span>
+}
+
+// Get is the implementation of redis get command.
+func (s *Redis) Get(key string) (string, error) <span class="cov8" title="1">{
+        return s.GetCtx(context.Background(), key)
+}</span>
+
+// GetCtx is the implementation of redis get command.
+func (s *Redis) GetCtx(ctx context.Context, key string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">if val, err := conn.Get(ctx, key).Result(); errors.Is(err, red.Nil) </span><span class="cov8" title="1">{
+                return "", nil
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span> else<span class="cov8" title="1"> {
+                return val, nil
+        }</span>
+}
+
+// GetBit is the implementation of redis getbit command.
+func (s *Redis) GetBit(key string, offset int64) (int, error) <span class="cov8" title="1">{
+        return s.GetBitCtx(context.Background(), key, offset)
+}</span>
+
+// GetBitCtx is the implementation of redis getbit command.
+func (s *Redis) GetBitCtx(ctx context.Context, key string, offset int64) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.GetBit(ctx, key, offset).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// GetSet is the implementation of redis getset command.
+func (s *Redis) GetSet(key, value string) (string, error) <span class="cov8" title="1">{
+        return s.GetSetCtx(context.Background(), key, value)
+}</span>
+
+// GetSetCtx is the implementation of redis getset command.
+func (s *Redis) GetSetCtx(ctx context.Context, key, value string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">val, err := conn.GetSet(ctx, key, value).Result()
+        if errors.Is(err, red.Nil) </span><span class="cov8" title="1">{
+                return "", nil
+        }</span>
+
+        <span class="cov8" title="1">return val, err</span>
+}
+
+// Hdel is the implementation of redis hdel command.
+func (s *Redis) Hdel(key string, fields ...string) (bool, error) <span class="cov8" title="1">{
+        return s.HdelCtx(context.Background(), key, fields...)
+}</span>
+
+// HdelCtx is the implementation of redis hdel command.
+func (s *Redis) HdelCtx(ctx context.Context, key string, fields ...string) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.HDel(ctx, key, fields...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return v &gt;= 1, nil</span>
+}
+
+// Hexists is the implementation of redis hexists command.
+func (s *Redis) Hexists(key, field string) (bool, error) <span class="cov8" title="1">{
+        return s.HexistsCtx(context.Background(), key, field)
+}</span>
+
+// HexistsCtx is the implementation of redis hexists command.
+func (s *Redis) HexistsCtx(ctx context.Context, key, field string) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HExists(ctx, key, field).Result()</span>
+}
+
+// Hget is the implementation of redis hget command.
+func (s *Redis) Hget(key, field string) (string, error) <span class="cov8" title="1">{
+        return s.HgetCtx(context.Background(), key, field)
+}</span>
+
+// HgetCtx is the implementation of redis hget command.
+func (s *Redis) HgetCtx(ctx context.Context, key, field string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HGet(ctx, key, field).Result()</span>
+}
+
+// Hgetall is the implementation of redis hgetall command.
+func (s *Redis) Hgetall(key string) (map[string]string, error) <span class="cov8" title="1">{
+        return s.HgetallCtx(context.Background(), key)
+}</span>
+
+// HgetallCtx is the implementation of redis hgetall command.
+func (s *Redis) HgetallCtx(ctx context.Context, key string) (map[string]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HGetAll(ctx, key).Result()</span>
+}
+
+// Hincrby is the implementation of redis hincrby command.
+func (s *Redis) Hincrby(key, field string, increment int) (int, error) <span class="cov8" title="1">{
+        return s.HincrbyCtx(context.Background(), key, field, increment)
+}</span>
+
+// HincrbyCtx is the implementation of redis hincrby command.
+func (s *Redis) HincrbyCtx(ctx context.Context, key, field string, increment int) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.HIncrBy(ctx, key, field, int64(increment)).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// HincrbyFloat is the implementation of redis hincrbyfloat command.
+func (s *Redis) HincrbyFloat(key, field string, increment float64) (float64, error) <span class="cov8" title="1">{
+        return s.HincrbyFloatCtx(context.Background(), key, field, increment)
+}</span>
+
+// HincrbyFloatCtx is the implementation of redis hincrbyfloat command.
+func (s *Redis) HincrbyFloatCtx(ctx context.Context, key, field string, increment float64) (
+        float64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HIncrByFloat(ctx, key, field, increment).Result()</span>
+}
+
+// Hkeys is the implementation of redis hkeys command.
+func (s *Redis) Hkeys(key string) ([]string, error) <span class="cov8" title="1">{
+        return s.HkeysCtx(context.Background(), key)
+}</span>
+
+// HkeysCtx is the implementation of redis hkeys command.
+func (s *Redis) HkeysCtx(ctx context.Context, key string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HKeys(ctx, key).Result()</span>
+}
+
+// Hlen is the implementation of redis hlen command.
+func (s *Redis) Hlen(key string) (int, error) <span class="cov8" title="1">{
+        return s.HlenCtx(context.Background(), key)
+}</span>
+
+// HlenCtx is the implementation of redis hlen command.
+func (s *Redis) HlenCtx(ctx context.Context, key string) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.HLen(ctx, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Hmget is the implementation of redis hmget command.
+func (s *Redis) Hmget(key string, fields ...string) ([]string, error) <span class="cov8" title="1">{
+        return s.HmgetCtx(context.Background(), key, fields...)
+}</span>
+
+// HmgetCtx is the implementation of redis hmget command.
+func (s *Redis) HmgetCtx(ctx context.Context, key string, fields ...string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.HMGet(ctx, key, fields...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toStrings(v), nil</span>
+}
+
+// Hset is the implementation of redis hset command.
+func (s *Redis) Hset(key, field, value string) error <span class="cov8" title="1">{
+        return s.HsetCtx(context.Background(), key, field, value)
+}</span>
+
+// HsetCtx is the implementation of redis hset command.
+func (s *Redis) HsetCtx(ctx context.Context, key, field, value string) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HSet(ctx, key, field, value).Err()</span>
+}
+
+// Hsetnx is the implementation of redis hsetnx command.
+func (s *Redis) Hsetnx(key, field, value string) (bool, error) <span class="cov8" title="1">{
+        return s.HsetnxCtx(context.Background(), key, field, value)
+}</span>
+
+// HsetnxCtx is the implementation of redis hsetnx command.
+func (s *Redis) HsetnxCtx(ctx context.Context, key, field, value string) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HSetNX(ctx, key, field, value).Result()</span>
+}
+
+// Hmset is the implementation of redis hmset command.
+func (s *Redis) Hmset(key string, fieldsAndValues map[string]string) error <span class="cov8" title="1">{
+        return s.HmsetCtx(context.Background(), key, fieldsAndValues)
+}</span>
+
+// HmsetCtx is the implementation of redis hmset command.
+func (s *Redis) HmsetCtx(ctx context.Context, key string, fieldsAndValues map[string]string) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">vals := make(map[string]any, len(fieldsAndValues))
+        for k, v := range fieldsAndValues </span><span class="cov8" title="1">{
+                vals[k] = v
+        }</span>
+
+        <span class="cov8" title="1">return conn.HMSet(ctx, key, vals).Err()</span>
+}
+
+// Hscan is the implementation of redis hscan command.
+func (s *Redis) Hscan(key string, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        return s.HscanCtx(context.Background(), key, cursor, match, count)
+}</span>
+
+// HscanCtx is the implementation of redis hscan command.
+func (s *Redis) HscanCtx(ctx context.Context, key string, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HScan(ctx, key, cursor, match, count).Result()</span>
+}
+
+// Hvals is the implementation of redis hvals command.
+func (s *Redis) Hvals(key string) ([]string, error) <span class="cov8" title="1">{
+        return s.HvalsCtx(context.Background(), key)
+}</span>
+
+// HvalsCtx is the implementation of redis hvals command.
+func (s *Redis) HvalsCtx(ctx context.Context, key string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.HVals(ctx, key).Result()</span>
+}
+
+// Incr is the implementation of redis incr command.
+func (s *Redis) Incr(key string) (int64, error) <span class="cov8" title="1">{
+        return s.IncrCtx(context.Background(), key)
+}</span>
+
+// IncrCtx is the implementation of redis incr command.
+func (s *Redis) IncrCtx(ctx context.Context, key string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Incr(ctx, key).Result()</span>
+}
+
+// Incrby is the implementation of redis incrby command.
+func (s *Redis) Incrby(key string, increment int64) (int64, error) <span class="cov8" title="1">{
+        return s.IncrbyCtx(context.Background(), key, increment)
+}</span>
+
+// IncrbyCtx is the implementation of redis incrby command.
+func (s *Redis) IncrbyCtx(ctx context.Context, key string, increment int64) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.IncrBy(ctx, key, increment).Result()</span>
+}
+
+// IncrbyFloat is the implementation of redis hincrbyfloat command.
+func (s *Redis) IncrbyFloat(key string, increment float64) (float64, error) <span class="cov8" title="1">{
+        return s.IncrbyFloatCtx(context.Background(), key, increment)
+}</span>
+
+// IncrbyFloatCtx is the implementation of redis hincrbyfloat command.
+func (s *Redis) IncrbyFloatCtx(ctx context.Context, key string, increment float64) (float64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.IncrByFloat(ctx, key, increment).Result()</span>
+}
+
+// Keys is the implementation of redis keys command.
+func (s *Redis) Keys(pattern string) ([]string, error) <span class="cov8" title="1">{
+        return s.KeysCtx(context.Background(), pattern)
+}</span>
+
+// KeysCtx is the implementation of redis keys command.
+func (s *Redis) KeysCtx(ctx context.Context, pattern string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Keys(ctx, pattern).Result()</span>
+}
+
+// Llen is the implementation of redis llen command.
+func (s *Redis) Llen(key string) (int, error) <span class="cov8" title="1">{
+        return s.LlenCtx(context.Background(), key)
+}</span>
+
+// LlenCtx is the implementation of redis llen command.
+func (s *Redis) LlenCtx(ctx context.Context, key string) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.LLen(ctx, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Lindex is the implementation of redis lindex command.
+func (s *Redis) Lindex(key string, index int64) (string, error) <span class="cov8" title="1">{
+        return s.LindexCtx(context.Background(), key, index)
+}</span>
+
+// LindexCtx is the implementation of redis lindex command.
+func (s *Redis) LindexCtx(ctx context.Context, key string, index int64) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.LIndex(ctx, key, index).Result()</span>
+}
+
+// Lpop is the implementation of redis lpop command.
+func (s *Redis) Lpop(key string) (string, error) <span class="cov8" title="1">{
+        return s.LpopCtx(context.Background(), key)
+}</span>
+
+// LpopCtx is the implementation of redis lpop command.
+func (s *Redis) LpopCtx(ctx context.Context, key string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.LPop(ctx, key).Result()</span>
+}
+
+// LpopCount is the implementation of redis lpopCount command.
+func (s *Redis) LpopCount(key string, count int) ([]string, error) <span class="cov8" title="1">{
+        return s.LpopCountCtx(context.Background(), key, count)
+}</span>
+
+// LpopCountCtx is the implementation of redis lpopCount command.
+func (s *Redis) LpopCountCtx(ctx context.Context, key string, count int) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.LPopCount(ctx, key, count).Result()</span>
+}
+
+// Lpush is the implementation of redis lpush command.
+func (s *Redis) Lpush(key string, values ...any) (int, error) <span class="cov8" title="1">{
+        return s.LpushCtx(context.Background(), key, values...)
+}</span>
+
+// LpushCtx is the implementation of redis lpush command.
+func (s *Redis) LpushCtx(ctx context.Context, key string, values ...any) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.LPush(ctx, key, values...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Lrange is the implementation of redis lrange command.
+func (s *Redis) Lrange(key string, start, stop int) ([]string, error) <span class="cov8" title="1">{
+        return s.LrangeCtx(context.Background(), key, start, stop)
+}</span>
+
+// LrangeCtx is the implementation of redis lrange command.
+func (s *Redis) LrangeCtx(ctx context.Context, key string, start, stop int) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.LRange(ctx, key, int64(start), int64(stop)).Result()</span>
+}
+
+// Lrem is the implementation of redis lrem command.
+func (s *Redis) Lrem(key string, count int, value string) (int, error) <span class="cov8" title="1">{
+        return s.LremCtx(context.Background(), key, count, value)
+}</span>
+
+// LremCtx is the implementation of redis lrem command.
+func (s *Redis) LremCtx(ctx context.Context, key string, count int, value string) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.LRem(ctx, key, int64(count), value).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Ltrim is the implementation of redis ltrim command.
+func (s *Redis) Ltrim(key string, start, stop int64) error <span class="cov8" title="1">{
+        return s.LtrimCtx(context.Background(), key, start, stop)
+}</span>
+
+// LtrimCtx is the implementation of redis ltrim command.
+func (s *Redis) LtrimCtx(ctx context.Context, key string, start, stop int64) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return conn.LTrim(ctx, key, start, stop).Err()</span>
+}
+
+// Mget is the implementation of redis mget command.
+func (s *Redis) Mget(keys ...string) ([]string, error) <span class="cov8" title="1">{
+        return s.MgetCtx(context.Background(), keys...)
+}</span>
+
+// MgetCtx is the implementation of redis mget command.
+func (s *Redis) MgetCtx(ctx context.Context, keys ...string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.MGet(ctx, keys...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toStrings(v), nil</span>
+}
+
+// Mset is the implementation of redis mset command.
+func (s *Redis) Mset(fieldsAndValues ...any) (string, error) <span class="cov8" title="1">{
+        return s.MsetCtx(context.Background(), fieldsAndValues...)
+}</span>
+
+// MsetCtx is the implementation of redis mset command.
+func (s *Redis) MsetCtx(ctx context.Context, fieldsAndValues ...any) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.MSet(ctx, fieldsAndValues...).Result()</span>
+}
+
+// Persist is the implementation of redis persist command.
+func (s *Redis) Persist(key string) (bool, error) <span class="cov8" title="1">{
+        return s.PersistCtx(context.Background(), key)
+}</span>
+
+// PersistCtx is the implementation of redis persist command.
+func (s *Redis) PersistCtx(ctx context.Context, key string) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Persist(ctx, key).Result()</span>
+}
+
+// Pfadd is the implementation of redis pfadd command.
+func (s *Redis) Pfadd(key string, values ...any) (bool, error) <span class="cov8" title="1">{
+        return s.PfaddCtx(context.Background(), key, values...)
+}</span>
+
+// PfaddCtx is the implementation of redis pfadd command.
+func (s *Redis) PfaddCtx(ctx context.Context, key string, values ...any) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.PFAdd(ctx, key, values...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return v &gt;= 1, nil</span>
+}
+
+// Pfcount is the implementation of redis pfcount command.
+func (s *Redis) Pfcount(key string) (int64, error) <span class="cov8" title="1">{
+        return s.PfcountCtx(context.Background(), key)
+}</span>
+
+// PfcountCtx is the implementation of redis pfcount command.
+func (s *Redis) PfcountCtx(ctx context.Context, key string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.PFCount(ctx, key).Result()</span>
+}
+
+// Pfmerge is the implementation of redis pfmerge command.
+func (s *Redis) Pfmerge(dest string, keys ...string) error <span class="cov8" title="1">{
+        return s.PfmergeCtx(context.Background(), dest, keys...)
+}</span>
+
+// PfmergeCtx is the implementation of redis pfmerge command.
+func (s *Redis) PfmergeCtx(ctx context.Context, dest string, keys ...string) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">_, err = conn.PFMerge(ctx, dest, keys...).Result()
+        return err</span>
+}
+
+// Ping is the implementation of redis ping command.
+func (s *Redis) Ping() bool <span class="cov8" title="1">{
+        return s.PingCtx(context.Background())
+}</span>
+
+// PingCtx is the implementation of redis ping command.
+func (s *Redis) PingCtx(ctx context.Context) bool <span class="cov8" title="1">{
+        // ignore error, error means false
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.Ping(ctx).Result()
+        if err != nil </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">return v == "PONG"</span>
+}
+
+// Pipelined lets fn execute pipelined commands.
+func (s *Redis) Pipelined(fn func(Pipeliner) error) error <span class="cov8" title="1">{
+        return s.PipelinedCtx(context.Background(), fn)
+}</span>
+
+// PipelinedCtx lets fn execute pipelined commands.
+// Results need to be retrieved by calling Pipeline.Exec()
+func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">_, err = conn.Pipelined(ctx, fn)
+        return err</span>
+}
+
+func (s *Redis) Publish(channel string, message interface{}) (int64, error) <span class="cov8" title="1">{
+        return s.PublishCtx(context.Background(), channel, message)
+}</span>
+
+func (s *Redis) PublishCtx(ctx context.Context, channel string, message interface{}) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return conn.Publish(ctx, channel, message).Result()</span>
+}
+
+// Rpop is the implementation of redis rpop command.
+func (s *Redis) Rpop(key string) (string, error) <span class="cov8" title="1">{
+        return s.RpopCtx(context.Background(), key)
+}</span>
+
+// RpopCtx is the implementation of redis rpop command.
+func (s *Redis) RpopCtx(ctx context.Context, key string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.RPop(ctx, key).Result()</span>
+}
+
+// RpopCount is the implementation of redis rpopCount command.
+func (s *Redis) RpopCount(key string, count int) ([]string, error) <span class="cov8" title="1">{
+        return s.RpopCountCtx(context.Background(), key, count)
+}</span>
+
+// RpopCountCtx is the implementation of redis rpopCount command.
+func (s *Redis) RpopCountCtx(ctx context.Context, key string, count int) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.RPopCount(ctx, key, count).Result()</span>
+}
+
+// Rpush is the implementation of redis rpush command.
+func (s *Redis) Rpush(key string, values ...any) (int, error) <span class="cov8" title="1">{
+        return s.RpushCtx(context.Background(), key, values...)
+}</span>
+
+// RpushCtx is the implementation of redis rpush command.
+func (s *Redis) RpushCtx(ctx context.Context, key string, values ...any) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.RPush(ctx, key, values...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+func (s *Redis) RPopLPush(source string, destination string) (string, error) <span class="cov8" title="1">{
+        return s.RPopLPushCtx(context.Background(), source, destination)
+}</span>
+
+func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+        <span class="cov8" title="1">return conn.RPopLPush(ctx, source, destination).Result()</span>
+}
+
+// Sadd is the implementation of redis sadd command.
+func (s *Redis) Sadd(key string, values ...any) (int, error) <span class="cov8" title="1">{
+        return s.SaddCtx(context.Background(), key, values...)
+}</span>
+
+// SaddCtx is the implementation of redis sadd command.
+func (s *Redis) SaddCtx(ctx context.Context, key string, values ...any) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.SAdd(ctx, key, values...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Scan is the implementation of redis scan command.
+func (s *Redis) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) <span class="cov8" title="1">{
+        return s.ScanCtx(context.Background(), cursor, match, count)
+}</span>
+
+// ScanCtx is the implementation of redis scan command.
+func (s *Redis) ScanCtx(ctx context.Context, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Scan(ctx, cursor, match, count).Result()</span>
+}
+
+// SetBit is the implementation of redis setbit command.
+func (s *Redis) SetBit(key string, offset int64, value int) (int, error) <span class="cov8" title="1">{
+        return s.SetBitCtx(context.Background(), key, offset, value)
+}</span>
+
+// SetBitCtx is the implementation of redis setbit command.
+func (s *Redis) SetBitCtx(ctx context.Context, key string, offset int64, value int) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.SetBit(ctx, key, offset, value).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Sscan is the implementation of redis sscan command.
+func (s *Redis) Sscan(key string, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        return s.SscanCtx(context.Background(), key, cursor, match, count)
+}</span>
+
+// SscanCtx is the implementation of redis sscan command.
+func (s *Redis) SscanCtx(ctx context.Context, key string, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SScan(ctx, key, cursor, match, count).Result()</span>
+}
+
+// Scard is the implementation of redis scard command.
+func (s *Redis) Scard(key string) (int64, error) <span class="cov8" title="1">{
+        return s.ScardCtx(context.Background(), key)
+}</span>
+
+// ScardCtx is the implementation of redis scard command.
+func (s *Redis) ScardCtx(ctx context.Context, key string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SCard(ctx, key).Result()</span>
+}
+
+// ScriptLoad is the implementation of redis script load command.
+func (s *Redis) ScriptLoad(script string) (string, error) <span class="cov8" title="1">{
+        return s.ScriptLoadCtx(context.Background(), script)
+}</span>
+
+// ScriptLoadCtx is the implementation of redis script load command.
+func (s *Redis) ScriptLoadCtx(ctx context.Context, script string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ScriptLoad(ctx, script).Result()</span>
+}
+
+// ScriptRun is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRun(script *Script, keys []string, args ...any) (any, error) <span class="cov8" title="1">{
+        return s.ScriptRunCtx(context.Background(), script, keys, args...)
+}</span>
+
+// ScriptRunCtx is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRunCtx(ctx context.Context, script *Script, keys []string,
+        args ...any) (any, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return script.Run(ctx, conn, keys, args...).Result()</span>
+}
+
+// Set is the implementation of redis set command.
+func (s *Redis) Set(key, value string) error <span class="cov8" title="1">{
+        return s.SetCtx(context.Background(), key, value)
+}</span>
+
+// SetCtx is the implementation of redis set command.
+func (s *Redis) SetCtx(ctx context.Context, key, value string) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Set(ctx, key, value, 0).Err()</span>
+}
+
+// Setex is the implementation of redis setex command.
+func (s *Redis) Setex(key, value string, seconds int) error <span class="cov8" title="1">{
+        return s.SetexCtx(context.Background(), key, value, seconds)
+}</span>
+
+// SetexCtx is the implementation of redis setex command.
+func (s *Redis) SetexCtx(ctx context.Context, key, value string, seconds int) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return conn.Set(ctx, key, value, time.Duration(seconds)*time.Second).Err()</span>
+}
+
+// Setnx is the implementation of redis setnx command.
+func (s *Redis) Setnx(key, value string) (bool, error) <span class="cov8" title="1">{
+        return s.SetnxCtx(context.Background(), key, value)
+}</span>
+
+// SetnxCtx is the implementation of redis setnx command.
+func (s *Redis) SetnxCtx(ctx context.Context, key, value string) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SetNX(ctx, key, value, 0).Result()</span>
+}
+
+// SetnxEx is the implementation of redis setnx command with expire.
+func (s *Redis) SetnxEx(key, value string, seconds int) (bool, error) <span class="cov8" title="1">{
+        return s.SetnxExCtx(context.Background(), key, value, seconds)
+}</span>
+
+// SetnxExCtx is the implementation of redis setnx command with expire.
+func (s *Redis) SetnxExCtx(ctx context.Context, key, value string, seconds int) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SetNX(ctx, key, value, time.Duration(seconds)*time.Second).Result()</span>
+}
+
+// Sismember is the implementation of redis sismember command.
+func (s *Redis) Sismember(key string, value any) (bool, error) <span class="cov8" title="1">{
+        return s.SismemberCtx(context.Background(), key, value)
+}</span>
+
+// SismemberCtx is the implementation of redis sismember command.
+func (s *Redis) SismemberCtx(ctx context.Context, key string, value any) (bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SIsMember(ctx, key, value).Result()</span>
+}
+
+// Smembers is the implementation of redis smembers command.
+func (s *Redis) Smembers(key string) ([]string, error) <span class="cov8" title="1">{
+        return s.SmembersCtx(context.Background(), key)
+}</span>
+
+// SmembersCtx is the implementation of redis smembers command.
+func (s *Redis) SmembersCtx(ctx context.Context, key string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SMembers(ctx, key).Result()</span>
+}
+
+// Spop is the implementation of redis spop command.
+func (s *Redis) Spop(key string) (string, error) <span class="cov8" title="1">{
+        return s.SpopCtx(context.Background(), key)
+}</span>
+
+// SpopCtx is the implementation of redis spop command.
+func (s *Redis) SpopCtx(ctx context.Context, key string) (string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SPop(ctx, key).Result()</span>
+}
+
+// Srandmember is the implementation of redis srandmember command.
+func (s *Redis) Srandmember(key string, count int) ([]string, error) <span class="cov8" title="1">{
+        return s.SrandmemberCtx(context.Background(), key, count)
+}</span>
+
+// SrandmemberCtx is the implementation of redis srandmember command.
+func (s *Redis) SrandmemberCtx(ctx context.Context, key string, count int) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SRandMemberN(ctx, key, int64(count)).Result()</span>
+}
+
+// Srem is the implementation of redis srem command.
+func (s *Redis) Srem(key string, values ...any) (int, error) <span class="cov8" title="1">{
+        return s.SremCtx(context.Background(), key, values...)
+}</span>
+
+// SremCtx is the implementation of redis srem command.
+func (s *Redis) SremCtx(ctx context.Context, key string, values ...any) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.SRem(ctx, key, values...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// String returns the string representation of s.
+func (s *Redis) String() string <span class="cov8" title="1">{
+        return s.Addr
+}</span>
+
+// Sunion is the implementation of redis sunion command.
+func (s *Redis) Sunion(keys ...string) ([]string, error) <span class="cov8" title="1">{
+        return s.SunionCtx(context.Background(), keys...)
+}</span>
+
+// SunionCtx is the implementation of redis sunion command.
+func (s *Redis) SunionCtx(ctx context.Context, keys ...string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SUnion(ctx, keys...).Result()</span>
+}
+
+// Sunionstore is the implementation of redis sunionstore command.
+func (s *Redis) Sunionstore(destination string, keys ...string) (int, error) <span class="cov8" title="1">{
+        return s.SunionstoreCtx(context.Background(), destination, keys...)
+}</span>
+
+// SunionstoreCtx is the implementation of redis sunionstore command.
+func (s *Redis) SunionstoreCtx(ctx context.Context, destination string, keys ...string) (
+        int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.SUnionStore(ctx, destination, keys...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Sdiff is the implementation of redis sdiff command.
+func (s *Redis) Sdiff(keys ...string) ([]string, error) <span class="cov8" title="1">{
+        return s.SdiffCtx(context.Background(), keys...)
+}</span>
+
+// SdiffCtx is the implementation of redis sdiff command.
+func (s *Redis) SdiffCtx(ctx context.Context, keys ...string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SDiff(ctx, keys...).Result()</span>
+}
+
+// Sdiffstore is the implementation of redis sdiffstore command.
+func (s *Redis) Sdiffstore(destination string, keys ...string) (int, error) <span class="cov8" title="1">{
+        return s.SdiffstoreCtx(context.Background(), destination, keys...)
+}</span>
+
+// SdiffstoreCtx is the implementation of redis sdiffstore command.
+func (s *Redis) SdiffstoreCtx(ctx context.Context, destination string, keys ...string) (
+        int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.SDiffStore(ctx, destination, keys...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Sinter is the implementation of redis sinter command.
+func (s *Redis) Sinter(keys ...string) ([]string, error) <span class="cov8" title="1">{
+        return s.SinterCtx(context.Background(), keys...)
+}</span>
+
+// SinterCtx is the implementation of redis sinter command.
+func (s *Redis) SinterCtx(ctx context.Context, keys ...string) ([]string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.SInter(ctx, keys...).Result()</span>
+}
+
+// Sinterstore is the implementation of redis sinterstore command.
+func (s *Redis) Sinterstore(destination string, keys ...string) (int, error) <span class="cov8" title="1">{
+        return s.SinterstoreCtx(context.Background(), destination, keys...)
+}</span>
+
+// SinterstoreCtx is the implementation of redis sinterstore command.
+func (s *Redis) SinterstoreCtx(ctx context.Context, destination string, keys ...string) (
+        int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.SInterStore(ctx, destination, keys...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Ttl is the implementation of redis ttl command.
+func (s *Redis) Ttl(key string) (int, error) <span class="cov8" title="1">{
+        return s.TtlCtx(context.Background(), key)
+}</span>
+
+// TtlCtx is the implementation of redis ttl command.
+func (s *Redis) TtlCtx(ctx context.Context, key string) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">duration, err := conn.TTL(ctx, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">if duration &gt;= 0 </span><span class="cov8" title="1">{
+                return int(duration / time.Second), nil
+        }</span>
+
+        // -2 means key does not exist
+        // -1 means key exists but has no expire
+        <span class="cov8" title="1">return int(duration), nil</span>
+}
+
+func (s *Redis) TxPipeline() (pipe Pipeliner, err error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return conn.TxPipeline(), nil</span>
+}
+
+func (s *Redis) Unlink(keys ...string) (int64, error) <span class="cov8" title="1">{
+        return s.UnlinkCtx(context.Background(), keys...)
+}</span>
+
+func (s *Redis) UnlinkCtx(ctx context.Context, keys ...string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">return conn.Unlink(ctx, keys...).Result()</span>
+}
+
+// Zadd is the implementation of redis zadd command.
+func (s *Redis) Zadd(key string, score int64, value string) (bool, error) <span class="cov8" title="1">{
+        return s.ZaddCtx(context.Background(), key, score, value)
+}</span>
+
+// ZaddCtx is the implementation of redis zadd command.
+func (s *Redis) ZaddCtx(ctx context.Context, key string, score int64, value string) (bool, error) <span class="cov8" title="1">{
+        return s.ZaddFloatCtx(ctx, key, float64(score), value)
+}</span>
+
+// ZaddFloat is the implementation of redis zadd command.
+func (s *Redis) ZaddFloat(key string, score float64, value string) (bool, error) <span class="cov8" title="1">{
+        return s.ZaddFloatCtx(context.Background(), key, score, value)
+}</span>
+
+// ZaddFloatCtx is the implementation of redis zadd command.
+func (s *Redis) ZaddFloatCtx(ctx context.Context, key string, score float64, value string) (
+        bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZAdd(ctx, key, red.Z{
+                Score:  score,
+                Member: value,
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return v == 1, nil</span>
+}
+
+// Zaddnx is the implementation of redis zadd nx command.
+func (s *Redis) Zaddnx(key string, score int64, value string) (bool, error) <span class="cov8" title="1">{
+        return s.ZaddnxCtx(context.Background(), key, score, value)
+}</span>
+
+// ZaddnxCtx is the implementation of redis zadd nx command.
+func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value string) (bool, error) <span class="cov8" title="1">{
+        return s.ZaddnxFloatCtx(ctx, key, float64(score), value)
+}</span>
+
+// ZaddnxFloat is the implementation of redis zaddnx command.
+func (s *Redis) ZaddnxFloat(key string, score float64, value string) (bool, error) <span class="cov8" title="1">{
+        return s.ZaddFloatCtx(context.Background(), key, score, value)
+}</span>
+
+// ZaddnxFloatCtx is the implementation of redis zaddnx command.
+func (s *Redis) ZaddnxFloatCtx(ctx context.Context, key string, score float64, value string) (
+        bool, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZAddNX(ctx, key, red.Z{
+                Score:  score,
+                Member: value,
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">return v == 1, nil</span>
+}
+
+// Zadds is the implementation of redis zadds command.
+func (s *Redis) Zadds(key string, ps ...Pair) (int64, error) <span class="cov8" title="1">{
+        return s.ZaddsCtx(context.Background(), key, ps...)
+}</span>
+
+// ZaddsCtx is the implementation of redis zadds command.
+func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">var zs []red.Z
+        for _, p := range ps </span><span class="cov8" title="1">{
+                z := red.Z{Score: float64(p.Score), Member: p.Key}
+                zs = append(zs, z)
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZAdd(ctx, key, zs...).Result()</span>
+}
+
+// Zcard is the implementation of redis zcard command.
+func (s *Redis) Zcard(key string) (int, error) <span class="cov8" title="1">{
+        return s.ZcardCtx(context.Background(), key)
+}</span>
+
+// ZcardCtx is the implementation of redis zcard command.
+func (s *Redis) ZcardCtx(ctx context.Context, key string) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZCard(ctx, key).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Zcount is the implementation of redis zcount command.
+func (s *Redis) Zcount(key string, start, stop int64) (int, error) <span class="cov8" title="1">{
+        return s.ZcountCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZcountCtx is the implementation of redis zcount command.
+func (s *Redis) ZcountCtx(ctx context.Context, key string, start, stop int64) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZCount(ctx, key, strconv.FormatInt(start, 10),
+                strconv.FormatInt(stop, 10)).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Zincrby is the implementation of redis zincrby command.
+func (s *Redis) Zincrby(key string, increment int64, field string) (int64, error) <span class="cov8" title="1">{
+        return s.ZincrbyCtx(context.Background(), key, increment, field)
+}</span>
+
+// ZincrbyCtx is the implementation of redis zincrby command.
+func (s *Redis) ZincrbyCtx(ctx context.Context, key string, increment int64, field string) (
+        int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZIncrBy(ctx, key, float64(increment), field).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int64(v), nil</span>
+}
+
+// Zscore is the implementation of redis zscore command.
+func (s *Redis) Zscore(key, value string) (int64, error) <span class="cov8" title="1">{
+        return s.ZscoreCtx(context.Background(), key, value)
+}</span>
+
+// ZscoreCtx is the implementation of redis zscore command.
+func (s *Redis) ZscoreCtx(ctx context.Context, key, value string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZScore(ctx, key, value).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int64(v), nil</span>
+}
+
+// ZscoreByFloat is the implementation of redis zscore command score by float.
+func (s *Redis) ZscoreByFloat(key, value string) (float64, error) <span class="cov8" title="1">{
+        return s.ZscoreByFloatCtx(context.Background(), key, value)
+}</span>
+
+// ZscoreByFloatCtx is the implementation of redis zscore command score by float.
+func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (float64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZScore(ctx, key, value).Result()</span>
+}
+
+// Zscan is the implementation of redis zscan command.
+func (s *Redis) Zscan(key string, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        return s.ZscanCtx(context.Background(), key, cursor, match, count)
+}</span>
+
+// ZscanCtx is the implementation of redis zscan command.
+func (s *Redis) ZscanCtx(ctx context.Context, key string, cursor uint64, match string, count int64) (
+        []string, uint64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZScan(ctx, key, cursor, match, count).Result()</span>
+}
+
+// Zrank is the implementation of redis zrank command.
+func (s *Redis) Zrank(key, field string) (int64, error) <span class="cov8" title="1">{
+        return s.ZrankCtx(context.Background(), key, field)
+}</span>
+
+// ZrankCtx is the implementation of redis zrank command.
+func (s *Redis) ZrankCtx(ctx context.Context, key, field string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZRank(ctx, key, field).Result()</span>
+}
+
+// Zrem is the implementation of redis zrem command.
+func (s *Redis) Zrem(key string, values ...any) (int, error) <span class="cov8" title="1">{
+        return s.ZremCtx(context.Background(), key, values...)
+}</span>
+
+// ZremCtx is the implementation of redis zrem command.
+func (s *Redis) ZremCtx(ctx context.Context, key string, values ...any) (int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRem(ctx, key, values...).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Zremrangebyscore is the implementation of redis zremrangebyscore command.
+func (s *Redis) Zremrangebyscore(key string, start, stop int64) (int, error) <span class="cov8" title="1">{
+        return s.ZremrangebyscoreCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZremrangebyscoreCtx is the implementation of redis zremrangebyscore command.
+func (s *Redis) ZremrangebyscoreCtx(ctx context.Context, key string, start, stop int64) (
+        int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRemRangeByScore(ctx, key, strconv.FormatInt(start, 10),
+                strconv.FormatInt(stop, 10)).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Zremrangebyrank is the implementation of redis zremrangebyrank command.
+func (s *Redis) Zremrangebyrank(key string, start, stop int64) (int, error) <span class="cov8" title="1">{
+        return s.ZremrangebyrankCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZremrangebyrankCtx is the implementation of redis zremrangebyrank command.
+func (s *Redis) ZremrangebyrankCtx(ctx context.Context, key string, start, stop int64) (
+        int, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRemRangeByRank(ctx, key, start, stop).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return int(v), nil</span>
+}
+
+// Zrange is the implementation of redis zrange command.
+func (s *Redis) Zrange(key string, start, stop int64) ([]string, error) <span class="cov8" title="1">{
+        return s.ZrangeCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrangeCtx is the implementation of redis zrange command.
+func (s *Redis) ZrangeCtx(ctx context.Context, key string, start, stop int64) (
+        []string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZRange(ctx, key, start, stop).Result()</span>
+}
+
+// ZrangeWithScores is the implementation of redis zrange command with scores.
+func (s *Redis) ZrangeWithScores(key string, start, stop int64) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrangeWithScoresCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrangeWithScoresCtx is the implementation of redis zrange command with scores.
+func (s *Redis) ZrangeWithScoresCtx(ctx context.Context, key string, start, stop int64) (
+        []Pair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRangeWithScores(ctx, key, start, stop).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toPairs(v), nil</span>
+}
+
+// ZrangeWithScoresByFloat is the implementation of redis zrange command with scores by float64.
+func (s *Redis) ZrangeWithScoresByFloat(key string, start, stop int64) ([]FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrangeWithScoresByFloatCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrangeWithScoresByFloatCtx is the implementation of redis zrange command with scores by float64.
+func (s *Redis) ZrangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
+        []FloatPair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRangeWithScores(ctx, key, start, stop).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toFloatPairs(v), nil</span>
+}
+
+// ZRevRangeWithScores is the implementation of redis zrevrange command with scores.
+// Deprecated: use ZrevrangeWithScores instead.
+func (s *Redis) ZRevRangeWithScores(key string, start, stop int64) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrevrangeWithScoresCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrevrangeWithScores is the implementation of redis zrevrange command with scores.
+func (s *Redis) ZrevrangeWithScores(key string, start, stop int64) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrevrangeWithScoresCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZRevRangeWithScoresCtx is the implementation of redis zrevrange command with scores.
+// Deprecated: use ZrevrangeWithScoresCtx instead.
+func (s *Redis) ZRevRangeWithScoresCtx(ctx context.Context, key string, start, stop int64) (
+        []Pair, error) <span class="cov8" title="1">{
+        return s.ZrevrangeWithScoresCtx(ctx, key, start, stop)
+}</span>
+
+// ZrevrangeWithScoresCtx is the implementation of redis zrevrange command with scores.
+func (s *Redis) ZrevrangeWithScoresCtx(ctx context.Context, key string, start, stop int64) (
+        []Pair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRevRangeWithScores(ctx, key, start, stop).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toPairs(v), nil</span>
+}
+
+// ZRevRangeWithScoresByFloat is the implementation of redis zrevrange command with scores by float.
+// Deprecated: use ZrevrangeWithScoresByFloat instead.
+func (s *Redis) ZRevRangeWithScoresByFloat(key string, start, stop int64) ([]FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrevrangeWithScoresByFloatCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrevrangeWithScoresByFloat is the implementation of redis zrevrange command with scores by float.
+func (s *Redis) ZrevrangeWithScoresByFloat(key string, start, stop int64) ([]FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrevrangeWithScoresByFloatCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZRevRangeWithScoresByFloatCtx is the implementation of redis zrevrange command with scores by float.
+// Deprecated: use ZrevrangeWithScoresByFloatCtx instead.
+func (s *Redis) ZRevRangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
+        []FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrevrangeWithScoresByFloatCtx(ctx, key, start, stop)
+}</span>
+
+// ZrevrangeWithScoresByFloatCtx is the implementation of redis zrevrange command with scores by float.
+func (s *Redis) ZrevrangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
+        []FloatPair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRevRangeWithScores(ctx, key, start, stop).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toFloatPairs(v), nil</span>
+}
+
+// ZrangebyscoreWithScores is the implementation of redis zrangebyscore command with scores.
+func (s *Redis) ZrangebyscoreWithScores(key string, start, stop int64) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrangebyscoreWithScoresCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrangebyscoreWithScoresCtx is the implementation of redis zrangebyscore command with scores.
+func (s *Redis) ZrangebyscoreWithScoresCtx(ctx context.Context, key string, start, stop int64) (
+        []Pair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min: strconv.FormatInt(start, 10),
+                Max: strconv.FormatInt(stop, 10),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toPairs(v), nil</span>
+}
+
+// ZrangebyscoreWithScoresByFloat is the implementation of redis zrangebyscore command with scores by float.
+func (s *Redis) ZrangebyscoreWithScoresByFloat(key string, start, stop float64) (
+        []FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrangebyscoreWithScoresByFloatCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrangebyscoreWithScoresByFloatCtx is the implementation of redis zrangebyscore command with scores by float.
+func (s *Redis) ZrangebyscoreWithScoresByFloatCtx(ctx context.Context, key string, start, stop float64) (
+        []FloatPair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min: strconv.FormatFloat(start, 'f', -1, 64),
+                Max: strconv.FormatFloat(stop, 'f', -1, 64),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toFloatPairs(v), nil</span>
+}
+
+// ZrangebyscoreWithScoresAndLimit is the implementation of redis zrangebyscore command
+// with scores and limit.
+func (s *Redis) ZrangebyscoreWithScoresAndLimit(key string, start, stop int64,
+        page, size int) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrangebyscoreWithScoresAndLimitCtx(context.Background(), key, start, stop, page, size)
+}</span>
+
+// ZrangebyscoreWithScoresAndLimitCtx is the implementation of redis zrangebyscore command
+// with scores and limit.
+func (s *Redis) ZrangebyscoreWithScoresAndLimitCtx(ctx context.Context, key string, start,
+        stop int64, page, size int) ([]Pair, error) <span class="cov8" title="1">{
+        if size &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, nil
+        }</span>
+
+        <span class="cov8" title="1">conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min:    strconv.FormatInt(start, 10),
+                Max:    strconv.FormatInt(stop, 10),
+                Offset: int64(page * size),
+                Count:  int64(size),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toPairs(v), nil</span>
+}
+
+// ZrangebyscoreWithScoresByFloatAndLimit is the implementation of redis zrangebyscore command
+// with scores by float and limit.
+func (s *Redis) ZrangebyscoreWithScoresByFloatAndLimit(key string, start, stop float64,
+        page, size int) ([]FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrangebyscoreWithScoresByFloatAndLimitCtx(context.Background(),
+                key, start, stop, page, size)
+}</span>
+
+// ZrangebyscoreWithScoresByFloatAndLimitCtx is the implementation of redis zrangebyscore command
+// with scores by float and limit.
+func (s *Redis) ZrangebyscoreWithScoresByFloatAndLimitCtx(ctx context.Context, key string, start,
+        stop float64, page, size int) ([]FloatPair, error) <span class="cov8" title="1">{
+        if size &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, nil
+        }</span>
+
+        <span class="cov8" title="1">conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min:    strconv.FormatFloat(start, 'f', -1, 64),
+                Max:    strconv.FormatFloat(stop, 'f', -1, 64),
+                Offset: int64(page * size),
+                Count:  int64(size),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toFloatPairs(v), nil</span>
+}
+
+// Zrevrange is the implementation of redis zrevrange command.
+func (s *Redis) Zrevrange(key string, start, stop int64) ([]string, error) <span class="cov8" title="1">{
+        return s.ZrevrangeCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrevrangeCtx is the implementation of redis zrevrange command.
+func (s *Redis) ZrevrangeCtx(ctx context.Context, key string, start, stop int64) (
+        []string, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZRevRange(ctx, key, start, stop).Result()</span>
+}
+
+// ZrevrangebyscoreWithScores is the implementation of redis zrevrangebyscore command with scores.
+func (s *Redis) ZrevrangebyscoreWithScores(key string, start, stop int64) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrevrangebyscoreWithScoresCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrevrangebyscoreWithScoresCtx is the implementation of redis zrevrangebyscore command with scores.
+func (s *Redis) ZrevrangebyscoreWithScoresCtx(ctx context.Context, key string, start, stop int64) (
+        []Pair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min: strconv.FormatInt(start, 10),
+                Max: strconv.FormatInt(stop, 10),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toPairs(v), nil</span>
+}
+
+// ZrevrangebyscoreWithScoresByFloat is the implementation of redis zrevrangebyscore command with scores by float.
+func (s *Redis) ZrevrangebyscoreWithScoresByFloat(key string, start, stop float64) (
+        []FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrevrangebyscoreWithScoresByFloatCtx(context.Background(), key, start, stop)
+}</span>
+
+// ZrevrangebyscoreWithScoresByFloatCtx is the implementation of redis zrevrangebyscore command with scores by float.
+func (s *Redis) ZrevrangebyscoreWithScoresByFloatCtx(ctx context.Context, key string,
+        start, stop float64) ([]FloatPair, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min: strconv.FormatFloat(start, 'f', -1, 64),
+                Max: strconv.FormatFloat(stop, 'f', -1, 64),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toFloatPairs(v), nil</span>
+}
+
+// ZrevrangebyscoreWithScoresAndLimit is the implementation of redis zrevrangebyscore command
+// with scores and limit.
+func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64,
+        page, size int) ([]Pair, error) <span class="cov8" title="1">{
+        return s.ZrevrangebyscoreWithScoresAndLimitCtx(context.Background(),
+                key, start, stop, page, size)
+}</span>
+
+// ZrevrangebyscoreWithScoresAndLimitCtx is the implementation of redis zrevrangebyscore command
+// with scores and limit.
+func (s *Redis) ZrevrangebyscoreWithScoresAndLimitCtx(ctx context.Context, key string,
+        start, stop int64, page, size int) ([]Pair, error) <span class="cov8" title="1">{
+        if size &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, nil
+        }</span>
+
+        <span class="cov8" title="1">conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min:    strconv.FormatInt(start, 10),
+                Max:    strconv.FormatInt(stop, 10),
+                Offset: int64(page * size),
+                Count:  int64(size),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toPairs(v), nil</span>
+}
+
+// ZrevrangebyscoreWithScoresByFloatAndLimit is the implementation of redis zrevrangebyscore command
+// with scores by float and limit.
+func (s *Redis) ZrevrangebyscoreWithScoresByFloatAndLimit(key string, start, stop float64,
+        page, size int) ([]FloatPair, error) <span class="cov8" title="1">{
+        return s.ZrevrangebyscoreWithScoresByFloatAndLimitCtx(context.Background(),
+                key, start, stop, page, size)
+}</span>
+
+// ZrevrangebyscoreWithScoresByFloatAndLimitCtx is the implementation of redis zrevrangebyscore command
+// with scores by float and limit.
+func (s *Redis) ZrevrangebyscoreWithScoresByFloatAndLimitCtx(ctx context.Context, key string,
+        start, stop float64, page, size int) ([]FloatPair, error) <span class="cov8" title="1">{
+        if size &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, nil
+        }</span>
+
+        <span class="cov8" title="1">conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &amp;red.ZRangeBy{
+                Min:    strconv.FormatFloat(start, 'f', -1, 64),
+                Max:    strconv.FormatFloat(stop, 'f', -1, 64),
+                Offset: int64(page * size),
+                Count:  int64(size),
+        }).Result()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return toFloatPairs(v), nil</span>
+}
+
+// Zrevrank is the implementation of redis zrevrank command.
+func (s *Redis) Zrevrank(key, field string) (int64, error) <span class="cov8" title="1">{
+        return s.ZrevrankCtx(context.Background(), key, field)
+}</span>
+
+// ZrevrankCtx is the implementation of redis zrevrank command.
+func (s *Redis) ZrevrankCtx(ctx context.Context, key, field string) (int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZRevRank(ctx, key, field).Result()</span>
+}
+
+// Zunionstore is the implementation of redis zunionstore command.
+func (s *Redis) Zunionstore(dest string, store *ZStore) (int64, error) <span class="cov8" title="1">{
+        return s.ZunionstoreCtx(context.Background(), dest, store)
+}</span>
+
+// ZunionstoreCtx is the implementation of redis zunionstore command.
+func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) (
+        int64, error) <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return conn.ZUnionStore(ctx, dest, store).Result()</span>
+}
+
+func (s *Redis) checkConnection(pingTimeout time.Duration) error <span class="cov8" title="1">{
+        conn, err := getRedis(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">timeout := defaultPingTimeout
+        if pingTimeout &gt; 0 </span><span class="cov8" title="1">{
+                timeout = pingTimeout
+        }</span>
+
+        <span class="cov8" title="1">ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+
+        return conn.Ping(ctx).Err()</span>
+}
+
+// Cluster customizes the given Redis as a cluster.
+func Cluster() Option <span class="cov8" title="1">{
+        return func(r *Redis) </span><span class="cov8" title="1">{
+                r.Type = ClusterType
+        }</span>
+}
+
+// SetSlowThreshold sets the slow threshold.
+func SetSlowThreshold(threshold time.Duration) <span class="cov8" title="1">{
+        slowThreshold.Set(threshold)
+}</span>
+
+// WithPass customizes the given Redis with given password.
+func WithPass(pass string) Option <span class="cov8" title="1">{
+        return func(r *Redis) </span><span class="cov8" title="1">{
+                r.Pass = pass
+        }</span>
+}
+
+// WithTLS customizes the given Redis with TLS enabled.
+func WithTLS() Option <span class="cov8" title="1">{
+        return func(r *Redis) </span><span class="cov8" title="1">{
+                r.tls = true
+        }</span>
+}
+
+// WithHook customizes the given Redis with given durationHook, only for private use now,
+// maybe expose later.
+func WithHook(hook Hook) Option <span class="cov8" title="1">{
+        return func(r *Redis) </span><span class="cov8" title="1">{
+                r.hooks = append(r.hooks, hook)
+        }</span>
+}
+
+func acceptable(err error) bool <span class="cov8" title="1">{
+        return err == nil || errorx.In(err, red.Nil, context.Canceled)
+}</span>
+
+func getRedis(r *Redis) (RedisNode, error) <span class="cov8" title="1">{
+        switch r.Type </span>{
+        case ClusterType:<span class="cov8" title="1">
+                return getCluster(r)</span>
+        case NodeType:<span class="cov8" title="1">
+                return getClient(r)</span>
+        default:<span class="cov8" title="1">
+                return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)</span>
+        }
+}
+
+func toPairs(vals []red.Z) []Pair <span class="cov8" title="1">{
+        pairs := make([]Pair, len(vals))
+        for i, val := range vals </span><span class="cov8" title="1">{
+                switch member := val.Member.(type) </span>{
+                case string:<span class="cov8" title="1">
+                        pairs[i] = Pair{
+                                Key:   member,
+                                Score: int64(val.Score),
+                        }</span>
+                default:<span class="cov8" title="1">
+                        pairs[i] = Pair{
+                                Key:   mapping.Repr(val.Member),
+                                Score: int64(val.Score),
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return pairs</span>
+}
+
+func toFloatPairs(vals []red.Z) []FloatPair <span class="cov8" title="1">{
+        pairs := make([]FloatPair, len(vals))
+
+        for i, val := range vals </span><span class="cov8" title="1">{
+                switch member := val.Member.(type) </span>{
+                case string:<span class="cov8" title="1">
+                        pairs[i] = FloatPair{
+                                Key:   member,
+                                Score: val.Score,
+                        }</span>
+                default:<span class="cov8" title="1">
+                        pairs[i] = FloatPair{
+                                Key:   mapping.Repr(val.Member),
+                                Score: val.Score,
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">return pairs</span>
+}
+
+func toStrings(vals []any) []string <span class="cov8" title="1">{
+        ret := make([]string, len(vals))
+
+        for i, val := range vals </span><span class="cov8" title="1">{
+                if val == nil </span><span class="cov8" title="1">{
+                        ret[i] = ""
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">switch val := val.(type) </span>{
+                case string:<span class="cov8" title="1">
+                        ret[i] = val</span>
+                default:<span class="cov8" title="1">
+                        ret[i] = mapping.Repr(val)</span>
+                }
+        }
+
+        <span class="cov8" title="1">return ret</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package redis
+
+import (
+        "fmt"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/logx"
+)
+
+// ClosableNode interface represents a closable redis node.
+type ClosableNode interface {
+        RedisNode
+        Close()
+}
+
+// CreateBlockingNode returns a ClosableNode.
+func CreateBlockingNode(r *Redis) (ClosableNode, error) <span class="cov8" title="1">{
+        timeout := readWriteTimeout + blockingQueryTimeout
+
+        switch r.Type </span>{
+        case NodeType:<span class="cov8" title="1">
+                client := red.NewClient(&amp;red.Options{
+                        Addr:         r.Addr,
+                        Password:     r.Pass,
+                        DB:           defaultDatabase,
+                        MaxRetries:   maxRetries,
+                        PoolSize:     1,
+                        MinIdleConns: 1,
+                        ReadTimeout:  timeout,
+                })
+                return &amp;clientBridge{client}, nil</span>
+        case ClusterType:<span class="cov8" title="1">
+                client := red.NewClusterClient(&amp;red.ClusterOptions{
+                        Addrs:        splitClusterAddrs(r.Addr),
+                        Password:     r.Pass,
+                        MaxRetries:   maxRetries,
+                        PoolSize:     1,
+                        MinIdleConns: 1,
+                        ReadTimeout:  timeout,
+                })
+                return &amp;clusterBridge{client}, nil</span>
+        default:<span class="cov8" title="1">
+                return nil, fmt.Errorf("unknown redis type: %s", r.Type)</span>
+        }
+}
+
+type (
+        clientBridge struct {
+                *red.Client
+        }
+
+        clusterBridge struct {
+                *red.ClusterClient
+        }
+)
+
+func (bridge *clientBridge) Close() <span class="cov8" title="1">{
+        if err := bridge.Client.Close(); err != nil </span><span class="cov8" title="1">{
+                logx.Errorf("Error occurred on close redis client: %s", err)
+        }</span>
+}
+
+func (bridge *clusterBridge) Close() <span class="cov8" title="1">{
+        if err := bridge.ClusterClient.Close(); err != nil </span><span class="cov0" title="0">{
+                logx.Errorf("Error occurred on close redis cluster: %s", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package redis
+
+import (
+        "crypto/tls"
+        "io"
+        "runtime"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/syncx"
+)
+
+const (
+        defaultDatabase = 0
+        maxRetries      = 3
+        idleConns       = 8
+)
+
+var (
+        clientManager = syncx.NewResourceManager()
+        // nodePoolSize is default pool size for node type of redis.
+        nodePoolSize = 10 * runtime.GOMAXPROCS(0)
+)
+
+func getClient(r *Redis) (*red.Client, error) <span class="cov8" title="1">{
+        val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) </span><span class="cov8" title="1">{
+                var tlsConfig *tls.Config
+                if r.tls </span><span class="cov8" title="1">{
+                        tlsConfig = &amp;tls.Config{
+                                InsecureSkipVerify: true,
+                        }
+                }</span>
+                <span class="cov8" title="1">store := red.NewClient(&amp;red.Options{
+                        Addr:         r.Addr,
+                        Password:     r.Pass,
+                        DB:           defaultDatabase,
+                        MaxRetries:   maxRetries,
+                        MinIdleConns: idleConns,
+                        TLSConfig:    tlsConfig,
+                })
+
+                hooks := append([]red.Hook{defaultDurationHook, breakerHook{
+                        brk: r.brk,
+                }}, r.hooks...)
+                for _, hook := range hooks </span><span class="cov8" title="1">{
+                        store.AddHook(hook)
+                }</span>
+
+                <span class="cov8" title="1">connCollector.registerClient(&amp;statGetter{
+                        clientType: NodeType,
+                        key:        r.Addr,
+                        poolSize:   nodePoolSize,
+                        poolStats: func() *red.PoolStats </span><span class="cov8" title="1">{
+                                return store.PoolStats()
+                        }</span>,
+                })
+
+                <span class="cov8" title="1">return store, nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return val.(*red.Client), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package redis
+
+import (
+        "crypto/tls"
+        "io"
+        "runtime"
+        "strings"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/syncx"
+)
+
+const addrSep = ","
+
+var (
+        clusterManager = syncx.NewResourceManager()
+        // clusterPoolSize is default pool size for cluster type of redis.
+        clusterPoolSize = 5 * runtime.GOMAXPROCS(0)
+)
+
+func getCluster(r *Redis) (*red.ClusterClient, error) <span class="cov8" title="1">{
+        val, err := clusterManager.GetResource(r.Addr, func() (io.Closer, error) </span><span class="cov8" title="1">{
+                var tlsConfig *tls.Config
+                if r.tls </span><span class="cov8" title="1">{
+                        tlsConfig = &amp;tls.Config{
+                                InsecureSkipVerify: true,
+                        }
+                }</span>
+                <span class="cov8" title="1">store := red.NewClusterClient(&amp;red.ClusterOptions{
+                        Addrs:        splitClusterAddrs(r.Addr),
+                        Password:     r.Pass,
+                        MaxRetries:   maxRetries,
+                        MinIdleConns: idleConns,
+                        TLSConfig:    tlsConfig,
+                })
+
+                hooks := append([]red.Hook{defaultDurationHook, breakerHook{
+                        brk: r.brk,
+                }}, r.hooks...)
+                for _, hook := range hooks </span><span class="cov8" title="1">{
+                        store.AddHook(hook)
+                }</span>
+
+                <span class="cov8" title="1">connCollector.registerClient(&amp;statGetter{
+                        clientType: ClusterType,
+                        key:        r.Addr,
+                        poolSize:   clusterPoolSize,
+                        poolStats: func() *red.PoolStats </span><span class="cov0" title="0">{
+                                return store.PoolStats()
+                        }</span>,
+                })
+
+                <span class="cov8" title="1">return store, nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return val.(*red.ClusterClient), nil</span>
+}
+
+func splitClusterAddrs(addr string) []string <span class="cov8" title="1">{
+        addrs := strings.Split(addr, addrSep)
+        unique := make(map[string]struct{})
+        for _, each := range addrs </span><span class="cov8" title="1">{
+                unique[strings.TrimSpace(each)] = struct{}{}
+        }</span>
+
+        <span class="cov8" title="1">addrs = addrs[:0]
+        for k := range unique </span><span class="cov8" title="1">{
+                addrs = append(addrs, k)
+        }</span>
+
+        <span class="cov8" title="1">return addrs</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package redis
+
+import (
+        "context"
+        _ "embed"
+        "errors"
+        "math/rand"
+        "strconv"
+        "sync/atomic"
+        "time"
+
+        red "github.com/redis/go-redis/v9"
+        "github.com/zeromicro/go-zero/core/logx"
+        "github.com/zeromicro/go-zero/core/stringx"
+)
+
+const (
+        randomLen       = 16
+        tolerance       = 500 // milliseconds
+        millisPerSecond = 1000
+)
+
+var (
+        //go:embed lockscript.lua
+        lockLuaScript string
+        lockScript    = NewScript(lockLuaScript)
+
+        //go:embed delscript.lua
+        delLuaScript string
+        delScript    = NewScript(delLuaScript)
+)
+
+// A RedisLock is a redis lock.
+type RedisLock struct {
+        store   *Redis
+        seconds uint32
+        key     string
+        id      string
+}
+
+func init() <span class="cov8" title="1">{
+        rand.NewSource(time.Now().UnixNano())
+}</span>
+
+// NewRedisLock returns a RedisLock.
+func NewRedisLock(store *Redis, key string) *RedisLock <span class="cov8" title="1">{
+        return &amp;RedisLock{
+                store: store,
+                key:   key,
+                id:    stringx.Randn(randomLen),
+        }
+}</span>
+
+// Acquire acquires the lock.
+func (rl *RedisLock) Acquire() (bool, error) <span class="cov8" title="1">{
+        return rl.AcquireCtx(context.Background())
+}</span>
+
+// AcquireCtx acquires the lock with the given ctx.
+func (rl *RedisLock) AcquireCtx(ctx context.Context) (bool, error) <span class="cov8" title="1">{
+        seconds := atomic.LoadUint32(&amp;rl.seconds)
+        resp, err := rl.store.ScriptRunCtx(ctx, lockScript, []string{rl.key}, []string{
+                rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
+        })
+        if errors.Is(err, red.Nil) </span><span class="cov8" title="1">{
+                return false, nil
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov8" title="1">{
+                logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
+                return false, err
+        }</span> else<span class="cov8" title="1"> if resp == nil </span><span class="cov0" title="0">{
+                return false, nil
+        }</span>
+
+        <span class="cov8" title="1">reply, ok := resp.(string)
+        if ok &amp;&amp; reply == "OK" </span><span class="cov8" title="1">{
+                return true, nil
+        }</span>
+
+        <span class="cov0" title="0">logx.Errorf("Unknown reply when acquiring lock for %s: %v", rl.key, resp)
+        return false, nil</span>
+}
+
+// Release releases the lock.
+func (rl *RedisLock) Release() (bool, error) <span class="cov8" title="1">{
+        return rl.ReleaseCtx(context.Background())
+}</span>
+
+// ReleaseCtx releases the lock with the given ctx.
+func (rl *RedisLock) ReleaseCtx(ctx context.Context) (bool, error) <span class="cov8" title="1">{
+        resp, err := rl.store.ScriptRunCtx(ctx, delScript, []string{rl.key}, []string{rl.id})
+        if err != nil </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">reply, ok := resp.(int64)
+        if !ok </span><span class="cov0" title="0">{
+                return false, nil
+        }</span>
+
+        <span class="cov8" title="1">return reply == 1, nil</span>
+}
+
+// SetExpire sets the expiration.
+func (rl *RedisLock) SetExpire(seconds int) <span class="cov8" title="1">{
+        atomic.StoreUint32(&amp;rl.seconds, uint32(seconds))
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package redis
+
+import (
+        "sync"
+        "sync/atomic"
+)
+
+var (
+        once     sync.Once
+        lock     sync.Mutex
+        instance *ScriptCache
+)
+
+type (
+        // Map is an alias of map[string]string.
+        Map map[string]string
+
+        // A ScriptCache is a cache that stores a script with its sha key.
+        ScriptCache struct {
+                atomic.Value
+        }
+)
+
+// GetScriptCache returns a ScriptCache.
+func GetScriptCache() *ScriptCache <span class="cov8" title="1">{
+        once.Do(func() </span><span class="cov8" title="1">{
+                instance = &amp;ScriptCache{}
+                instance.Store(make(Map))
+        }</span>)
+
+        <span class="cov8" title="1">return instance</span>
+}
+
+// GetSha returns the sha string of given script.
+func (sc *ScriptCache) GetSha(script string) (string, bool) <span class="cov8" title="1">{
+        cache := sc.Load().(Map)
+        ret, ok := cache[script]
+        return ret, ok
+}</span>
+
+// SetSha sets script with sha into the ScriptCache.
+func (sc *ScriptCache) SetSha(script, sha string) <span class="cov8" title="1">{
+        lock.Lock()
+        defer lock.Unlock()
+
+        cache := sc.Load().(Map)
+        newCache := make(Map)
+        for k, v := range cache </span><span class="cov8" title="1">{
+                newCache[k] = v
+        }</span>
+        <span class="cov8" title="1">newCache[script] = sha
+        sc.Store(newCache)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

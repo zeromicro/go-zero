@@ -1206,11 +1206,7 @@ func (s *Redis) PublishCtx(ctx context.Context, channel string, message interfac
 	if err != nil {
 		return 0, err
 	}
-	v, err := conn.Publish(ctx, channel, message).Result()
-	if err != nil {
-		return 0, err
-	}
-	return v, nil
+	return conn.Publish(ctx, channel, message).Result()
 }
 
 // Rpop is the implementation of redis rpop command.
@@ -1272,11 +1268,7 @@ func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination str
 	if err != nil {
 		return "", err
 	}
-	v, err := conn.RPopLPush(ctx, source, destination).Result()
-	if err != nil {
-		return "", err
-	}
-	return v, nil
+	return conn.RPopLPush(ctx, source, destination).Result()
 }
 
 // Sadd is the implementation of redis sadd command.
@@ -1694,11 +1686,7 @@ func (s *Redis) UnlinkCtx(ctx context.Context, keys ...string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	v, err := conn.Unlink(ctx, keys...).Result()
-	if err != nil {
-		return 0, err
-	}
-	return v, nil
+	return conn.Unlink(ctx, keys...).Result()
 }
 
 // Zadd is the implementation of redis zadd command.
