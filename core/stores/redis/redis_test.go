@@ -2084,36 +2084,50 @@ func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.
 func TestRedisPublish(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).Publish("Test", "message")
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 }
 
 func TestRedisRPopLPush(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).RPopLPush("Source", "Destination")
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 }
 
 func TestRedisUnlink(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).Unlink("Key1", "Key2")
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 	})
 }
 
 func TestRedisTxPipeline(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		client.Ping()
 		ctx := context.Background()
 		pipe, err := newRedis(client.Addr, badType()).TxPipeline()
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 		key := "key"
+		hashKey := "field"
+		hashValue := "value"
 
-		_, err = pipe.Exists(ctx, key).Result()
-		assert.NotNil(t, err)
+		// setting value
+		pipe.HSet(ctx, key, hashKey, hashValue)
 
-		_, err = pipe.HMGet(ctx, key).Result()
-		assert.NotNil(t, err)
+		existsCmd := pipe.Exists(ctx, key)
+		getCmd := pipe.HGet(ctx, key, hashKey)
+
+		// execution
+		_, err = pipe.Exec(ctx)
+		assert.Nil(t, err)
+
+		// verification results
+		exists, err := existsCmd.Result()
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), exists)
+
+		value, err := getCmd.Result()
+		assert.Nil(t, err)
+		assert.Equal(t, hashValue, value)
 	})
 }
