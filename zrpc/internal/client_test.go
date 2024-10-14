@@ -45,6 +45,13 @@ func TestWithStreamClientInterceptor(t *testing.T) {
 	assert.Equal(t, 1, len(options.DialOptions))
 }
 
+func TestWithMetricReqDurBuckets(t *testing.T) {
+	var options ClientOptions
+	opt := WithMetricReqDurBuckets([]float64{0.1, 0.2})
+	opt(&options)
+	assert.Equal(t, []float64{0.1, 0.2}, options.MetricReqDurBuckets)
+}
+
 func TestWithTransportCredentials(t *testing.T) {
 	var options ClientOptions
 	opt := WithTransportCredentials(nil)
