@@ -3,6 +3,8 @@ package redis
 import (
 	"errors"
 	"time"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 var (
@@ -24,6 +26,8 @@ type (
 		NonBlock bool   `json:",default=true"`
 		// PingTimeout is the timeout for ping redis.
 		PingTimeout time.Duration `json:",default=1s"`
+		// VerifyBigKey is the config for big key hook.
+		VerifyBigKey BigKeyHookConfig
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -45,6 +49,14 @@ func (rc RedisConf) NewRedis() *Redis {
 	}
 	if rc.Tls {
 		opts = append(opts, WithTLS())
+	}
+	if rc.VerifyBigKey.Enable {
+		bigKeyHook, err := NewBigKeyHook(rc.VerifyBigKey)
+		if err != nil {
+			logx.Errorf("NewBigKeyHook error: %v", err)
+		} else {
+			opts = append(opts, WithHook(bigKeyHook))
+		}
 	}
 
 	return newRedis(rc.Host, opts...)
