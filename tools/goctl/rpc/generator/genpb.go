@@ -88,7 +88,7 @@ func findPbFile(current string, src string, grpc bool) (string, error) {
 		return nil
 	})
 	if errors.Is(err, os.ErrExist) {
-		return filepath.Dir(filepath.Join(current, ret)), nil
+		return pathx.ReadLink(filepath.Dir(filepath.Join(current, ret)))
 	}
 	return "", err
 }
