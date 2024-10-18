@@ -91,6 +91,17 @@ func writeType(writer io.Writer, tp spec.Type) error {
 
 func writeMember(writer io.Writer, members []spec.Member) error {
 	for _, member := range members {
+		var existFileTag bool
+		for _, t := range member.Tags() {
+			if t.Key == "file" {
+				existFileTag = true
+				break
+			}
+		}
+		if existFileTag {
+			continue
+		}
+
 		if member.IsInline {
 			if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type.Name())); err != nil {
 				return err
