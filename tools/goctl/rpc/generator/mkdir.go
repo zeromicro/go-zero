@@ -174,9 +174,14 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 		},
 	}
 
+	pbPackage := filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir)))
+	if c.IgnorePb {
+		pbPackage = proto.GoPackage
+	}
+
 	inner[pb] = Dir{
 		Filename: pbDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
+		Package:  pbPackage,
 		Base:     filepath.Base(pbDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(pbDir, childPath)
