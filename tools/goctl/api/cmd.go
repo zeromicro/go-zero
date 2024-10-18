@@ -58,6 +58,7 @@ func init() {
 	dartCmdFlags.BoolVar(&dartgen.VarStringLegacy, "legacy")
 	dartCmdFlags.StringVar(&dartgen.VarStringHostname, "hostname")
 	dartCmdFlags.StringVar(&dartgen.VarStringScheme, "scheme")
+	dartCmdFlags.StringVar(&dartgen.VarStringFormatArgs, "format-args")
 
 	docCmdFlags.StringVar(&docgen.VarStringDir, "dir")
 	docCmdFlags.StringVar(&docgen.VarStringOutput, "o")
