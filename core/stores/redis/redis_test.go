@@ -2080,3 +2080,70 @@ func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.
 
 	return cmd
 }
+
+func TestRedisPublish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Publish("Test", "message")
+		assert.NotNil(t, err)
+		_, err = client.Publish("Test", "message")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedisRPopLPush(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).RPopLPush("Source", "Destination")
+		assert.NotNil(t, err)
+		_, err = client.Rpush("Source", "Destination")
+		assert.Nil(t, err)
+		_, err = client.RPopLPush("Source", "Destination")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedisUnlink(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Unlink("Key1", "Key2")
+		assert.NotNil(t, err)
+		err = client.Set("Key1", "Key2")
+		assert.Nil(t, err)
+		get, err := client.Get("Key1")
+		assert.Nil(t, err)
+		assert.Equal(t, "Key2", get)
+		res, err := client.Unlink("Key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), res)
+	})
+}
+
+func TestRedisTxPipeline(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		ctx := context.Background()
+		pipe, err := newRedis(client.Addr, badType()).TxPipeline()
+		assert.NotNil(t, err)
+		pipe, err = client.TxPipeline()
+		assert.Nil(t, err)
+		key := "key"
+		hashKey := "field"
+		hashValue := "value"
+
+		// setting value
+		pipe.HSet(ctx, key, hashKey, hashValue)
+
+		existsCmd := pipe.Exists(ctx, key)
+		getCmd := pipe.HGet(ctx, key, hashKey)
+
+		// execution
+		_, err = pipe.Exec(ctx)
+		assert.Nil(t, err)
+
+		// verification results
+		exists, err := existsCmd.Result()
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), exists)
+
+		value, err := getCmd.Result()
+		assert.Nil(t, err)
+		assert.Equal(t, hashValue, value)
+	})
+}
