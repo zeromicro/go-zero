@@ -908,11 +908,15 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 	}
 
 	switch fieldKind {
-	case reflect.Array, reflect.Map, reflect.Slice:
+	case reflect.Array, reflect.Slice:
 		if !opts.optional() {
 			return u.processFieldNotFromString(fieldType, value, valueWithParent{
 				value: emptyMap,
 			}, opts, fullName)
+		}
+	case reflect.Map:
+		if !opts.optional() {
+			return newInitError(fullName)
 		}
 	case reflect.Struct:
 		if !opts.optional() {
