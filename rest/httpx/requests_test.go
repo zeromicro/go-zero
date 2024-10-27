@@ -49,6 +49,61 @@ func TestParseForm(t *testing.T) {
 	})
 }
 
+func TestParseFormArray(t *testing.T) {
+	t.Run("slice", func(t *testing.T) {
+		var v struct {
+			Name    []string  `form:"name"`
+			Age     []int     `form:"age"`
+			Percent []float64 `form:"percent,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&name=world&age=18&age=19&percent=3.4&percent=4.5",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"hello", "world"}, v.Name)
+			assert.ElementsMatch(t, []int{18, 19}, v.Age)
+			assert.ElementsMatch(t, []float64{3.4, 4.5}, v.Percent)
+		}
+	})
+
+	t.Run("slice with single value", func(t *testing.T) {
+		var v struct {
+			Name    []string  `form:"name"`
+			Age     []int     `form:"age"`
+			Percent []float64 `form:"percent,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&age=18&percent=3.4",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"hello"}, v.Name)
+			assert.ElementsMatch(t, []int{18}, v.Age)
+			assert.ElementsMatch(t, []float64{3.4}, v.Percent)
+		}
+	})
+
+	t.Run("slice with empty and non-empty", func(t *testing.T) {
+		var v struct {
+			Name []string `form:"name"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=&name=1",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"", "1"}, v.Name)
+		}
+	})
+}
+
 func TestParseForm_Error(t *testing.T) {
 	var v struct {
 		Name string `form:"name"`

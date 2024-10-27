@@ -5639,6 +5639,62 @@ func TestUnmarshalFromStringSliceForTypeMismatch(t *testing.T) {
 	}, &v))
 }
 
+func TestUnmarshalWithFromArray(t *testing.T) {
+	t.Run("array", func(t *testing.T) {
+		var v struct {
+			Value []string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+			"value": []string{"foo", "bar"},
+		}, &v)) {
+			assert.ElementsMatch(t, []string{"foo", "bar"}, v.Value)
+		}
+	})
+
+	t.Run("not array", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+			"value": []string{"foo"},
+		}, &v)) {
+			assert.Equal(t, "foo", v.Value)
+		}
+	})
+
+	t.Run("not array and empty", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+			"value": []string{""},
+		}, &v)) {
+			assert.Empty(t, v.Value)
+		}
+	})
+
+	t.Run("not array and no value", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		assert.Error(t, unmarshaler.Unmarshal(map[string]any{}, &v))
+	})
+
+	t.Run("not array and no value and optional", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value,optional"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{}, &v)) {
+			assert.Empty(t, v.Value)
+		}
+	})
+}
+
 func TestUnmarshalWithOpaqueKeys(t *testing.T) {
 	var v struct {
 		Opaque string `key:"opaque.key"`
