@@ -137,7 +137,7 @@ func TestPatRouter(t *testing.T) {
 }
 
 func TestParseSlice(t *testing.T) {
-	body := `names=%5B%22first%22%2C%22second%22%5D`
+	body := `names=first&names=second`
 	reader := strings.NewReader(body)
 	r, err := http.NewRequest(http.MethodPost, "http://hello.com/", reader)
 	assert.Nil(t, err)
