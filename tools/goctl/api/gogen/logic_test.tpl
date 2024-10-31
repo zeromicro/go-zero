@@ -20,7 +20,7 @@ func Test{{.logic}}_{{.function}}(t *testing.T) {
         setupMocks func()
         {{if .hasRequest}}req        *{{.requestType}}{{end}}
         wantErr    bool
-        checkResp  func(*{{.responseType}}, error)
+        checkResp  func{{.responseType}}
     }{
         {
             name: "successful",
@@ -32,7 +32,7 @@ func Test{{.logic}}_{{.function}}(t *testing.T) {
                 // TODO: init your request here
             },{{end}}
             wantErr: false,
-            checkResp: func(resp *{{.responseType}}, err error) {
+            checkResp: func{{.responseType}} {
                 // TODO: Add your check logic here
             },
         },
@@ -46,7 +46,7 @@ func Test{{.logic}}_{{.function}}(t *testing.T) {
                 // TODO: init your request here
             },{{end}}
             wantErr: true,
-            checkResp: func(resp *{{.responseType}}, err error) {
+            checkResp: func{{.responseType}} {
                 // TODO: Add your check logic here
             },
         },

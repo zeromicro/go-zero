@@ -42,6 +42,7 @@ func genHandlerTest(dir, rootPkg string, cfg *config.Config, group spec.Group, r
 			"ImportPackages": genHandlerTestImports(group, route, rootPkg),
 			"HandlerName":    handler,
 			"RequestType":    util.Title(route.RequestTypeName()),
+			"ResponseType":   util.Title(route.ResponseTypeName()),
 			"LogicName":      logicName,
 			"LogicType":      strings.Title(getLogicName(route)),
 			"Call":           strings.Title(strings.TrimSuffix(handler, "Handler")),
