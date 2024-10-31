@@ -1,0 +1,477 @@
+syntax = "v1"
+
+info (
+	title:  "tcip-mgr-service" //
+	desc:   "tcip manage service" //
+	author: ""
+	email:  ""
+)
+
+type (
+	LoginReq {
+		UserName string `json:"username"`
+		Password string `json:"password"`
+	}
+	LoginResp {
+		UserId   int64  `json:"userId"`
+		UserName string `json:"userName"`
+		Role     string `json:"role"` // 1 admin, 2 中继网关运营方， 3 子链接入方
+	}
+	PageReq {
+		PageNum  int `json:"pageNum,default=1"`
+		PageSize int `json:"pageSize,default=10"`
+	}
+	UserListReq {
+		UserName string `json:"userName,optional"`
+		PageReq
+	}
+	UserListResp {
+		Total int            `json:"total"`
+		List  []UserListData `json:"list"`
+	}
+	UserListData {
+		EnterpriseName string `json:"enterpriseName"` //公司名
+		PhoneNumber    string `json:"phoneNumber"` //手机号
+		UserName       string `json:"userName"` //用户名
+		Role           string `json:"role"` //角色1、admin，2、中继网关，3、跨链网关
+		CreateAt       int    `json:"createAt"` //创建时间
+		Status         int    `json:"status"` //1、启用2、禁用
+		UserId         int    `json:"userId"`
+	}
+)
+
+type (
+	RegisterReq {
+		Password       string `json:"password"`
+		EnterpriseName string `json:"enterpriseName,optional"`
+		PhoneNumber    string `json:"phoneNumber,optional"`
+		UserName       string `json:"userName"`
+		Role           string `json:"role,options=[1,2,3]"` // 1 admin, 2 中继网关运营方， 3 子链接入方
+	}
+	DisableUserReq {
+		UserId int `json:"userId"`
+		Status int `json:"status,options=[1,2]"`
+	}
+	EditUserReq {
+		EnterpriseName string `json:"enterpriseName"`
+		PhoneNumber    string `json:"phoneNumber"`
+		UserName       string `json:"userName"`
+		Role           string `json:"role,options=[2,3]"` // 1 admin, 2 中继网关运营方， 3 子链接入方
+		UserId         int    `json:"userId"`
+	}
+)
+
+type (
+	ResetPwReq {
+		UserId int64  `json:"userId"`
+		NewPwd string `json:"newPwd"`
+	}
+)
+
+@server (
+	prefix:   /api/v1/login
+	group:    login
+	timeout:  60s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+	maxBytes: 5368709120 // 对当前 Foo 语法块下的所有路由添加请求体大小控制，单位为 byte,goctl 版本 >= 1.5.0 才支持
+)
+service api {
+	@doc "登录"
+	@handler LoginHandler
+	post /login (LoginReq) returns (LoginResp)
+
+	@doc "注册用户"
+	@handler RegisterHandler
+	post /register (RegisterReq) returns (bool)
+
+	@doc "用户列表"
+	@handler UserListHandler
+	post /userList (UserListReq) returns (UserListResp)
+
+	@doc "用户信息"
+	@handler UserInfoHandler
+	post /userInfo returns (UserListData)
+
+	@doc "启用禁用用户"
+	@handler DisableUserHandler
+	post /disableUser (DisableUserReq) returns (bool)
+
+	@doc "重置密码"
+	@handler ResetPwdHandler
+	post /resetPwd (ResetPwReq) returns (bool)
+
+	@doc "注册用户"
+	@handler EditUserHandler
+	post /editUser (EditUserReq) returns (bool)
+
+	@doc "获取当前服务的token"
+	@handler GetServerTokenHandler
+	post /serverToken returns (string)
+}
+
+type (
+	HealthResp {
+		Version   string `json:"version"`
+		Name      string `json:"name"`
+		BuildTime string `json:"buildTime"`
+		GitBranch string `json:"gitBranch"`
+		GitCommit string `json:"gitCommit"`
+		Now       string `json:"now"`
+		StartTime string `json:"startTime"`
+	}
+)
+
+service api {
+	@doc "获取服务的健康状态"
+	@handler HealthHandler
+	get /api/v1/health returns (HealthResp)
+}
+
+type (
+	RelayGatewayInfo {
+		RelayGatewayId     string `json:"relayGatewayId"`
+		RelayGatewayName   string `json:"relayGatewayName"`
+		CrossBatchContract string `json:"crossBatchContract"`
+		CrossContract      string `json:"crossContract"`
+		Address            string `json:"address"`
+		AuthCodeKey        string `json:"authCodeKey"`
+		Timeout            int    `json:"timeout"`
+		Port               int    `json:"port"`
+		CreateAt           int    `json:"createAt,optional"` //创建时间
+	}
+	NewRelayGatewayInfo {
+		RelayGatewayInfo
+		Option int `json:"option,options=[1,2]"`
+	}
+	ListRelayGatewaysReq {
+		RelayGatewayName string `json:"relayGatewayName,optional"`
+		PageReq
+	}
+	ListRelayGatewaysResp {
+		Total int                `json:"total"`
+		List  []RelayGatewayInfo `json:"list"`
+	}
+	ConnectRelayGatewayReq {
+		GatewayId string `json:"gatewayId"` //中继网关ID
+	}
+	Node {
+		NodeAddr    string `json:"nodeAddr"`
+		ConnCnt     string `json:"connCnt,default=10,optional"`
+		EnableTls   bool   `json:"enableTls,optional"`
+		TrustRoot   string `json:"trustRoot,optional"`
+		TlsHostName string `json:"tlsHostName,optional"`
+	}
+	ChainMakerConfig {
+		ChainId  string `json:"chainId"`
+		OrgId    string `json:"orgId,optional"`
+		SignCert string `json:"signCert,optional"`
+		SignKey  string `json:"signKey"`
+		TlsCert  string `json:"tlsCert,optional"`
+		TlsKey   string `json:"tlsKey,optional"`
+		AuthType string `json:"authType"`
+		HashType string `json:"hashType"`
+		Node     []Node `json:"node"`
+	}
+	BcosConfig {
+		Ca               string `json:"ca"`
+		TlsCert          string `json:"tlsCert"`
+		TlsKey           string `json:"tlsKey"`
+		PrivateKey       string `json:"privateKey"`
+		GroupId          string `json:"groupId"`
+		Address          string `json:"address"`
+		JsonRpcAddress   string `json:"jsonRpcAddress,optional"`
+		ChainId          string `json:"chainId"`
+		IsSmCrypto       bool   `json:"isSmCrypto"`
+		CrossContractAbi bool   `json:"crossContractAbi"`
+	}
+	Org {
+		OrgId    string `json:"orgId"`
+		MspId    string `json:"mspId"`
+		SignCert string `json:"signCert"`
+		SignKey  string `json:"signKey"`
+		Peers    []Node `json:"peers"`
+	}
+	FabricConfig {
+		ChainId  string `json:"chainId"`
+		Orderers []Node `json:"orderers"`
+		Orgs     []Org  `json:"orgs"`
+	}
+	AntChainConfig {
+		RestUrl      string `json:"restUrl"`
+		Account      string `json:"account,optional"`
+		AccessId     string `json:"accessId,optional"`
+		AccessSecret string `json:"accessSecret,optional"`
+		TtenantId    string `json:"TtenantId,optional"`
+		BizId        string `json:"bizId"`
+	}
+	AntConfig {
+		Ext         string         `json:"ext,optional"`
+		ChainConfig AntChainConfig `json:"chainConfig"`
+	}
+	MainChainReq {
+		CrossContract    string           `json:"crossContract,optional"`
+		Option           int64            `json:"option,options=[1,2]"`
+		ChainMakerConfig ChainMakerConfig `json:"chainMakerConfig"`
+	}
+	MainChainInfoReq  {}
+	MainChainInfoResp {
+		CrossContract    string           `json:"crossContract,optional"`
+		ChainMakerConfig ChainMakerConfig `json:"chainMakerConfig"`
+	}
+	ApplytReq {
+		ID          int    `json:"id"`
+		ApplyStatus int    `json:"applyStatus,options=[2,3]"`
+		Reason      string `json:"reason,optional"`
+		Source      int    `json:"source,default=1"`
+	}
+)
+
+@server (
+	prefix:   /api/v1/relayer
+	group:    relaygateway
+	timeout:  60s
+	maxBytes: 5368709120 // 对当前 Foo 语法块下的所有路由添加请求体大小控制，单位为 byte,goctl 版本 >= 1.5.0 才支持
+)
+service api {
+	@doc "新建中继网关"
+	@handler NewRelayGatewayHandler
+	post /newGateway (NewRelayGatewayInfo) returns (bool)
+
+	@doc "获取中继网关列表"
+	@handler ListRelayGatewaysHandler
+	post /gatewayList (ListRelayGatewaysReq) returns (ListRelayGatewaysResp)
+
+	@doc "连接中继网关"
+	@handler connGatewayHandler
+	post /connGateway (ConnectRelayGatewayReq) returns (bool)
+
+	@doc "授权"
+	@handler ApplyHandler
+	post /apply (ApplytReq) returns (bool)
+
+	@doc "主链添加"
+	@handler MainChainHandler
+	post /mainChain (MainChainReq) returns (bool)
+
+	@doc "主链信息"
+	@handler MainChainInfoHandler
+	post /mainChainInfo (MainChainInfoReq) returns (MainChainInfoResp)
+}
+
+type (
+	CrossGatewayInfo {
+		CrossGatewayId     string `json:"crossGatewayId,optional"`
+		CrossGatewayName   string `json:"crossGatewayName"`
+		VerifyType         int    `json:"verifyType,options=[1,2]"`
+		SyncHeaderInterval int    `json:"syncHeaderInterval,default=300"`
+		SyncHeaderCount    int    `json:"syncHeaderCount,default=1000"`
+		Address            string `json:"address"`
+		Timeout            int    `json:"timeout,default=30"`
+		Port               int    `json:"port,default=8888"`
+		GatewayType        int    `json:"gatewayType,options=[1,2,3,4]"`
+		Status             int    `json:"status,optional"`
+		SubChainCount      int    `json:"subChainCount,optional"`
+		ApplyStatus        int    `json:"applyStatus,optional"`
+		CreateAt           int    `json:"createAt,optional"`
+	}
+	NewCrossGatewayReq {
+		CrossGatewayInfo
+		Option int `json:"option,options=[1,2]"`
+	}
+	ListCrossGatewaysReq {
+		CrossGatewayName string `json:"crossGatewayName,optional"`
+		PageReq
+	}
+	ListCrossGatewaysResp {
+		Total int                `json:"total"`
+		List  []CrossGatewayInfo `json:"list"`
+	}
+	ApplyRelayGatewayAuthReq {
+		RelayGatewayId             string `json:"relayGatewayId"`
+		RelayGatewayName           string `json:"relayGatewayName"`
+		RelayGatewayAddress        string `json:"relayGatewayAddress"`
+		RelayGatewayToken          string `json:"relayGatewayToken"`
+		CrossGatewayAddress        string `json:"crossGatewayAddress"`
+		CrossGatewayOnChainAddress string `json:"crossGatewayOnChainAddress,optional"`
+		TxVerifyType               int    `json:"TxVerifyType,optional"`
+		ApplyMsg                   string `json:"applyMsg"`
+		CrossGatewayName           string `json:"crossGatewayName"`
+		Source                     int    `json:"source,default=1"`
+	}
+	ApplyRelayGatewayAuthResp {
+		FormId string `json:"formId"` //申请单ID
+	}
+	SubchainListReq {
+		ChainRid  string `json:"chianRid,optional"`
+		GatewayId string `json:"gatewayId"`
+		PageReq
+	}
+	SubchainListResp {
+		Total int            `json:"total"`
+		List  []SubChainInfo `json:"list"`
+	}
+	ConnectCrossGatewayReq {
+		GatewayId string `json:"gatewayId"` //跨链网关ID
+	}
+	UpdateApplyStatusReq {
+		ApplyStatus            int    `json:"applyStatus,options=[2,3]"`
+		Reason                 string `json:"reason"`
+		CrossGatewayName       string `json:"crossGatewayAddress"`
+		RelayGatewayId         string `json:"relayGatewayId,optional"`
+		CrossGatewayId         string `json:"crossGatewayId,optional"`
+		AuthCode               string `json:"auth_code,optional"`
+		TLSServerName          string `json:"tls_server_name,optional"` // tls server name
+		TLSCert                string `json:"tls_cert,optional"` // tls server cert
+		TLSKey                 string `json:"tls_key,optional"` // tls server key
+		TLSCa                  string `json:"tls_ca,optional"` // tls server ca
+		TLSCaKey               string `json:"tls_ca_key,optional"` // tls server ca key
+		ClientTLSCert          string `json:"client_tls_cert,optional"` // 客户端tls证书
+		ClientTLSKey           string `json:"client_tls_key,optional"` // 客户端tls私钥
+		RelayClientTLSCert     string `json:"relay_client_tls_cert,optional"` // 中继网关客户端tls证书
+		RelayClientTLSKey      string `json:"relay_client_tls_key,optional"` // 中继网关客户端tls私钥
+		RelayClientTLSCa       string `json:"relay_client_tls_ca,optional"` // 中继网关ca证书
+		RelayCallClientTLSCert string `json:"relay_call_client_tls_cert,optional"` // 中继网关的私钥在跨链网关ca签出的客户端tls证书
+		RelayAddress           string `json:"relay_address,optional"`
+	}
+	SubChainReq {
+		GatewayId        string           `json:"gatewayId"`
+		ChainType        int              `json:"chainType"`
+		ChainRid         string           `json:"chainRid"`
+		CrossContract    string           `json:"crossContract"`
+		Option           int              `json:"option,options=[1,2]"`
+		SpvContract      string           `json:"spvContract,optional"`
+		ChainMakerConfig ChainMakerConfig `json:"chainMakerConfig,optional"`
+		BcosConfig       BcosConfig       `json:"bcosConfig,optional"`
+		FabricConfig     FabricConfig     `json:"fabricConfig,optional"`
+		AntConfig        AntConfig        `json:"antConfig,optional"`
+	}
+	SubChainInfo {
+		GatewayId        string           `json:"gatewayId"`
+		ChainType        int              `json:"chainType"`
+		ChainRid         string           `json:"chainRid"`
+		CrossContract    string           `json:"crossContract"`
+		SpvContract      string           `json:"spvContract"`
+		ChainMakerConfig ChainMakerConfig `json:"chainMakerConfig"`
+		BcosConfig       BcosConfig       `json:"bcosConfig"`
+		FabricConfig     FabricConfig     `json:"fabricConfig"`
+		AntConfig        AntConfig        `json:"antConfig"`
+	}
+)
+
+@server (
+	prefix:   /api/v1/cross
+	group:    crossgateway
+	timeout:  60s
+	maxBytes: 5368709120 // 对当前 Foo 语法块下的所有路由添加请求体大小控制，单位为 byte,goctl 版本 >= 1.5.0 才支持
+)
+service api {
+	@doc "新建跨链网关"
+	@handler NewCrossGatewayHandler
+	post /newGateway (NewCrossGatewayReq) returns (bool)
+
+	@doc "更新跨链网关授权信息"
+	@handler UpdateApplyStatusHandler
+	post /updateApplyStatus (UpdateApplyStatusReq) returns (bool)
+
+	@doc "子链添加"
+	@handler subChainHandler
+	post /subChain (SubChainReq) returns (bool)
+
+	@doc "获取跨链网关列表"
+	@handler ListCrossGatewaysHandler
+	post /gatewayList (ListCrossGatewaysReq) returns (ListCrossGatewaysResp)
+
+	@doc "申请中继网关的授权"
+	@handler ApplyRelayGatewayAuthHandler
+	post /apply (ApplyRelayGatewayAuthReq) returns (ApplyRelayGatewayAuthResp)
+
+	@doc "子链列表"
+	@handler SubchainListHandler
+	post /subChainList (SubchainListReq) returns (SubchainListResp)
+
+	@doc "连接跨链网关"
+	@handler ConnectCrossGatewayHandler
+	post /connGateway (ConnectCrossGatewayReq) returns (bool)
+}
+
+type (
+	CrossConfigInfo {
+		SrcChainRid        string `json:"srcChainRid"`
+		SrcGatewayId       string `json:"srcGatewayId"`
+		SrcContractName    string `json:"srcContractName"`
+		SrcConfirmMethod   string `json:"srcConfirmMethod,optional"`
+		SrcCancelMethod    string `json:"srcCancelMethod,optional"`
+		SrcAbi             string `json:"srcAbi,optional"`
+		DestGatewayId      string `json:"destGatewayId"`
+		DestChainRid       string `json:"destChainRid"`
+		DestContractName   string `json:"destContractName"`
+		DestTryMethod      string `json:"destTryMethod"`
+		DestConfirmMethod  string `json:"destConfirmMethod,optional"`
+		DestCancelMethod   string `json:"destCancelMethod,optional"`
+		DestAbi            string `json:"destAbi,optional"`
+		CrossId            string `json:"crossId,optional"`
+		ConfigContractName string `json:"configContractName"`
+		Desc               string `json:"desc,optional"`
+		TriggerCrossType   int    `json:"triggerCrossType"`
+		ConfigContractAbi  string `json:"configContractAbi,optional"`
+	}
+	NewEventReq {
+		CrossConfigInfo
+	}
+	EventListConfigReq {
+		CrossId   string `json:"crossId,optional"`
+		GatewayId string `json:"gatewayId"`
+		PageReq
+	}
+	ListCrossConfigResp {
+		List  []CrossConfigInfo `json:"list"`
+		Total int               `json:"total"`
+	}
+	ApplyListReq {
+		RelayGatewayId   string `json:"relayGatewayId,optional"`
+		CrossGatewayName string `json:"crossGatewayName,optional"`
+		PageReq
+	}
+	ApplyListResp {
+		Total int             `json:"total"`
+		List  []ApplyListItem `json:"list"`
+	}
+	ApplyListItem {
+		ID               int    `json:"id"`
+		ApplyTime        int64  `json:"applyTime"`
+		ApplyMsg         string `json:"applyMsg"`
+		CrossGatewayName string `json:"crossGatewayName"`
+		ApplyStatus      int    `json:"applyStatus"`
+		CrossGatewayId   string `json:"crossGatewayId"`
+		AgreeTime        int64  `json:"agreeTime"`
+		Reason           string `json:"reason"`
+		RelayGatewayName string `json:"relayGatewayName"`
+	}
+	DownloadReq {
+		GatewayId string `json:"gatewayId"`
+	}
+)
+
+@server (
+	prefix:   /api/v1/common
+	group:    common
+	timeout:  60s
+	maxBytes: 5368709120 // 对当前 Foo 语法块下的所有路由添加请求体大小控制，单位为 byte,goctl 版本 >= 1.5.0 才支持
+)
+service api {
+	@doc "新建一个跨链配置"
+	@handler NewEventHandler
+	post /newEvent (NewEventReq) returns (bool)
+
+	@doc "获取跨链配置列表"
+	@handler EventListConfigHandler
+	post /eventList (EventListConfigReq) returns (ListCrossConfigResp)
+
+	@doc "申请列表"
+	@handler ApplyListHandler
+	post /applyList (ApplyListReq) returns (ApplyListResp)
+
+	@doc "下载"
+	@handler DownloadHandler
+	post /download (DownloadReq) returns ([]byte)
+}
+
