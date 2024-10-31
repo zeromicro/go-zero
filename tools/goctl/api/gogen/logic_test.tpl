@@ -12,6 +12,7 @@ import (
 func Test{{.logic}}_{{.function}}(t *testing.T) {
 	c := config.Config{}
 	mockSvcCtx := svc.NewServiceContext(c)
+    // init mock service context here
 
 	tests := []struct {
 		name       string
@@ -25,24 +26,24 @@ func Test{{.logic}}_{{.function}}(t *testing.T) {
 			name: "successful",
 			ctx:  context.Background(),
 			setupMocks: func() {
-				// No setup needed for this test case
+				// Mock data for this test case
 			},
 			{{if .hasRequest}}req:  &{{.requestType}}{
-                // init your request here
+                // TODO: init your request here
             },{{end}}
 			wantErr: false,
 			checkResp: func{{.responseType}} {
-                // Add your check logic here
+                // TODO: Add your check logic here
             },
 		},
 		{
 			name: "response error",
 			ctx:  context.Background(),
 			setupMocks: func() {
-				// No setup needed for this test case
+				// mock data for this test case
 			},
 			{{if .hasRequest}}req:  &{{.requestType}}{
-                // init your request here
+                // TODO: init your request here
             },{{end}}
 			wantErr: true,
 		},

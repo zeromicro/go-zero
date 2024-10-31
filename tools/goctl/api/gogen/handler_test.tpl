@@ -13,36 +13,67 @@ import (
 
 {{if .HasDoc}}{{.Doc}}{{end}}
 func Test{{.HandlerName}}(t *testing.T)  {
-	// 创建一个ServiceContext实例
-    	c := config.Config{}
-    	svcCtx := svc.NewServiceContext(c)
+	// new service context
+    c := config.Config{}
+    svcCtx := svc.NewServiceContext(c)
 
-	// 创建一个HTTP请求
-	reqBody := []byte{}
-	{{if .HasRequest}}
-	reqObj:= types.{{.RequestType}}{
-	    //TODO: add fields here
-	}
-	reqBody, _ = json.Marshal(reqObj)
-	{{end}}
-	req, err := http.NewRequest("POST", "/unittest",  bytes.NewBuffer(reqBody))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/json")
+    tests := []struct {
+    		name       string
+    		reqBody    interface{}
+    		setupMocks func()
+    		wantStatus int
+    		wantResp   string
+    	}{
+    		{
+    			name:    "invalid request body",
+    			reqBody: "invalid",
+    			setupMocks: func() {
+    				// No setup needed for this test case
+    			},
+    			wantStatus: http.StatusBadRequest,
+    			wantResp:   `{"code":400,"msg":"invalid request"}`, // Adjust based on actual error response
+    		},
+    		{
+    			name: "handler error",
+    			{{if .HasRequest}}reqBody: types.{{.RequestType}}{
+    				//TODO: add fields here
+    			},
+    			{{end}}setupMocks: func() {
+    				// Mock login logic to return an error
+    			},
+    			wantStatus: http.StatusUnauthorized,
+    			wantResp:   `{"code":401,"msg":"unauthorized"}`, // Adjust based on actual error response
+    		},
+    		{
+    			name: "handler successful",
+    			{{if .HasRequest}}reqBody: types.{{.RequestType}}{
+    				//TODO: add fields here
+    			},
+    			{{end}}setupMocks: func() {
+    				// Mock login logic to return success
+    			},
+    			wantStatus: http.StatusOK,
+    			wantResp:   `{"code":0,"msg":"success","data":{}}`, // Adjust based on actual success response
+    		},
+    	}
 
-	// 创建一个HTTP响应记录器
-	rr := httptest.NewRecorder()
+    	for _, tt := range tests {
+    		t.Run(tt.name, func(t *testing.T) {
+    			tt.setupMocks()
+                reqBody := []byte{}
+                {{if .HasRequest}}reqBody, _ = json.Marshal(tt.reqBody){{end}}
+    			req, err := http.NewRequest("POST", "/ut", bytes.NewBuffer(reqBody))
+    			if err != nil {
+    				t.Fatal(err)
+    			}
+    			req.Header.Set("Content-Type", "application/json")
 
-	// 创建一个LoginHandler实例
-	handler := {{.HandlerName}}(svcCtx)
-
-	// 调用LoginHandler
-	handler.ServeHTTP(rr, req)
-
-	// 检查响应状态码
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	// 检查响应体
-	t.Log(rr.Body.String())
+    			rr := httptest.NewRecorder()
+    			handler := {{.HandlerName}}(svcCtx)
+    			handler.ServeHTTP(rr, req)
+                t.Log(rr.Body.String())
+    			assert.Equal(t, tt.wantStatus, rr.Code)
+    			assert.JSONEq(t, tt.wantResp, rr.Body.String())
+    		})
+    	}
 }
