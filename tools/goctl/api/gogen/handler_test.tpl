@@ -62,8 +62,9 @@ func Test{{.HandlerName}}(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMocks()
-			reqBody := []byte{}
-			{{if .HasRequest}}reqBody, err := json.Marshal(tt.reqBody)
+			var reqBody []byte
+			{{if .HasRequest}}var err error
+			reqBody, err = json.Marshal(tt.reqBody)
 			require.NoError(t, err){{end}}
 			req, err := http.NewRequest("POST", "/ut", bytes.NewBuffer(reqBody))
 			require.NoError(t, err)
