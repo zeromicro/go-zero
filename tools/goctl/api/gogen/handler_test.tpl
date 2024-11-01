@@ -17,6 +17,7 @@ func Test{{.HandlerName}}(t *testing.T) {
 	// new service context
 	c := config.Config{}
 	svcCtx := svc.NewServiceContext(c)
+    // init mock service context here
 
 	tests := []struct {
 		name       string
@@ -29,7 +30,7 @@ func Test{{.HandlerName}}(t *testing.T) {
 			name:    "invalid request body",
 			reqBody: "invalid",
 			wantStatus: http.StatusBadRequest,
-			wantResp:   `{"code":400,"msg":"invalid request"}`, // Adjust based on actual error response
+			wantResp:   "unsupported type", // Adjust based on actual error response
 			setupMocks: func() {
 				// No setup needed for this test case
 			},
@@ -39,8 +40,8 @@ func Test{{.HandlerName}}(t *testing.T) {
 			{{if .HasRequest}}reqBody: types.{{.RequestType}}{
 				//TODO: add fields here
 			},
-			{{end}}wantStatus: http.StatusUnauthorized,
-			wantResp:   `{"code":401,"msg":"unauthorized"}`, // Adjust based on actual error response
+			{{end}}wantStatus: http.StatusBadRequest,
+			wantResp:  "error", // Adjust based on actual error response
 			setupMocks: func() {
 				// Mock login logic to return an error
 			},
@@ -73,7 +74,7 @@ func Test{{.HandlerName}}(t *testing.T) {
 			handler.ServeHTTP(rr, req)
 			t.Log(rr.Body.String())
 			assert.Equal(t, tt.wantStatus, rr.Code)
-			assert.JSONEq(t, tt.wantResp, rr.Body.String())
+			assert.Contains(t, rr.Body.String(), tt.wantResp)
 		})
 	}
 }
