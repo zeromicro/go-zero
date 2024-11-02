@@ -23,9 +23,16 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	validator       atomic.Value
+	formUnmarshaler = mapping.NewUnmarshaler(
+		formKey,
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys(),
+		mapping.WithFromArray())
+	pathUnmarshaler = mapping.NewUnmarshaler(
+		pathKey,
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys())
+	validator atomic.Value
 )
 
 // Validator defines the interface for validating the request.

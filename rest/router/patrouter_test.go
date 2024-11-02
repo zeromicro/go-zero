@@ -137,7 +137,7 @@ func TestPatRouter(t *testing.T) {
 }
 
 func TestParseSlice(t *testing.T) {
-	body := `names=%5B%22first%22%2C%22second%22%5D`
+	body := `names=first&names=second`
 	reader := strings.NewReader(body)
 	r, err := http.NewRequest(http.MethodPost, "http://hello.com/", reader)
 	assert.Nil(t, err)
@@ -388,7 +388,7 @@ func TestParseQueryRequired(t *testing.T) {
 }
 
 func TestParseOptional(t *testing.T) {
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/kevin/2017?nickname=whatever&zipcode=", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/kevin/2017?nickname=whatever", nil)
 	assert.Nil(t, err)
 
 	router := NewRouter()
