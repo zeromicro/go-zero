@@ -516,7 +516,7 @@ func TestParsePtrInRequestEmpty(t *testing.T) {
 }
 
 func TestParseQueryOptional(t *testing.T) {
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/kevin/2017?nickname=whatever", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/kevin/2017?nickname=whatever&zipcode=", nil)
 	assert.Nil(t, err)
 
 	router := NewRouter()

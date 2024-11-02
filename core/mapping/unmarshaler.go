@@ -817,7 +817,10 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 		if fieldKind != reflect.Slice && fieldKind != reflect.Array {
 			valueKind := reflect.TypeOf(mapValue).Kind()
 			if valueKind == reflect.Slice || valueKind == reflect.Array {
-				mapValue = reflect.ValueOf(mapValue).Index(0).Interface()
+				val := reflect.ValueOf(mapValue)
+				if val.Len() > 0 {
+					mapValue = val.Index(0).Interface()
+				}
 			}
 		}
 	}

@@ -21,7 +21,16 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 
 	params := make(map[string]any, len(r.Form))
 	for name, values := range r.Form {
-		params[name] = values
+		filtered := make([]string, 0, len(values))
+		for _, v := range values {
+			if len(v) > 0 {
+				filtered = append(filtered, v)
+			}
+		}
+
+		if len(filtered) > 0 {
+			params[name] = filtered
+		}
 	}
 
 	return params, nil
