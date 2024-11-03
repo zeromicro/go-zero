@@ -325,9 +325,29 @@ func TestParseJsonBody(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 		r.Header.Set(ContentType, header.JsonContentType)
 
-		assert.NoError(t, ParseJsonBody(r, &v))
+		assert.NoError(t, Parse(r, &v))
 		assert.Equal(t, 1, len(v))
 		assert.Equal(t, "kevin", v[0].Name)
+		assert.Equal(t, 18, v[0].Age)
+	})
+
+	t.Run("form and array body", func(t *testing.T) {
+		var v []struct {
+			// we can only ignore the form tag,
+			// because if the value is a slice, it should be in the body,
+			// but it's hard to detect when we treat it as a json body.
+			Product string `form:"product"`
+			Name    string `json:"name"`
+			Age     int    `json:"age"`
+		}
+
+		body := `[{"name":"apple", "age": 18}]`
+		r := httptest.NewRequest(http.MethodPost, "/a?product=tree", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
+
+		assert.NoError(t, Parse(r, &v))
+		assert.Equal(t, 1, len(v))
+		assert.Equal(t, "apple", v[0].Name)
 		assert.Equal(t, 18, v[0].Age)
 	})
 }
