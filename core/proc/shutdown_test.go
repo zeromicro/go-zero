@@ -95,3 +95,12 @@ func TestNotifyMoreThanOnce(t *testing.T) {
 		t.Fatal("timeout, check error logs")
 	}
 }
+
+func TestSetup(t *testing.T) {
+	Setup(ProcConf{
+		WrapUpTime: time.Second * 2,
+		WaitTime:   time.Second * 30,
+	})
+	assert.Equal(t, time.Second*2, wrapUpTime)
+	assert.Equal(t, time.Second*30, delayTimeBeforeForceQuit)
+}
