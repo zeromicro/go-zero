@@ -3,6 +3,7 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync/atomic"
 
@@ -43,16 +44,19 @@ type Validator interface {
 
 // Parse parses the request.
 func Parse(r *http.Request, v any) error {
-	if err := ParsePath(r, v); err != nil {
-		return err
-	}
+	kind := mapping.Deref(reflect.TypeOf(v)).Kind()
+	if kind != reflect.Array && kind != reflect.Slice {
+		if err := ParsePath(r, v); err != nil {
+			return err
+		}
 
-	if err := ParseForm(r, v); err != nil {
-		return err
-	}
+		if err := ParseForm(r, v); err != nil {
+			return err
+		}
 
-	if err := ParseHeaders(r, v); err != nil {
-		return err
+		if err := ParseHeaders(r, v); err != nil {
+			return err
+		}
 	}
 
 	if err := ParseJsonBody(r, v); err != nil {
