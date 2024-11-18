@@ -49,6 +49,61 @@ func TestParseForm(t *testing.T) {
 	})
 }
 
+func TestParseFormArray(t *testing.T) {
+	t.Run("slice", func(t *testing.T) {
+		var v struct {
+			Name    []string  `form:"name"`
+			Age     []int     `form:"age"`
+			Percent []float64 `form:"percent,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&name=world&age=18&age=19&percent=3.4&percent=4.5",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"hello", "world"}, v.Name)
+			assert.ElementsMatch(t, []int{18, 19}, v.Age)
+			assert.ElementsMatch(t, []float64{3.4, 4.5}, v.Percent)
+		}
+	})
+
+	t.Run("slice with single value", func(t *testing.T) {
+		var v struct {
+			Name    []string  `form:"name"`
+			Age     []int     `form:"age"`
+			Percent []float64 `form:"percent,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&age=18&percent=3.4",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"hello"}, v.Name)
+			assert.ElementsMatch(t, []int{18}, v.Age)
+			assert.ElementsMatch(t, []float64{3.4}, v.Percent)
+		}
+	})
+
+	t.Run("slice with empty and non-empty", func(t *testing.T) {
+		var v struct {
+			Name []string `form:"name"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=&name=1",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"1"}, v.Name)
+		}
+	})
+}
+
 func TestParseForm_Error(t *testing.T) {
 	var v struct {
 		Name string `form:"name"`
@@ -270,9 +325,29 @@ func TestParseJsonBody(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 		r.Header.Set(ContentType, header.JsonContentType)
 
-		assert.NoError(t, ParseJsonBody(r, &v))
+		assert.NoError(t, Parse(r, &v))
 		assert.Equal(t, 1, len(v))
 		assert.Equal(t, "kevin", v[0].Name)
+		assert.Equal(t, 18, v[0].Age)
+	})
+
+	t.Run("form and array body", func(t *testing.T) {
+		var v []struct {
+			// we can only ignore the form tag,
+			// because if the value is a slice, it should be in the body,
+			// but it's hard to detect when we treat it as a json body.
+			Product string `form:"product"`
+			Name    string `json:"name"`
+			Age     int    `json:"age"`
+		}
+
+		body := `[{"name":"apple", "age": 18}]`
+		r := httptest.NewRequest(http.MethodPost, "/a?product=tree", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
+
+		assert.NoError(t, Parse(r, &v))
+		assert.Equal(t, 1, len(v))
+		assert.Equal(t, "apple", v[0].Name)
 		assert.Equal(t, 18, v[0].Age)
 	})
 }

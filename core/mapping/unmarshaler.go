@@ -50,6 +50,7 @@ type (
 
 	unmarshalOptions struct {
 		fillDefault  bool
+		fromArray    bool
 		fromString   bool
 		opaqueKeys   bool
 		canonicalKey func(key string) string
@@ -811,6 +812,19 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	}
 
+	if u.opts.fromArray {
+		fieldKind := field.Type.Kind()
+		if fieldKind != reflect.Slice && fieldKind != reflect.Array {
+			valueKind := reflect.TypeOf(mapValue).Kind()
+			if valueKind == reflect.Slice || valueKind == reflect.Array {
+				val := reflect.ValueOf(mapValue)
+				if val.Len() > 0 {
+					mapValue = val.Index(0).Interface()
+				}
+			}
+		}
+	}
+
 	return u.processNamedFieldWithValue(field.Type, value, valueWithParent{
 		value:  mapValue,
 		parent: valuer,
@@ -987,6 +1001,16 @@ func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 func WithDefault() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fillDefault = true
+	}
+}
+
+// WithFromArray customizes an Unmarshaler with converting array values to non-array types.
+// For example, if the field type is []string, and the value is [hello],
+// the field type can be `string`, instead of `[]string`.
+// Typically, this option is used for unmarshaling from form values.
+func WithFromArray() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.fromArray = true
 	}
 }
 
