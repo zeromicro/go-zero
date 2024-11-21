@@ -30,8 +30,6 @@ type ZRpcContext struct {
 	Multiple bool
 	// Whether to generate rpc client
 	IsGenClient bool
-	// IgnorePb is the flag to indicate whether to ignore generate pb & grpc files
-	IgnorePb bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -73,12 +71,10 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	if err != nil {
 		return err
 	}
-	
-	if !zctx.IgnorePb {
-		err = g.GenPb(dirCtx, zctx)
-		if err != nil {
-			return err
-		}
+
+	err = g.GenPb(dirCtx, zctx)
+	if err != nil {
+		return err
 	}
 
 	err = g.GenConfig(dirCtx, proto, g.cfg)
