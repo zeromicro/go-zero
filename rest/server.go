@@ -3,6 +3,7 @@ package rest
 import (
 	"crypto/tls"
 	"errors"
+	"net"
 	"net/http"
 	"path"
 	"time"
@@ -119,6 +120,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) Start() {
 	handleError(s.ngin.start(s.router))
+}
+
+// StartWithListener starts the Server with listener
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
+func (s *Server) StartWithListener(listener net.Listener) {
+	handleError(s.ngin.startWithListener(listener, s.router))
 }
 
 // StartWithOpts starts the Server.

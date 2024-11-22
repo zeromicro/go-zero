@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"net"
 	"time"
 
 	"google.golang.org/grpc"
@@ -21,6 +22,7 @@ type (
 		AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor)
 		SetName(string)
 		Start(register RegisterFn) error
+		StartWithListener(listener net.Listener, register RegisterFn) error
 	}
 
 	baseRpcServer struct {
