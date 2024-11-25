@@ -35,6 +35,15 @@ func TestStartHttps(t *testing.T) {
 	proc.WrapUp()
 }
 
+func TestStartHttpWithListener(t *testing.T) {
+	svr := httptest.NewUnstartedServer(http.NotFoundHandler())
+	err := StartHttpWithListener(svr.Listener, http.NotFoundHandler(), func(svr *http.Server) {
+		svr.IdleTimeout = 0
+	})
+	assert.NotNil(t, err)
+	proc.WrapUp()
+}
+
 func TestStartHttpsWithListener(t *testing.T) {
 	svr := httptest.NewUnstartedServer(http.NotFoundHandler())
 	err := StartHttpsWithListener(svr.Listener, "", "", http.NotFoundHandler(), func(svr *http.Server) {
