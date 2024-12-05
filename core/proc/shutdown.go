@@ -13,16 +13,17 @@ import (
 	"github.com/zeromicro/go-zero/core/threading"
 )
 
-const (
-	wrapUpTime = time.Second
-	// why we use 5500 milliseconds is because most of our queue are blocking mode with 5 seconds
-	waitTime = 5500 * time.Millisecond
-)
+type ProcConf struct {
+	WrapUpTime time.Duration `json:",default=1s"`
+	WaitTime   time.Duration `json:",default=5.5s"`
+}
 
 var (
-	wrapUpListeners          = new(listenerManager)
-	shutdownListeners        = new(listenerManager)
-	delayTimeBeforeForceQuit = waitTime
+	wrapUpListeners   = new(listenerManager)
+	shutdownListeners = new(listenerManager)
+	wrapUpTime        = time.Second
+	// why we use 5500 milliseconds is because most of our queue are blocking mode with 5 seconds
+	delayTimeBeforeForceQuit = 5500 * time.Millisecond
 )
 
 // AddShutdownListener adds fn as a shutdown listener.
@@ -40,6 +41,11 @@ func AddWrapUpListener(fn func()) (waitForCalled func()) {
 // SetTimeToForceQuit sets the waiting time before force quitting.
 func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
+}
+
+func Setup(conf ProcConf) {
+	wrapUpTime = conf.WrapUpTime
+	delayTimeBeforeForceQuit = conf.WaitTime
 }
 
 // Shutdown calls the registered shutdown listeners, only for test purpose.
