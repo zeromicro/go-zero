@@ -4,8 +4,6 @@ import (
 	_ "embed"
 	"os"
 	"path/filepath"
-
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 //go:embed request.ts
@@ -18,9 +16,6 @@ func genRequest(dir string) error {
 	}
 
 	filename := filepath.Join(abs, "gocliRequest.ts")
-	if pathx.FileExists(filename) {
-		return nil
-	}
 
 	return os.WriteFile(filename, []byte(requestTemplate), 0644)
 }
