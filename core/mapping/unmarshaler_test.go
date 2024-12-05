@@ -2325,6 +2325,42 @@ func TestUnmarshalMapOfStruct(t *testing.T) {
 		}
 		assert.Error(t, UnmarshalKey(m, &v))
 	})
+
+	t.Run("map set", func(t *testing.T) {
+		type Inner1 struct {
+			M map[string]string
+		}
+		assert.Error(t, UnmarshalKey(map[string]any{}, &Inner1{}))
+		assert.NoError(t, UnmarshalKey(map[string]any{
+			"M": map[string]string{},
+		}, &Inner1{}))
+
+		type Inner2 struct {
+			Inner1
+		}
+		assert.Error(t, UnmarshalKey(map[string]any{}, &Inner2{}))
+		assert.NoError(t, UnmarshalKey(map[string]any{
+			"M": map[string]string{},
+		}, &Inner2{}))
+
+		type Inner3 struct {
+			C Inner1
+		}
+		assert.Error(t, UnmarshalKey(map[string]any{}, &Inner3{}))
+		assert.NoError(t, UnmarshalKey(map[string]any{
+			"C": map[string]any{
+				"M": map[string]string{},
+			},
+		}, &Inner3{}))
+
+		type Inner4 struct {
+			M map[string]string `json:",optional"`
+		}
+		assert.NoError(t, UnmarshalKey(map[string]any{}, &Inner4{}))
+		assert.NoError(t, UnmarshalKey(map[string]any{
+			"M": map[string]string{},
+		}, &Inner4{}))
+	})
 }
 
 func TestUnmarshalSlice(t *testing.T) {
