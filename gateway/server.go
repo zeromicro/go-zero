@@ -31,6 +31,18 @@ type (
 	Option func(svr *Server)
 )
 
+var Methods []internal.Method
+
+type Method internal.Method
+
+func MethodConver(method Method) internal.Method {
+	return internal.Method{
+		HttpMethod: method.HttpMethod,
+		HttpPath:   method.HttpPath,
+		RpcPath:    method.RpcPath,
+	}
+}
+
 // MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
@@ -78,7 +90,8 @@ func (s *Server) build() error {
 			return
 		}
 
-		methods, err := internal.GetMethods(source)
+		methods, err := internal.GetMethods(source, Methods)
+
 		if err != nil {
 			cancel(fmt.Errorf("%s: %w", up.Name, err))
 			return
