@@ -277,7 +277,7 @@ func TestMarshal_RangeIllegal(t *testing.T) {
 
 	for _, test := range tests {
 		_, err := Marshal(test)
-		assert.Equal(t, err, errNumberRange)
+		assert.Equal(t, err, ErrNumberRange)
 	}
 }
 
@@ -302,7 +302,7 @@ func TestMarshal_RangeLeftEqualsToRight(t *testing.T) {
 			}{
 				Int: 2,
 			},
-			err: errNumberRange,
+			err: ErrNumberRange,
 		},
 		{
 			name: "left exclusive, right inclusive",
@@ -311,7 +311,7 @@ func TestMarshal_RangeLeftEqualsToRight(t *testing.T) {
 			}{
 				Int: 2,
 			},
-			err: errNumberRange,
+			err: ErrNumberRange,
 		},
 		{
 			name: "left exclusive, right exclusive",
@@ -320,7 +320,7 @@ func TestMarshal_RangeLeftEqualsToRight(t *testing.T) {
 			}{
 				Int: 2,
 			},
-			err: errNumberRange,
+			err: ErrNumberRange,
 		},
 	}
 

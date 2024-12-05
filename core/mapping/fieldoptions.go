@@ -1,7 +1,5 @@
 package mapping
 
-import "fmt"
-
 const notSymbol = '!'
 
 type (
@@ -76,13 +74,13 @@ func (o *fieldOptions) toOptionsWithContext(key string, m Valuer, fullName strin
 		} else if dep[0] == notSymbol {
 			dep = dep[1:]
 			if len(dep) == 0 {
-				return nil, fmt.Errorf("wrong optional value for %q in %q", key, fullName)
+				return nil, newError("wrong optional value for %q in %q", key, fullName)
 			}
 
 			_, baseOn := m.Value(dep)
 			_, selfOn := m.Value(key)
 			if baseOn == selfOn {
-				return nil, fmt.Errorf("set value for either %q or %q in %q", dep, key, fullName)
+				return nil, newError("set value for either %q or %q in %q", dep, key, fullName)
 			}
 
 			optional = baseOn
@@ -90,7 +88,7 @@ func (o *fieldOptions) toOptionsWithContext(key string, m Valuer, fullName strin
 			_, baseOn := m.Value(dep)
 			_, selfOn := m.Value(key)
 			if baseOn != selfOn {
-				return nil, fmt.Errorf("values for %q and %q should be both provided or both not in %q",
+				return nil, newError("values for %q and %q should be both provided or both not in %q",
 					dep, key, fullName)
 			}
 

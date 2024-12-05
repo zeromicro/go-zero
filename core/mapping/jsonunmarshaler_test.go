@@ -856,7 +856,7 @@ func TestUnmarshalBytesError(t *testing.T) {
 	}
 
 	err := UnmarshalJsonBytes([]byte(payload), &v)
-	assert.Equal(t, errTypeMismatch, err)
+	assert.Equal(t, ErrTypeMismatch, err)
 }
 
 func TestUnmarshalReaderError(t *testing.T) {
@@ -866,7 +866,7 @@ func TestUnmarshalReaderError(t *testing.T) {
 		Any string
 	}
 
-	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(reader, &v))
+	assert.Equal(t, ErrTypeMismatch, UnmarshalJsonReader(reader, &v))
 }
 
 func TestUnmarshalMap(t *testing.T) {
