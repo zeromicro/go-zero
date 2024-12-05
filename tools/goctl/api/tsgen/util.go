@@ -26,7 +26,7 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	}
 
 	optionalTag := ""
-	if member.IsOptional() || member.IsOmitEmpty() {
+	if member.IsOptionalOrOmitEmpty() {
 		optionalTag = "?"
 	}
 	name, err := member.GetPropertyName()

@@ -55,6 +55,16 @@ func (m Member) Tags() []*Tag {
 	return tags.Tags()
 }
 
+func (m Member) IsOptionalOrOmitEmpty() bool {
+	tag := m.Tags()
+	for _, item := range tag {
+		if stringx.Contains(item.Options, "optional") || stringx.Contains(item.Options, "omitempty") {
+			return true
+		}
+	}
+	return false
+}
+
 // IsOptional returns true if tag is optional
 func (m Member) IsOptional() bool {
 	if !m.IsBodyMember() {
