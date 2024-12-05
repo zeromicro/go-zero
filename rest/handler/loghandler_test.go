@@ -69,6 +69,26 @@ func TestLogHandlerVeryLong(t *testing.T) {
 	assert.Equal(t, "content", resp.Body.String())
 }
 
+func TestLogHandlerSlowIgnorePaths(t *testing.T) {
+	handlers := []func(handler http.Handler) http.Handler{
+		LogHandler,
+		DetailedLogHandler,
+	}
+
+	SetSlowIgnorePaths([]string{"/test"})
+
+	for _, logHandler := range handlers {
+		req := httptest.NewRequest(http.MethodGet, "http://localhost/test", http.NoBody)
+		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(defaultSlowThreshold + time.Millisecond*50)
+		}))
+
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	}
+}
+
 func TestLogHandlerSlow(t *testing.T) {
 	handlers := []func(handler http.Handler) http.Handler{
 		LogHandler,
@@ -86,6 +106,7 @@ func TestLogHandlerSlow(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 	}
 }
+
 func TestDetailedLogHandler_Hijack(t *testing.T) {
 	resp := httptest.NewRecorder()
 	writer := &detailLoggedResponseWriter{
@@ -111,10 +132,16 @@ func TestDetailedLogHandler_Hijack(t *testing.T) {
 		_, _, _ = writer.Hijack()
 	})
 }
+
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
 	SetSlowThreshold(time.Second)
 	assert.Equal(t, time.Second, slowThreshold.Load())
+}
+
+func TestSetSlowIgnorePaths(t *testing.T) {
+	SetSlowIgnorePaths([]string{"/test"})
+	assert.True(t, slowIgnorePaths.Contains("/test"))
 }
 
 func TestWrapMethodWithColor(t *testing.T) {
