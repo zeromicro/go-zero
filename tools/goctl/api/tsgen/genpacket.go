@@ -173,13 +173,20 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 	var params = []string{pathForRoute(route, group)}
 	if hasParams {
 		params = append(params, "params")
+	} else {
+		params = append(params, "null")
 	}
+
+	configParams := []string{}
+
 	if hasBody {
-		params = append(params, "req")
+		configParams = append(configParams, "body: JSON.stringify(req)")
 	}
 	if hasHeader {
-		params = append(params, "headers")
+		configParams = append(configParams, "headers: headers")
 	}
+
+	params = append(params, fmt.Sprintf("{%s}", strings.Join(configParams, ", ")))
 
 	return strings.Join(params, ", ")
 }
@@ -212,7 +219,7 @@ func pathHasParams(route spec.Route) bool {
 		return false
 	}
 
-	return len(ds.Members) != len(ds.GetBodyMembers())
+	return len(ds.Members) != (len(ds.GetBodyMembers()) + len(ds.GetTagMembers(headerTagKey)) + len(ds.GetTagMembers(pathTagKey)))
 }
 
 func hasRequestBody(route spec.Route) bool {
