@@ -66,6 +66,8 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 			"expressionValues":      strings.Join(expressionValues, ", "),
 			"keys":                  strings.Join(keys, "\n"),
 			"keyValues":             strings.Join(keyVars, ", "),
+			"upperPrimaryKey":       util.SafeString(table.PrimaryKey.Field.Name.ToCamel()),
+			"withGetLastInsertId":   table.PrimaryKey.AutoIncrement && table.PrimaryKey.DataType == "uint64",
 			"data":                  table,
 		})
 	if err != nil {
@@ -80,6 +82,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 
 	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]any{
 		"upperStartCamelObject": camel,
+		"withGetLastInsertId":   table.PrimaryKey.AutoIncrement && table.PrimaryKey.DataType == "uint64",
 		"data":                  table,
 	})
 	if err != nil {

@@ -1,1 +1,2 @@
 Insert(ctx context.Context, data *{{.upperStartCamelObject}}) (sql.Result,error)
+{{if .withGetLastInsertId}}InsertGetLastInsertId(ctx context.Context, data *{{.upperStartCamelObject}}) (sql.Result,error){{end}}
