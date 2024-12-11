@@ -98,6 +98,35 @@ func Test_getRealModule(t *testing.T) {
 				GoVersion: "go1.20",
 			},
 		},
+		{
+			name: "go work duplicate prefix",
+			args: args{
+				workDir: "D:\\code\\company\\core-ee\\service",
+				execRun: func(arg, dir string, in ...*bytes.Buffer) (string, error) {
+					return `
+					{
+						"Path": "gitee.com/unitedrhino/core",
+						"Main": true,
+						"Dir": "D:\\code\\company\\core",
+						"GoMod": "D:\\code\\company\\core\\go.mod",
+						"GoVersion": "1.21.4"
+					}
+					{
+						"Path": "gitee.com/unitedrhino/core-ee",
+						"Main": true,
+						"Dir": "D:\\code\\company\\core-ee",
+						"GoMod": "D:\\code\\company\\core-ee\\go.mod",
+						"GoVersion": "1.21.4"
+					}`, nil
+				},
+			},
+			want: &Module{
+				Path:      "gitee.com/unitedrhino/core-ee",
+				Dir:       "D:\\code\\company\\core-ee",
+				GoMod:     "D:\\code\\company\\core-ee\\go.mod",
+				GoVersion: "go1.19",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

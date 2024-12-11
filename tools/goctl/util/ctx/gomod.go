@@ -88,7 +88,7 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to read go.mod, dir: %s, error: %w", m.Dir, err)
 		}
-
+		realDir += string(os.PathSeparator)
 		if strings.HasPrefix(workDir, realDir) {
 			return &m, nil
 		}
