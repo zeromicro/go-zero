@@ -116,7 +116,7 @@ func writeClient(dir string, ns string, api *spec.ApiSpec) error {
 				writeIndent(f, 8)
 				fmt.Fprint(f, "return $response;\n")
 			} else {
-				fmt.Fprint(f, "return null;\n")
+				fmt.Fprint(f, "return $result;\n")
 			}
 
 			writeIndent(f, 4)
