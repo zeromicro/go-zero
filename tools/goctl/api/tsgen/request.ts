@@ -77,7 +77,11 @@ export async function request(
         },
     });
 
-    return response.json();
+    if (response.headers.get('Content-Type') == 'application/json') {
+        return response.json();
+    } else {
+        return response.text();
+    }
 }
 
 function api<T>(

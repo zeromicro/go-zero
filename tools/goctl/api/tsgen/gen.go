@@ -22,6 +22,10 @@ var (
 	VarStringCaller string
 	// VarBoolUnWrap describes whether wrap or not.
 	VarBoolUnWrap bool
+	// VarStringUrlPrefix request url prefix
+	VarStringUrlPrefix string
+	// VarBoolCustomBody request custom body
+	VarBoolCustomBody bool
 )
 
 // TsCommand provides the entry to generate typescript codes
