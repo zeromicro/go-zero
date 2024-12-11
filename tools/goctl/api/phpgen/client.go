@@ -58,18 +58,22 @@ func writeClient(dir string, ns string, api *spec.ApiSpec) error {
 	fmt.Fprintf(f, "class %sClient extends ApiBaseClient {\n", name)
 
 	for _, g := range api.Service.Groups {
+		prefix := g.GetAnnotation("prefix")
+		p := camelCase(prefix, true)
+
 		// 路由
 		for _, r := range g.Routes {
 			an := camelCase(r.Path, true)
+
 			writeIndent(f, 4)
-			fmt.Fprintf(f, "public function %s%s(", strings.ToLower(r.Method), an)
+			fmt.Fprintf(f, "public function %s%s%s(", strings.ToLower(r.Method), p, an)
 			if r.RequestType != nil {
 				fmt.Fprint(f, "$request")
 			}
 			fmt.Fprintln(f, ") {")
 
 			writeIndent(f, 8)
-			fmt.Fprintf(f, "$result = $this->request('%s', '%s',", r.Path, strings.ToLower(r.Method))
+			fmt.Fprintf(f, "$result = $this->request('%s%s', '%s',", prefix, r.Path, strings.ToLower(r.Method))
 
 			if r.RequestType != nil {
 				params := []string{}

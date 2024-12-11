@@ -89,7 +89,10 @@ class ApiBaseClient
         // 3. 执行一个cURL会话并且获取相关回复
         curl_setopt($ch, CURLINFO_HEADER_OUT, true);
         $response = curl_exec($ch);
-        // $http_code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($response === false) {
+            $error = curl_error($ch);
+            throw new ApiException("curl exec failed.".var_export($error, true), -1);
+        }
 
         // 4. 释放cURL句柄,关闭一个cURL会话
         curl_close($ch);
@@ -99,10 +102,6 @@ class ApiBaseClient
 
     private static function parseResponse($response)
     {
-        if ($response === false) {
-            throw new ApiException("curl exec failed.", -1);
-        }
-
         $statusEnd = strpos($response, "\r\n");
         $status = substr($response, 0, $statusEnd);
         $status = explode(' ', $status, 3);
@@ -118,7 +117,7 @@ class ApiBaseClient
         $headers = [];
         foreach ($header as $row) {
             $kw = explode(':', $row, 2);
-            $headers[strtolower($kw[0])] = $kw[1];
+            $headers[strtolower($kw[0])] = $kw[1] ?? null;
         }
 
         $body = json_decode(substr($response, $headerEnd + 4), true);
