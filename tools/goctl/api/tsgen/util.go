@@ -26,12 +26,15 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	}
 
 	optionalTag := ""
-	if member.IsOptional() || member.IsOmitEmpty() {
+	if member.IsOptionalOrOmitEmpty() {
 		optionalTag = "?"
 	}
 	name, err := member.GetPropertyName()
 	if err != nil {
 		return err
+	}
+	if strings.Contains(name, "-") {
+		name = fmt.Sprintf("\"%s\"", name)
 	}
 
 	comment := member.GetComment()
@@ -150,7 +153,7 @@ func primitiveType(tp string) (string, bool) {
 }
 
 func writeType(writer io.Writer, tp spec.Type) error {
-	fmt.Fprintf(writer, "export interface %s {\n", util.Title(tp.Name()))
+	fmt.Fprintf(writer, "export type %s = {\n", util.Title(tp.Name()))
 	if err := writeMembers(writer, tp, false, 1); err != nil {
 		return err
 	}
@@ -170,14 +173,16 @@ func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 		return nil
 	}
 
-	fmt.Fprintf(writer, "export interface %sParams {\n", util.Title(tp.Name()))
-	if err := writeTagMembers(writer, tp, formTagKey); err != nil {
-		return err
+	if len(definedType.GetTagMembers(formTagKey)) > 0 {
+		fmt.Fprintf(writer, "export type %sParams = {\n", util.Title(tp.Name()))
+		if err := writeTagMembers(writer, tp, formTagKey); err != nil {
+			return err
+		}
+		fmt.Fprintf(writer, "}\n")
 	}
-	fmt.Fprintf(writer, "}\n")
 
 	if len(definedType.GetTagMembers(headerTagKey)) > 0 {
-		fmt.Fprintf(writer, "export interface %sHeaders {\n", util.Title(tp.Name()))
+		fmt.Fprintf(writer, "export type %sHeaders = {\n", util.Title(tp.Name()))
 		if err := writeTagMembers(writer, tp, headerTagKey); err != nil {
 			return err
 		}
