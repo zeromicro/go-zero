@@ -91,7 +91,7 @@ class ApiBaseClient
         $response = curl_exec($ch);
         if ($response === false) {
             $error = curl_error($ch);
-            throw new ApiException("curl exec failed.".var_export($error, true), -1);
+            throw new ApiException("curl exec failed." . var_export($error, true), -1);
         }
 
         // 4. 释放cURL句柄,关闭一个cURL会话
@@ -107,7 +107,7 @@ class ApiBaseClient
         $status = explode(' ', $status, 3);
         $statusCode = intval($status[1] ?? 0);
 
-        if ($status < 200 && $status > 299) {
+        if ($statusCode < 200 || $statusCode > 299) {
             throw new ApiException("response failed.", -2, null, $response);
         }
 
