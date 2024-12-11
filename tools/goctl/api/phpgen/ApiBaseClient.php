@@ -68,7 +68,7 @@ class ApiBaseClient
         if ($method == 'post') {
             curl_setopt($ch, CURLOPT_POST, true);
         } else {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
         }
 
         // body
