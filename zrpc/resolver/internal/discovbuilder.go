@@ -38,7 +38,7 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ 
 	sub.AddListener(update)
 	update()
 
-	return &nopResolver{cc: cc}, nil
+	return &nopResolver{cc: cc, closeFunc: func() { sub.Close() }}, nil
 }
 
 func (b *discovBuilder) Scheme() string {
