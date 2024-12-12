@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -57,6 +58,17 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, exa
 	}
 
 	return c.monitor(key, l, exactMatch)
+}
+
+// Unmonitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
+func (r *Registry) Unmonitor(endpoints []string, key string, l UpdateListener) {
+	c, exists := r.getCluster(endpoints)
+	// if not exists, return.
+	if !exists {
+		return
+	}
+
+	c.unmonitor(key, l)
 }
 
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
@@ -271,6 +283,14 @@ func (c *cluster) monitor(key string, l UpdateListener, exactMatch bool) error {
 	})
 
 	return nil
+}
+
+func (c *cluster) unmonitor(key string, l UpdateListener) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.listeners[key] = slices.DeleteFunc(c.listeners[key], func(listener UpdateListener) bool {
+		return l == listener
+	})
 }
 
 func (c *cluster) newClient() (EtcdClient, error) {
