@@ -60,7 +60,7 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, exa
 	return c.monitor(key, l, exactMatch)
 }
 
-// Unmonitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
+// Unmonitor cancel monitoring of given endpoints and keys, and remove the listener.
 func (r *Registry) Unmonitor(endpoints []string, key string, l UpdateListener) {
 	c, exists := r.getCluster(endpoints)
 	// if not exists, return.
