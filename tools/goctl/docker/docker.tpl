@@ -14,8 +14,8 @@ ADD go.mod .
 ADD go.sum .
 RUN go mod download
 COPY . .
-{{if .Argument}}COPY {{.GoRelPath}}/etc /app/etc
-{{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoMainFrom}}
+
+RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoMainFrom}}
 
 
 FROM {{.BaseImage}}
@@ -25,8 +25,10 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 ENV TZ {{.Timezone}}
 {{end}}
 WORKDIR /app
-COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}{{if .Argument}}
-COPY --from=builder /app/etc /app/etc{{end}}
+COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}
+{{if .Argument}}COPY {{.GoRelPath}}/etc /app/etc
+{{end}}
+
 {{if .HasPort}}
 EXPOSE {{.Port}}
 {{end}}
