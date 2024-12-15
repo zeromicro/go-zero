@@ -3,9 +3,13 @@ package httpx
 import (
 	"errors"
 	"net/http"
+	"strings"
 )
 
-const xForwardedFor = "X-Forwarded-For"
+const (
+	xForwardedFor = "X-Forwarded-For"
+	arraySuffix   = "[]"
+)
 
 // GetFormValues returns the form values.
 func GetFormValues(r *http.Request) (map[string]any, error) {
@@ -29,6 +33,9 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 		}
 
 		if len(filtered) > 0 {
+			if strings.HasSuffix(name, arraySuffix) {
+				name = name[:len(name)-2]
+			}
 			params[name] = filtered
 		}
 	}

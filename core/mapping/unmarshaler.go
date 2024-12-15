@@ -179,6 +179,17 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return nil
 	}
 
+	if refValue.Len() == 1 {
+		element := refValue.Index(0)
+		if element.Kind() == reflect.String {
+			if val, ok := element.Interface().(string); ok {
+				if val[0] == '[' && val[len(val)-1] == ']' {
+					return u.fillSliceFromString(fieldType, value, val, fullName)
+				}
+			}
+		}
+	}
+
 	var valid bool
 	for i := 0; i < refValue.Len(); i++ {
 		ithValue := refValue.Index(i).Interface()
