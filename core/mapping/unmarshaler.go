@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	comma            = ","
 	defaultKeyName   = "key"
 	delimiter        = '.'
 	ignoreKey        = "-"
@@ -36,6 +37,7 @@ var (
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
+	stringSliceType     = reflect.TypeOf([]string{})
 )
 
 type (
@@ -173,9 +175,8 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	baseType := fieldType.Elem()
 	dereffedBaseType := Deref(baseType)
 	dereffedBaseKind := dereffedBaseType.Kind()
-	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 	if refValue.Len() == 0 {
-		value.Set(conv)
+		value.Set(reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
 		return nil
 	}
 
@@ -183,13 +184,19 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		element := refValue.Index(0)
 		if element.Kind() == reflect.String {
 			if val, ok := element.Interface().(string); ok {
-				if val[0] == '[' && val[len(val)-1] == ']' {
-					return u.fillSliceFromString(fieldType, value, val, fullName)
+				splits := strings.Split(val, comma)
+				splitsLen := len(splits)
+				if splitsLen > 1 {
+					refValue = reflect.MakeSlice(stringSliceType, splitsLen, splitsLen)
+					for i, split := range splits {
+						refValue.Index(i).Set(reflect.ValueOf(split))
+					}
 				}
 			}
 		}
 	}
 
+	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 	var valid bool
 	for i := 0; i < refValue.Len(); i++ {
 		ithValue := refValue.Index(i).Interface()
