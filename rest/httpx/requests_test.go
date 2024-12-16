@@ -125,7 +125,7 @@ func TestParseFormArray(t *testing.T) {
 
 		r, err := http.NewRequest(
 			http.MethodGet,
-			"/a?names=[1,2,3]",
+			"/a?names=1,2,3",
 			http.NoBody)
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
@@ -150,16 +150,16 @@ func TestParseFormArray(t *testing.T) {
 
 	t.Run("slice with one value on array format no brackets", func(t *testing.T) {
 		var v struct {
-			Names []string `form:"names"`
+			Numbers []int `form:"numbers"`
 		}
 
 		r, err := http.NewRequest(
 			http.MethodGet,
-			"/a?names=1,2,3",
+			"/a?numbers=1,2,3",
 			http.NoBody)
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []string{"1,2,3"}, v.Names)
+			assert.ElementsMatch(t, []int{1, 2, 3}, v.Numbers)
 		}
 	})
 
