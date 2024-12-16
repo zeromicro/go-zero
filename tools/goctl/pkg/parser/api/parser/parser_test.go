@@ -305,6 +305,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"prefix3:":    "v1/v2_",
 			"prefix4:":    "a-b-c",
 			"summary:":    `"test"`,
+			"key:":    `"bar"`,
 		}
 
 		p := New("foo.api", atServerTestAPI)
