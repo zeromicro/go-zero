@@ -318,8 +318,8 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 }
 
 func (u *Unmarshaler) fillStructElement(baseType reflect.Type, target reflect.Value,
-	ithValue any, fullName string) error {
-	val, ok := ithValue.(map[string]any)
+	value any, fullName string) error {
+	val, ok := value.(map[string]any)
 	if !ok {
 		return errTypeMismatch
 	}
