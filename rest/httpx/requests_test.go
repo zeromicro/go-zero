@@ -148,7 +148,7 @@ func TestParseFormArray(t *testing.T) {
 		}
 	})
 
-	t.Run("slice with one value on array format no brackets", func(t *testing.T) {
+	t.Run("slice with one value on integer array format", func(t *testing.T) {
 		var v struct {
 			Numbers []int `form:"numbers"`
 		}

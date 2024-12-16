@@ -185,19 +185,16 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		if element.Kind() == reflect.String {
 			if val, ok := element.Interface().(string); ok {
 				splits := strings.Split(val, comma)
-				splitsLen := len(splits)
-				if splitsLen > 1 {
-					refValue = reflect.MakeSlice(stringSliceType, splitsLen, splitsLen)
-					for i, split := range splits {
-						refValue.Index(i).Set(reflect.ValueOf(split))
-					}
+				if len(splits) > 1 {
+					refValue = makeStringSlice(splits)
 				}
 			}
 		}
 	}
 
-	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 	var valid bool
+	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
+
 	for i := 0; i < refValue.Len(); i++ {
 		ithValue := refValue.Index(i).Interface()
 		if ithValue == nil {
@@ -209,17 +206,9 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 
 		switch dereffedBaseKind {
 		case reflect.Struct:
-			target := reflect.New(dereffedBaseType)
-			val, ok := ithValue.(map[string]any)
-			if !ok {
-				return errTypeMismatch
-			}
-
-			if err := u.unmarshal(val, target.Interface(), sliceFullName); err != nil {
+			if err := u.fillStructElement(dereffedBaseType, conv.Index(i), ithValue, sliceFullName); err != nil {
 				return err
 			}
-
-			SetValue(fieldType.Elem(), conv.Index(i), target.Elem())
 		case reflect.Slice:
 			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue, sliceFullName); err != nil {
 				return err
@@ -326,6 +315,22 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 	}
 
 	return u.fillSlice(derefedType, value, slice, fullName)
+}
+
+func (u *Unmarshaler) fillStructElement(baseType reflect.Type, target reflect.Value,
+	ithValue any, fullName string) error {
+	val, ok := ithValue.(map[string]any)
+	if !ok {
+		return errTypeMismatch
+	}
+
+	ptr := reflect.New(baseType)
+	if err := u.unmarshal(val, ptr.Interface(), fullName); err != nil {
+		return err
+	}
+
+	SetValue(baseType, target, ptr.Elem())
+	return nil
 }
 
 func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
@@ -454,6 +459,15 @@ func (u *Unmarshaler) implementsUnmarshaler(t reflect.Type) bool {
 	default:
 		return false
 	}
+}
+
+func makeStringSlice(vals []string) reflect.Value {
+	slice := reflect.MakeSlice(stringSliceType, len(vals), len(vals))
+	for i, split := range vals {
+		slice.Index(i).Set(reflect.ValueOf(split))
+	}
+
+	return slice
 }
 
 func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Valuer, fullName string) (
