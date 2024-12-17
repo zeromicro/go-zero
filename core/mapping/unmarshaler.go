@@ -180,16 +180,8 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return nil
 	}
 
-	if refValue.Len() == 1 {
-		element := refValue.Index(0)
-		if element.Kind() == reflect.String {
-			if val, ok := element.Interface().(string); ok {
-				splits := strings.Split(val, comma)
-				if len(splits) > 1 {
-					refValue = makeStringSlice(splits)
-				}
-			}
-		}
+	if u.opts.fromArray {
+		refValue = makeStringSlice(refValue)
 	}
 
 	var valid bool
@@ -459,15 +451,6 @@ func (u *Unmarshaler) implementsUnmarshaler(t reflect.Type) bool {
 	default:
 		return false
 	}
-}
-
-func makeStringSlice(vals []string) reflect.Value {
-	slice := reflect.MakeSlice(stringSliceType, len(vals), len(vals))
-	for i, split := range vals {
-		slice.Index(i).Set(reflect.ValueOf(split))
-	}
-
-	return slice
 }
 
 func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Valuer, fullName string) (
@@ -1176,6 +1159,34 @@ func join(elem ...string) string {
 	}
 
 	return builder.String()
+}
+
+func makeStringSlice(refValue reflect.Value) reflect.Value {
+	if refValue.Len() != 1 {
+		return refValue
+	}
+
+	element := refValue.Index(0)
+	if element.Kind() != reflect.String {
+		return refValue
+	}
+
+	val, ok := element.Interface().(string)
+	if !ok {
+		return refValue
+	}
+
+	splits := strings.Split(val, comma)
+	if len(splits) <= 1 {
+		return refValue
+	}
+
+	slice := reflect.MakeSlice(stringSliceType, len(splits), len(splits))
+	for i, split := range splits {
+		slice.Index(i).Set(reflect.ValueOf(split))
+	}
+
+	return slice
 }
 
 func newInitError(name string) error {
