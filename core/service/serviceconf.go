@@ -37,6 +37,7 @@ type (
 		Prometheus prometheus.Config `json:",optional"`
 		Telemetry  trace.Config      `json:",optional"`
 		DevServer  DevServerConfig   `json:",optional"`
+		Proc       proc.ProcConf     `json:",optional"`
 	}
 )
 
@@ -61,6 +62,7 @@ func (sc ServiceConf) SetUp() error {
 		sc.Telemetry.Name = sc.Name
 	}
 	trace.StartAgent(sc.Telemetry)
+	proc.Setup(sc.Proc)
 	proc.AddShutdownListener(func() {
 		trace.StopAgent()
 	})
