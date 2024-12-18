@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/chain"
@@ -132,6 +133,16 @@ func TestWithMaxBytes(t *testing.T) {
 	var fr featuredRoutes
 	WithMaxBytes(maxBytes)(&fr)
 	assert.Equal(t, int64(maxBytes), fr.maxBytes)
+}
+
+func TestWithMetricReqDurBuckets(t *testing.T) {
+	const (
+		bucket1 = 0.1
+		bucket2 = 0.5
+	)
+	var fr featuredRoutes
+	WithMetricsReqDurBuckets([]float64{bucket1, bucket2})(&fr)
+	assert.Equal(t, []float64{bucket1, bucket2}, fr.metricReqDurBuckets)
 }
 
 func TestWithMiddleware(t *testing.T) {
