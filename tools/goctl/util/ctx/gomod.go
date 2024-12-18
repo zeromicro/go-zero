@@ -82,7 +82,9 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if workDir[len(workDir)-1] != os.PathSeparator {
+		workDir = workDir + string(os.PathSeparator)
+	}
 	for _, m := range modules {
 		realDir, err := pathx.ReadLink(m.Dir)
 		if err != nil {
