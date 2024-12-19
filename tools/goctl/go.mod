@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/emicklei/proto v1.13.4
+	github.com/emicklei/proto v1.14.0
 	github.com/fatih/structtag v1.2.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gookit/color v1.5.4
