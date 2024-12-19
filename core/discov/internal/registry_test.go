@@ -292,6 +292,31 @@ func TestRegistry_Monitor(t *testing.T) {
 	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", new(mockListener), false))
 }
 
+func TestRegistry_Unmonitor(t *testing.T) {
+	svr, err := mockserver.StartMockServers(1)
+	assert.NoError(t, err)
+	svr.StartAt(0)
+
+	endpoints := []string{svr.Servers[0].Address}
+	GetRegistry().lock.Lock()
+	GetRegistry().clusters = map[string]*cluster{
+		getClusterKey(endpoints): {
+			listeners: map[string][]UpdateListener{},
+			values: map[string]map[string]string{
+				"foo": {
+					"bar": "baz",
+				},
+			},
+		},
+	}
+	GetRegistry().lock.Unlock()
+	l := new(mockListener)
+	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", l, false))
+	assert.Equal(t, 1, len(GetRegistry().clusters[getClusterKey(endpoints)].listeners["foo"]))
+	GetRegistry().Unmonitor(endpoints, "foo", l)
+	assert.Equal(t, 0, len(GetRegistry().clusters[getClusterKey(endpoints)].listeners["foo"]))
+}
+
 type mockListener struct {
 }
 
