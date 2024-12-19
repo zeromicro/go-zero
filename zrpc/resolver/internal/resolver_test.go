@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/zeromicro/go-zero/core/discov"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,16 @@ func TestNopResolver(t *testing.T) {
 		// make sure ResolveNow & Close don't panic
 		var r nopResolver
 		r.ResolveNow(resolver.ResolveNowOptions{})
+		r.Close()
+	})
+}
+
+func TestNopResolverClose(t *testing.T) {
+	assert.NotPanics(t, func() {
+		sub := &discov.Subscriber{}
+		r := nopResolver{
+			closeFunc: sub.Close,
+		}
 		r.Close()
 	})
 }

@@ -156,7 +156,7 @@ func TestCluster_Watch(t *testing.T) {
 			defer restore()
 			ch := make(chan clientv3.WatchResponse)
 			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch)
-			cli.EXPECT().Ctx().Return(context.Background())
+			//cli.EXPECT().Ctx().Return(context.Background())
 			var wg sync.WaitGroup
 			wg.Add(1)
 			c := &cluster{
@@ -173,7 +173,7 @@ func TestCluster_Watch(t *testing.T) {
 			listener.EXPECT().OnDelete(gomock.Any()).Do(func(_ any) {
 				wg.Done()
 			}).MaxTimes(1)
-			go c.watch(cli, "any", 0)
+			go c.watch(cli, "any", 0, context.Background())
 			ch <- clientv3.WatchResponse{
 				Events: []*clientv3.Event{
 					{
@@ -217,7 +217,7 @@ func TestClusterWatch_RespFailures(t *testing.T) {
 				ch <- resp
 				close(c.done)
 			}()
-			c.watch(cli, "any", 0)
+			c.watch(cli, "any", 0, context.Background())
 		})
 	}
 }
@@ -237,7 +237,26 @@ func TestClusterWatch_CloseChan(t *testing.T) {
 		close(ch)
 		close(c.done)
 	}()
-	c.watch(cli, "any", 0)
+	c.watch(cli, "any", 0, context.Background())
+}
+
+func TestClusterWatch_CtxCancel(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	cli := NewMockEtcdClient(ctrl)
+	restore := setMockClient(cli)
+	defer restore()
+	ch := make(chan clientv3.WatchResponse)
+	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	c := new(cluster)
+	c.done = make(chan lang.PlaceholderType)
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	go func() {
+		cancelFunc()
+		close(ch)
+	}()
+	c.watch(cli, "any", 0, ctx)
 }
 
 func TestValueOnlyContext(t *testing.T) {
@@ -290,6 +309,30 @@ func TestRegistry_Monitor(t *testing.T) {
 	}
 	GetRegistry().lock.Unlock()
 	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", new(mockListener), false))
+}
+
+func TestRegistry_UnMonitor(t *testing.T) {
+	svr, err := mockserver.StartMockServers(1)
+	assert.NoError(t, err)
+	svr.StartAt(0)
+
+	endpoints := []string{svr.Servers[0].Address}
+	l := new(mockListener)
+	GetRegistry().lock.Lock()
+	GetRegistry().clusters = map[string]*cluster{
+		getClusterKey(endpoints): {
+			listeners: map[string][]UpdateListener{"foo": {l}},
+			values: map[string]map[string]string{
+				"foo": {
+					"bar": "baz",
+				},
+			},
+			watchFlag: map[string]bool{"foo": true},
+			watchCtx:  map[string]context.CancelFunc{"foo": func() {}},
+		},
+	}
+	GetRegistry().lock.Unlock()
+	GetRegistry().UnMonitor(endpoints, "foo", l)
 }
 
 type mockListener struct {
