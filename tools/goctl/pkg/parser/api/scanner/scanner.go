@@ -29,8 +29,6 @@ const (
 	// string mode end
 )
 
-var missingInput = errors.New("missing input")
-
 type mode int
 
 // Scanner is a lexical scanner.
@@ -629,7 +627,7 @@ func NewScanner(filename string, src interface{}) (*Scanner, error) {
 	}
 
 	if len(data) == 0 {
-		return nil, missingInput
+		return nil, fmt.Errorf("filename: %s,missing input", filename)
 	}
 
 	var runeList []rune

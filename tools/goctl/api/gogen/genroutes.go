@@ -139,12 +139,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 				return err
 			}
 
-			// why we check this, maybe some users set value 1, it's 1ns, not 1s.
-			if duration < timeoutThreshold {
-				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
-			}
-
-			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration.Milliseconds())
+			timeout = fmt.Sprintf("\n rest.WithTimeout(%s),", formatDuration(duration))
 			hasTimeout = true
 		}
 
@@ -209,6 +204,16 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"version":         version.BuildVersion,
 		},
 	})
+}
+
+func formatDuration(duration time.Duration) string {
+	if duration < time.Microsecond {
+		return fmt.Sprintf("%d * time.Nanosecond", duration.Nanoseconds())
+	}
+	if duration < time.Millisecond {
+		return fmt.Sprintf("%d * time.Microsecond", duration.Microseconds())
+	}
+	return fmt.Sprintf("%d * time.Millisecond", duration.Milliseconds())
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
