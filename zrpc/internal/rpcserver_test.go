@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"net"
 	"sync"
 	"testing"
 	"time"
@@ -17,10 +18,25 @@ func TestRpcServer(t *testing.T) {
 	var wg, wgDone sync.WaitGroup
 	var grpcServer *grpc.Server
 	var lock sync.Mutex
-	wg.Add(1)
-	wgDone.Add(1)
+	wg.Add(2)
+	wgDone.Add(2)
 	go func() {
 		err := server.Start(func(server *grpc.Server) {
+			lock.Lock()
+			mock.RegisterDepositServiceServer(server, new(mock.DepositServer))
+			grpcServer = server
+			lock.Unlock()
+			wg.Done()
+		})
+		assert.Nil(t, err)
+		wgDone.Done()
+	}()
+
+	go func() {
+		listener, err := net.Listen("tcp", "localhost:54322")
+		assert.Nil(t, err)
+		serverWithListener := NewRpcServer(listener.Addr().String(), WithRpcHealth(true))
+		err = serverWithListener.StartWithListener(listener, func(server *grpc.Server) {
 			lock.Lock()
 			mock.RegisterDepositServiceServer(server, new(mock.DepositServer))
 			grpcServer = server
