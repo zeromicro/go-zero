@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	comma            = ","
 	defaultKeyName   = "key"
 	delimiter        = '.'
 	ignoreKey        = "-"
@@ -36,6 +37,7 @@ var (
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
+	stringSliceType     = reflect.TypeOf([]string{})
 )
 
 type (
@@ -173,13 +175,18 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	baseType := fieldType.Elem()
 	dereffedBaseType := Deref(baseType)
 	dereffedBaseKind := dereffedBaseType.Kind()
-	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 	if refValue.Len() == 0 {
-		value.Set(conv)
+		value.Set(reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
 		return nil
 	}
 
+	if u.opts.fromArray {
+		refValue = makeStringSlice(refValue)
+	}
+
 	var valid bool
+	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
+
 	for i := 0; i < refValue.Len(); i++ {
 		ithValue := refValue.Index(i).Interface()
 		if ithValue == nil {
@@ -191,17 +198,9 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 
 		switch dereffedBaseKind {
 		case reflect.Struct:
-			target := reflect.New(dereffedBaseType)
-			val, ok := ithValue.(map[string]any)
-			if !ok {
-				return errTypeMismatch
-			}
-
-			if err := u.unmarshal(val, target.Interface(), sliceFullName); err != nil {
+			if err := u.fillStructElement(baseType, conv.Index(i), ithValue, sliceFullName); err != nil {
 				return err
 			}
-
-			SetValue(fieldType.Elem(), conv.Index(i), target.Elem())
 		case reflect.Slice:
 			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue, sliceFullName); err != nil {
 				return err
@@ -308,6 +307,23 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 	}
 
 	return u.fillSlice(derefedType, value, slice, fullName)
+}
+
+func (u *Unmarshaler) fillStructElement(baseType reflect.Type, target reflect.Value,
+	value any, fullName string) error {
+	val, ok := value.(map[string]any)
+	if !ok {
+		return errTypeMismatch
+	}
+
+	// use Deref(baseType) to get the base type in case the type is a pointer type.
+	ptr := reflect.New(Deref(baseType))
+	if err := u.unmarshal(val, ptr.Interface(), fullName); err != nil {
+		return err
+	}
+
+	SetValue(baseType, target, ptr.Elem())
+	return nil
 }
 
 func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
@@ -1144,6 +1160,34 @@ func join(elem ...string) string {
 	}
 
 	return builder.String()
+}
+
+func makeStringSlice(refValue reflect.Value) reflect.Value {
+	if refValue.Len() != 1 {
+		return refValue
+	}
+
+	element := refValue.Index(0)
+	if element.Kind() != reflect.String {
+		return refValue
+	}
+
+	val, ok := element.Interface().(string)
+	if !ok {
+		return refValue
+	}
+
+	splits := strings.Split(val, comma)
+	if len(splits) <= 1 {
+		return refValue
+	}
+
+	slice := reflect.MakeSlice(stringSliceType, len(splits), len(splits))
+	for i, split := range splits {
+		slice.Index(i).Set(reflect.ValueOf(split))
+	}
+
+	return slice
 }
 
 func newInitError(name string) error {
