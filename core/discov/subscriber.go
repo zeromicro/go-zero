@@ -18,6 +18,7 @@ type (
 		endpoints  []string
 		exclusive  bool
 		exactMatch bool
+		key        string
 		items      *container
 	}
 )
@@ -29,6 +30,7 @@ type (
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
 	sub := &Subscriber{
 		endpoints: endpoints,
+		key:       key,
 	}
 	for _, opt := range opts {
 		opt(sub)
@@ -50,6 +52,11 @@ func (s *Subscriber) AddListener(listener func()) {
 // Values returns all the subscription values.
 func (s *Subscriber) Values() []string {
 	return s.items.getValues()
+}
+
+// Close the subscriber created watch goroutine and remove listener
+func (s *Subscriber) Close() {
+	internal.GetRegistry().UnMonitor(s.endpoints, s.key, s.items)
 }
 
 // Exclusive means that key value can only be 1:1,
