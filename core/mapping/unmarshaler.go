@@ -198,7 +198,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 
 		switch dereffedBaseKind {
 		case reflect.Struct:
-			if err := u.fillStructElement(dereffedBaseType, conv.Index(i), ithValue, sliceFullName); err != nil {
+			if err := u.fillStructElement(baseType, conv.Index(i), ithValue, sliceFullName); err != nil {
 				return err
 			}
 		case reflect.Slice:
@@ -316,7 +316,8 @@ func (u *Unmarshaler) fillStructElement(baseType reflect.Type, target reflect.Va
 		return errTypeMismatch
 	}
 
-	ptr := reflect.New(baseType)
+	// use Deref(baseType) to get the base type in case the type is a pointer type.
+	ptr := reflect.New(Deref(baseType))
 	if err := u.unmarshal(val, ptr.Interface(), fullName); err != nil {
 		return err
 	}
