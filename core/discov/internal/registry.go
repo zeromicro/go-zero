@@ -59,6 +59,15 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, exa
 	return c.monitor(key, l, exactMatch)
 }
 
+func (r *Registry) UnMonitor(endpoints []string, key string, l UpdateListener) {
+	c, exists := r.getCluster(endpoints)
+	if !exists {
+		return
+	}
+
+	c.unMonitor(key, l)
+}
+
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 	clusterKey := getClusterKey(endpoints)
 	r.lock.RLock()
@@ -88,6 +97,8 @@ type cluster struct {
 	done       chan lang.PlaceholderType
 	lock       sync.RWMutex
 	exactMatch bool
+	watchCtx   map[string]context.CancelFunc
+	watchFlag  map[string]bool
 }
 
 func newCluster(endpoints []string) *cluster {
@@ -98,6 +109,8 @@ func newCluster(endpoints []string) *cluster {
 		listeners:  make(map[string][]UpdateListener),
 		watchGroup: threading.NewRoutineGroup(),
 		done:       make(chan lang.PlaceholderType),
+		watchCtx:   make(map[string]context.CancelFunc),
+		watchFlag:  make(map[string]bool),
 	}
 }
 
@@ -260,17 +273,46 @@ func (c *cluster) monitor(key string, l UpdateListener, exactMatch bool) error {
 	c.exactMatch = exactMatch
 	c.lock.Unlock()
 
-	cli, err := c.getClient()
-	if err != nil {
-		return err
+	if !c.watchFlag[key] {
+		cli, err := c.getClient()
+		if err != nil {
+			return err
+		}
+
+		ctx, cancel := context.WithCancel(cli.Ctx())
+		c.lock.Lock()
+		c.watchCtx[key] = cancel
+		c.watchFlag[key] = true
+		c.lock.Unlock()
+
+		rev := c.load(cli, key)
+		c.watchGroup.Run(func() {
+			c.watch(cli, key, rev, ctx)
+		})
 	}
 
-	rev := c.load(cli, key)
-	c.watchGroup.Run(func() {
-		c.watch(cli, key, rev)
-	})
-
 	return nil
+}
+
+func (c *cluster) unMonitor(key string, l UpdateListener) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	listeners := c.listeners[key]
+	for i, listener := range listeners {
+		if listener == l {
+			c.listeners[key] = append(listeners[:i], listeners[i+1:]...)
+			break
+		}
+	}
+
+	if len(c.listeners[key]) == 0 && c.watchFlag[key] {
+		if cancel, ok := c.watchCtx[key]; ok {
+			cancel()
+			delete(c.watchCtx, key)
+		}
+		c.watchFlag[key] = false
+	}
 }
 
 func (c *cluster) newClient() (EtcdClient, error) {
@@ -294,20 +336,30 @@ func (c *cluster) reload(cli EtcdClient) {
 	for k := range c.listeners {
 		keys = append(keys, k)
 	}
+	for _, cancel := range c.watchCtx {
+		cancel()
+	}
+	c.watchCtx = make(map[string]context.CancelFunc)
+	c.watchFlag = make(map[string]bool)
 	c.lock.Unlock()
 
 	for _, key := range keys {
 		k := key
 		c.watchGroup.Run(func() {
 			rev := c.load(cli, k)
-			c.watch(cli, k, rev)
+			ctx, cancel := context.WithCancel(cli.Ctx())
+			c.lock.Lock()
+			c.watchCtx[k] = cancel
+			c.watchFlag[k] = true
+			c.lock.Unlock()
+			c.watch(cli, k, rev, ctx)
 		})
 	}
 }
 
-func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
+func (c *cluster) watch(cli EtcdClient, key string, rev int64, ctx context.Context) {
 	for {
-		err := c.watchStream(cli, key, rev)
+		err := c.watchStream(cli, key, rev, ctx)
 		if err == nil {
 			return
 		}
@@ -322,7 +374,7 @@ func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 	}
 }
 
-func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
+func (c *cluster) watchStream(cli EtcdClient, key string, rev int64, ctx context.Context) error {
 	var (
 		rch      clientv3.WatchChan
 		ops      []clientv3.OpOption
@@ -336,7 +388,7 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 		ops = append(ops, clientv3.WithRev(rev+1))
 	}
 
-	rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), watchKey, ops...)
+	rch = cli.Watch(clientv3.WithRequireLeader(ctx), watchKey, ops...)
 
 	for {
 		select {
@@ -353,6 +405,8 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 
 			c.handleWatchEvents(key, wresp.Events)
 		case <-c.done:
+			return nil
+		case <-ctx.Done():
 			return nil
 		}
 	}
