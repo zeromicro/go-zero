@@ -160,7 +160,7 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 		r.Method, code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
 	if duration > slowThreshold.Load() {
 		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n", r.Method, code, r.RemoteAddr,
-			fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)), dumpRequest(r))
+			timex.ReprOfDuration(duration), dumpRequest(r))
 	}
 
 	body := logs.Flush()
