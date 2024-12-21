@@ -3,11 +3,18 @@ package httpx
 import (
 	"errors"
 	"net/http"
+	"strings"
 )
 
-const xForwardedFor = "X-Forwarded-For"
+const (
+	xForwardedFor = "X-Forwarded-For"
+	arraySuffix   = "[]"
+)
 
-// GetFormValues returns the form values.
+// GetFormValues returns the form values supporting three array notation formats:
+//  1. Standard notation: /api?names=alice&names=bob
+//  2. Comma notation: /api?names=alice,bob
+//  3. Bracket notation: /api?names[]=alice&names[]=bob
 func GetFormValues(r *http.Request) (map[string]any, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
@@ -23,12 +30,13 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 	for name, values := range r.Form {
 		filtered := make([]string, 0, len(values))
 		for _, v := range values {
-			if len(v) > 0 {
-				filtered = append(filtered, v)
-			}
+			filtered = append(filtered, v)
 		}
 
 		if len(filtered) > 0 {
+			if strings.HasSuffix(name, arraySuffix) {
+				name = name[:len(name)-2]
+			}
 			params[name] = filtered
 		}
 	}
