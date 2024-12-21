@@ -78,7 +78,11 @@ func genAPI(api *spec.ApiSpec, caller string) (string, error) {
 			if len(comment) > 0 {
 				fmt.Fprintf(&builder, "%s\n", comment)
 			}
-			fmt.Fprintf(&builder, "export function %s(%s) {\n", handler, paramsForRoute(route))
+			genericsType := ""
+			if VarBoolCustomBody {
+				genericsType = "<T>"
+			}
+			fmt.Fprintf(&builder, "export function %s%s(%s) {\n", handler, genericsType, paramsForRoute(route))
 			writeIndent(&builder, 1)
 			responseGeneric := "<null>"
 			if len(route.ResponseTypeName()) > 0 {
@@ -101,6 +105,9 @@ func genAPI(api *spec.ApiSpec, caller string) (string, error) {
 
 func paramsForRoute(route spec.Route) string {
 	if route.RequestType == nil {
+		if VarBoolCustomBody {
+			return "body?: T"
+		}
 		return ""
 	}
 	hasParams := pathHasParams(route)
@@ -141,6 +148,10 @@ func paramsForRoute(route spec.Route) string {
 			}
 		}
 	}
+
+	if VarBoolCustomBody {
+		params = append(params, "body?: T")
+	}
 	return strings.Join(params, ", ")
 }
 
@@ -173,13 +184,26 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 	var params = []string{pathForRoute(route, group)}
 	if hasParams {
 		params = append(params, "params")
+	} else {
+		params = append(params, "null")
 	}
+
+	configParams := []string{}
+
 	if hasBody {
-		params = append(params, "req")
+		if VarBoolCustomBody {
+			configParams = append(configParams, "body: JSON.stringify(body ?? req)")
+		} else {
+			configParams = append(configParams, "body: JSON.stringify(req)")
+		}
+	} else if VarBoolCustomBody {
+		configParams = append(configParams, "body: body ? JSON.stringify(body): null")
 	}
 	if hasHeader {
-		params = append(params, "headers")
+		configParams = append(configParams, "headers: headers")
 	}
+
+	params = append(params, fmt.Sprintf("{%s}", strings.Join(configParams, ", ")))
 
 	return strings.Join(params, ", ")
 }
@@ -198,12 +222,12 @@ func pathForRoute(route spec.Route, group spec.Group) string {
 		routePath = strings.Join(pathSlice, "/")
 	}
 	if len(prefix) == 0 {
-		return "`" + routePath + "`"
+		return "`" + VarStringUrlPrefix + routePath + "`"
 	}
 
 	prefix = strings.TrimPrefix(prefix, `"`)
 	prefix = strings.TrimSuffix(prefix, `"`)
-	return fmt.Sprintf("`%s/%s`", prefix, strings.TrimPrefix(routePath, "/"))
+	return fmt.Sprintf("`%s%s/%s`", VarStringUrlPrefix, prefix, strings.TrimPrefix(routePath, "/"))
 }
 
 func pathHasParams(route spec.Route) bool {
@@ -212,7 +236,7 @@ func pathHasParams(route spec.Route) bool {
 		return false
 	}
 
-	return len(ds.Members) != len(ds.GetBodyMembers())
+	return len(ds.Members) != (len(ds.GetBodyMembers()) + len(ds.GetTagMembers(headerTagKey)) + len(ds.GetTagMembers(pathTagKey)))
 }
 
 func hasRequestBody(route spec.Route) bool {
