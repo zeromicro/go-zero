@@ -156,12 +156,14 @@ func TestCluster_Watch(t *testing.T) {
 			defer restore()
 			ch := make(chan clientv3.WatchResponse)
 			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch)
-			//cli.EXPECT().Ctx().Return(context.Background())
+			cli.EXPECT().Ctx().Return(context.Background())
 			var wg sync.WaitGroup
 			wg.Add(1)
 			c := &cluster{
-				listeners: make(map[string][]UpdateListener),
 				values:    make(map[string]map[string]string),
+				listeners: make(map[string][]UpdateListener),
+				watchCtx:  make(map[string]context.CancelFunc),
+				watchFlag: make(map[string]bool),
 			}
 			listener := NewMockUpdateListener(ctrl)
 			c.listeners["any"] = []UpdateListener{listener}
@@ -173,7 +175,7 @@ func TestCluster_Watch(t *testing.T) {
 			listener.EXPECT().OnDelete(gomock.Any()).Do(func(_ any) {
 				wg.Done()
 			}).MaxTimes(1)
-			go c.watch(cli, "any", 0, context.Background())
+			go c.watch(cli, "any", 0)
 			ch <- clientv3.WatchResponse{
 				Events: []*clientv3.Event{
 					{
@@ -211,13 +213,13 @@ func TestClusterWatch_RespFailures(t *testing.T) {
 			ch := make(chan clientv3.WatchResponse)
 			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
 			cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
-			c := new(cluster)
+			c := newCluster([]string{})
 			c.done = make(chan lang.PlaceholderType)
 			go func() {
 				ch <- resp
 				close(c.done)
 			}()
-			c.watch(cli, "any", 0, context.Background())
+			c.watch(cli, "any", 0)
 		})
 	}
 }
@@ -231,13 +233,13 @@ func TestClusterWatch_CloseChan(t *testing.T) {
 	ch := make(chan clientv3.WatchResponse)
 	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
 	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
-	c := new(cluster)
+	c := newCluster([]string{})
 	c.done = make(chan lang.PlaceholderType)
 	go func() {
 		close(ch)
 		close(c.done)
 	}()
-	c.watch(cli, "any", 0, context.Background())
+	c.watch(cli, "any", 0)
 }
 
 func TestClusterWatch_CtxCancel(t *testing.T) {
@@ -248,15 +250,27 @@ func TestClusterWatch_CtxCancel(t *testing.T) {
 	defer restore()
 	ch := make(chan clientv3.WatchResponse)
 	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
-	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
-	c := new(cluster)
-	c.done = make(chan lang.PlaceholderType)
 	ctx, cancelFunc := context.WithCancel(context.Background())
+	cli.EXPECT().Ctx().Return(ctx).AnyTimes()
+	c := newCluster([]string{})
+	c.done = make(chan lang.PlaceholderType)
 	go func() {
 		cancelFunc()
 		close(ch)
 	}()
-	c.watch(cli, "any", 0, ctx)
+	c.watch(cli, "any", 0)
+}
+
+func TestCluster_ClearWatch(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	c := &cluster{
+		watchCtx:  map[string]context.CancelFunc{"foo": cancel},
+		watchFlag: map[string]bool{"foo": true},
+	}
+	c.clearWatch()
+	assert.Equal(t, ctx.Err(), context.Canceled)
+	assert.Equal(t, 0, len(c.watchCtx))
+	assert.Equal(t, 0, len(c.watchFlag))
 }
 
 func TestValueOnlyContext(t *testing.T) {
@@ -305,6 +319,8 @@ func TestRegistry_Monitor(t *testing.T) {
 					"bar": "baz",
 				},
 			},
+			watchCtx:  map[string]context.CancelFunc{},
+			watchFlag: map[string]bool{},
 		},
 	}
 	GetRegistry().lock.Unlock()
