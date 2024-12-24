@@ -59,45 +59,50 @@ func TestNewRedis(t *testing.T) {
 		{
 			name: "missing host",
 			RedisConf: RedisConf{
-				Host: "",
-				Type: NodeType,
-				Pass: "",
+				Host:     "",
+				Type:     NodeType,
+				Username: "",
+				Password: "",
 			},
 			ok: false,
 		},
 		{
 			name: "missing type",
 			RedisConf: RedisConf{
-				Host: "localhost:6379",
-				Type: "",
-				Pass: "",
+				Host:     "localhost:6379",
+				Type:     "",
+				Username: "",
+				Password: "",
 			},
 			ok: false,
 		},
 		{
 			name: "ok",
 			RedisConf: RedisConf{
-				Host: r1.Addr(),
-				Type: NodeType,
-				Pass: "",
+				Host:     r1.Addr(),
+				Type:     NodeType,
+				Username: "",
+				Password: "",
 			},
 			ok: true,
 		},
 		{
 			name: "ok",
 			RedisConf: RedisConf{
-				Host: r1.Addr(),
-				Type: ClusterType,
-				Pass: "",
+				Host:     r1.Addr(),
+				Type:     ClusterType,
+				Username: "",
+				Password: "",
 			},
 			ok: true,
 		},
 		{
 			name: "password",
 			RedisConf: RedisConf{
-				Host: r1.Addr(),
-				Type: NodeType,
-				Pass: "pw",
+				Host:     r1.Addr(),
+				Type:     NodeType,
+				Username: "user",
+				Password: "pw",
 			},
 			ok: true,
 		},
@@ -113,9 +118,10 @@ func TestNewRedis(t *testing.T) {
 		{
 			name: "node error",
 			RedisConf: RedisConf{
-				Host: r2.Addr(),
-				Type: NodeType,
-				Pass: "",
+				Host:     r2.Addr(),
+				Type:     NodeType,
+				Username: "",
+				Password: "",
 			},
 			ok:       true,
 			redisErr: true,
@@ -123,9 +129,10 @@ func TestNewRedis(t *testing.T) {
 		{
 			name: "cluster error",
 			RedisConf: RedisConf{
-				Host: r2.Addr(),
-				Type: ClusterType,
-				Pass: "",
+				Host:     r2.Addr(),
+				Type:     ClusterType,
+				Username: "",
+				Password: "",
 			},
 			ok:       true,
 			redisErr: true,
@@ -1996,9 +2003,16 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
-func TestRedis_WithPass(t *testing.T) {
+func TestRedis_WithUsername(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := newRedis(client.Addr, WithPass("any")).Ping()
+		err := newRedis(client.Addr, WithUsername("any")).Ping()
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedis_WithPassword(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		err := newRedis(client.Addr, WithPassword("any")).Ping()
 		assert.NotNil(t, err)
 	})
 }
