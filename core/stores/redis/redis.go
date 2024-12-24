@@ -53,12 +53,13 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr     string
+		Type     string
+		Username string
+		Password string
+		tls      bool
+		brk      breaker.Breaker
+		hooks    []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -126,8 +127,11 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	if conf.Type == ClusterType {
 		opts = append([]Option{Cluster()}, opts...)
 	}
-	if len(conf.Pass) > 0 {
-		opts = append([]Option{WithPass(conf.Pass)}, opts...)
+	if len(conf.Username) > 0 {
+		opts = append([]Option{WithUsername(conf.Username)}, opts...)
+	}
+	if len(conf.Password) > 0 {
+		opts = append([]Option{WithPassword(conf.Password)}, opts...)
 	}
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
@@ -2405,10 +2409,17 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
-// WithPass customizes the given Redis with given password.
-func WithPass(pass string) Option {
+// WithUsername customizes the given Redis with given username.
+func WithUsername(username string) Option {
 	return func(r *Redis) {
-		r.Pass = pass
+		r.Username = username
+	}
+}
+
+// WithPassword customizes the given Redis with given password.
+func WithPassword(pass string) Option {
+	return func(r *Redis) {
+		r.Password = pass
 	}
 }
 
