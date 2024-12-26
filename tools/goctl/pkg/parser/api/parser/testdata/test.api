@@ -129,6 +129,7 @@ service test {
 @server (
     jwt: Auth
     group: Group1
+    foo:"bar"
 )
 service test {
     @doc "ping"
