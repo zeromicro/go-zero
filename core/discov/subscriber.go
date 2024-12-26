@@ -15,9 +15,10 @@ type (
 
 	// A Subscriber is used to subscribe the given key on an etcd cluster.
 	Subscriber struct {
-		endpoints []string
-		exclusive bool
-		items     *container
+		endpoints  []string
+		exclusive  bool
+		exactMatch bool
+		items      *container
 	}
 )
 
@@ -34,7 +35,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	}
 	sub.items = newContainer(sub.exclusive)
 
-	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items); err != nil {
+	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items, sub.exactMatch); err != nil {
 		return nil, err
 	}
 
@@ -56,6 +57,13 @@ func (s *Subscriber) Values() []string {
 func Exclusive() SubOption {
 	return func(sub *Subscriber) {
 		sub.exclusive = true
+	}
+}
+
+// WithExactMatch turn off querying using key prefixes.
+func WithExactMatch() SubOption {
+	return func(sub *Subscriber) {
+		sub.exactMatch = true
 	}
 }
 

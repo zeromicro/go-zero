@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync/atomic"
 
@@ -24,9 +25,16 @@ const (
 )
 
 var (
-	formUnmarshaler     = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	pathUnmarshaler     = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	validator           atomic.Value
+	formUnmarshaler = mapping.NewUnmarshaler(
+		formKey,
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys(),
+		mapping.WithFromArray())
+	pathUnmarshaler = mapping.NewUnmarshaler(
+		pathKey,
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys())
+	validator atomic.Value
 	customFieldUnsetErr func(ctx context.Context, key string) error
 )
 
@@ -38,16 +46,19 @@ type Validator interface {
 
 // Parse parses the request.
 func Parse(r *http.Request, v any) error {
-	if err := ParsePath(r, v); err != nil {
-		return err
-	}
+	kind := mapping.Deref(reflect.TypeOf(v)).Kind()
+	if kind != reflect.Array && kind != reflect.Slice {
+		if err := ParsePath(r, v); err != nil {
+			return err
+		}
 
-	if err := ParseForm(r, v); err != nil {
-		return err
-	}
+		if err := ParseForm(r, v); err != nil {
+			return err
+		}
 
-	if err := ParseHeaders(r, v); err != nil {
-		return err
+		if err := ParseHeaders(r, v); err != nil {
+			return err
+		}
 	}
 
 	if err := ParseJsonBody(r, v); err != nil {

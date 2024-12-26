@@ -32,7 +32,7 @@ export function parseParams(url: string): Array<string> {
  * @param url
  * @param params
  */
-export function genUrl(url: string, params: unknown) {
+export function genUrl(url: string, params: any) {
     if (!params) {
         return url;
     }
@@ -113,7 +113,7 @@ export const webapi = {
         return api<T>('delete', url, req, config);
     },
     put<T>(url: string, req: unknown, config?: unknown): Promise<T> {
-        return api<T>('get', url, req, config);
+        return api<T>('put', url, req, config);
     },
     post<T>(url: string, req: unknown, config?: unknown): Promise<T> {
         return api<T>('post', url, req, config);

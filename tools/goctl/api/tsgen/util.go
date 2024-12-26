@@ -54,8 +54,8 @@ func writeIndent(writer io.Writer, indent int) {
 }
 
 func genTsType(m spec.Member, indent int) (ty string, err error) {
-	v, ok := m.Type.(spec.DefineStruct)
-	if ok && v.IsNestedStruct() {
+	v, ok := m.Type.(spec.NestedStruct)
+	if ok {
 		writer := bytes.NewBuffer(nil)
 		_, err := fmt.Fprintf(writer, "{\n")
 		if err != nil {

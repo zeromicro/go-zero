@@ -43,7 +43,6 @@ go-zero contains simple API description syntax and code generation tool called `
 
 ## Backgrounds of go-zero
 
-At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After research and comparison, we chose to:
 In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
 
 * Go Beyond with Golang
@@ -251,7 +250,7 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 
 ## Give a Star! ⭐
 
-If you like or are using this project to learn or start your solution, please give it a star. Thanks!
+If you like this project or are using it to learn or start your own solution, give it a star to get updates on new releases. Your support matters!
 
 ## Buy me a coffee
 

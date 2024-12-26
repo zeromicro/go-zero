@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
@@ -88,7 +89,7 @@ func findPbFile(current string, src string, grpc bool) (string, error) {
 		return nil
 	})
 	if errors.Is(err, os.ErrExist) {
-		return filepath.Dir(filepath.Join(current, ret)), nil
+		return pathx.ReadLink(filepath.Dir(filepath.Join(current, ret)))
 	}
 	return "", err
 }

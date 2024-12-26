@@ -351,13 +351,28 @@ func TestUnmarshalIntSliceOfPtr(t *testing.T) {
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
 
-	t.Run("int slice with nil", func(t *testing.T) {
+	t.Run("int slice with nil element", func(t *testing.T) {
 		type inner struct {
 			Ints []int `key:"ints"`
 		}
 
 		m := map[string]any{
 			"ints": []any{nil},
+		}
+
+		var in inner
+		if assert.NoError(t, UnmarshalKey(m, &in)) {
+			assert.Empty(t, in.Ints)
+		}
+	})
+
+	t.Run("int slice with nil", func(t *testing.T) {
+		type inner struct {
+			Ints []int `key:"ints"`
+		}
+
+		m := map[string]any{
+			"ints": []any(nil),
 		}
 
 		var in inner
@@ -1374,20 +1389,82 @@ func TestUnmarshalWithFloatPtr(t *testing.T) {
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
-	var v struct {
-		Ages  []int `key:"ages"`
-		Slice []int `key:"slice"`
-	}
-	m := map[string]any{
-		"ages":  []int{1, 2},
-		"slice": []any{},
-	}
+	t.Run("int slice from int", func(t *testing.T) {
+		var v struct {
+			Ages  []int `key:"ages"`
+			Slice []int `key:"slice"`
+		}
+		m := map[string]any{
+			"ages":  []int{1, 2},
+			"slice": []any{},
+		}
 
-	ast := assert.New(t)
-	if ast.NoError(UnmarshalKey(m, &v)) {
-		ast.ElementsMatch([]int{1, 2}, v.Ages)
-		ast.Equal([]int{}, v.Slice)
-	}
+		ast := assert.New(t)
+		if ast.NoError(UnmarshalKey(m, &v)) {
+			ast.ElementsMatch([]int{1, 2}, v.Ages)
+			ast.Equal([]int{}, v.Slice)
+		}
+	})
+
+	t.Run("int slice from one int", func(t *testing.T) {
+		var v struct {
+			Ages []int `key:"ages"`
+		}
+		m := map[string]any{
+			"ages": []int{2},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]int{2}, v.Ages)
+		}
+	})
+
+	t.Run("int slice from one int string", func(t *testing.T) {
+		var v struct {
+			Ages []int `key:"ages"`
+		}
+		m := map[string]any{
+			"ages": []string{"2"},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]int{2}, v.Ages)
+		}
+	})
+
+	t.Run("int slice from one json.Number", func(t *testing.T) {
+		var v struct {
+			Ages []int `key:"ages"`
+		}
+		m := map[string]any{
+			"ages": []json.Number{"2"},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]int{2}, v.Ages)
+		}
+	})
+
+	t.Run("int slice from one int strings", func(t *testing.T) {
+		var v struct {
+			Ages []int `key:"ages"`
+		}
+		m := map[string]any{
+			"ages": []string{"1,2"},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]int{1, 2}, v.Ages)
+		}
+	})
 }
 
 func TestUnmarshalString(t *testing.T) {
@@ -1439,6 +1516,36 @@ func TestUnmarshalStringSliceFromString(t *testing.T) {
 			ast.Equal(2, len(v.Names))
 			ast.Equal("first", v.Names[0])
 			ast.Equal("second", v.Names[1])
+		}
+	})
+
+	t.Run("slice from empty string", func(t *testing.T) {
+		var v struct {
+			Names []string `key:"names"`
+		}
+		m := map[string]any{
+			"names": []string{""},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]string{""}, v.Names)
+		}
+	})
+
+	t.Run("slice from empty and valid string", func(t *testing.T) {
+		var v struct {
+			Names []string `key:"names"`
+		}
+		m := map[string]any{
+			"names": []string{","},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]string{"", ""}, v.Names)
 		}
 	})
 
@@ -5676,6 +5783,62 @@ func TestUnmarshalFromStringSliceForTypeMismatch(t *testing.T) {
 	}, &v))
 }
 
+func TestUnmarshalWithFromArray(t *testing.T) {
+	t.Run("array", func(t *testing.T) {
+		var v struct {
+			Value []string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+			"value": []string{"foo", "bar"},
+		}, &v)) {
+			assert.ElementsMatch(t, []string{"foo", "bar"}, v.Value)
+		}
+	})
+
+	t.Run("not array", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+			"value": []string{"foo"},
+		}, &v)) {
+			assert.Equal(t, "foo", v.Value)
+		}
+	})
+
+	t.Run("not array and empty", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{
+			"value": []string{""},
+		}, &v)) {
+			assert.Empty(t, v.Value)
+		}
+	})
+
+	t.Run("not array and no value", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		assert.Error(t, unmarshaler.Unmarshal(map[string]any{}, &v))
+	})
+
+	t.Run("not array and no value and optional", func(t *testing.T) {
+		var v struct {
+			Value string `key:"value,optional"`
+		}
+		unmarshaler := NewUnmarshaler("key", WithFromArray())
+		if assert.NoError(t, unmarshaler.Unmarshal(map[string]any{}, &v)) {
+			assert.Empty(t, v.Value)
+		}
+	})
+}
+
 func TestUnmarshalWithOpaqueKeys(t *testing.T) {
 	var v struct {
 		Opaque string `key:"opaque.key"`
@@ -5840,6 +6003,38 @@ func TestUnmarshal_Unmarshaler(t *testing.T) {
 			"name": "hello",
 		}, &v))
 		assert.Nil(t, v.Foo)
+	})
+}
+
+func TestParseJsonStringValue(t *testing.T) {
+	t.Run("string", func(t *testing.T) {
+		type GoodsInfo struct {
+			Sku int64 `json:"sku,optional"`
+		}
+
+		type GetReq struct {
+			GoodsList []*GoodsInfo `json:"goods_list"`
+		}
+
+		input := map[string]any{"goods_list": "[{\"sku\":11},{\"sku\":22}]"}
+		var v GetReq
+		assert.NotPanics(t, func() {
+			assert.NoError(t, UnmarshalJsonMap(input, &v))
+			assert.Equal(t, 2, len(v.GoodsList))
+			assert.ElementsMatch(t, []int64{11, 22}, []int64{v.GoodsList[0].Sku, v.GoodsList[1].Sku})
+		})
+	})
+
+	t.Run("string with invalid type", func(t *testing.T) {
+		type GetReq struct {
+			GoodsList []*int `json:"goods_list"`
+		}
+
+		input := map[string]any{"goods_list": "[{\"sku\":11},{\"sku\":22}]"}
+		var v GetReq
+		assert.NotPanics(t, func() {
+			assert.Error(t, UnmarshalJsonMap(input, &v))
+		})
 	})
 }
 

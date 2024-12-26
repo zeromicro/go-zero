@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -61,5 +62,6 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 	t := template.Must(template.New("componentsTemplate").Parse(componentsTemplate))
 	return t.Execute(fp, map[string]string{
 		"componentTypes": val,
+		"version":        version.BuildVersion,
 	})
 }

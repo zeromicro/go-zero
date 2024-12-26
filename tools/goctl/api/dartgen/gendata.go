@@ -157,8 +157,8 @@ func convertDataType(api *spec.ApiSpec, isLegacy bool) (error, *DartSpec) {
 		defineStruct, ok := ty.(spec.DefineStruct)
 		if ok {
 			for index, member := range defineStruct.Members {
-				structMember, ok := member.Type.(spec.DefineStruct)
-				if ok && structMember.IsNestedStruct() {
+				structMember, ok := member.Type.(spec.NestedStruct)
+				if ok {
 					defineStruct.Members[index].Type = spec.PrimitiveType{RawName: member.Name}
 					t := template.New("dataTemplate")
 					t = t.Funcs(funcMap)

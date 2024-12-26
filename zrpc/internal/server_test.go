@@ -5,23 +5,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
 )
 
 func TestBaseRpcServer_AddOptions(t *testing.T) {
-	metrics := stat.NewMetrics("foo")
-	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
-	server.SetName("bar")
+	server := newBaseRpcServer("foo", &rpcServerOptions{})
 	var opt grpc.EmptyServerOption
 	server.AddOptions(opt)
 	assert.Contains(t, server.options, opt)
 }
 
 func TestBaseRpcServer_AddStreamInterceptors(t *testing.T) {
-	metrics := stat.NewMetrics("foo")
-	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
-	server.SetName("bar")
+	server := newBaseRpcServer("foo", &rpcServerOptions{})
 	var vals []int
 	f := func(_ any, _ grpc.ServerStream, _ *grpc.StreamServerInfo, _ grpc.StreamHandler) error {
 		vals = append(vals, 1)
@@ -35,9 +30,7 @@ func TestBaseRpcServer_AddStreamInterceptors(t *testing.T) {
 }
 
 func TestBaseRpcServer_AddUnaryInterceptors(t *testing.T) {
-	metrics := stat.NewMetrics("foo")
-	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
-	server.SetName("bar")
+	server := newBaseRpcServer("foo", &rpcServerOptions{})
 	var vals []int
 	f := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 		resp any, err error) {

@@ -14,6 +14,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -131,6 +132,7 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 		"className":         util.Title(defineStruct.Name()),
 		"superClassName":    superClassName,
 		"HasProperty":       len(strings.TrimSpace(propertiesString)) > 0,
+		"version":           version.BuildVersion,
 	})
 	if err != nil {
 		return err
