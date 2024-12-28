@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
+	"github.com/zeromicro/go-zero/tools/goctl/api/csgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/format"
@@ -33,6 +34,7 @@ var (
 	pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
 	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
 	phpCmd      = cobrax.NewCommand("php", cobrax.WithRunE(phpgen.PhpCommand))
+	csCmd       = cobrax.NewCommand("cs", cobrax.WithRunE(csgen.CSharpCommand))
 )
 
 func init() {
@@ -49,6 +51,7 @@ func init() {
 		tsCmdFlags       = tsCmd.Flags()
 		validateCmdFlags = validateCmd.Flags()
 		phpCmdFlags      = phpCmd.Flags()
+		csCmdFlags       = csCmd.Flags()
 	)
 
 	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o")
@@ -107,6 +110,10 @@ func init() {
 	phpCmdFlags.StringVar(&phpgen.VarStringAPI, "api")
 	phpCmdFlags.StringVar(&phpgen.VarStringNS, "ns")
 
+	csCmdFlags.StringVar(&csgen.VarStringDir, "dir")
+	csCmdFlags.StringVar(&csgen.VarStringAPI, "api")
+	csCmdFlags.StringVar(&csgen.VarStringNS, "ns")
+
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd, phpCmd)
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd, phpCmd, csCmd)
 }
