@@ -47,12 +47,12 @@ func writeClient(dir string, ns string, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	// 头部
 	fmt.Fprintf(f, "<?php \n\nnamespace %s;\n\n", ns)
 
 	// 类
-
 	fmt.Fprintf(f, "class %sClient extends ApiBaseClient {\n", name)
 
 	for _, g := range api.Service.Groups {
