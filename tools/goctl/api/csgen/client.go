@@ -14,14 +14,20 @@ import (
 //go:embed ApiAttribute.cs
 var apiAttributeTemplate string
 
+//go:embed ApiBodyJsonContent.cs
+var apiBodyJsonContentTemplate string
+
 //go:embed ApiBaseClient.cs
-var apiApiBaseClientTemplate string
+var apiBaseClientTemplate string
 
 func genClient(dir string, ns string, api *spec.ApiSpec) error {
 	if err := writeTemplate(dir, ns, "ApiAttribute", apiAttributeTemplate); err != nil {
 		return err
 	}
-	if err := writeTemplate(dir, ns, "ApiBaseClient", apiApiBaseClientTemplate); err != nil {
+	if err := writeTemplate(dir, ns, "ApiBodyJsonContent", apiBodyJsonContentTemplate); err != nil {
+		return err
+	}
+	if err := writeTemplate(dir, ns, "ApiBaseClient", apiBaseClientTemplate); err != nil {
 		return err
 	}
 
@@ -78,22 +84,22 @@ func writeClient(dir string, ns string, api *spec.ApiSpec) error {
 			if r.RequestType != nil {
 				fmt.Fprintf(f, "%s request,", r.RequestType.Name())
 			}
-			fmt.Fprint(f, "CancellationToken cancellationToken)\r\n    {\r\n")
+			fmt.Fprint(f, "CancellationToken cancellationToken, HttpContent? body=null)\r\n    {\r\n")
 
 			writeIndent(f, 8)
 			fmt.Fprint(f, "return await ")
 
 			if r.RequestType != nil {
 				if r.ResponseType != nil {
-					fmt.Fprintf(f, "RequestResultAsync<%s,%s>(HttpMethod.%s, \"%s\", request, cancellationToken);\r\n", r.RequestType.Name(), r.ResponseType.Name(), method, r.Path)
+					fmt.Fprintf(f, "RequestResultAsync<%s,%s>(HttpMethod.%s, \"%s%s\", request, cancellationToken, body);\r\n", r.RequestType.Name(), r.ResponseType.Name(), method, prefix, r.Path)
 				} else {
-					fmt.Fprintf(f, "RequestAsync(HttpMethod.%s, \"%s\", request, cancellationToken);\r\n", method, r.Path)
+					fmt.Fprintf(f, "RequestAsync(HttpMethod.%s, \"%s%s\", request, cancellationToken, body);\r\n", method, prefix, r.Path)
 				}
 			} else {
 				if r.ResponseType != nil {
-					fmt.Fprintf(f, "CallResultAsync<%s>(HttpMethod.%s, \"%s\", cancellationToken);\r\n", r.ResponseType.Name(), method, r.Path)
+					fmt.Fprintf(f, "CallResultAsync<%s>(HttpMethod.%s, \"%s%s\", cancellationToken, body);\r\n", r.ResponseType.Name(), method, prefix, r.Path)
 				} else {
-					fmt.Fprintf(f, "CallAsync(HttpMethod.%s, \"%s\", cancellationToken);\r\n", method, r.Path)
+					fmt.Fprintf(f, "CallAsync(HttpMethod.%s, \"%s%s\", cancellationToken, body);\r\n", method, prefix, r.Path)
 				}
 			}
 
