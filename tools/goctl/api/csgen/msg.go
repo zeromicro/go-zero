@@ -38,14 +38,13 @@ func genMessages(dir string, ns string, api *spec.ApiSpec) error {
 		defer f.Close()
 
 		// 引入依赖
-		fmt.Fprintln(f, "using System.Text.Json.Serialization;")
-		fmt.Fprintln(f)
+		fmt.Fprint(f, "using System.Text.Json.Serialization;\r\n\r\n")
 
 		// 名字空间
-		fmt.Fprintf(f, "namespace %s;\n\n", ns)
+		fmt.Fprintf(f, "namespace %s;\r\n\r\n", ns)
 
 		// 类
-		fmt.Fprintf(f, "public class %s\n{\n", cn)
+		fmt.Fprintf(f, "public class %s\r\n{\r\n", cn)
 
 		for _, tagKey := range tagKeys {
 			// 获取字段
@@ -66,19 +65,19 @@ func genMessages(dir string, ns string, api *spec.ApiSpec) error {
 				writeIndent(f, 4)
 				switch tagKey {
 				case bodyTagKey:
-					fmt.Fprintf(f, "[JsonPropertyName(\"%s\")]\n", k)
+					fmt.Fprintf(f, "[JsonPropertyName(\"%s\")]\r\n", k)
 				case headerTagKey:
-					fmt.Fprintln(f, "[JsonIgnore]")
+					fmt.Fprint(f, "[JsonIgnore]\r\n")
 					writeIndent(f, 4)
-					fmt.Fprintf(f, "[HeaderPropertyName(\"%s\")]\n", k)
+					fmt.Fprintf(f, "[HeaderPropertyName(\"%s\")]\r\n", k)
 				case formTagKey:
-					fmt.Fprintln(f, "[JsonIgnore]")
+					fmt.Fprint(f, "[JsonIgnore]\r\n")
 					writeIndent(f, 4)
-					fmt.Fprintf(f, "[FormPropertyName(\"%s\")]\n", k)
+					fmt.Fprintf(f, "[FormPropertyName(\"%s\")]\r\n", k)
 				case pathTagKey:
-					fmt.Fprintln(f, "[JsonIgnore]")
+					fmt.Fprint(f, "[JsonIgnore]\r\n")
 					writeIndent(f, 4)
-					fmt.Fprintf(f, "[PathPropertyName(\"%s\")]\n", k)
+					fmt.Fprintf(f, "[PathPropertyName(\"%s\")]\r\n", k)
 				}
 
 				writeIndent(f, 4)
@@ -86,11 +85,16 @@ func genMessages(dir string, ns string, api *spec.ApiSpec) error {
 				if err != nil {
 					return err
 				}
-				fmt.Fprintf(f, "public %s %s { get; set; }\n\n", tn, camelCase(m.Name, true))
+
+				optionalTag := ""
+				if m.IsOptionalOrOmitEmpty() {
+					optionalTag = "?"
+				}
+				fmt.Fprintf(f, "public %s%s %s { get; set; }\r\n\r\n", tn, optionalTag, camelCase(m.Name, true))
 			}
 		}
 
-		fmt.Fprintln(f, "}")
+		fmt.Fprint(f, "}\r\n")
 	}
 	return nil
 }

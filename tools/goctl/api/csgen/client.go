@@ -54,6 +54,9 @@ func writeClient(dir string, ns string, api *spec.ApiSpec) error {
 	// 类
 	fmt.Fprintf(f, "public sealed class %sClient : ApiBaseClient\r\n{\r\n", name)
 
+	// 构造函数
+	fmt.Fprintf(f, "    public %sClient(string host, short port, string scheme = \"http\") : base(host, port, scheme){}\r\n", name)
+
 	// 组
 	for _, g := range api.Service.Groups {
 		prefix := g.GetAnnotation("prefix")

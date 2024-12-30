@@ -7,31 +7,31 @@ public abstract class ApiBaseClient
     protected readonly HttpClient httpClient = new HttpClient();
 
 
-    public ApiBaseClient(string host = "localhost", short port = 8080, string scheme = "http")
+    public ApiBaseClient(string host, short port, string scheme)
     {
         httpClient.BaseAddress = new Uri($"{scheme}://{host}:{port}");
     }
 
-    public async Task<R> CallResultAsync<R>(HttpMethod method, string path, CancellationToken cancellationToken) where R : new()
+    protected async Task<R> CallResultAsync<R>(HttpMethod method, string path, CancellationToken cancellationToken) where R : new()
     {
         var response = await CallAsync(HttpMethod.Post, path, cancellationToken);
         return await ParseResponseAsync<R>(response);
     }
 
-    public async Task<HttpResponseMessage> CallAsync(HttpMethod method, string path, CancellationToken cancellationToken)
+    protected async Task<HttpResponseMessage> CallAsync(HttpMethod method, string path, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(method, path);
         return await httpClient.SendAsync(request, cancellationToken);
     }
 
 
-    public async Task<R> RequestResultAsync<T, R>(HttpMethod method, string path, T? param, CancellationToken cancellationToken) where R : new()
+    protected async Task<R> RequestResultAsync<T, R>(HttpMethod method, string path, T? param, CancellationToken cancellationToken) where R : new()
     {
         var response = await RequestAsync(HttpMethod.Post, path, param, cancellationToken);
         return await ParseResponseAsync<R>(response);
     }
 
-    public async Task<HttpResponseMessage> RequestAsync<T>(HttpMethod method, string path, T? param, CancellationToken cancellationToken)
+    protected async Task<HttpResponseMessage> RequestAsync<T>(HttpMethod method, string path, T? param, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage();
         request.Method = method;
@@ -81,7 +81,7 @@ public abstract class ApiBaseClient
         return await httpClient.SendAsync(request, cancellationToken);
     }
 
-    public static async Task<R> ParseResponseAsync<R>(HttpResponseMessage response) where R : new()
+    protected static async Task<R> ParseResponseAsync<R>(HttpResponseMessage response) where R : new()
     {
         R result = await response.Content.ReadFromJsonAsync<R>() ?? new R();
         foreach (var p in typeof(R).GetProperties())
@@ -90,9 +90,11 @@ public abstract class ApiBaseClient
             var hpn = p.GetCustomAttribute<HeaderPropertyName>();
             if (hpn != null && response.Headers.Contains(hpn.Name))
             {
-                // TODO 这里应该有类型问题
                 var v = response.Headers.GetValues(hpn.Name);
-                p.SetValue(result, v);
+                if (v != null && v.Count() > 0)
+                {
+                    p.SetValue(result, v.First());
+                }
                 continue;
             }
         }
