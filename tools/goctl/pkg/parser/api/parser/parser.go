@@ -13,15 +13,13 @@ import (
 )
 
 const (
-	idAPI              = "api"
-	summaryKeyExprText = "summary:"
-	summaryKeyText     = "summary"
-	groupKeyText       = "group"
-	infoTitleKey       = "Title"
-	infoDescKey        = "Desc"
-	infoVersionKey     = "Version"
-	infoAuthorKey      = "Author"
-	infoEmailKey       = "Email"
+	idAPI          = "api"
+	groupKeyText   = "group"
+	infoTitleKey   = "Title"
+	infoDescKey    = "Desc"
+	infoVersionKey = "Version"
+	infoAuthorKey  = "Author"
+	infoEmailKey   = "Email"
 )
 
 // Parser is the parser for api file.
@@ -1201,12 +1199,6 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		expr.Value = node
 		return expr
 	} else if p.peekTokenIs(token.STRING) {
-		if expr.Key.Token.Text != summaryKeyExprText {
-			if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT) {
-				return nil
-			}
-		}
-
 		if !p.nextToken() {
 			return nil
 		}
