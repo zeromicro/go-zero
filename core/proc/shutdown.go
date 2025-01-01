@@ -14,8 +14,10 @@ import (
 )
 
 const (
+	// defaultWrapUpTime is the default time to wait before calling wrap up listeners.
 	defaultWrapUpTime = time.Second
-	// why we use 5500 milliseconds is because most of our queue are blocking mode with 5 seconds
+	// defaultWaitTime is the default time to wait before force quitting.
+	// why we use 5500 milliseconds is because most of our queues are blocking mode with 5 seconds
 	defaultWaitTime = 5500 * time.Millisecond
 )
 
@@ -29,8 +31,10 @@ var (
 
 // ShutdownConf defines the shutdown configuration for the process.
 type ShutdownConf struct {
+	// WrapUpTime is the time to wait before calling shutdown listeners.
 	WrapUpTime time.Duration `json:",default=1s"`
-	WaitTime   time.Duration `json:",default=5.5s"`
+	// WaitTime is the time to wait before force quitting.
+	WaitTime time.Duration `json:",default=5.5s"`
 }
 
 // AddShutdownListener adds fn as a shutdown listener.
