@@ -11,6 +11,7 @@ import (
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mr"
+	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/go-zero/gateway/internal"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -23,6 +24,7 @@ type (
 	Server struct {
 		*rest.Server
 		upstreams     []Upstream
+		conns         []zrpc.Client
 		processHeader func(http.Header) []string
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
 	}
@@ -51,8 +53,24 @@ func (s *Server) Start() {
 }
 
 // Stop stops the gateway server.
+// To get a graceful shutdown, it stops the HTTP server first, then closes gRPC connections.
 func (s *Server) Stop() {
+	// stop the HTTP server first, then close gRPC connections.
+	// in case the gRPC server is stopped first,
+	// the HTTP server may still be running to accept requests.
 	s.Server.Stop()
+
+	group := threading.NewRoutineGroup()
+	for _, conn := range s.conns {
+		// new variable to avoid closure problems, can be removed after go 1.22
+		// see https://golang.org/doc/faq#closures_and_goroutines
+		conn := conn
+		group.Run(func() {
+			// ignore the error when closing the connection
+			_ = conn.Conn().Close()
+		})
+	}
+	group.Wait()
 }
 
 func (s *Server) build() error {
@@ -71,6 +89,7 @@ func (s *Server) build() error {
 		} else {
 			cli = zrpc.MustNewClient(up.Grpc)
 		}
+		s.conns = append(s.conns, cli)
 
 		source, err := s.createDescriptorSource(cli, up)
 		if err != nil {

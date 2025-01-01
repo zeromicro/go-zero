@@ -82,6 +82,9 @@ func (lm *listenerManager) addListener(fn func()) (waitForCalled func()) {
 	})
 	lm.lock.Unlock()
 
+	// we can return lm.waitGroup.Wait directly,
+	// but we want to make the returned func more readable.
+	// creating an extra closure would be negligible in practice.
 	return func() {
 		lm.waitGroup.Wait()
 	}

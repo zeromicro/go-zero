@@ -3,6 +3,7 @@
 package proc
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -27,6 +28,42 @@ func TestShutdown(t *testing.T) {
 	Shutdown()
 	called()
 	assert.Equal(t, 3, val)
+}
+
+func TestShutdownWithMultipleServices(t *testing.T) {
+	SetTimeToForceQuit(time.Hour)
+	assert.Equal(t, time.Hour, delayTimeBeforeForceQuit)
+
+	var val int32
+	called1 := AddShutdownListener(func() {
+		atomic.AddInt32(&val, 1)
+	})
+	called2 := AddShutdownListener(func() {
+		atomic.AddInt32(&val, 2)
+	})
+	Shutdown()
+	called1()
+	called2()
+
+	assert.Equal(t, int32(3), atomic.LoadInt32(&val))
+}
+
+func TestWrapUpWithMultipleServices(t *testing.T) {
+	SetTimeToForceQuit(time.Hour)
+	assert.Equal(t, time.Hour, delayTimeBeforeForceQuit)
+
+	var val int32
+	called1 := AddWrapUpListener(func() {
+		atomic.AddInt32(&val, 1)
+	})
+	called2 := AddWrapUpListener(func() {
+		atomic.AddInt32(&val, 2)
+	})
+	WrapUp()
+	called1()
+	called2()
+
+	assert.Equal(t, int32(3), atomic.LoadInt32(&val))
 }
 
 func TestNotifyMoreThanOnce(t *testing.T) {
