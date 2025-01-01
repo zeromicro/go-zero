@@ -11,8 +11,12 @@ import (
 )
 
 func TestShutdown(t *testing.T) {
+	t.Cleanup(restoreSettings)
+
 	SetTimeToForceQuit(time.Hour)
-	assert.Equal(t, time.Hour, delayTimeBeforeForceQuit)
+	shutdownLock.Lock()
+	assert.Equal(t, time.Hour, waitTime)
+	shutdownLock.Unlock()
 
 	var val int
 	called := AddWrapUpListener(func() {
@@ -31,8 +35,12 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestShutdownWithMultipleServices(t *testing.T) {
+	t.Cleanup(restoreSettings)
+
 	SetTimeToForceQuit(time.Hour)
-	assert.Equal(t, time.Hour, delayTimeBeforeForceQuit)
+	shutdownLock.Lock()
+	assert.Equal(t, time.Hour, waitTime)
+	shutdownLock.Unlock()
 
 	var val int32
 	called1 := AddShutdownListener(func() {
@@ -49,8 +57,12 @@ func TestShutdownWithMultipleServices(t *testing.T) {
 }
 
 func TestWrapUpWithMultipleServices(t *testing.T) {
+	t.Cleanup(restoreSettings)
+
 	SetTimeToForceQuit(time.Hour)
-	assert.Equal(t, time.Hour, delayTimeBeforeForceQuit)
+	shutdownLock.Lock()
+	assert.Equal(t, time.Hour, waitTime)
+	shutdownLock.Unlock()
 
 	var val int32
 	called1 := AddWrapUpListener(func() {
@@ -67,6 +79,8 @@ func TestWrapUpWithMultipleServices(t *testing.T) {
 }
 
 func TestNotifyMoreThanOnce(t *testing.T) {
+	t.Cleanup(restoreSettings)
+
 	ch := make(chan struct{}, 1)
 
 	go func() {
@@ -97,10 +111,36 @@ func TestNotifyMoreThanOnce(t *testing.T) {
 }
 
 func TestSetup(t *testing.T) {
-	Setup(ProcConf{
-		WrapUpTime: time.Second * 2,
-		WaitTime:   time.Second * 30,
+	t.Run("valid time", func(t *testing.T) {
+		defer restoreSettings()
+
+		Setup(ShutdownConf{
+			WrapUpTime: time.Second * 2,
+			WaitTime:   time.Second * 30,
+		})
+
+		shutdownLock.Lock()
+		assert.Equal(t, time.Second*2, wrapUpTime)
+		assert.Equal(t, time.Second*30, waitTime)
+		shutdownLock.Unlock()
 	})
-	assert.Equal(t, time.Second*2, wrapUpTime)
-	assert.Equal(t, time.Second*30, delayTimeBeforeForceQuit)
+
+	t.Run("valid time", func(t *testing.T) {
+		defer restoreSettings()
+
+		Setup(ShutdownConf{})
+
+		shutdownLock.Lock()
+		assert.Equal(t, defaultWrapUpTime, wrapUpTime)
+		assert.Equal(t, defaultWaitTime, waitTime)
+		shutdownLock.Unlock()
+	})
+}
+
+func restoreSettings() {
+	shutdownLock.Lock()
+	defer shutdownLock.Unlock()
+
+	wrapUpTime = defaultWrapUpTime
+	waitTime = defaultWaitTime
 }
