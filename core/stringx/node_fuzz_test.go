@@ -76,7 +76,7 @@ func FuzzNodeFind(f *testing.F) {
 		fmt.Fprintf(&buf, "text:\n\t%s\n", str)
 		defer func() {
 			if r := recover(); r != nil {
-				t.Errorf(buf.String())
+				t.Error(buf.String())
 			}
 		}()
 		assert.ElementsMatchf(t, scopes, n.find([]rune(str)), buf.String())

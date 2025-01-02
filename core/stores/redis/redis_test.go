@@ -2119,9 +2119,9 @@ func TestRedisUnlink(t *testing.T) {
 func TestRedisTxPipeline(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		ctx := context.Background()
-		pipe, err := newRedis(client.Addr, badType()).TxPipeline()
+		_, err := newRedis(client.Addr, badType()).TxPipeline()
 		assert.NotNil(t, err)
-		pipe, err = client.TxPipeline()
+		pipe, err := client.TxPipeline()
 		assert.Nil(t, err)
 		key := "key"
 		hashKey := "field"
