@@ -37,7 +37,8 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
-        "style": "{{.global.style}}"
+        "style": "{{.global.style}}",
+        "test": "Generate test files"
       },
       "new": {
         "short": "Fast create api service",
