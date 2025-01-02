@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Reflection;
 using System.Web;
 
@@ -16,7 +17,7 @@ public abstract class ApiBaseClient
     protected async Task<R> CallResultAsync<R>(HttpMethod method, string path, CancellationToken cancellationToken, HttpContent? body) where R : new()
     {
         var response = await CallAsync(HttpMethod.Post, path, cancellationToken, body);
-        return await ParseResponseAsync<R>(response, cancellationToken);
+        return await ParseResponseAsync<R>(response, null, cancellationToken);
     }
 
     protected async Task<HttpResponseMessage> CallAsync(HttpMethod method, string path, CancellationToken cancellationToken, HttpContent? body)
@@ -33,7 +34,7 @@ public abstract class ApiBaseClient
     protected async Task<R> RequestResultAsync<T, R>(HttpMethod method, string path, T? param, CancellationToken cancellationToken, HttpContent? body) where R : new()
     {
         var response = await RequestAsync(HttpMethod.Post, path, param, cancellationToken, body);
-        return await ParseResponseAsync<R>(response, cancellationToken);
+        return await ParseResponseAsync<R>(response, null, cancellationToken);
     }
 
     protected async Task<HttpResponseMessage> RequestAsync<T>(HttpMethod method, string path, T? param, CancellationToken cancellationToken, HttpContent? body)
@@ -98,9 +99,9 @@ public abstract class ApiBaseClient
         return await httpClient.SendAsync(request, cancellationToken);
     }
 
-    protected static async Task<R> ParseResponseAsync<R>(HttpResponseMessage response, CancellationToken cancellationToken) where R : new()
+    protected static async Task<R> ParseResponseAsync<R>(HttpResponseMessage response, JsonSerializerOptions? options, CancellationToken cancellationToken) where R : new()
     {
-        R result = await response.Content.ReadFromJsonAsync<R>(cancellationToken) ?? new R();
+        R result = await response.Content.ReadFromJsonAsync<R>(options, cancellationToken) ?? new R();
         foreach (var p in typeof(R).GetProperties())
         {
             // 头部

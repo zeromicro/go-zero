@@ -17,6 +17,9 @@ var apiAttributeTemplate string
 //go:embed ApiBodyJsonContent.cs
 var apiBodyJsonContentTemplate string
 
+//go:embed ApiException.cs
+var apiExceptionTemplate string
+
 //go:embed ApiBaseClient.cs
 var apiBaseClientTemplate string
 
@@ -25,6 +28,9 @@ func genClient(dir string, ns string, api *spec.ApiSpec) error {
 		return err
 	}
 	if err := writeTemplate(dir, ns, "ApiBodyJsonContent", apiBodyJsonContentTemplate); err != nil {
+		return err
+	}
+	if err := writeTemplate(dir, ns, "ApiException", apiExceptionTemplate); err != nil {
 		return err
 	}
 	if err := writeTemplate(dir, ns, "ApiBaseClient", apiBaseClientTemplate); err != nil {
