@@ -25,10 +25,6 @@ func SetTimeToForceQuit(duration time.Duration) {
 func Setup() {
 }
 
-// Setup does nothing on windows.
-func Setup() {
-}
-
 // Shutdown does nothing on windows.
 func Shutdown() {
 }
