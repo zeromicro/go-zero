@@ -21,6 +21,8 @@ var (
 	VarStringHostname string
 	// VarStringSchema defines the scheme.
 	VarStringScheme string
+	// VarFormatArgs defines the format arguments, eg: "--line-length=120"
+	VarStringFormatArgs string
 )
 
 // DartCommand create dart network request code
@@ -30,6 +32,7 @@ func DartCommand(_ *cobra.Command, _ []string) error {
 	isLegacy := VarStringLegacy
 	hostname := VarStringHostname
 	scheme := VarStringScheme
+	formatArgs := VarStringFormatArgs
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
@@ -43,6 +46,9 @@ func DartCommand(_ *cobra.Command, _ []string) error {
 	if len(scheme) == 0 {
 		fmt.Println("you could use '-scheme' flag to specify your server scheme")
 		scheme = "http"
+	}
+	if len(formatArgs) == 0 {
+		fmt.Println(`you could use '-format-args "--line-length=120"' flag to specify the dart format arguments`)
 	}
 
 	api, err := parser.Parse(apiFile)
@@ -62,7 +68,7 @@ func DartCommand(_ *cobra.Command, _ []string) error {
 	logx.Must(genData(dir+"data/", api, isLegacy))
 	logx.Must(genApi(dir+"api/", api, isLegacy))
 	logx.Must(genVars(dir+"vars/", isLegacy, scheme, hostname))
-	if err := formatDir(dir); err != nil {
+	if err := formatDir(dir, formatArgs); err != nil {
 		logx.Errorf("failed to format, %v", err)
 	}
 	return nil
