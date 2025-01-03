@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/alicebob/miniredis/v2 v2.33.0
+	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpcurl v1.9.2
 	github.com/go-sql-driver/mysql v1.8.1
@@ -33,12 +33,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/goleak v1.3.0
-	golang.org/x/net v0.32.0
+	golang.org/x/net v0.33.0
 	golang.org/x/sys v0.28.0
 	golang.org/x/time v0.8.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240711142825-46eb208f015d
 	google.golang.org/grpc v1.65.0
-	google.golang.org/protobuf v1.36.0
+	google.golang.org/protobuf v1.36.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0

@@ -46,7 +46,7 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 func TestMustNewServer(t *testing.T) {
 	var c GatewayConf
 	assert.NoError(t, conf.FillDefault(&c))
-	// avoid popup alert on macos for asking permissions
+	// avoid popup alert on MacOS for asking permissions
 	c.DevServer.Host = "localhost"
 	c.Host = "localhost"
 	c.Port = 18881

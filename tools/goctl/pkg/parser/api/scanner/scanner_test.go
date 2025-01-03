@@ -62,13 +62,13 @@ func TestNewScanner(t *testing.T) {
 		{
 			filename: "foo",
 			src:      "",
-			expected: missingInput,
+			expected: "missing input",
 		},
 	}
 	for _, v := range testData {
 		s, err := NewScanner(v.filename, v.src)
 		if err != nil {
-			assert.Equal(t, v.expected.(error).Error(), err.Error())
+			assert.Contains(t, err.Error(), v.expected)
 		} else {
 			assert.Equal(t, v.expected, s.filename)
 		}

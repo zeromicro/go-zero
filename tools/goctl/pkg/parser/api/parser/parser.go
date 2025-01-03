@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	idAPI              = "api"
-	groupKeyText       = "group"
-	infoTitleKey       = "Title"
-	infoDescKey        = "Desc"
-	infoVersionKey     = "Version"
-	infoAuthorKey      = "Author"
-	infoEmailKey       = "Email"
+	idAPI          = "api"
+	groupKeyText   = "group"
+	infoTitleKey   = "Title"
+	infoDescKey    = "Desc"
+	infoVersionKey = "Version"
+	infoAuthorKey  = "Author"
+	infoEmailKey   = "Email"
 )
 
 // Parser is the parser for api file.
