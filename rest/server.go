@@ -3,11 +3,13 @@ package rest
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/internal/health"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -16,6 +18,8 @@ import (
 	"github.com/zeromicro/go-zero/rest/internal/fileserver"
 	"github.com/zeromicro/go-zero/rest/router"
 )
+
+const probeNamePrefix = "rest"
 
 type (
 	// RunOption defines the method to customize a Server.
@@ -26,8 +30,9 @@ type (
 
 	// A Server is a http server.
 	Server struct {
-		ngin   *engine
-		router httpx.Router
+		ngin          *engine
+		router        httpx.Router
+		healthManager health.Probe
 	}
 )
 
@@ -50,9 +55,13 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 		return nil, err
 	}
 
+	healthManager := health.NewHealthManager(fmt.Sprintf("%s-%s:%d", probeNamePrefix, c.Host, c.Port))
+	health.AddProbe(healthManager)
+
 	server := &Server{
-		ngin:   newEngine(c),
-		router: router.NewRouter(),
+		ngin:          newEngine(c),
+		router:        router.NewRouter(),
+		healthManager: healthManager,
 	}
 
 	opts = append([]RunOption{WithNotFoundHandler(nil)}, opts...)
@@ -118,14 +127,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) Start() {
-	handleError(s.ngin.start(s.router))
+	handleError(s.ngin.start(s.router, s.healthManager))
 }
 
 // StartWithOpts starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) StartWithOpts(opts ...StartOption) {
-	handleError(s.ngin.start(s.router, opts...))
+	handleError(s.ngin.start(s.router, s.healthManager, opts...))
 }
 
 // Stop stops the Server.

@@ -223,7 +223,7 @@ Verbose: true
 					}
 				})
 
-				assert.NotNil(t, ng.start(mockedRouter{}, func(svr *http.Server) {
+				assert.NotNil(t, ng.start(mockedRouter{}, mockProbe{}, func(svr *http.Server) {
 				}))
 
 				timeout := time.Second * 3
@@ -414,7 +414,7 @@ func TestEngine_start(t *testing.T) {
 			Host: "localhost",
 			Port: -1,
 		})
-		assert.Error(t, ng.start(router.NewRouter()))
+		assert.Error(t, ng.start(router.NewRouter(), mockProbe{}))
 	})
 
 	t.Run("https", func(t *testing.T) {
@@ -425,7 +425,7 @@ func TestEngine_start(t *testing.T) {
 			KeyFile:  "bar",
 		})
 		ng.tlsConfig = &tls.Config{}
-		assert.Error(t, ng.start(router.NewRouter()))
+		assert.Error(t, ng.start(router.NewRouter(), mockProbe{}))
 	})
 }
 
@@ -444,3 +444,13 @@ func (m mockedRouter) SetNotFoundHandler(_ http.Handler) {
 
 func (m mockedRouter) SetNotAllowedHandler(_ http.Handler) {
 }
+
+type mockProbe struct{}
+
+func (m mockProbe) MarkReady() {}
+
+func (m mockProbe) MarkNotReady() {}
+
+func (m mockProbe) IsReady() bool { return false }
+
+func (m mockProbe) Name() string { return "" }

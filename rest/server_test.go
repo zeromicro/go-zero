@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
+	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
@@ -752,6 +753,33 @@ Port: 54321
 			assert.Equal(t, test.code, w.Code)
 		})
 	}
+}
+
+func TestHealthBeforeAndAfterStart(t *testing.T) {
+	server := MustNewServer(RestConf{
+		ServiceConf: service.ServiceConf{
+			DevServer: service.DevServerConfig{
+				Host:       "localhost",
+				Port:       6061,
+				HealthPath: "/healthz",
+				Enabled:    true,
+			},
+		},
+		Host: "localhost",
+		Port: 8888,
+	})
+	assert.NotNil(t, server)
+	assert.False(t, server.healthManager.IsReady())
+	resp, err := http.Get("http://localhost:6061/healthz")
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	go server.Start()
+	defer server.Stop()
+
+	assert.Eventually(t, func() bool {
+		return server.healthManager.IsReady()
+	}, time.Millisecond*100, time.Millisecond*10)
 }
 
 //go:embed testdata

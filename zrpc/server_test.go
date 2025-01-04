@@ -2,6 +2,7 @@ package zrpc
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -54,6 +55,33 @@ func TestServer(t *testing.T) {
 	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
+}
+
+func TestHealthBeforeAndAfterStart(t *testing.T) {
+	srv := MustNewServer(RpcServerConf{
+		ServiceConf: service.ServiceConf{
+			DevServer: service.DevServerConfig{
+				Host:       "localhost",
+				Port:       6060,
+				HealthPath: "/healthz",
+				Enabled:    true,
+			},
+		},
+		ListenOn: "localhost:8081",
+	}, func(server *grpc.Server) {
+	})
+	assert.NotNil(t, srv)
+	resp, err := http.Get("http://localhost:6060/healthz")
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	go srv.Start()
+	defer srv.Stop()
+
+	assert.Eventually(t, func() bool {
+		resp, err = http.Get("http://localhost:6060/healthz")
+		return err == nil && resp.StatusCode == http.StatusOK
+	}, time.Millisecond*100, time.Millisecond*10)
 }
 
 func TestServerError(t *testing.T) {
