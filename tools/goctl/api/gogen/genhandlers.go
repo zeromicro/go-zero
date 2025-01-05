@@ -110,6 +110,10 @@ func getHandlerName(route spec.Route) string {
 		panic(err)
 	}
 
+	if VarWithOutSuffix {
+		return handler
+	}
+
 	return handler + "Handler"
 }
 
@@ -117,6 +121,10 @@ func getLogicName(route spec.Route) string {
 	handler, err := getHandlerBaseName(route)
 	if err != nil {
 		panic(err)
+	}
+
+	if VarWithOutSuffix {
+		return handler
 	}
 
 	return handler + "Logic"

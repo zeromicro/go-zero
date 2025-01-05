@@ -39,6 +39,8 @@ var (
 	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
+	// VarWithOutSuffix Remove the default suffix when generating files, such as Logic, Handler, Middleware
+	VarWithOutSuffix bool
 )
 
 // GoCommand gen go project files from command line
