@@ -34,9 +34,12 @@ func NewRpcServer(addr string, opts ...ServerOption) Server {
 		opt(&options)
 	}
 
+	healthManager := health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, addr))
+	health.AddProbe(healthManager)
+
 	return &rpcServer{
 		baseRpcServer: newBaseRpcServer(addr, &options),
-		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, addr)),
+		healthManager: healthManager,
 	}
 }
 
@@ -63,7 +66,6 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		s.health.Resume()
 	}
 	s.healthManager.MarkReady()
-	health.AddProbe(s.healthManager)
 
 	// we need to make sure all others are wrapped up,
 	// so we do graceful stop at shutdown phase instead of wrap up phase

@@ -52,3 +52,18 @@ func TestRpcServer_WithBadAddress(t *testing.T) {
 
 	proc.WrapUp()
 }
+
+func TestServerProbe(t *testing.T) {
+	server := NewRpcServer("localhost:12345")
+	assert.NotNil(t, server)
+	svr, ok := server.(*rpcServer)
+	assert.True(t, ok)
+	assert.False(t, svr.healthManager.IsReady())
+	go func() {
+		err := svr.Start(func(server *grpc.Server) {})
+		assert.Nil(t, err)
+	}()
+	assert.Eventually(t, func() bool {
+		return svr.healthManager.IsReady()
+	}, time.Millisecond*100, time.Millisecond*10)
+}
