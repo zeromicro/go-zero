@@ -1,6 +1,7 @@
 module github.com/zeromicro/go-zero
 
 go 1.21
+toolchain go1.22.5
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -15,7 +16,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jhump/protoreflect v1.17.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/pelletier/go-toml/v2 v2.2.2
+	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/spaolacci/murmur3 v1.1.0
