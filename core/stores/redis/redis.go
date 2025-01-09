@@ -55,6 +55,7 @@ type (
 	Redis struct {
 		Addr  string
 		Type  string
+		User  string
 		Pass  string
 		tls   bool
 		brk   breaker.Breaker
@@ -125,6 +126,9 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 
 	if conf.Type == ClusterType {
 		opts = append([]Option{Cluster()}, opts...)
+	}
+	if len(conf.User) > 0 {
+		opts = append([]Option{WithUser(conf.User)}, opts...)
 	}
 	if len(conf.Pass) > 0 {
 		opts = append([]Option{WithPass(conf.Pass)}, opts...)
@@ -2403,6 +2407,13 @@ func Cluster() Option {
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
+}
+
+// WithPass customizes the given Redis with given password.
+func WithUser(user string) Option {
+	return func(r *Redis) {
+		r.User = user
+	}
 }
 
 // WithPass customizes the given Redis with given password.
