@@ -4,13 +4,16 @@ class ApiBaseClient
 {
     private $host;
     private $port;
+    private $scheme;
 
     public function __construct(
         $host,
-        $port
+        $port,
+        $scheme
     ) {
         $this->host = $host;
         $this->port = $port;
+        $this->scheme = $scheme;
     }
 
     public function getHost()
@@ -24,7 +27,7 @@ class ApiBaseClient
 
     public function getAddress()
     {
-        return "$this->host:$this->port";
+        return "$this->scheme://$this->host:$this->port";
     }
 
     protected function request(
@@ -59,8 +62,8 @@ class ApiBaseClient
         // 2. 设置请求选项, 包括具体的url
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1); // HTTP/1.1
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4); /* 在发起连接前等待的时间，如果设置为0，则无限等待 */
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20); /* 设置cURL允许执行的最长秒数 */
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4); // 在发起连接前等待的时间，如果设置为0，则无限等待。
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20); // 设置cURL允许执行的最长秒数
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 1);
 
@@ -86,7 +89,7 @@ class ApiBaseClient
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         }
 
-        // 3. 执行一个cURL会话并且获取相关回复
+        // 3. 执行一个cURL会话并且获取响应消息。
         curl_setopt($ch, CURLINFO_HEADER_OUT, true);
         $response = curl_exec($ch);
         if ($response === false) {
@@ -94,7 +97,7 @@ class ApiBaseClient
             throw new ApiException("curl exec failed." . var_export($error, true), -1);
         }
 
-        // 4. 释放cURL句柄,关闭一个cURL会话
+        // 4. 释放cURL句柄,关闭一个cURL会话。
         curl_close($ch);
 
         return self::parseResponse($response);
