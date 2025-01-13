@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 )
 
@@ -16,6 +17,7 @@ var funcsMap = template.FuncMap{
 	"parseType":       parseType,
 	"add":             add,
 	"upperCase":       upperCase,
+	"parseOptional":   parseOptional,
 }
 
 func lowCamelCase(s string) string {
@@ -116,4 +118,11 @@ func add(a, i int) int {
 
 func upperCase(s string) string {
 	return strings.ToUpper(s)
+}
+
+func parseOptional(m spec.Member) string {
+	if m.IsOptionalOrOmitEmpty() {
+		return "?"
+	}
+	return ""
 }
