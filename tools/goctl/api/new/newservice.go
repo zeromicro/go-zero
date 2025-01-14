@@ -83,6 +83,6 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle)
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, false)
 	return err
 }
