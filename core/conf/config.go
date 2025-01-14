@@ -192,7 +192,7 @@ func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
 	case reflect.Array, reflect.Slice, reflect.Map:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName)
 	case reflect.Chan, reflect.Func:
-		return nil, fmt.Errorf("unsupported type: %s,fullName :%s", tp.Kind(), fullName)
+		return nil, fmt.Errorf("unsupported type: %s,fullName: %s", tp.Kind(), fullName)
 	default:
 		return &fieldInfo{
 			children: make(map[string]*fieldInfo),
