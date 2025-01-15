@@ -235,6 +235,9 @@ func (r Route) JoinedAtDoc() map[string]string {
 	if properties != nil {
 		return properties
 	}
+	if len(r.AtDoc.Text) <= 0 {
+		return nil
+	}
 	m := make(map[string]string)
 	m["atDoc"] = r.AtDoc.Text
 	return m
