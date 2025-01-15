@@ -234,6 +234,7 @@ func WithMiddleware(middleware Middleware, rs ...Route) []Route {
 	for i := range rs {
 		route := rs[i]
 		routes[i] = Route{
+			AtDoc:   route.AtDoc,
 			Method:  route.Method,
 			Path:    route.Path,
 			Handler: middleware(route.Handler),
@@ -265,6 +266,7 @@ func WithPrefix(group string) RouteOption {
 		for _, rt := range r.routes {
 			p := path.Join(group, rt.Path)
 			routes = append(routes, Route{
+				AtDoc:   rt.AtDoc,
 				Method:  rt.Method,
 				Path:    p,
 				Handler: rt.Handler,
