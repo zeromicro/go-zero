@@ -125,11 +125,11 @@ var infoTestAPI string
 func TestParser_Parse_infoStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		expected := map[string]string{
-			"title:":   `"type title here"`,
-			"desc:":    `"type desc here"`,
-			"author:":  `"type author here"`,
-			"email:":   `"type email here"`,
-			"version:": `"type version here"`,
+			"title":   `"type title here"`,
+			"desc":    `"type desc here"`,
+			"author":  `"type author here"`,
+			"email":   `"type email here"`,
+			"version": `"type version here"`,
 		}
 		p := New("foo.api", infoTestAPI)
 		result := p.Parse()
@@ -285,27 +285,27 @@ var atServerTestAPI string
 func TestParser_Parse_atServerStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		var expectedData = map[string]string{
-			"foo:":        `bar`,
-			"bar:":        `baz`,
-			"baz:":        `foo`,
-			"qux:":        `/v1`,
-			"quux:":       `/v1/v2`,
-			"middleware:": `M1,M2`,
-			"timeout1:":   "1h",
-			"timeout2:":   "10m",
-			"timeout3:":   "10s",
-			"timeout4:":   "10ms",
-			"timeout5:":   "10µs",
-			"timeout6:":   "10ns",
-			"timeout7:":   "1h10m10s10ms10µs10ns",
-			"maxBytes:":   `1024`,
-			"prefix:":     "/v1",
-			"prefix1:":    "/v1/v2_test/v2-beta",
-			"prefix2:":    "v1/v2_test/v2-beta",
-			"prefix3:":    "v1/v2_",
-			"prefix4:":    "a-b-c",
-			"summary:":    `"test"`,
-			"key:":        `"bar"`,
+			"foo":        `bar`,
+			"bar":        `baz`,
+			"baz":        `foo`,
+			"qux":        `/v1`,
+			"quux":       `/v1/v2`,
+			"middleware": `M1,M2`,
+			"timeout1":   "1h",
+			"timeout2":   "10m",
+			"timeout3":   "10s",
+			"timeout4":   "10ms",
+			"timeout5":   "10µs",
+			"timeout6":   "10ns",
+			"timeout7":   "1h10m10s10ms10µs10ns",
+			"maxBytes":   `1024`,
+			"prefix":     "/v1",
+			"prefix1":    "/v1/v2_test/v2-beta",
+			"prefix2":    "v1/v2_test/v2-beta",
+			"prefix3":    "v1/v2_",
+			"prefix4":    "a-b-c",
+			"summary":    `"test"`,
+			"key":        `"bar"`,
 		}
 
 		p := New("foo.api", atServerTestAPI)

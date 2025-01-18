@@ -127,7 +127,6 @@ const (
 	STRING     // "abc"
 	RAW_STRING // `abc`
 	PATH       // `abc`
-	KEY        // `abc:`
 	literal_end
 
 	operator_beg
@@ -213,7 +212,6 @@ var tokens = [...]string{
 	STRING:     "STRING",
 	RAW_STRING: "RAW_STRING",
 	PATH:       "PATH",
-	KEY:        "KEY",
 
 	SUB:    "-",
 	MUL:    "*",

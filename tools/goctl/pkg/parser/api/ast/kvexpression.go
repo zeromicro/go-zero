@@ -6,6 +6,8 @@ import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 type KVExpr struct {
 	// Key is the key of the key value expression.
 	Key *TokenNode
+	// Colon is the colon of the key value expression.
+	Colon *TokenNode
 	// Value is the value of the key value expression.
 	Value *TokenNode
 }
@@ -24,7 +26,8 @@ func (i *KVExpr) CommentGroup() (head, leading CommentGroup) {
 
 func (i *KVExpr) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	w.Write(withNode(i.Key, i.Value), withPrefix(prefix...), withInfix(Indent), withRawText())
+	node := transferNilInfixNode([]*TokenNode{i.Key, i.Colon})
+	w.Write(withNode(node, i.Value), withPrefix(prefix...), withInfix(Indent), withRawText())
 	return w.String()
 }
 
