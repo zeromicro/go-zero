@@ -444,16 +444,6 @@ func (s *Scanner) scanIdent() token.Token {
 	}
 
 	ident := string(s.data[position:s.position])
-
-	if s.ch == ':' {
-		s.readRune()
-		return token.Token{
-			Type:     token.KEY,
-			Text:     string(s.data[position:s.position]),
-			Position: s.newPosition(position),
-		}
-	}
-
 	if ident == "interface" && s.ch == '{' && s.peekRune() == '}' {
 		s.readRune()
 		s.readRune()
