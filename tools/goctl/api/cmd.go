@@ -13,6 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/api/phpgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
+	"github.com/zeromicro/go-zero/tools/goctl/api/unigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
@@ -35,6 +36,7 @@ var (
 	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
 	phpCmd      = cobrax.NewCommand("php", cobrax.WithRunE(phpgen.PhpCommand))
 	csCmd       = cobrax.NewCommand("cs", cobrax.WithRunE(csgen.CSharpCommand))
+	uniCmd      = cobrax.NewCommand("uni", cobrax.WithRunE(unigen.UniAppCommand))
 )
 
 func init() {
@@ -52,6 +54,7 @@ func init() {
 		validateCmdFlags = validateCmd.Flags()
 		phpCmdFlags      = phpCmd.Flags()
 		csCmdFlags       = csCmd.Flags()
+		uniCmdFlags      = uniCmd.Flags()
 	)
 
 	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o")
@@ -114,6 +117,9 @@ func init() {
 	csCmdFlags.StringVar(&csgen.VarStringAPI, "api")
 	csCmdFlags.StringVar(&csgen.VarStringNS, "ns")
 
+	uniCmdFlags.StringVar(&unigen.VarStringDir, "dir")
+	uniCmdFlags.StringVar(&unigen.VarStringAPI, "api")
+
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd, phpCmd, csCmd)
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd, phpCmd, csCmd, uniCmd)
 }
