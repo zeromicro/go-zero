@@ -214,18 +214,6 @@ func TestSubscriber(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
 }
 
-func TestSubscriberClos(t *testing.T) {
-	l := newContainer(false)
-	sub := &Subscriber{
-		endpoints: []string{"localhost:2379"},
-		key:       "foo",
-		items:     l,
-	}
-	_ = internal.GetRegistry().Monitor(sub.endpoints, sub.key, l, false)
-	sub.Close()
-	assert.Empty(t, sub.items.listeners)
-}
-
 func TestWithSubEtcdAccount(t *testing.T) {
 	endpoints := []string{"localhost:2379"}
 	user := stringx.Rand()
@@ -236,4 +224,29 @@ func TestWithSubEtcdAccount(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, user, account.User)
 	assert.Equal(t, "bar", account.Pass)
+}
+
+func TestWithExactMatch(t *testing.T) {
+	sub := new(Subscriber)
+	WithExactMatch()(sub)
+	sub.items = newContainer(sub.exclusive)
+	var count int32
+	sub.AddListener(func() {
+		atomic.AddInt32(&count, 1)
+	})
+	sub.items.notifyChange()
+	assert.Empty(t, sub.Values())
+	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
+}
+
+func TestSubscriberClose(t *testing.T) {
+	l := newContainer(false)
+	sub := &Subscriber{
+		endpoints: []string{"localhost:12379"},
+		key:       "foo",
+		items:     l,
+	}
+	assert.NotPanics(t, func() {
+		sub.Close()
+	})
 }

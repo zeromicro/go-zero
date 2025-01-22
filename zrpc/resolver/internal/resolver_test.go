@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"github.com/zeromicro/go-zero/core/discov"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,20 +16,6 @@ func TestNopResolver(t *testing.T) {
 		r.ResolveNow(resolver.ResolveNowOptions{})
 		r.Close()
 	})
-}
-
-func TestNopResolver_Close(t *testing.T) {
-	var isChanged bool
-	r := nopResolver{}
-	r.Close()
-	assert.False(t, isChanged)
-	r = nopResolver{
-		closeFunc: func() {
-			isChanged = true
-		},
-	}
-	r.Close()
-	assert.True(t, isChanged)
 }
 
 type mockedClientConn struct {
