@@ -18,6 +18,20 @@ func TestNopResolver(t *testing.T) {
 	})
 }
 
+func TestNopResolver_Close(t *testing.T) {
+	var isChanged bool
+	r := nopResolver{}
+	r.Close()
+	assert.False(t, isChanged)
+	r = nopResolver{
+		closeFunc: func() {
+			isChanged = true
+		},
+	}
+	r.Close()
+	assert.True(t, isChanged)
+}
+
 type mockedClientConn struct {
 	state resolver.State
 	err   error
