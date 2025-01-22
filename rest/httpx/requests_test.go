@@ -516,6 +516,7 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Equal(t, "apple", v[0].Name)
 		assert.Equal(t, 18, v[0].Age)
 	})
+
 	t.Run("bytes field", func(t *testing.T) {
 		type v struct {
 			Signature []byte `json:"signature,optional"`

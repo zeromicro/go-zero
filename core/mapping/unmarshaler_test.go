@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/zeromicro/go-zero/core/jsonx"
 	"reflect"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -4874,6 +4874,7 @@ func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
 			B [][]string `json:"b"`
 			C []byte     `json:"c"`
 		}
+
 		var res testRes
 		marshal := testRes{
 			A: "133",
