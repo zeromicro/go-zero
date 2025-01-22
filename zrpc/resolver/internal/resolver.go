@@ -37,10 +37,14 @@ func register() {
 }
 
 type nopResolver struct {
-	cc resolver.ClientConn
+	cc        resolver.ClientConn
+	closeFunc func()
 }
 
 func (r *nopResolver) Close() {
+	if r.closeFunc != nil {
+		r.closeFunc()
+	}
 }
 
 func (r *nopResolver) ResolveNow(_ resolver.ResolveNowOptions) {
