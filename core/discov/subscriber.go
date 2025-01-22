@@ -20,6 +20,7 @@ type (
 		key        string
 		exclusive  bool
 		exactMatch bool
+		key        string
 		items      *container
 	}
 )
@@ -31,6 +32,7 @@ type (
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
 	sub := &Subscriber{
 		endpoints: endpoints,
+		key:       key,
 	}
 	for _, opt := range opts {
 		opt(sub)

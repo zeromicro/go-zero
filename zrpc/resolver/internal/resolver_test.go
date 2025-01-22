@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/zeromicro/go-zero/core/discov"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

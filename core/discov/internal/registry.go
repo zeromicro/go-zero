@@ -100,6 +100,8 @@ type cluster struct {
 	done       chan lang.PlaceholderType
 	lock       sync.RWMutex
 	exactMatch bool
+	watchCtx   map[string]context.CancelFunc
+	watchFlag  map[string]bool
 }
 
 func newCluster(endpoints []string) *cluster {
@@ -110,6 +112,8 @@ func newCluster(endpoints []string) *cluster {
 		listeners:  make(map[string][]UpdateListener),
 		watchGroup: threading.NewRoutineGroup(),
 		done:       make(chan lang.PlaceholderType),
+		watchCtx:   make(map[string]context.CancelFunc),
+		watchFlag:  make(map[string]bool),
 	}
 }
 
@@ -272,15 +276,17 @@ func (c *cluster) monitor(key string, l UpdateListener, exactMatch bool) error {
 	c.exactMatch = exactMatch
 	c.lock.Unlock()
 
-	cli, err := c.getClient()
-	if err != nil {
-		return err
-	}
+	if !c.watchFlag[key] {
+		cli, err := c.getClient()
+		if err != nil {
+			return err
+		}
 
-	rev := c.load(cli, key)
-	c.watchGroup.Run(func() {
-		c.watch(cli, key, rev)
-	})
+		rev := c.load(cli, key)
+		c.watchGroup.Run(func() {
+			c.watch(cli, key, rev)
+		})
+	}
 
 	return nil
 }
@@ -314,6 +320,7 @@ func (c *cluster) reload(cli EtcdClient) {
 	for k := range c.listeners {
 		keys = append(keys, k)
 	}
+	c.clearWatch()
 	c.lock.Unlock()
 
 	for _, key := range keys {
@@ -326,8 +333,9 @@ func (c *cluster) reload(cli EtcdClient) {
 }
 
 func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
+	ctx := c.addWatch(key, cli)
 	for {
-		err := c.watchStream(cli, key, rev)
+		err := c.watchStream(cli, key, rev, ctx)
 		if err == nil {
 			return
 		}
@@ -342,7 +350,7 @@ func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 	}
 }
 
-func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
+func (c *cluster) watchStream(cli EtcdClient, key string, rev int64, ctx context.Context) error {
 	var (
 		rch      clientv3.WatchChan
 		ops      []clientv3.OpOption
@@ -356,7 +364,7 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 		ops = append(ops, clientv3.WithRev(rev+1))
 	}
 
-	rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), watchKey, ops...)
+	rch = cli.Watch(clientv3.WithRequireLeader(ctx), watchKey, ops...)
 
 	for {
 		select {
@@ -374,6 +382,8 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 			c.handleWatchEvents(key, wresp.Events)
 		case <-c.done:
 			return nil
+		case <-ctx.Done():
+			return nil
 		}
 	}
 }
@@ -384,6 +394,23 @@ func (c *cluster) watchConnState(cli EtcdClient) {
 		go c.reload(cli)
 	})
 	watcher.watch(cli.ActiveConnection())
+}
+
+func (c *cluster) addWatch(key string, cli EtcdClient) context.Context {
+	ctx, cancel := context.WithCancel(cli.Ctx())
+	c.lock.Lock()
+	c.watchCtx[key] = cancel
+	c.watchFlag[key] = true
+	c.lock.Unlock()
+	return ctx
+}
+
+func (c *cluster) clearWatch() {
+	for _, cancel := range c.watchCtx {
+		cancel()
+	}
+	c.watchCtx = make(map[string]context.CancelFunc)
+	c.watchFlag = make(map[string]bool)
 }
 
 // DialClient dials an etcd cluster with given endpoints.
