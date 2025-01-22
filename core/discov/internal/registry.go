@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -59,13 +60,15 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, exa
 	return c.monitor(key, l, exactMatch)
 }
 
-func (r *Registry) UnMonitor(endpoints []string, key string, l UpdateListener) {
+// Unmonitor cancel monitoring of given endpoints and keys, and remove the listener.
+func (r *Registry) Unmonitor(endpoints []string, key string, l UpdateListener) {
 	c, exists := r.getCluster(endpoints)
+	// if not exists, return.
 	if !exists {
 		return
 	}
 
-	c.unMonitor(key, l)
+	c.unmonitor(key, l)
 }
 
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
@@ -288,25 +291,12 @@ func (c *cluster) monitor(key string, l UpdateListener, exactMatch bool) error {
 	return nil
 }
 
-func (c *cluster) unMonitor(key string, l UpdateListener) {
+func (c *cluster) unmonitor(key string, l UpdateListener) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-
-	listeners := c.listeners[key]
-	for i, listener := range listeners {
-		if listener == l {
-			c.listeners[key] = append(listeners[:i], listeners[i+1:]...)
-			break
-		}
-	}
-
-	if len(c.listeners[key]) == 0 && c.watchFlag[key] {
-		if cancel, ok := c.watchCtx[key]; ok {
-			cancel()
-			delete(c.watchCtx, key)
-		}
-		c.watchFlag[key] = false
-	}
+	c.listeners[key] = slices.DeleteFunc(c.listeners[key], func(listener UpdateListener) bool {
+		return l == listener
+	})
 }
 
 func (c *cluster) newClient() (EtcdClient, error) {

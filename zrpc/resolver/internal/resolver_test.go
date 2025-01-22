@@ -19,14 +19,18 @@ func TestNopResolver(t *testing.T) {
 	})
 }
 
-func TestNopResolverClose(t *testing.T) {
-	assert.NotPanics(t, func() {
-		sub := &discov.Subscriber{}
-		r := nopResolver{
-			closeFunc: sub.Close,
-		}
-		r.Close()
-	})
+func TestNopResolver_Close(t *testing.T) {
+	var isChanged bool
+	r := nopResolver{}
+	r.Close()
+	assert.False(t, isChanged)
+	r = nopResolver{
+		closeFunc: func() {
+			isChanged = true
+		},
+	}
+	r.Close()
+	assert.True(t, isChanged)
 }
 
 type mockedClientConn struct {

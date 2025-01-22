@@ -35,6 +35,16 @@ func GetFormValues(r *http.Request) (map[string]any, error) {
 	for name, values := range r.Form {
 		filtered := make([]string, 0, len(values))
 		for _, v := range values {
+			// ignore empty values, especially for optional int parameters
+			// e.g. /api?ids=
+			// e.g. /api
+			// type Req struct {
+			//	IDs []int `form:"ids,optional"`
+			// }
+			if len(v) == 0 {
+				continue
+			}
+
 			if n < maxFormParamCount {
 				filtered = append(filtered, v)
 				n++
