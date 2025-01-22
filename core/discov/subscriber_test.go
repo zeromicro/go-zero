@@ -214,18 +214,6 @@ func TestSubscriber(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
 }
 
-func TestSubscriberClos(t *testing.T) {
-	l := newContainer(false)
-	sub := &Subscriber{
-		endpoints: []string{"localhost:2379"},
-		key:       "foo",
-		items:     l,
-	}
-	_ = internal.GetRegistry().Monitor(sub.endpoints, sub.key, l, false)
-	sub.Close()
-	assert.Empty(t, sub.items.listeners)
-}
-
 func TestWithSubEtcdAccount(t *testing.T) {
 	endpoints := []string{"localhost:2379"}
 	user := stringx.Rand()

@@ -4,7 +4,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -17,11 +16,9 @@ type (
 	// A Subscriber is used to subscribe the given key on an etcd cluster.
 	Subscriber struct {
 		endpoints  []string
-		key        string
 		exclusive  bool
 		key        string
 		exactMatch bool
-		key        string
 		items      *container
 	}
 )
@@ -62,11 +59,6 @@ func (s *Subscriber) Values() []string {
 	return s.items.getValues()
 }
 
-// Close s.
-func (s *Subscriber) Close() {
-	internal.GetRegistry().Unmonitor(s.endpoints, s.key, s.items)
-}
-
 // Exclusive means that key value can only be 1:1,
 // which means later added value will remove the keys associated with the same value previously.
 func Exclusive() SubOption {
@@ -98,7 +90,7 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 
 type container struct {
 	exclusive bool
-	values    map[string]*collection.Set
+	values    map[string][]string
 	mapping   map[string]string
 	snapshot  atomic.Value
 	dirty     *syncx.AtomicBool
@@ -109,7 +101,7 @@ type container struct {
 func newContainer(exclusive bool) *container {
 	return &container{
 		exclusive: exclusive,
-		values:    make(map[string]*collection.Set),
+		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
 		dirty:     syncx.ForAtomicBool(true),
 	}
@@ -131,21 +123,15 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	defer c.lock.Unlock()
 
 	c.dirty.Set(true)
-	if c.values[value] == nil {
-		c.values[value] = collection.NewSet()
-	}
-	keys := c.values[value].KeysStr()
+	keys := c.values[value]
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
 	if c.exclusive && early {
 		for _, each := range keys {
 			c.doRemoveKey(each)
 		}
-		if c.values[value] == nil {
-			c.values[value] = collection.NewSet()
-		}
 	}
-	c.values[value].AddStr(key)
+	c.values[value] = append(c.values[value], key)
 	c.mapping[key] = value
 
 	if early {
@@ -168,12 +154,18 @@ func (c *container) doRemoveKey(key string) {
 	}
 
 	delete(c.mapping, key)
-	if c.values[server] == nil {
-		return
-	}
-	c.values[server].Remove(key)
+	keys := c.values[server]
+	remain := keys[:0]
 
-	if c.values[server].Count() == 0 {
+	for _, k := range keys {
+		if k != key {
+			remain = append(remain, k)
+		}
+	}
+
+	if len(remain) > 0 {
+		c.values[server] = remain
+	} else {
 		delete(c.values, server)
 	}
 }
