@@ -748,7 +748,15 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 			return true, tval.UnmarshalText(mv)
 		}
 	}
-
+	//[]byte
+	if fieldType.Kind() == reflect.Slice && fieldType.Elem().Kind() == reflect.Uint8 {
+		b, err := base64.StdEncoding.DecodeString(mapValue.(string))
+		if err != nil {
+			return false, err
+		}
+		value.SetBytes(b)
+		return true, nil
+	}
 	return false, nil
 }
 

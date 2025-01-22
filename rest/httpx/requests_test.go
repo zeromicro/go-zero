@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -514,6 +515,25 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Equal(t, 1, len(v))
 		assert.Equal(t, "apple", v[0].Name)
 		assert.Equal(t, 18, v[0].Age)
+	})
+	t.Run("bytes field", func(t *testing.T) {
+		type v struct {
+			Signature []byte `json:"signature,optional"`
+		}
+		v1 := v{
+			Signature: []byte{0x01, 0xff, 0x00},
+		}
+		body, _ := json.Marshal(v1)
+		t.Logf("body:%s", string(body))
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(string(body)))
+		r.Header.Set(ContentType, header.JsonContentType)
+		var v2 v
+		err := ParseJsonBody(r, &v2)
+		if assert.NoError(t, err) {
+			assert.Greater(t, len(v2.Signature), 0)
+		}
+		t.Logf("%x", v2.Signature)
+		assert.EqualValues(t, v1.Signature, v2.Signature)
 	})
 }
 
