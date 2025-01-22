@@ -43,7 +43,7 @@ func TestComboHealthManager(t *testing.T) {
 		hm1 := NewHealthManager(probeName)
 		hm2 := NewHealthManager(probeName + "2")
 
-		assert.True(t, chm.IsReady())
+		assert.False(t, chm.IsReady())
 		chm.addProbe(hm1)
 		chm.addProbe(hm2)
 		assert.False(t, chm.IsReady())
@@ -57,7 +57,7 @@ func TestComboHealthManager(t *testing.T) {
 		chm := newComboHealthManager()
 		hm := NewHealthManager(probeName)
 
-		assert.True(t, chm.IsReady())
+		assert.False(t, chm.IsReady())
 		chm.addProbe(hm)
 		assert.False(t, chm.IsReady())
 		hm.MarkReady()
@@ -127,7 +127,7 @@ func TestCreateHttpHandler(t *testing.T) {
 	resp, err := http.Get(srv.URL)
 	assert.Nil(t, err)
 	_ = resp.Body.Close()
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 
 	hm := NewHealthManager(probeName)
 	defaultHealthManager.addProbe(hm)
