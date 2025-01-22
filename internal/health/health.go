@@ -111,6 +111,10 @@ func (p *comboHealthManager) IsReady() bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
+	if len(p.probes) == 0 {
+		return false
+	}
+
 	for _, probe := range p.probes {
 		if !probe.IsReady() {
 			return false
