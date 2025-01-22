@@ -2409,10 +2409,10 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
-// WithPass customizes the given Redis with given password.
-func WithUser(user string) Option {
+// WithHook customizes the given Redis with given durationHook.
+func WithHook(hook Hook) Option {
 	return func(r *Redis) {
-		r.User = user
+		r.hooks = append(r.hooks, hook)
 	}
 }
 
@@ -2430,11 +2430,10 @@ func WithTLS() Option {
 	}
 }
 
-// WithHook customizes the given Redis with given durationHook, only for private use now,
-// maybe expose later.
-func WithHook(hook Hook) Option {
+// WithUser customizes the given Redis with given username.
+func WithUser(user string) Option {
 	return func(r *Redis) {
-		r.hooks = append(r.hooks, hook)
+		r.User = user
 	}
 }
 
