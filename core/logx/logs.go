@@ -268,6 +268,11 @@ func SetLevel(level uint32) {
 	atomic.StoreUint32(&logLevel, level)
 }
 
+// GetLevel returns the current log level.
+func GetLevel() uint32 {
+	return atomic.LoadUint32(&logLevel)
+}
+
 // SetWriter sets the logging writer. It can be used to customize the logging.
 func SetWriter(w Writer) {
 	if atomic.LoadUint32(&logLevel) != disableLevel {

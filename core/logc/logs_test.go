@@ -132,6 +132,8 @@ func TestMisc(t *testing.T) {
 	SetLevel(logx.DebugLevel)
 	assert.NoError(t, SetUp(LogConf{}))
 	assert.NoError(t, Close())
+	l := GetLevel()
+	assert.Equal(t, logx.DebugLevel, l)
 }
 
 func TestSlow(t *testing.T) {

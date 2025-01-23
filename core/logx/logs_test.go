@@ -558,6 +558,12 @@ func TestSetLevel(t *testing.T) {
 	assert.Equal(t, 0, w.builder.Len())
 }
 
+func TestGetLevel(t *testing.T) {
+	SetLevel(ErrorLevel)
+	l := GetLevel()
+	assert.Equal(t, ErrorLevel, l)
+}
+
 func TestSetLevelTwiceWithMode(t *testing.T) {
 	testModes := []string{
 		"console",

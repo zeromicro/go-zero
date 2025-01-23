@@ -108,6 +108,11 @@ func SetLevel(level uint32) {
 	logx.SetLevel(level)
 }
 
+// GetLevel gets the logging level.
+func GetLevel() uint32 {
+	return logx.GetLevel()
+}
+
 // SetUp sets up the logx.
 // If already set up, return nil.
 // We allow SetUp to be called multiple times, because, for example,
