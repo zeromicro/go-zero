@@ -257,7 +257,25 @@ func TestStructedLogDebugv(t *testing.T) {
 		Debugv(fmt.Sprint(v...))
 	})
 }
-
+func TestStructedLogDebugfn(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+	doTestStructedLog(t, levelDebug, w, func(v ...any) {
+		Debugfn(func() string {
+			return fmt.Sprint(v...)
+		})
+	})
+}
+func TestDebugfnWithInfoLevel(t *testing.T) {
+	called := false
+	SetLevel(InfoLevel)
+	Debugfn(func() string {
+		called = true
+		return "long time log"
+	})
+	assert.False(t, called)
+}
 func TestStructedLogDebugw(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -449,6 +467,26 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 
 		Info(fmt.Sprint(v...))
 	})
+}
+func TestStructedInfofn(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelInfo, w, func(v ...any) {
+		Infofn(func() string {
+			return fmt.Sprint(v...)
+		})
+	})
+}
+func TestInfofnWithErrorLevel(t *testing.T) {
+	called := false
+	SetLevel(ErrorLevel)
+	Infofn(func() string {
+		called = true
+		return "info log"
+	})
+	assert.False(t, called)
 }
 
 func TestStructedLogSlow(t *testing.T) {

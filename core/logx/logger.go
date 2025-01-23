@@ -13,6 +13,8 @@ type Logger interface {
 	Debugf(string, ...any)
 	// Debugv logs a message at debug level.
 	Debugv(any)
+	// Debugfn logs a message at debug level.
+	Debugfn(func() string)
 	// Debugw logs a message at debug level.
 	Debugw(string, ...LogField)
 	// Error logs a message at error level.
@@ -29,6 +31,8 @@ type Logger interface {
 	Infof(string, ...any)
 	// Infov logs a message at info level.
 	Infov(any)
+	// Infofn logs a message at info level.
+	Infofn(func() string)
 	// Infow logs a message at info level.
 	Infow(string, ...LogField)
 	// Slow logs a message at slow level.

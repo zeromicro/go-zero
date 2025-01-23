@@ -42,6 +42,11 @@ func Debugv(ctx context.Context, v interface{}) {
 	getLogger(ctx).Debugv(v)
 }
 
+// Debugfn writes fn result into access log.
+func Debugfn(ctx context.Context, fn func() string) {
+	getLogger(ctx).Debugfn(fn)
+}
+
 // Debugw writes msg along with fields into the access log.
 func Debugw(ctx context.Context, msg string, fields ...LogField) {
 	getLogger(ctx).Debugw(msg, fields...)
@@ -86,6 +91,11 @@ func Infof(ctx context.Context, format string, v ...any) {
 // Infov writes v into access log with json content.
 func Infov(ctx context.Context, v any) {
 	getLogger(ctx).Infov(v)
+}
+
+// Infofn writes fn result into access log.
+func Infofn(ctx context.Context, fn func() string) {
+	getLogger(ctx).Infofn(fn)
 }
 
 // Infow writes msg along with fields into the access log.
