@@ -124,6 +124,8 @@ func apiTypeToCsTypeName(t spec.Type) (string, error) {
 			return "", errors.New("unsupported key is not primitive type " + t.Name())
 		}
 		return fmt.Sprintf("Dictionary<%s,%s>", kt, vt), nil
+	case spec.DefineStruct:
+		return t.Name(), nil
 	}
 
 	return "", errors.New("unsupported type " + t.Name())
