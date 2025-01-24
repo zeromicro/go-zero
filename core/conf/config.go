@@ -73,7 +73,7 @@ func LoadConfig(file string, v any, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v any) error {
-	info, err := buildFieldsInfo(reflect.TypeOf(v), "")
+	info, err := buildFieldsInfo(reflect.TypeOf(v), "", make(fieldCache))
 	if err != nil {
 		return err
 	}
@@ -143,10 +143,11 @@ func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo, fullName st
 	return nil
 }
 
-func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
+func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string,
+	cache fieldCache) error {
 	switch ft.Kind() {
 	case reflect.Struct:
-		fields, err := buildFieldsInfo(ft, fullName)
+		fields, err := buildFieldsInfo(ft, fullName, cache)
 		if err != nil {
 			return err
 		}
@@ -157,7 +158,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 			}
 		}
 	case reflect.Map:
-		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName)
+		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName, cache)
 		if err != nil {
 			return err
 		}
@@ -183,14 +184,17 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 	return nil
 }
 
-func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
+func buildFieldsInfo(tp reflect.Type, fullName string, cache fieldCache) (*fieldInfo, error) {
 	tp = mapping.Deref(tp)
+	if info, ok := cache[tp]; ok {
+		return info, nil
+	}
 
 	switch tp.Kind() {
 	case reflect.Struct:
-		return buildStructFieldsInfo(tp, fullName)
+		return buildStructFieldsInfo(tp, fullName, cache)
 	case reflect.Array, reflect.Slice, reflect.Map:
-		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName)
+		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName, cache)
 	case reflect.Chan, reflect.Func:
 		return nil, fmt.Errorf("unsupported type: %s, fullName: %s", tp.Kind(), fullName)
 	default:
@@ -200,33 +204,32 @@ func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
 	}
 }
 
-func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
+func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string,
+	cache fieldCache) error {
 	var finfo *fieldInfo
 	var err error
 
 	switch ft.Kind() {
 	case reflect.Struct:
-		finfo, err = buildFieldsInfo(ft, fullName)
+		finfo, err = buildFieldsInfo(ft, fullName, cache)
 		if err != nil {
 			return err
 		}
 	case reflect.Array, reflect.Slice:
-		finfo, err = buildFieldsInfo(ft.Elem(), fullName)
+		finfo, err = buildFieldsInfo(ft.Elem(), fullName, cache)
 		if err != nil {
 			return err
 		}
 	case reflect.Map:
-		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName)
+		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName, cache)
 		if err != nil {
 			return err
 		}
 
-		finfo = &fieldInfo{
-			children: make(map[string]*fieldInfo),
-			mapField: elemInfo,
-		}
+		finfo = cache.get(mapping.Deref(ft.Elem()))
+		finfo.mapField = elemInfo
 	default:
-		finfo, err = buildFieldsInfo(ft, fullName)
+		finfo, err = buildFieldsInfo(ft, fullName, cache)
 		if err != nil {
 			return err
 		}
@@ -235,10 +238,8 @@ func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type,
 	return addOrMergeFields(info, lowerCaseName, finfo, fullName)
 }
 
-func buildStructFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
-	info := &fieldInfo{
-		children: make(map[string]*fieldInfo),
-	}
+func buildStructFieldsInfo(tp reflect.Type, fullName string, cache fieldCache) (*fieldInfo, error) {
+	info := cache.get(tp)
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
@@ -252,11 +253,11 @@ func buildStructFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error)
 		// flatten anonymous fields
 		if field.Anonymous {
 			if err := buildAnonymousFieldInfo(info, lowerCaseName, ft,
-				getFullName(fullName, lowerCaseName)); err != nil {
+				getFullName(fullName, lowerCaseName), cache); err != nil {
 				return nil, err
 			}
 		} else if err := buildNamedFieldInfo(info, lowerCaseName, ft,
-			getFullName(fullName, lowerCaseName)); err != nil {
+			getFullName(fullName, lowerCaseName), cache); err != nil {
 			return nil, err
 		}
 	}
@@ -360,4 +361,29 @@ func getFullName(parent, child string) string {
 	}
 
 	return strings.Join([]string{parent, child}, ".")
+}
+
+type fieldCache map[reflect.Type]*fieldInfo
+
+func (c fieldCache) get(tp reflect.Type) *fieldInfo {
+	tp = mapping.Deref(tp)
+	switch tp.Kind() {
+	case reflect.Struct:
+	case reflect.Array, reflect.Slice:
+		tp = mapping.Deref(tp.Elem())
+	default:
+		return &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}
+	}
+
+	info, ok := c[tp]
+	if !ok {
+		info = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}
+		c[tp] = info
+	}
+
+	return info
 }
