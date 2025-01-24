@@ -270,6 +270,7 @@ func TestStructedLogDebugfn(t *testing.T) {
 func TestDebugfnWithInfoLevel(t *testing.T) {
 	called := false
 	SetLevel(InfoLevel)
+	defer SetLevel(DebugLevel)
 	Debugfn(func() string {
 		called = true
 		return "long time log"
@@ -482,6 +483,7 @@ func TestStructedInfofn(t *testing.T) {
 func TestInfofnWithErrorLevel(t *testing.T) {
 	called := false
 	SetLevel(ErrorLevel)
+	defer SetLevel(DebugLevel)
 	Infofn(func() string {
 		called = true
 		return "info log"
