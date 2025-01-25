@@ -734,6 +734,22 @@ func TestParseJsonStringRequest(t *testing.T) {
 	})
 }
 
+type valid1 struct{}
+
+func (v valid1) Validate(*http.Request, any) error { return nil }
+
+type valid2 struct{}
+
+func (v valid2) Validate(*http.Request, any) error { return nil }
+
+func TestSetValidatorTwice(t *testing.T) {
+	// panic: sync/atomic: store of inconsistently typed value into Value
+	assert.NotPanics(t, func() {
+		SetValidator(valid1{})
+		SetValidator(valid2{})
+	})
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {

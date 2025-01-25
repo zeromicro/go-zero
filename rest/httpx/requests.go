@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"sync/atomic"
+	"sync"
 
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/validation"
@@ -33,7 +33,11 @@ var (
 		pathKey,
 		mapping.WithStringValues(),
 		mapping.WithOpaqueKeys())
-	validator atomic.Value
+
+	// panic: sync/atomic: store of inconsistently typed value into Value
+	// don't use atomic.Value to store the validator, different concrete types still panic
+	validator     Validator
+	validatorLock sync.RWMutex
 )
 
 // Validator defines the interface for validating the request.
@@ -65,8 +69,8 @@ func Parse(r *http.Request, v any) error {
 
 	if valid, ok := v.(validation.Validator); ok {
 		return valid.Validate()
-	} else if val := validator.Load(); val != nil {
-		return val.(Validator).Validate(r, v)
+	} else if val := getValidator(); val != nil {
+		return val.Validate(r, v)
 	}
 
 	return nil
@@ -135,7 +139,15 @@ func ParsePath(r *http.Request, v any) error {
 // The validator is used to validate the request, only called in Parse,
 // not in ParseHeaders, ParseForm, ParseHeader, ParseJsonBody, ParsePath.
 func SetValidator(val Validator) {
-	validator.Store(val)
+	validatorLock.Lock()
+	defer validatorLock.Unlock()
+	validator = val
+}
+
+func getValidator() Validator {
+	validatorLock.RLock()
+	defer validatorLock.RUnlock()
+	return validator
 }
 
 func withJsonBody(r *http.Request) bool {
