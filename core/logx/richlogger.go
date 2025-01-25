@@ -57,6 +57,11 @@ func (l *richLogger) Debugv(v any) {
 		l.debug(v)
 	}
 }
+func (l *richLogger) Debugfn(fn func() string) {
+	if shallLog(DebugLevel) {
+		l.debug(fn())
+	}
+}
 
 func (l *richLogger) Debugw(msg string, fields ...LogField) {
 	if shallLog(DebugLevel) {
@@ -103,6 +108,12 @@ func (l *richLogger) Infof(format string, v ...any) {
 func (l *richLogger) Infov(v any) {
 	if shallLog(InfoLevel) {
 		l.info(v)
+	}
+}
+
+func (l *richLogger) Infofn(fn func() string) {
+	if shallLog(InfoLevel) {
+		l.info(fn())
 	}
 }
 

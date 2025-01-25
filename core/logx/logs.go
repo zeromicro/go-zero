@@ -107,6 +107,13 @@ func Debugv(v any) {
 	}
 }
 
+// Debugfn writes function result into access log.
+func Debugfn(fn func() string) {
+	if shallLog(DebugLevel) {
+		writeDebug(fn())
+	}
+}
+
 // Debugw writes msg along with fields into the access log.
 func Debugw(msg string, fields ...LogField) {
 	if shallLog(DebugLevel) {
@@ -226,6 +233,13 @@ func Infof(format string, v ...any) {
 func Infov(v any) {
 	if shallLog(InfoLevel) {
 		writeInfo(v)
+	}
+}
+
+// Infofn writes function result into access log.
+func Infofn(fn func() string) {
+	if shallLog(InfoLevel) {
+		writeInfo(fn())
 	}
 }
 
