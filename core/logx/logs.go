@@ -100,17 +100,18 @@ func Debugf(format string, v ...any) {
 	}
 }
 
+// Debugfn writes function result into access log if debug level enabled.
+// This is useful when the function is expensive to call and debug level disabled.
+func Debugfn(fn func() any) {
+	if shallLog(DebugLevel) {
+		writeDebug(fn())
+	}
+}
+
 // Debugv writes v into access log with json content.
 func Debugv(v any) {
 	if shallLog(DebugLevel) {
 		writeDebug(v)
-	}
-}
-
-// Debugfn writes function result into access log.
-func Debugfn(fn func() string) {
-	if shallLog(DebugLevel) {
-		writeDebug(fn())
 	}
 }
 
@@ -143,6 +144,13 @@ func Error(v ...any) {
 func Errorf(format string, v ...any) {
 	if shallLog(ErrorLevel) {
 		writeError(fmt.Errorf(format, v...).Error())
+	}
+}
+
+// Errorfn writes function result into error log.
+func Errorfn(fn func() any) {
+	if shallLog(ErrorLevel) {
+		writeError(fn())
 	}
 }
 
@@ -229,17 +237,18 @@ func Infof(format string, v ...any) {
 	}
 }
 
+// Infofn writes function result into access log.
+// This is useful when the function is expensive to call and info level disabled.
+func Infofn(fn func() any) {
+	if shallLog(InfoLevel) {
+		writeInfo(fn())
+	}
+}
+
 // Infov writes v into access log with json content.
 func Infov(v any) {
 	if shallLog(InfoLevel) {
 		writeInfo(v)
-	}
-}
-
-// Infofn writes function result into access log.
-func Infofn(fn func() string) {
-	if shallLog(InfoLevel) {
-		writeInfo(fn())
 	}
 }
 
@@ -359,6 +368,14 @@ func Slow(v ...any) {
 func Slowf(format string, v ...any) {
 	if shallLog(ErrorLevel) {
 		writeSlow(fmt.Sprintf(format, v...))
+	}
+}
+
+// Slowfn writes function result into slow log.
+// This is useful when the function is expensive to call and slow level disabled.
+func Slowfn(fn func() any) {
+	if shallLog(ErrorLevel) {
+		writeSlow(fn())
 	}
 }
 
