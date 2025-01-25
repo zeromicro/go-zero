@@ -2,9 +2,11 @@ package zipx
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -39,13 +41,22 @@ func fileCopy(file *zip.File, destPath string) error {
 		return err
 	}
 	defer rc.Close()
-	abs, err := filepath.Abs(file.Name)
+	// Ensure the file path does not contain directory traversal elements
+	if strings.Contains(file.Name, "..") {
+		return fmt.Errorf("invalid file path: %s", file.Name)
+	}
+
+	abs, err := filepath.Abs(filepath.Join(destPath, file.Name))
 	if err != nil {
 		return err
 	}
 
-	filename := filepath.Join(destPath, filepath.Base(abs))
-	dir := filepath.Dir(filename)
+	// Ensure the destination path is within the intended directory
+	if !strings.HasPrefix(abs, destPath) {
+		return fmt.Errorf("file path is outside the destination directory: %s", abs)
+	}
+
+	dir := filepath.Dir(abs)
 	err = pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return err
