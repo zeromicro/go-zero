@@ -52,14 +52,15 @@ func (l *richLogger) Debugf(format string, v ...any) {
 	}
 }
 
+func (l *richLogger) Debugfn(fn func() any) {
+	if shallLog(DebugLevel) {
+		l.debug(fn())
+	}
+}
+
 func (l *richLogger) Debugv(v any) {
 	if shallLog(DebugLevel) {
 		l.debug(v)
-	}
-}
-func (l *richLogger) Debugfn(fn func() string) {
-	if shallLog(DebugLevel) {
-		l.debug(fn())
 	}
 }
 
@@ -78,6 +79,12 @@ func (l *richLogger) Error(v ...any) {
 func (l *richLogger) Errorf(format string, v ...any) {
 	if shallLog(ErrorLevel) {
 		l.err(fmt.Sprintf(format, v...))
+	}
+}
+
+func (l *richLogger) Errorfn(fn func() any) {
+	if shallLog(ErrorLevel) {
+		l.err(fn())
 	}
 }
 
@@ -105,15 +112,15 @@ func (l *richLogger) Infof(format string, v ...any) {
 	}
 }
 
-func (l *richLogger) Infov(v any) {
+func (l *richLogger) Infofn(fn func() any) {
 	if shallLog(InfoLevel) {
-		l.info(v)
+		l.info(fn())
 	}
 }
 
-func (l *richLogger) Infofn(fn func() string) {
+func (l *richLogger) Infov(v any) {
 	if shallLog(InfoLevel) {
-		l.info(fn())
+		l.info(v)
 	}
 }
 
@@ -132,6 +139,12 @@ func (l *richLogger) Slow(v ...any) {
 func (l *richLogger) Slowf(format string, v ...any) {
 	if shallLog(ErrorLevel) {
 		l.slow(fmt.Sprintf(format, v...))
+	}
+}
+
+func (l *richLogger) Slowfn(fn func() any) {
+	if shallLog(ErrorLevel) {
+		l.slow(fn())
 	}
 }
 

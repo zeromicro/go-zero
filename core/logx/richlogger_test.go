@@ -63,6 +63,11 @@ func TestTraceDebug(t *testing.T) {
 	l.WithDuration(time.Second).Debugf(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
+	l.WithDuration(time.Second).Debugfn(func() any {
+		return testlog
+	})
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Debugv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
@@ -103,6 +108,11 @@ func TestTraceError(t *testing.T) {
 	l.WithDuration(time.Second).Errorf(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
+	l.WithDuration(time.Second).Errorfn(func() any {
+		return testlog
+	})
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
@@ -138,6 +148,11 @@ func TestTraceInfo(t *testing.T) {
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Infofn(func() any {
+		return testlog
+	})
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
@@ -211,6 +226,11 @@ func TestTraceSlow(t *testing.T) {
 	assert.True(t, strings.Contains(w.String(), spanKey))
 	w.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Slowfn(func() any {
+		return testlog
+	})
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
