@@ -1,4 +1,4 @@
-package model
+package {{.PackageName}}
 
 import (
 	"errors"
