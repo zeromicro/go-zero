@@ -41,22 +41,19 @@ func fileCopy(file *zip.File, destPath string) error {
 		return err
 	}
 	defer rc.Close()
+
 	// Ensure the file path does not contain directory traversal elements
 	if strings.Contains(file.Name, "..") {
 		return fmt.Errorf("invalid file path: %s", file.Name)
 	}
 
-	abs, err := filepath.Abs(filepath.Join(destPath, file.Name))
+	abs, err := filepath.Abs(file.Name)
 	if err != nil {
 		return err
 	}
 
-	// Ensure the destination path is within the intended directory
-	if !strings.HasPrefix(abs, destPath) {
-		return fmt.Errorf("file path is outside the destination directory: %s", abs)
-	}
-
-	dir := filepath.Dir(abs)
+	filename := filepath.Join(destPath, filepath.Base(abs))
+	dir := filepath.Dir(filename)
 	err = pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return err
