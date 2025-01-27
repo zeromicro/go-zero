@@ -6,15 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
 func TestMetricsInterceptor(t *testing.T) {
-	c := gomock.NewController(t)
-	defer c.Finish()
-
 	logx.Disable()
 
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
