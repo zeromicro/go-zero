@@ -183,7 +183,6 @@ func request(r *http.Request, cli client) (*http.Response, error) {
 	for i := len(respHandlers) - 1; i >= 0; i-- {
 		respHandlers[i](resp, err)
 	}
-
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
