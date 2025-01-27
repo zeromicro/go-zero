@@ -1,6 +1,7 @@
 module github.com/zeromicro/go-zero
 
 go 1.21
+toolchain go1.22.5
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -20,8 +21,8 @@ require (
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.10.0
-	go.etcd.io/etcd/api/v3 v3.5.15
-	go.etcd.io/etcd/client/v3 v3.5.15
+	go.etcd.io/etcd/api/v3 v3.5.18
+	go.etcd.io/etcd/client/v3 v3.5.18
 	go.mongodb.org/mongo-driver v1.17.2
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -102,7 +103,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.15 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.18 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.24.0 // indirect
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
