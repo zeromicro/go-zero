@@ -560,7 +560,7 @@ func shallLogStat() bool {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeDebug(val any, fields ...LogField) {
-	getWriter().Debug(val, addCaller(fields...)...)
+	getWriter().Debug(val, combineGlobalFields(addCaller(fields...))...)
 }
 
 // writeError writes v into the error log.
@@ -568,7 +568,7 @@ func writeDebug(val any, fields ...LogField) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeError(val any, fields ...LogField) {
-	getWriter().Error(val, addCaller(fields...)...)
+	getWriter().Error(val, combineGlobalFields(addCaller(fields...))...)
 }
 
 // writeInfo writes v into info log.
@@ -576,7 +576,7 @@ func writeError(val any, fields ...LogField) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeInfo(val any, fields ...LogField) {
-	getWriter().Info(val, addCaller(fields...)...)
+	getWriter().Info(val, combineGlobalFields(addCaller(fields...))...)
 }
 
 // writeSevere writes v into severe log.
@@ -592,7 +592,7 @@ func writeSevere(msg string) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeSlow(val any, fields ...LogField) {
-	getWriter().Slow(val, addCaller(fields...)...)
+	getWriter().Slow(val, combineGlobalFields(addCaller(fields...))...)
 }
 
 // writeStack writes v into stack log.
@@ -608,5 +608,5 @@ func writeStack(msg string) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeStat(msg string) {
-	getWriter().Stat(msg, addCaller()...)
+	getWriter().Stat(msg, combineGlobalFields(addCaller())...)
 }
