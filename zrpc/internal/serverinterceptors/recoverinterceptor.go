@@ -4,7 +4,7 @@ import (
 	"context"
 	"runtime/debug"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,7 +14,7 @@ import (
 func StreamRecoverInterceptor(svr any, stream grpc.ServerStream, _ *grpc.StreamServerInfo,
 	handler grpc.StreamHandler) (err error) {
 	defer handleCrash(func(r any) {
-		err = toPanicError(r)
+		err = toPanicError(context.Background(), r)
 	})
 
 	return handler(svr, stream)
@@ -24,7 +24,7 @@ func StreamRecoverInterceptor(svr any, stream grpc.ServerStream, _ *grpc.StreamS
 func UnaryRecoverInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp any, err error) {
 	defer handleCrash(func(r any) {
-		err = toPanicError(r)
+		err = toPanicError(ctx, r)
 	})
 
 	return handler(ctx, req)
@@ -36,7 +36,7 @@ func handleCrash(handler func(any)) {
 	}
 }
 
-func toPanicError(r any) error {
-	logx.Errorf("%+v\n\n%s", r, debug.Stack())
+func toPanicError(ctx context.Context, r any) error {
+	logc.Errorf(ctx, "%+v\n\n%s", r, debug.Stack())
 	return status.Errorf(codes.Internal, "panic: %v", r)
 }

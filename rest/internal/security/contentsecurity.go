@@ -14,7 +14,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/codec"
 	"github.com/zeromicro/go-zero/core/iox"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
@@ -123,7 +123,7 @@ func VerifySignature(r *http.Request, securityHeader *ContentSecurityHeader, tol
 		return httpx.CodeSignaturePass
 	}
 
-	logx.Infof("signature different, expect: %s, actual: %s",
+	logc.Infof(r.Context(), "signature different, expect: %s, actual: %s",
 		securityHeader.Signature, actualSignature)
 
 	return httpx.CodeSignatureInvalidToken

@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"errors"
 	"io"
@@ -10,7 +11,7 @@ import (
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/codec"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 )
 
 const maxBytes = 1 << 20 // 1 MiB
@@ -27,7 +28,7 @@ func LimitCryptionHandler(limitBytes int64, key []byte) func(http.Handler) http.
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cw := newCryptionResponseWriter(w)
-			defer cw.flush(key)
+			defer cw.flush(r.Context(), key)
 
 			if r.ContentLength <= 0 {
 				next.ServeHTTP(cw, r)
@@ -118,7 +119,7 @@ func (w *cryptionResponseWriter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func (w *cryptionResponseWriter) flush(key []byte) {
+func (w *cryptionResponseWriter) flush(ctx context.Context, key []byte) {
 	if w.buf.Len() == 0 {
 		return
 	}
@@ -131,8 +132,8 @@ func (w *cryptionResponseWriter) flush(key []byte) {
 
 	body := base64.StdEncoding.EncodeToString(content)
 	if n, err := io.WriteString(w.ResponseWriter, body); err != nil {
-		logx.Errorf("write response failed, error: %s", err)
+		logc.Errorf(ctx, "write response failed, error: %s", err)
 	} else if n < len(body) {
-		logx.Errorf("actual bytes: %d, written bytes: %d", len(body), n)
+		logc.Errorf(ctx, "actual bytes: %d, written bytes: %d", len(body), n)
 	}
 }
