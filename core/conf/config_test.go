@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"errors"
 	"os"
 	"reflect"
 	"testing"
@@ -40,9 +41,8 @@ func TestConfigJson(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test, func(t *testing.T) {
-			tmpfile, err := createTempFile(test, text)
+			tmpfile, err := createTempFile(t, test, text)
 			assert.Nil(t, err)
-			defer os.Remove(tmpfile)
 
 			var val struct {
 				A string `json:"a"`
@@ -82,9 +82,8 @@ c = "${FOO}"
 d = "abcd!@#$112"
 `
 	t.Setenv("FOO", "2")
-	tmpfile, err := createTempFile(".toml", text)
+	tmpfile, err := createTempFile(t, ".toml", text)
 	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
 
 	var val struct {
 		A string `json:"a"`
@@ -105,9 +104,8 @@ b = 1
 c = "FOO"
 d = "abcd"
 `
-	tmpfile, err := createTempFile(".toml", text)
+	tmpfile, err := createTempFile(t, ".toml", text)
 	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
 
 	var val struct {
 		A string `json:"a"`
@@ -127,9 +125,8 @@ func TestConfigWithLower(t *testing.T) {
 	text := `a = "foo"
 b = 1
 `
-	tmpfile, err := createTempFile(".toml", text)
+	tmpfile, err := createTempFile(t, ".toml", text)
 	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
 
 	var val struct {
 		A string `json:"a"`
@@ -207,9 +204,8 @@ c = "${FOO}"
 d = "abcd!@#112"
 `
 	t.Setenv("FOO", "2")
-	tmpfile, err := createTempFile(".toml", text)
+	tmpfile, err := createTempFile(t, ".toml", text)
 	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
 
 	var val struct {
 		A string `json:"a"`
@@ -241,9 +237,8 @@ func TestConfigJsonEnv(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test, func(t *testing.T) {
-			tmpfile, err := createTempFile(test, text)
+			tmpfile, err := createTempFile(t, test, text)
 			assert.Nil(t, err)
-			defer os.Remove(tmpfile)
 
 			var val struct {
 				A string `json:"a"`
@@ -1217,9 +1212,42 @@ Name = "bar"
 	})
 }
 
+func Test_LoadBadConfig(t *testing.T) {
+	type Config struct {
+		Name string `json:"name,options=foo|bar"`
+	}
+
+	file, err := createTempFile(t, ".json", `{"name": "baz"}`)
+	assert.NoError(t, err)
+
+	var c Config
+	err = Load(file, &c)
+	assert.Error(t, err)
+}
+
 func Test_getFullName(t *testing.T) {
 	assert.Equal(t, "a.b", getFullName("a", "b"))
 	assert.Equal(t, "a", getFullName("", "a"))
+}
+
+func TestValidate(t *testing.T) {
+	t.Run("normal config", func(t *testing.T) {
+		var c mockConfig
+		err := LoadFromJsonBytes([]byte(`{"val": "hello", "number": 8}`), &c)
+		assert.NoError(t, err)
+	})
+
+	t.Run("error no int", func(t *testing.T) {
+		var c mockConfig
+		err := LoadFromJsonBytes([]byte(`{"val": "hello"}`), &c)
+		assert.Error(t, err)
+	})
+
+	t.Run("error no string", func(t *testing.T) {
+		var c mockConfig
+		err := LoadFromJsonBytes([]byte(`{"number": 8}`), &c)
+		assert.Error(t, err)
+	})
 }
 
 func Test_buildFieldsInfo(t *testing.T) {
@@ -1311,13 +1339,13 @@ func Test_buildFieldsInfo(t *testing.T) {
 	}
 }
 
-func createTempFile(ext, text string) (string, error) {
+func createTempFile(t *testing.T, ext, text string) (string, error) {
 	tmpFile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
 		return "", err
 	}
 
-	if err := os.WriteFile(tmpFile.Name(), []byte(text), os.ModeTemporary); err != nil {
+	if err = os.WriteFile(tmpFile.Name(), []byte(text), os.ModeTemporary); err != nil {
 		return "", err
 	}
 
@@ -1326,5 +1354,26 @@ func createTempFile(ext, text string) (string, error) {
 		return "", err
 	}
 
+	t.Cleanup(func() {
+		_ = os.Remove(filename)
+	})
+
 	return filename, nil
+}
+
+type mockConfig struct {
+	Val    string
+	Number int
+}
+
+func (m mockConfig) Validate() error {
+	if len(m.Val) == 0 {
+		return errors.New("val is empty")
+	}
+
+	if m.Number == 0 {
+		return errors.New("number is zero")
+	}
+
+	return nil
 }
