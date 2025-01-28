@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/lang"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/threading"
@@ -249,7 +249,7 @@ func (c *cluster) handleChanges(key watchKey, kvs []KV) {
 	}
 }
 
-func (c *cluster) handleWatchEvents(key watchKey, events []*clientv3.Event) {
+func (c *cluster) handleWatchEvents(ctx context.Context, key watchKey, events []*clientv3.Event) {
 	c.lock.RLock()
 	watcher, ok := c.watchers[key]
 	if !ok {
@@ -283,7 +283,7 @@ func (c *cluster) handleWatchEvents(key watchKey, events []*clientv3.Event) {
 				})
 			}
 		default:
-			logx.Errorf("Unknown event type: %v", ev.Type)
+			logc.Errorf(ctx, "Unknown event type: %v", ev.Type)
 		}
 	}
 }
@@ -304,7 +304,7 @@ func (c *cluster) load(cli EtcdClient, key watchKey) int64 {
 			break
 		}
 
-		logx.Errorf("%s, key: %s, exactMatch: %t", err.Error(), key.key, key.exactMatch)
+		logc.Errorf(cli.Ctx(), "%s, key: %s, exactMatch: %t", err.Error(), key.key, key.exactMatch)
 		time.Sleep(coolDownUnstable.AroundDuration(coolDownInterval))
 	}
 
@@ -382,12 +382,12 @@ func (c *cluster) watch(cli EtcdClient, key watchKey, rev int64) {
 		}
 
 		if rev != 0 && errors.Is(err, rpctypes.ErrCompacted) {
-			logx.Errorf("etcd watch stream has been compacted, try to reload, rev %d", rev)
+			logc.Errorf(cli.Ctx(), "etcd watch stream has been compacted, try to reload, rev %d", rev)
 			rev = c.load(cli, key)
 		}
 
 		// log the error and retry
-		logx.Error(err)
+		logc.Error(cli.Ctx(), err)
 	}
 }
 
@@ -407,7 +407,7 @@ func (c *cluster) watchStream(cli EtcdClient, key watchKey, rev int64) error {
 				return fmt.Errorf("etcd monitor chan error: %w", wresp.Err())
 			}
 
-			c.handleWatchEvents(key, wresp.Events)
+			c.handleWatchEvents(ctx, key, wresp.Events)
 		case <-ctx.Done():
 			return nil
 		case <-c.done:

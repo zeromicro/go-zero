@@ -300,7 +300,7 @@ func TestCluster_handleWatchEvents(t *testing.T) {
 			},
 		}
 		assert.NotPanics(t, func() {
-			c.handleWatchEvents(watchKey{
+			c.handleWatchEvents(context.Background(), watchKey{
 				key: "another",
 			}, nil)
 		})
