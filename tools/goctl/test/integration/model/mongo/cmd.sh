@@ -23,7 +23,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # go mod tidy
-GOPROXY=https://goproxy.cn && go mod tidy
+go mod tidy
 
 # code inspection
 go test -race ./...

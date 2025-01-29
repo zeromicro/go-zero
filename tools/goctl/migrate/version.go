@@ -15,33 +15,29 @@ var client = http.Client{
 }
 
 func getLatest(repo string, verbose bool) ([]string, error) {
-	proxies := goProxy()
-	for _, proxy := range proxies {
-		if verbose {
-			console.Info("use go proxy %q", proxy)
-		}
-		log := func(err error) {
-			console.Warning("get latest versions failed from proxy %q, error: %+v", proxy, err)
-		}
-		resp, err := client.Get(fmt.Sprintf("%s/%s/@v/list", proxy, repo))
-		if err != nil {
-			log(err)
-			continue
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			log(fmt.Errorf("%s", resp.Status))
-			continue
-		}
-		defer resp.Body.Close()
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log(err)
-			continue
-		}
-		versionStr := string(data)
-		versions := strings.Fields(versionStr)
-		return versions, nil
+	log := func(err error) {
+		console.Warning("get latest versions failed, error: %+v", err)
 	}
-	return []string{}, nil
+	resp, err := client.Get(fmt.Sprintf("%s/@v/list", repo))
+	if err != nil {
+		log(err)
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("%s", resp.Status)
+		log(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log(err)
+		return nil, err
+	}
+
+	versionStr := string(data)
+	versions := strings.Fields(versionStr)
+	return versions, nil
 }
