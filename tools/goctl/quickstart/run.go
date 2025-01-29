@@ -5,19 +5,16 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const goproxy = "GOPROXY=https://goproxy.cn,direct"
-
 func goStart(dir string) {
-	execCommand(dir, "go run .", prepareGoProxyEnv()...)
+	execCommand(dir, "go run .")
 }
 
 func goModTidy(dir string) int {
 	log.Debug(">> go mod tidy")
-	return execCommand(dir, "go mod tidy", prepareGoProxyEnv()...)
+	return execCommand(dir, "go mod tidy")
 }
 
 func execCommand(dir, arg string, envArgs ...string) int {
@@ -33,12 +30,4 @@ func execCommand(dir, arg string, envArgs ...string) int {
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run()
 	return cmd.ProcessState.ExitCode()
-}
-
-func prepareGoProxyEnv(envArgs ...string) []string {
-	if env.InChina() {
-		return append(envArgs, goproxy)
-	}
-
-	return envArgs
 }

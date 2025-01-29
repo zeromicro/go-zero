@@ -31,7 +31,6 @@ if [ -d $WD ]; then
 fi
 
 execute_command "mkdir -p $BIN $PROJECT_DIR $OLD_CODE $NEW_CODE"
-execute_command 'export GOPROXY="https://goproxy.cn,direct"'
 execute_command "export GOBIN=$BIN"
 
 echo "=======================install goctl============================="
