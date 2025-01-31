@@ -17,15 +17,27 @@ import (
 )
 
 type (
+	// Writer is the interface for writing logs.
+	// It's designed to let users customize their own log writer,
+	// such as writing logs to a kafka, a database, or using third-party loggers.
 	Writer interface {
+		// Alert sends an alert message, if your writer implemented alerting functionality.
 		Alert(v any)
+		// Close closes the writer.
 		Close() error
+		// Debug logs a message at debug level.
 		Debug(v any, fields ...LogField)
+		// Error logs a message at error level.
 		Error(v any, fields ...LogField)
+		// Info logs a message at info level.
 		Info(v any, fields ...LogField)
+		// Severe logs a message at severe level.
 		Severe(v any)
+		// Slow logs a message at slow level.
 		Slow(v any, fields ...LogField)
+		// Stack logs a message at error level.
 		Stack(v any)
+		// Stat logs a message at stat level.
 		Stat(v any, fields ...LogField)
 	}
 
@@ -324,20 +336,6 @@ func buildPlainFields(fields logEntry) []string {
 	return items
 }
 
-func combineGlobalFields(fields []LogField) []LogField {
-	globals := globalFields.Load()
-	if globals == nil {
-		return fields
-	}
-
-	gf := globals.([]LogField)
-	ret := make([]LogField, 0, len(gf)+len(fields))
-	ret = append(ret, gf...)
-	ret = append(ret, fields...)
-
-	return ret
-}
-
 func marshalJson(t interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := json.NewEncoder(&buf)
@@ -350,6 +348,20 @@ func marshalJson(t interface{}) ([]byte, error) {
 	}
 
 	return buf.Bytes(), err
+}
+
+func mergeGlobalFields(fields []LogField) []LogField {
+	globals := globalFields.Load()
+	if globals == nil {
+		return fields
+	}
+
+	gf := globals.([]LogField)
+	ret := make([]LogField, 0, len(gf)+len(fields))
+	ret = append(ret, gf...)
+	ret = append(ret, fields...)
+
+	return ret
 }
 
 func output(writer io.Writer, level string, val any, fields ...LogField) {
