@@ -362,7 +362,6 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 		}
 	}
 
-	fields = combineGlobalFields(fields)
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
 	for _, field := range fields {
