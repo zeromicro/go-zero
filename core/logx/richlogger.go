@@ -206,8 +206,9 @@ func (l *richLogger) WithFields(fields ...LogField) Logger {
 
 func (l *richLogger) buildFields(fields ...LogField) []LogField {
 	fields = append(l.fields, fields...)
+	// caller field should always appear together with global fields
 	fields = append(fields, Field(callerKey, getCaller(callerDepth+l.callerSkip)))
-	fields = combineGlobalFields(fields)
+	fields = mergeGlobalFields(fields)
 
 	if l.ctx == nil {
 		return fields
@@ -235,7 +236,7 @@ func (l *richLogger) buildFields(fields ...LogField) []LogField {
 
 func (l *richLogger) debug(v any, fields ...LogField) {
 	if shallLog(DebugLevel) {
-		getWriter().Debug(v, (l.buildFields(fields...))...)
+		getWriter().Debug(v, l.buildFields(fields...)...)
 	}
 }
 
