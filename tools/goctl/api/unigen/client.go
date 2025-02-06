@@ -3,23 +3,15 @@ package unigen
 import (
 	_ "embed"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/api/unigen/template"
+	"github.com/zeromicro/go-zero/tools/goctl/api/unigen/util"
 )
 
-//go:embed ApiBaseClient.ts
-var apiBaseClientTemplate string
-
-func writeTemplate(dir string, name string, template string) error {
-	p := filepath.Join(dir, fmt.Sprintf("%s.ts", name))
-	return os.WriteFile(p, []byte(template), 0644)
-}
-
 func genClient(dir string, api *spec.ApiSpec) error {
-	if err := writeTemplate(dir, "ApiBaseClient", apiBaseClientTemplate); err != nil {
+	if err := template.WriteFile(dir, "ApiBaseClient", template.ApiBaseClient, nil); err != nil {
 		return err
 	}
 
@@ -27,111 +19,70 @@ func genClient(dir string, api *spec.ApiSpec) error {
 }
 
 func writeClient(dir string, api *spec.ApiSpec) error {
-	name := camelCase(api.Service.Name, true)
-	fp := filepath.Join(dir, fmt.Sprintf("%sClient.ts", name))
-	f, err := os.OpenFile(fp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+	name := util.CamelCase(api.Service.Name, true)
 
-	// 引入
+	data := template.UniAppApiClientTemplateData{
+		ClientName:       name,
+		RequestTypes:     []string{},
+		ResponseTypes:    []string{},
+		ResponseSubTypes: map[string][]string{},
+		Routes:           []template.UniAppApiClientRouteTemplateData{},
+	}
+
+	// 组
 	for _, g := range api.Service.Groups {
+		prefix := g.GetAnnotation("prefix")
+		p := util.CamelCase(prefix, true)
+
+		// 路由
 		for _, r := range g.Routes {
+			an := util.CamelCase(r.Path, true)
+			method := strings.ToLower(r.Method)
+
+			route := template.UniAppApiClientRouteTemplateData{
+				HttpMethod:   method,
+				Prefix:       prefix,
+				UrlPath:      r.Path,
+				ActionPrefix: p,
+				ActionName:   an,
+			}
+
 			if r.RequestType != nil {
 				rn := r.RequestType.Name()
-				fmt.Fprintf(f, "import type { %s } from './%s';\n", rn, rn)
+				route.RequestType = &rn
+				data.RequestTypes = append(data.RequestTypes, rn)
 			}
 
 			if r.ResponseType != nil {
 				rn := r.ResponseType.Name()
-				fmt.Fprintf(f, "import type { %s", rn)
+				route.ResponseType = &rn
+				data.ResponseTypes = append(data.ResponseTypes, rn)
 				for _, tagKey := range tagKeys {
 					if hasTagMembers(r.ResponseType, tagKey) {
-						sn := camelCase(fmt.Sprintf("%s-%s", rn, tagToSubName(tagKey)), true)
-						fmt.Fprintf(f, ", %s", sn)
+						sn := util.CamelCase(fmt.Sprintf("%s-%s", rn, tagToSubName(tagKey)), true)
+						data.ResponseSubTypes[rn] = append(data.ResponseSubTypes[rn], sn)
 					}
 				}
-				fmt.Fprintf(f, "} from './%s';\n", rn)
 			}
-		}
-	}
-	fmt.Fprintf(f, "import { ApiBaseClient } from './ApiBaseClient';\n\n")
 
-	// 类
-	fmt.Fprintf(f, "export class %sClient extends ApiBaseClient {\n", name)
-
-	// 方法
-	for _, g := range api.Service.Groups {
-		prefix := g.GetAnnotation("prefix")
-		p := camelCase(prefix, true)
-
-		// 路由
-		for _, r := range g.Routes {
-			an := camelCase(r.Path, true)
-			method := strings.ToLower(r.Method)
-
-			writeIndent(f, 4)
-			fmt.Fprintf(f, "async %s%s%s(", method, p, an)
-
-			if r.RequestType != nil {
-				fmt.Fprintf(f, "request: %s, body?: any", r.RequestType.Name())
-			} else {
-				fmt.Fprintf(f, "body?: any")
-			}
+			route.RequestHasQueryString = hasTagMembers(r.RequestType, formTagKey)
+			route.RequestHasHeaders = hasTagMembers(r.RequestType, headerTagKey)
+			route.RequestHasBody = hasTagMembers(r.RequestType, bodyTagKey)
 
 			if r.ResponseType != nil {
-				fmt.Fprintf(f, "): Promise<%s> {\n", r.ResponseType.Name())
-			} else {
-				fmt.Fprintf(f, "): Promise<UniApp.RequestSuccessCallbackResult> {\n")
-			}
-
-			writeIndent(f, 8)
-			fmt.Fprintf(f, "const response = await this.request('%s', '%s%s',", strings.ToUpper(method), prefix, r.Path)
-			if hasTagMembers(r.RequestType, formTagKey) {
-				fmt.Fprint(f, " request.query,")
-			} else {
-				fmt.Fprint(f, " undefined,")
-			}
-			if hasTagMembers(r.RequestType, headerTagKey) {
-				fmt.Fprint(f, " request.header,")
-			} else {
-				fmt.Fprint(f, " undefined,")
-			}
-			if hasTagMembers(r.RequestType, bodyTagKey) {
-				fmt.Fprint(f, " body ?? request.body")
-			} else {
-				fmt.Fprint(f, " body")
-			}
-			fmt.Fprint(f, ");\n")
-
-			if r.ResponseType != nil {
-				writeIndent(f, 8)
-				fmt.Fprintf(f, "const result: %s = {\n", r.ResponseType.Name())
-				writeIndent(f, 12)
 				if hasTagMembers(r.ResponseType, bodyTagKey) {
-					sn := camelCase(fmt.Sprintf("%s-%s", r.ResponseType.Name(), tagToSubName(bodyTagKey)), true)
-					fmt.Fprintf(f, "body: response.data as %s\n", sn)
+					sn := util.CamelCase(fmt.Sprintf("%s-%s", r.ResponseType.Name(), tagToSubName(bodyTagKey)), true)
+					route.ResponseBodyType = &sn
 				}
 				if hasTagMembers(r.ResponseType, headerTagKey) {
-					sn := camelCase(fmt.Sprintf("%s-%s", r.ResponseType.Name(), tagToSubName(headerTagKey)), true)
-					fmt.Fprintf(f, "header: response.header as %s\n", sn)
+					sn := util.CamelCase(fmt.Sprintf("%s-%s", r.ResponseType.Name(), tagToSubName(headerTagKey)), true)
+					route.ResponseHeadersType = &sn
 				}
-				writeIndent(f, 8)
-				fmt.Fprint(f, "};\n")
-				writeIndent(f, 8)
-				fmt.Fprintf(f, "return result;\n")
-			} else {
-				writeIndent(f, 8)
-				fmt.Fprintf(f, "return response;\n")
 			}
 
-			writeIndent(f, 4)
-			fmt.Fprintf(f, "}\n\n")
+			data.Routes = append(data.Routes, route)
 		}
 	}
 
-	fmt.Fprintf(f, "}\n")
-
-	return nil
+	return template.WriteFile(dir, fmt.Sprintf("%sClient", name), template.ApiClient, data)
 }

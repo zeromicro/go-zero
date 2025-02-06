@@ -1,4 +1,4 @@
-package unigen
+package util
 
 import (
 	"regexp"
@@ -8,13 +8,18 @@ import (
 	"golang.org/x/text/language"
 )
 
-func camelCase(raw string, isPascal bool) string {
+func CamelCase(raw string, isPascal bool) string {
+	c := cases.Title(language.English)
 	re := regexp.MustCompile("[A-Z_/: -]")
 	vs := re.FindAllStringIndex(raw, -1)
 
 	// 全小写
 	if len(vs) == 0 {
-		return raw
+		if isPascal {
+			return c.String(raw)
+		} else {
+			return raw
+		}
 	}
 
 	// 小写开头
@@ -34,7 +39,6 @@ func camelCase(raw string, isPascal bool) string {
 
 	// 驼峰
 	ss := make([]string, len(vs))
-	c := cases.Title(language.English)
 	for i, v := range vs {
 		s := strings.Trim(raw[v[0]:v[1]], "/:_ -")
 		if i == 0 && !isPascal {

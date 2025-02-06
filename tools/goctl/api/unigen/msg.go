@@ -3,11 +3,11 @@ package unigen
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/api/unigen/template"
+	"github.com/zeromicro/go-zero/tools/goctl/api/unigen/util"
 )
 
 const (
@@ -34,7 +34,7 @@ func tagToSubName(tagKey string) string {
 
 func getMessageName(tn string, tagKey string) string {
 	suffix := tagToSubName(tagKey)
-	return camelCase(fmt.Sprintf("%s-%s", tn, suffix), true)
+	return util.CamelCase(fmt.Sprintf("%s-%s", tn, suffix), true)
 }
 
 func hasTagMembers(t spec.Type, tagKey string) bool {
@@ -46,44 +46,6 @@ func hasTagMembers(t spec.Type, tagKey string) bool {
 	return len(ms) > 0
 }
 
-func writeSubMessage(f *os.File, cn string, ms []spec.Member) error {
-	fmt.Fprintf(f, "export type %s = {\n", cn)
-
-	for _, m := range ms {
-		writeIndent(f, 4)
-		tags := m.Tags()
-		k := ""
-		if len(tags) > 0 {
-			k = tags[0].Name
-		} else {
-			k = m.Name
-		}
-
-		if strings.Contains(k, "-") {
-			k = fmt.Sprintf("\"%s\"", k)
-		}
-
-		tn, err := apiTypeToUniTsTypeName(m.Type)
-		if err != nil {
-			return err
-		}
-		optionalTag := ""
-		if m.IsOptionalOrOmitEmpty() {
-			optionalTag = "?"
-		}
-		fmt.Fprintf(f, "%s%s: %s;\n", k, optionalTag, tn)
-	}
-
-	fmt.Fprintf(f, "};\n")
-	return nil
-}
-
-func writeIndent(f *os.File, n int) {
-	for i := 0; i < n; i++ {
-		fmt.Fprint(f, " ")
-	}
-}
-
 func genMessages(dir string, api *spec.ApiSpec) error {
 	for _, t := range api.Types {
 		tn := t.Name()
@@ -93,71 +55,102 @@ func genMessages(dir string, api *spec.ApiSpec) error {
 		}
 
 		// 主类型
-		rn := camelCase(tn, true)
-		fp := filepath.Join(dir, fmt.Sprintf("%s.ts", rn))
-		f, err := os.OpenFile(fp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-		if err != nil {
-			return err
+		rn := util.CamelCase(tn, true)
+		data := template.UniAppApiMessageTemplateData{
+			MessageName: rn,
+			SubMessages: []template.UniAppApiSubMessageTemplateData{},
+			ImportTypes: []string{},
 		}
-		defer f.Close()
 
-		// 子类型
-		tags := []string{}
 		for _, tagKey := range tagKeys {
 			// 获取字段
 			ms := definedType.GetTagMembers(tagKey)
 			if len(ms) <= 0 {
 				continue
 			}
-			tags = append(tags, tagKey)
+
+			// 子类型
+			sn := tagToSubName(tagKey)
 			mn := getMessageName(rn, tagKey)
-			writeSubMessage(f, mn, ms)
+
+			data.Fields = append(data.Fields, template.UniAppApiMessageFieldTemplateData{
+				FieldName:  sn,
+				TypeName:   mn,
+				IsOptional: false,
+			})
+
+			subMsg := template.UniAppApiSubMessageTemplateData{
+				MessageName: mn,
+			}
+			for _, m := range ms {
+				tags := m.Tags()
+				k := ""
+				if len(tags) > 0 {
+					k = tags[0].Name
+				} else {
+					k = m.Name
+				}
+
+				if strings.Contains(k, "-") {
+					k = fmt.Sprintf("\"%s\"", k)
+				}
+
+				tn, b, err := apiTypeToUniTsTypeName(m.Type)
+				if err != nil {
+					return err
+				}
+
+				if len(b) > 0 {
+					data.ImportTypes = append(data.ImportTypes, b...)
+				}
+
+				f := template.UniAppApiMessageFieldTemplateData{
+					FieldName:  k,
+					IsOptional: m.IsOptionalOrOmitEmpty(),
+					TypeName:   tn,
+				}
+				subMsg.Fields = append(subMsg.Fields, f)
+			}
+
+			data.SubMessages = append(data.SubMessages, subMsg)
 		}
 
-		fmt.Fprintf(f, "export type %s = {\n", tn)
-
-		// 子字段
-		for _, tag := range tags {
-			// 获取字段
-			sn := tagToSubName(tag)
-			mn := getMessageName(rn, tag)
-			writeIndent(f, 4)
-			fmt.Fprintf(f, "%s: %s;\n", sn, mn)
+		if err := template.WriteFile(dir, rn, template.ApiMessage, data); err != nil {
+			return err
 		}
-
-		fmt.Fprint(f, "};\n")
 	}
 	return nil
 }
 
-func apiTypeToUniTsTypeName(t spec.Type) (string, error) {
+func apiTypeToUniTsTypeName(t spec.Type) (string, []string, error) {
 	switch tt := t.(type) {
 	case spec.PrimitiveType:
 		r, ok := primitiveType(t.Name())
 		if !ok {
-			return "", errors.New("unsupported primitive type " + t.Name())
+			return "", []string{}, errors.New("unsupported primitive type " + t.Name())
 		}
-
-		return r, nil
+		return r, []string{}, nil
 	case spec.ArrayType:
-		et, err := apiTypeToUniTsTypeName(tt.Value)
+		et, b, err := apiTypeToUniTsTypeName(tt.Value)
 		if err != nil {
-			return "", err
+			return "", b, err
 		}
-		return fmt.Sprintf("Array<%s>", et), nil
+		return fmt.Sprintf("Array<%s>", et), b, nil
 	case spec.MapType:
-		vt, err := apiTypeToUniTsTypeName(tt.Value)
+		vt, b, err := apiTypeToUniTsTypeName(tt.Value)
 		if err != nil {
-			return "", err
+			return "", b, err
 		}
 		kt, ok := primitiveType(tt.Key)
 		if !ok {
-			return "", errors.New("unsupported key is not primitive type " + t.Name())
+			return "", b, errors.New("unsupported key is not primitive type " + t.Name())
 		}
-		return fmt.Sprintf("{ [key: %s]: %s; }", kt, vt), nil
+		return fmt.Sprintf("{ [key: %s]: %s; }", kt, vt), b, nil
+	case spec.DefineStruct:
+		return t.Name(), []string{t.Name()}, nil
 	}
 
-	return "", errors.New("unsupported type " + t.Name())
+	return "", []string{}, errors.New("unsupported type " + t.Name())
 }
 
 func primitiveType(tp string) (string, bool) {
