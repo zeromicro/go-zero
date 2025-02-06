@@ -1,36 +1,32 @@
-package csgen
+package util
 
 import (
-	"fmt"
-	"io"
 	"regexp"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
-func writeIndent(f io.Writer, n int) {
-	for i := 0; i < n; i++ {
-		fmt.Fprint(f, " ")
-	}
-}
-
-func upperHead(s string, n int) string {
+func UpperHead(s string, n int) string {
 	if len(s) == 0 {
 		return s
 	}
-	return util.ToUpper(s[:n]) + s[n:]
+	return strings.ToUpper(s[:n]) + s[n:]
 }
 
-func camelCase(raw string, isPascal bool) string {
+func CamelCase(raw string, isPascal bool) string {
+	c := cases.Title(language.English)
 	re := regexp.MustCompile("[A-Z_/: -]")
 	vs := re.FindAllStringIndex(raw, -1)
 
 	// 全小写
 	if len(vs) == 0 {
-		return raw
+		if isPascal {
+			return c.String(raw)
+		} else {
+			return raw
+		}
 	}
 
 	// 小写开头
@@ -50,7 +46,6 @@ func camelCase(raw string, isPascal bool) string {
 
 	// 驼峰
 	ss := make([]string, len(vs))
-	c := cases.Title(language.English)
 	for i, v := range vs {
 		s := strings.Trim(raw[v[0]:v[1]], "/:_ -")
 		if i == 0 && !isPascal {

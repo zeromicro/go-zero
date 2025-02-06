@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
 
+namespace {{.Namespace}};
+
 public sealed class ApiBodyJsonContent : HttpContent
 {
     public MemoryStream Stream { get; private set; }

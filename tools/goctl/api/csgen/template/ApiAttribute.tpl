@@ -1,4 +1,6 @@
-﻿[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
+﻿namespace {{.Namespace}};
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
 public sealed class HeaderPropertyName : Attribute
 {
     public HeaderPropertyName(string name)

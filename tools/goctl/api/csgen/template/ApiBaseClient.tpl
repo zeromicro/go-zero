@@ -4,6 +4,8 @@ using System.Text.Json;
 using System.Reflection;
 using System.Web;
 
+namespace {{.Namespace}};
+
 public abstract class ApiBaseClient
 {
     protected readonly HttpClient httpClient = new HttpClient();

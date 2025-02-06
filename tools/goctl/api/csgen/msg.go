@@ -3,11 +3,10 @@ package csgen
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 
+	"github.com/zeromicro/go-zero/tools/goctl/api/csgen/template"
+	"github.com/zeromicro/go-zero/tools/goctl/api/csgen/util"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 )
 
 const (
@@ -29,22 +28,13 @@ func genMessages(dir string, ns string, api *spec.ApiSpec) error {
 			return fmt.Errorf("type %s not supported", tn)
 		}
 
-		cn := camelCase(tn, true)
-		fp := filepath.Join(dir, fmt.Sprintf("%s.cs", cn))
-		f, err := os.OpenFile(fp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-		if err != nil {
-			return err
+		cn := util.CamelCase(tn, true)
+
+		data := template.CSharpApiMessageTemplateData{
+			CSharpTemplateData: template.CSharpTemplateData{Namespace: ns},
+			MessageName:        cn,
+			Fields:             []template.CSharpApiMessageFieldTemplateData{},
 		}
-		defer f.Close()
-
-		// 引入依赖
-		fmt.Fprint(f, "using System.Text.Json.Serialization;\r\n\r\n")
-
-		// 名字空间
-		fmt.Fprintf(f, "namespace %s;\r\n\r\n", ns)
-
-		// 类
-		fmt.Fprintf(f, "public class %s\r\n{\r\n", cn)
 
 		for _, tagKey := range tagKeys {
 			// 获取字段
@@ -61,40 +51,25 @@ func genMessages(dir string, ns string, api *spec.ApiSpec) error {
 				} else {
 					k = m.Name
 				}
-
-				writeIndent(f, 4)
-				switch tagKey {
-				case bodyTagKey:
-					fmt.Fprintf(f, "[JsonPropertyName(\"%s\")]\r\n", k)
-				case headerTagKey:
-					fmt.Fprint(f, "[JsonIgnore]\r\n")
-					writeIndent(f, 4)
-					fmt.Fprintf(f, "[HeaderPropertyName(\"%s\")]\r\n", k)
-				case formTagKey:
-					fmt.Fprint(f, "[JsonIgnore]\r\n")
-					writeIndent(f, 4)
-					fmt.Fprintf(f, "[FormPropertyName(\"%s\")]\r\n", k)
-				case pathTagKey:
-					fmt.Fprint(f, "[JsonIgnore]\r\n")
-					writeIndent(f, 4)
-					fmt.Fprintf(f, "[PathPropertyName(\"%s\")]\r\n", k)
-				}
-
-				writeIndent(f, 4)
 				tn, err := apiTypeToCsTypeName(m.Type)
 				if err != nil {
 					return err
 				}
 
-				optionalTag := ""
-				if m.IsOptionalOrOmitEmpty() {
-					optionalTag = "?"
+				f := template.CSharpApiMessageFieldTemplateData{
+					FieldName:  util.CamelCase(m.Name, true),
+					KeyName:    k,
+					TypeName:   tn,
+					IsOptional: m.IsOptionalOrOmitEmpty(),
+					Tag:        tagKey,
 				}
-				fmt.Fprintf(f, "public %s%s %s { get; set; }\r\n\r\n", tn, optionalTag, camelCase(m.Name, true))
+				data.Fields = append(data.Fields, f)
 			}
 		}
 
-		fmt.Fprint(f, "}\r\n")
+		if err := template.WriteFile(dir, cn, template.ApiMessage, data); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -140,9 +115,9 @@ func primitiveType(tp string) (string, bool) {
 	case "uint8":
 		return "byte", true
 	case "int16", "int32", "int64":
-		return util.UpperFirst(tp), true
+		return util.UpperHead(tp, 1), true
 	case "uint16", "uint32", "uint64":
-		return upperHead(tp, 2), true
+		return util.UpperHead(tp, 2), true
 	case "float", "float32":
 		return "float", true
 	case "float64":
