@@ -160,7 +160,7 @@ func TestParseFormArray(t *testing.T) {
 			http.NoBody)
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []string{"1", "2", "3"}, v.Names)
+			assert.ElementsMatch(t, []string{"1,2,3"}, v.Names)
 		}
 	})
 
@@ -189,9 +189,7 @@ func TestParseFormArray(t *testing.T) {
 			"/a?numbers=1,2,3",
 			http.NoBody)
 		assert.NoError(t, err)
-		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []int{1, 2, 3}, v.Numbers)
-		}
+		assert.Error(t, Parse(r, &v))
 	})
 
 	t.Run("slice with one value on array format brackets", func(t *testing.T) {
