@@ -268,6 +268,61 @@ func TestParseFormArray(t *testing.T) {
 			assert.ElementsMatch(t, []float64{2}, v.Numbers)
 		}
 	})
+	t.Run("slice with one value on  disable array of comma split format", func(t *testing.T) {
+		var v struct {
+			Codes []string `form:"codes,arrayComma=false"`
+		}
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?codes=aaa,bbb,ccc",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"aaa,bbb,ccc"}, v.Codes)
+		}
+	})
+	t.Run("slice with multiple value on  disable array of comma split format", func(t *testing.T) {
+		var v struct {
+			Codes []string `form:"codes,arrayComma=false"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?codes=aaa,bbb,ccc&codes=ccc,ddd,eee",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"aaa,bbb,ccc", "ccc,ddd,eee"}, v.Codes)
+		}
+	})
+	t.Run("slice with multiple value on enable array of comma split format", func(t *testing.T) {
+		var v struct {
+			Codes []string `form:"codes,arrayComma=true"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?codes=aaa,bbb,ccc&codes=ccc,ddd,eee",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"aaa,bbb,ccc", "ccc,ddd,eee"}, v.Codes)
+		}
+	})
+	t.Run("slice with one value on enable array of comma split format", func(t *testing.T) {
+		var v struct {
+			Codes []string `form:"codes,arrayComma=true"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?codes=aaa,bbb,ccc",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"aaa", "bbb", "ccc"}, v.Codes)
+		}
+	})
 }
 
 func TestParseForm_Error(t *testing.T) {

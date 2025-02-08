@@ -131,7 +131,7 @@ func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue any) error
 }
 
 func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
-	mapValue any, fullName string) error {
+	mapValue any, fullName string, opts *fieldOptionsWithContext) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}
@@ -153,7 +153,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	}
 
 	if u.opts.fromArray {
-		refValue = makeStringSlice(refValue)
+		refValue = makeStringSlice(refValue, opts)
 	}
 
 	var valid bool
@@ -174,7 +174,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 				return err
 			}
 		case reflect.Slice:
-			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue, sliceFullName); err != nil {
+			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue, sliceFullName, opts); err != nil {
 				return err
 			}
 		default:
@@ -288,7 +288,7 @@ func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value refle
 		defaultCacheLock.Unlock()
 	}
 
-	return u.fillSlice(derefedType, value, slice, fullName)
+	return u.fillSlice(derefedType, value, slice, fullName, nil)
 }
 
 func (u *Unmarshaler) fillStructElement(baseType reflect.Type, target reflect.Value,
@@ -359,7 +359,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 		switch dereffedElemKind {
 		case reflect.Slice:
 			target := reflect.New(dereffedElemType)
-			if err := u.fillSlice(elemType, target.Elem(), keythData, mapFullName); err != nil {
+			if err := u.fillSlice(elemType, target.Elem(), keythData, mapFullName, nil); err != nil {
 				return emptyValue, err
 			}
 
@@ -604,7 +604,7 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 			parent:  vp.parent,
 		}, fullName)
 	case typeKind == reflect.Slice && valueKind == reflect.Slice:
-		return u.fillSlice(fieldType, value, mapValue, fullName)
+		return u.fillSlice(fieldType, value, mapValue, fullName, opts)
 	case valueKind == reflect.Map && typeKind == reflect.Map:
 		return u.fillMap(fieldType, value, mapValue, fullName)
 	case valueKind == reflect.String && typeKind == reflect.Map:
@@ -985,7 +985,7 @@ func (u *Unmarshaler) unmarshal(i, v any, fullName string) error {
 			return errTypeMismatch
 		}
 
-		return u.fillSlice(elemType, reflect.ValueOf(v).Elem(), iv, fullName)
+		return u.fillSlice(elemType, reflect.ValueOf(v).Elem(), iv, fullName, nil)
 	default:
 		return errUnsupportedType
 	}
@@ -1189,7 +1189,7 @@ func join(elem ...string) string {
 	return builder.String()
 }
 
-func makeStringSlice(refValue reflect.Value) reflect.Value {
+func makeStringSlice(refValue reflect.Value, opts *fieldOptionsWithContext) reflect.Value {
 	if refValue.Len() != 1 {
 		return refValue
 	}
@@ -1203,19 +1203,23 @@ func makeStringSlice(refValue reflect.Value) reflect.Value {
 	if !ok {
 		return refValue
 	}
+	// comma mode is on by default or display designations are split by commas
+	if opts == nil || opts.FormArrayComma {
+		splits := strings.Split(val, comma)
+		if len(splits) <= 1 {
+			return refValue
+		}
 
-	splits := strings.Split(val, comma)
-	if len(splits) <= 1 {
+		slice := reflect.MakeSlice(stringSliceType, len(splits), len(splits))
+		for i, split := range splits {
+			// allow empty strings
+			slice.Index(i).Set(reflect.ValueOf(split))
+		}
+		return slice
+	} else {
 		return refValue
 	}
 
-	slice := reflect.MakeSlice(stringSliceType, len(splits), len(splits))
-	for i, split := range splits {
-		// allow empty strings
-		slice.Index(i).Set(reflect.ValueOf(split))
-	}
-
-	return slice
 }
 
 func newInitError(name string) error {
