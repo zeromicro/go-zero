@@ -190,6 +190,8 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer cancel()
 			req = req.WithContext(ctx)
+		} else {
+			req = req.WithContext(r.Context())
 		}
 
 		resp, err := httpc.DoRequest(req)
