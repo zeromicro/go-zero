@@ -185,13 +185,13 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			return
 		}
 
+		// set the timeout if it's configured, take effect only if it's greater than 0
+		// and less than the deadline of the original request
 		if target.Timeout > 0 {
 			timeout := time.Duration(target.Timeout) * time.Millisecond
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer cancel()
 			req = req.WithContext(ctx)
-		} else {
-			req = req.WithContext(r.Context())
 		}
 
 		resp, err := httpc.DoRequest(req)
@@ -278,7 +278,7 @@ func buildRequestWithNewTarget(r *http.Request, target *HttpClientConf) (*http.R
 		}
 	}
 
-	return &http.Request{
+	newReq := &http.Request{
 		Method:        r.Method,
 		URL:           &u,
 		Header:        r.Header.Clone(),
@@ -287,7 +287,10 @@ func buildRequestWithNewTarget(r *http.Request, target *HttpClientConf) (*http.R
 		ProtoMinor:    r.ProtoMinor,
 		ContentLength: r.ContentLength,
 		Body:          io.NopCloser(r.Body),
-	}, nil
+	}
+
+	// make sure the context is passed to the new request
+	return newReq.WithContext(r.Context()), nil
 }
 
 func createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.DescriptorSource, error) {
