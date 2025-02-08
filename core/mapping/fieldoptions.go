@@ -8,14 +8,13 @@ type (
 	// use context and OptionalDep option to determine the value of Optional
 	// nothing to do with context.Context
 	fieldOptionsWithContext struct {
-		Inherit        bool
-		FromString     bool
-		Optional       bool
-		Options        []string
-		Default        string
-		EnvVar         string
-		Range          *numberRange
-		FormArrayComma bool
+		Inherit    bool
+		FromString bool
+		Optional   bool
+		Options    []string
+		Default    string
+		EnvVar     string
+		Range      *numberRange
 	}
 
 	fieldOptions struct {

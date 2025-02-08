@@ -22,7 +22,6 @@ const (
 	optionalOption     = "optional"
 	optionsOption      = "options"
 	rangeOption        = "range"
-	formArrayComma     = "arrayComma"
 	optionSeparator    = "|"
 	equalToken         = "="
 	escapeChar         = '\\'
@@ -161,10 +160,6 @@ func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fie
 	}
 
 	var fieldOpts fieldOptions
-
-	// The comma split form array mode was enabled in 1.7.5
-	// so the default value is true in order not to introduce destructiveness
-	fieldOpts.FormArrayComma = true
 	for _, segment := range options {
 		option := strings.TrimSpace(segment)
 		if err := parseOption(&fieldOpts, field.Name, option); err != nil {
@@ -415,12 +410,6 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 		}
 
 		fieldOpts.Range = nr
-	case strings.HasPrefix(option, formArrayComma):
-		val, err := parseEqBoolOption(fieldName, formArrayComma, option)
-		if err != nil {
-			return err
-		}
-		fieldOpts.FormArrayComma = val
 	}
 
 	return nil
@@ -448,21 +437,7 @@ func parseProperty(field, tag, val string) (string, error) {
 
 	return strings.TrimSpace(segs[1]), nil
 }
-func parseEqBoolOption(field, tag, val string) (bool, error) {
-	segs := strings.Split(val, equalToken)
-	switch len(segs) {
-	case 1:
-		return true, nil
-	case 2:
-		parseBool, err := strconv.ParseBool(segs[1])
-		if err != nil {
-			return false, fmt.Errorf("field %q has wrong %s", field, tag)
-		}
-		return parseBool, nil
-	default:
-		return false, fmt.Errorf("field %q has wrong %s", field, tag)
-	}
-}
+
 func parseSegments(val string) []string {
 	var segments []string
 	var escaped, grouped bool
