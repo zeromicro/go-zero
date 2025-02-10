@@ -26,9 +26,7 @@ const (
 var (
 	formUnmarshaler = mapping.NewUnmarshaler(
 		formKey,
-		mapping.WithStringValues(),
-		mapping.WithOpaqueKeys(),
-		mapping.WithFromArray())
+		defaultFormUnmarshalOption()...)
 	pathUnmarshaler = mapping.NewUnmarshaler(
 		pathKey,
 		mapping.WithStringValues(),
@@ -39,6 +37,18 @@ var (
 	validator     Validator
 	validatorLock sync.RWMutex
 )
+
+func defaultFormUnmarshalOption() []mapping.UnmarshalOption {
+	return []mapping.UnmarshalOption{
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys(),
+		mapping.WithFromArray(),
+	}
+}
+func SetFormUnmarshaler(customOption ...mapping.UnmarshalOption) {
+	options := append(defaultFormUnmarshalOption(), customOption...)
+	formUnmarshaler = mapping.NewUnmarshaler(formKey, options...)
+}
 
 // Validator defines the interface for validating the request.
 type Validator interface {
