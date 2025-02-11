@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/zeromicro/go-zero/core/mapping"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -160,7 +161,7 @@ func TestParseFormArray(t *testing.T) {
 			http.NoBody)
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []string{"1,2,3"}, v.Names)
+			assert.ElementsMatch(t, []string{"1", "2", "3"}, v.Names)
 		}
 	})
 
@@ -189,7 +190,9 @@ func TestParseFormArray(t *testing.T) {
 			"/a?numbers=1,2,3",
 			http.NoBody)
 		assert.NoError(t, err)
-		assert.Error(t, Parse(r, &v))
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []int{1, 2, 3}, v.Numbers)
+		}
 	})
 
 	t.Run("slice with one value on array format brackets", func(t *testing.T) {
@@ -277,7 +280,7 @@ func TestParseFormArray(t *testing.T) {
 			http.NoBody)
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []string{"aaa,bbb,ccc"}, v.Codes)
+			assert.ElementsMatch(t, []string{"aaa", "bbb", "ccc"}, v.Codes)
 		}
 	})
 
@@ -297,6 +300,284 @@ func TestParseFormArray(t *testing.T) {
 	})
 }
 
+func TestParseFormArraySetCustomOpts(t *testing.T) {
+	SetFormUnmarshaler(mapping.WithFormCommaArray(false))
+	defer func() {
+		SetFormUnmarshaler()
+	}()
+	t.Run("slice with one value on array format when commaArray==false", func(t *testing.T) {
+		var v struct {
+			Names []string `form:"names"`
+		}
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?names=1,2,3",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"1,2,3"}, v.Names)
+		}
+	})
+	t.Run("slice with one value on combined array format when commaArray==false", func(t *testing.T) {
+		var v struct {
+			Names []string `form:"names"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?names=[1,2,3]&names=4",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"[1,2,3]", "4"}, v.Names)
+		}
+	})
+	t.Run("slice with one value on integer array format when commaArray==false", func(t *testing.T) {
+		var v struct {
+			Numbers []int `form:"numbers"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=1,2,3",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []int{1, 2, 3}, v.Numbers)
+		}
+	})
+	t.Run("slice with one value on array format brackets when commaArray==false", func(t *testing.T) {
+		var v struct {
+			Names []string `form:"names"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?names[]=1&names[]=2&names[]=3",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"1", "2", "3"}, v.Names)
+		}
+	})
+	t.Run("slice with one value on float64 array format when commaArray==false", func(t *testing.T) {
+		var v struct {
+			Numbers []float64 `form:"numbers,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=&numbers=2",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []float64{2}, v.Numbers)
+		}
+	})
+	SetFormUnmarshaler(mapping.WithFormCommaArray(true))
+	t.Run("slice", func(t *testing.T) {
+		var v struct {
+			Name    []string  `form:"name"`
+			Age     []int     `form:"age"`
+			Percent []float64 `form:"percent,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&name=world&age=18&age=19&percent=3.4&percent=4.5",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"hello", "world"}, v.Name)
+			assert.ElementsMatch(t, []int{18, 19}, v.Age)
+			assert.ElementsMatch(t, []float64{3.4, 4.5}, v.Percent)
+		}
+	})
+
+	t.Run("slice with single value", func(t *testing.T) {
+		var v struct {
+			Name    []string  `form:"name"`
+			Age     []int     `form:"age"`
+			Percent []float64 `form:"percent,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=hello&age=18&percent=3.4",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"hello"}, v.Name)
+			assert.ElementsMatch(t, []int{18}, v.Age)
+			assert.ElementsMatch(t, []float64{3.4}, v.Percent)
+		}
+	})
+
+	t.Run("slice with empty", func(t *testing.T) {
+		var v struct {
+			Name []string `form:"name,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{}, v.Name)
+		}
+	})
+
+	t.Run("slice with empty", func(t *testing.T) {
+		var v struct {
+			Name []string `form:"name,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Empty(t, v.Name)
+		}
+	})
+
+	t.Run("slice with empty and non-empty", func(t *testing.T) {
+		var v struct {
+			Name []string `form:"name"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?name=&name=1",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"1"}, v.Name)
+		}
+	})
+
+	t.Run("slice with one value on array format", func(t *testing.T) {
+		var v struct {
+			Names []string `form:"names"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?names=1,2,3",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"1", "2", "3"}, v.Names)
+		}
+	})
+
+	t.Run("slice with one value on combined array format", func(t *testing.T) {
+		var v struct {
+			Names []string `form:"names"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?names=[1,2,3]&names=4",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"[1,2,3]", "4"}, v.Names)
+		}
+	})
+
+	t.Run("slice with one value on integer array format", func(t *testing.T) {
+		var v struct {
+			Numbers []int `form:"numbers"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=1,2,3",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []int{1, 2, 3}, v.Numbers)
+		}
+	})
+
+	t.Run("slice with one value on array format brackets", func(t *testing.T) {
+		var v struct {
+			Names []string `form:"names"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?names[]=1&names[]=2&names[]=3",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"1", "2", "3"}, v.Names)
+		}
+	})
+
+	t.Run("slice with one empty value on integer array format", func(t *testing.T) {
+		var v struct {
+			Numbers []int `form:"numbers,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Empty(t, v.Numbers)
+		}
+	})
+
+	t.Run("slice with one value on integer array format", func(t *testing.T) {
+		var v struct {
+			Numbers []int `form:"numbers,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=&numbers=2",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []int{2}, v.Numbers)
+		}
+	})
+
+	t.Run("slice with one empty value on float64 array format", func(t *testing.T) {
+		var v struct {
+			Numbers []float64 `form:"numbers,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Empty(t, v.Numbers)
+		}
+	})
+
+	t.Run("slice with one value on float64 array format", func(t *testing.T) {
+		var v struct {
+			Numbers []float64 `form:"numbers,optional"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?numbers=&numbers=2",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []float64{2}, v.Numbers)
+		}
+	})
+}
 func TestParseForm_Error(t *testing.T) {
 	var v struct {
 		Name string `form:"name"`

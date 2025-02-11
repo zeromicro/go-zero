@@ -52,11 +52,12 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fillDefault  bool
-		fromArray    bool
-		fromString   bool
-		opaqueKeys   bool
-		canonicalKey func(key string) string
+		fillDefault    bool
+		fromArray      bool
+		fromString     bool
+		opaqueKeys     bool
+		canonicalKey   func(key string) string
+		formCommaArray bool //a new Switch to control the form comma-split array parse,default is true
 	}
 )
 
@@ -64,6 +65,11 @@ type (
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	unmarshaler := Unmarshaler{
 		key: key,
+		opts: unmarshalOptions{
+			// The comma split form array mode was enabled in 1.7.5
+			// so the default value is true in order not to introduce destructiveness
+			formCommaArray: true,
+		},
 	}
 
 	for _, opt := range opts {
@@ -152,6 +158,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return nil
 	}
 
+	refValue = makeStringSlice(dereffedBaseKind, refValue, u.opts)
 	var valid bool
 	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 
@@ -1053,6 +1060,21 @@ func WithFromArray() UnmarshalOption {
 	}
 }
 
+// WithFormCommaArray b is a switch to enable comma-split array values.
+// if b == false will be disable form param comma-split format array values
+// else will be enable above
+//
+//	For example, if the field type is []string,
+//	GET /a?code=1,2,3,4,5
+//
+// if b==false will be code=[]string{"1,2,3,4,5"}
+// else will be code=[]string{"1","2","3","4","5"}
+func WithFormCommaArray(b bool) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.formCommaArray = b
+	}
+}
+
 // WithOpaqueKeys customizes an Unmarshaler with opaque keys.
 // Opaque keys are keys that are not processed by the unmarshaler.
 func WithOpaqueKeys() UnmarshalOption {
@@ -1183,6 +1205,40 @@ func join(elem ...string) string {
 	}
 
 	return builder.String()
+}
+
+func makeStringSlice(dereffedBaseKind reflect.Kind, refValue reflect.Value, opts unmarshalOptions) reflect.Value {
+	if !opts.fromArray {
+		return refValue
+	}
+	if refValue.Len() != 1 {
+		return refValue
+	}
+
+	element := refValue.Index(0)
+	if element.Kind() != reflect.String {
+		return refValue
+	}
+
+	val, ok := element.Interface().(string)
+	if !ok {
+		return refValue
+	}
+	if dereffedBaseKind != reflect.String || opts.formCommaArray {
+		splits := strings.Split(val, comma)
+		if len(splits) <= 1 {
+			return refValue
+		}
+
+		slice := reflect.MakeSlice(stringSliceType, len(splits), len(splits))
+		for i, split := range splits {
+			// allow empty strings
+			slice.Index(i).Set(reflect.ValueOf(split))
+		}
+		return slice
+	} else {
+		return refValue
+	}
 }
 
 func newInitError(name string) error {
