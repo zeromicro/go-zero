@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/rest/httpc/internal"
 )
 
 type (
@@ -54,7 +55,11 @@ func (s namedService) Do(ctx context.Context, method, url string, data any) (*ht
 
 // DoRequest sends an HTTP request to the service.
 func (s namedService) DoRequest(r *http.Request) (*http.Response, error) {
-	return request(r, s)
+	interceptor := internal.MetricsInterceptor(s.name, nil)
+	r, handler := interceptor(r)
+	resp, err := request(r, s)
+	handler(resp, err)
+	return resp, err
 }
 
 func (s namedService) do(r *http.Request) (resp *http.Response, err error) {
