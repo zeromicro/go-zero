@@ -1,6 +1,7 @@
 package zrpc
 
 import (
+	"net"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/load"
@@ -87,6 +88,16 @@ func (rs *RpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterc
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (rs *RpcServer) Start() {
 	if err := rs.server.Start(rs.register); err != nil {
+		logx.Error(err)
+		panic(err)
+	}
+}
+
+// StartWithListener starts the RpcServer with listener.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
+func (rs *RpcServer) StartWithListener(listener net.Listener) {
+	if err := rs.server.StartWithListener(listener, rs.register); err != nil {
 		logx.Error(err)
 		panic(err)
 	}
