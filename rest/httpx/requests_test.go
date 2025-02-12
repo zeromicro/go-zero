@@ -271,6 +271,7 @@ func TestParseFormArray(t *testing.T) {
 		var v struct {
 			Codes []string `form:"codes"`
 		}
+
 		r, err := http.NewRequest(
 			http.MethodGet,
 			"/a?codes=aaa,bbb,ccc",

@@ -59,11 +59,11 @@ type (
 	// Member describes the field of a structure
 	Member struct {
 		Name string
-		// 数据类型字面值，如：string、map[int]string、[]int64、[]*User
+		// data type, for example, string、map[int]string、[]int64、[]*User
 		Type    Type
 		Tag     string
 		Comment string
-		// 成员头顶注释说明
+		// document for the field
 		Docs     Doc
 		IsInline bool
 	}
