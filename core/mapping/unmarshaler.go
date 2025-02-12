@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	comma            = ","
 	defaultKeyName   = "key"
 	delimiter        = '.'
 	ignoreKey        = "-"
@@ -38,7 +37,6 @@ var (
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
-	stringSliceType     = reflect.TypeOf([]string{})
 )
 
 type (
