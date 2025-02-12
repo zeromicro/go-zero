@@ -1,18 +1,22 @@
 export type Method =
-    | 'get'
-    | 'GET'
-    | 'delete'
-    | 'DELETE'
-    | 'head'
-    | 'HEAD'
-    | 'options'
-    | 'OPTIONS'
-    | 'post'
-    | 'POST'
-    | 'put'
-    | 'PUT'
-    | 'patch'
-    | 'PATCH';
+    | "get"
+    | "GET"
+    | "delete"
+    | "DELETE"
+    | "head"
+    | "HEAD"
+    | "options"
+    | "OPTIONS"
+    | "post"
+    | "POST"
+    | "put"
+    | "PUT"
+    | "patch"
+    | "PATCH";
+
+export type QueryParams = {
+    [key: string | symbol | number]: string|number;
+} | null;
 
 /**
  * Parse route parameters for responseType
@@ -24,7 +28,7 @@ export function parseParams(url: string): Array<string> {
     if (!ps) {
         return [];
     }
-    return ps.map((k) => k.replace(/:/, ''));
+    return ps.map((k) => k.replace(/:/, ""));
 }
 
 /**
@@ -32,7 +36,7 @@ export function parseParams(url: string): Array<string> {
  * @param url
  * @param params
  */
-export function genUrl(url: string, params: any) {
+export function genUrl(url: string, params: QueryParams) {
     if (!params) {
         return url;
     }
@@ -40,7 +44,7 @@ export function genUrl(url: string, params: any) {
     const ps = parseParams(url);
     ps.forEach((k) => {
         const reg = new RegExp(`:${k}`);
-        url = url.replace(reg, params[k]);
+        url = url.replace(reg, params[k].toString());
     });
 
     const path: Array<string> = [];
@@ -50,77 +54,87 @@ export function genUrl(url: string, params: any) {
         }
     }
 
-    return url + (path.length > 0 ? `?${path.join('&')}` : '');
+    return url + (path.length > 0 ? `?${path.join("&")}` : "");
 }
 
-export async function request({
-    method,
-    url,
-    data,
-    config = {}
-}: {
-    method: Method;
-    url: string;
-    data?: unknown;
-    config?: unknown;
-}) {
+export async function request(
+    method: Method,
+    url: string,
+    config?: RequestInit
+) {
+    if (config?.body && /get|head/i.test(method)) {
+        throw new Error(
+            "Request with GET/HEAD method cannot have body. *.api service use other method, example: POST or PUT."
+        );
+    }
     const response = await fetch(url, {
         method: method.toLocaleUpperCase(),
-        credentials: 'include',
+        credentials: "include",
+        ...config,
         headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
+            ...config?.headers,
         },
-        body: data ? JSON.stringify(data) : undefined,
-        // @ts-ignore
-        ...config
     });
 
-    return response.json();
+    if (response.headers.get('Content-Type') == 'application/json') {
+        return response.json();
+    } else {
+        return response.text();
+    }
 }
 
 function api<T>(
-    method: Method = 'get',
+    method: Method = "get",
     url: string,
-    req: any,
-    config?: unknown
+    params?: QueryParams,
+    config?: RequestInit
 ): Promise<T> {
-    if (url.match(/:/) || method.match(/get|delete/i)) {
-        url = genUrl(url, req.params || req.forms);
+    if (params) {
+        url = genUrl(url, params);
     }
     method = method.toLocaleLowerCase() as Method;
 
     switch (method) {
-        case 'get':
-            return request({method: 'get', url, data: req, config});
-        case 'delete':
-            return request({method: 'delete', url, data: req, config});
-        case 'put':
-            return request({method: 'put', url, data: req, config});
-        case 'post':
-            return request({method: 'post', url, data: req, config});
-        case 'patch':
-            return request({method: 'patch', url, data: req, config});
+        case "get":
+            return request("get", url, config);
+        case "delete":
+            return request("delete", url, config);
+        case "put":
+            return request("put", url, config);
+        case "post":
+            return request("post", url, config);
+        case "patch":
+            return request("patch", url, config);
         default:
-            return request({method: 'post', url, data: req, config});
+            return request("post", url, config);
     }
 }
 
 export const webapi = {
-    get<T>(url: string, req: unknown, config?: unknown): Promise<T> {
-        return api<T>('get', url, req, config);
+    get<T>(url: string, params?: QueryParams, config?: RequestInit): Promise<T> {
+        return api<T>("get", url, params, config);
     },
-    delete<T>(url: string, req: unknown, config?: unknown): Promise<T> {
-        return api<T>('delete', url, req, config);
+    delete<T>(
+        url: string,
+        params?: QueryParams,
+        config?: RequestInit
+    ): Promise<T> {
+        return api<T>("delete", url, params, config);
     },
-    put<T>(url: string, req: unknown, config?: unknown): Promise<T> {
-        return api<T>('put', url, req, config);
+    put<T>(url: string, params?: QueryParams, config?: RequestInit): Promise<T> {
+        return api<T>("put", url, params, config);
     },
-    post<T>(url: string, req: unknown, config?: unknown): Promise<T> {
-        return api<T>('post', url, req, config);
+    post<T>(url: string, params?: QueryParams, config?: RequestInit): Promise<T> {
+        return api<T>("post", url, params, config);
     },
-    patch<T>(url: string, req: unknown, config?: unknown): Promise<T> {
-        return api<T>('patch', url, req, config);
-    }
+    patch<T>(
+        url: string,
+        params?: QueryParams,
+        config?: RequestInit
+    ): Promise<T> {
+        return api<T>("patch", url, params, config);
+    },
 };
 
-export default webapi
+export default webapi;
