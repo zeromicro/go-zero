@@ -151,6 +151,7 @@
         "short": "Generate mysql model",
         "strict": "Generate model in strict mode",
         "ignore-columns": "Ignore columns while creating or updating rows",
+        "prefix": "The cache prefix, effective when --cache is true",
         "datasource": {
           "short": "Generate model from datasource",
           "url": "The data source of database,like \"root:password@tcp(127.0.0.1:3306)/database",
