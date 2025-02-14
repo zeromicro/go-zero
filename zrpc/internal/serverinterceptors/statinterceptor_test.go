@@ -43,10 +43,11 @@ func TestLogDuration(t *testing.T) {
 	assert.True(t, len(addrs) > 0)
 
 	tests := []struct {
-		name     string
-		ctx      context.Context
-		req      any
-		duration time.Duration
+		name              string
+		ctx               context.Context
+		req               any
+		duration          time.Duration
+		durationThreshold time.Duration
 	}{
 		{
 			name: "normal",
@@ -59,10 +60,11 @@ func TestLogDuration(t *testing.T) {
 			req:  make(chan lang.PlaceholderType), // not marshalable
 		},
 		{
-			name:     "timeout",
-			ctx:      context.Background(),
-			req:      "foo",
-			duration: time.Second,
+			name:              "timeout",
+			ctx:               context.Background(),
+			req:               "foo",
+			duration:          time.Second,
+			durationThreshold: time.Millisecond * 500,
 		},
 		{
 			name: "timeout",
@@ -86,7 +88,7 @@ func TestLogDuration(t *testing.T) {
 
 			assert.NotPanics(t, func() {
 				logDuration(test.ctx, "foo", test.req, test.duration,
-					collection.NewSet(), 0)
+					collection.NewSet(), test.durationThreshold)
 			})
 		})
 	}
@@ -98,10 +100,11 @@ func TestLogDurationWithoutContent(t *testing.T) {
 	assert.True(t, len(addrs) > 0)
 
 	tests := []struct {
-		name     string
-		ctx      context.Context
-		req      any
-		duration time.Duration
+		name              string
+		ctx               context.Context
+		req               any
+		duration          time.Duration
+		durationThreshold time.Duration
 	}{
 		{
 			name: "normal",
@@ -114,10 +117,11 @@ func TestLogDurationWithoutContent(t *testing.T) {
 			req:  make(chan lang.PlaceholderType), // not marshalable
 		},
 		{
-			name:     "timeout",
-			ctx:      context.Background(),
-			req:      "foo",
-			duration: time.Second,
+			name:              "timeout",
+			ctx:               context.Background(),
+			req:               "foo",
+			duration:          time.Second,
+			durationThreshold: time.Millisecond * 500,
 		},
 		{
 			name: "timeout",
@@ -146,7 +150,7 @@ func TestLogDurationWithoutContent(t *testing.T) {
 
 			assert.NotPanics(t, func() {
 				logDuration(test.ctx, "foo", test.req, test.duration,
-					collection.NewSet(), 0)
+					collection.NewSet(), test.durationThreshold)
 			})
 		})
 	}
@@ -225,7 +229,7 @@ func Test_isSlow(t *testing.T) {
 			args{
 				duration: time.Millisecond * 501,
 			},
-			true,
+			false,
 			nil,
 		},
 		{
@@ -236,16 +240,6 @@ func Test_isSlow(t *testing.T) {
 			},
 			true,
 			nil,
-		},
-		{
-			"dynamic",
-			args{
-				duration: time.Millisecond * 200,
-			},
-			true,
-			func() {
-				SetSlowThreshold(time.Millisecond * 100)
-			},
 		},
 	}
 	for _, tt := range tests {
