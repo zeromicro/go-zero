@@ -229,7 +229,7 @@ func Test_isSlow(t *testing.T) {
 			args{
 				duration: time.Millisecond * 501,
 			},
-			false,
+			true,
 			nil,
 		},
 		{
@@ -251,7 +251,8 @@ func Test_isSlow(t *testing.T) {
 			t.Cleanup(func() {
 				slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
 			})
-			assert.Equalf(t, tt.want, isSlow(tt.args.duration, tt.args.staticSlowThreshold), "isSlow(%v, %v)", tt.args.duration, tt.args.staticSlowThreshold)
+			assert.Equalf(t, tt.want, isSlow(tt.args.duration, tt.args.staticSlowThreshold),
+				"isSlow(%v, %v)", tt.args.duration, tt.args.staticSlowThreshold)
 		})
 	}
 }
