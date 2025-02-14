@@ -231,7 +231,7 @@ func TestWithFileServerMiddleware(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.requestPath, nil)
 			rr := httptest.NewRecorder()
 
-			server.serve(rr, req)
+			serve(server, rr, req)
 
 			assert.Equal(t, tt.expectedStatus, rr.Code)
 			if len(tt.expectedContent) > 0 {
@@ -458,7 +458,7 @@ Port: 54321
 			// we would need to verify the behavior here. Since we don't have
 			// direct access to headers, we'll mock newCorsRouter to capture it.
 			w := httptest.NewRecorder()
-			svr.serve(w, httptest.NewRequest(http.MethodOptions, "/", nil))
+			serve(svr, w, httptest.NewRequest(http.MethodOptions, "/", nil))
 
 			vals := w.Header().Values("Access-Control-Allow-Headers")
 			respHeaders := make(map[string]struct{})
@@ -748,7 +748,7 @@ Port: 54321
 		t.Run(test.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", test.path, nil)
-			svr.serve(w, req)
+			serve(svr, w, req)
 			assert.Equal(t, test.code, w.Code)
 		})
 	}
@@ -765,6 +765,25 @@ func TestServerEmbedFileSystem(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, "/assets/sample.txt", http.NoBody)
 	assert.Nil(t, err)
 	rr := httptest.NewRecorder()
-	server.serve(rr, req)
+	serve(server, rr, req)
 	assert.Equal(t, sampleContent, rr.Body.String())
+}
+
+// serve is for test purpose, allow developer to do a unit test with
+// all defined router without starting an HTTP Server.
+//
+// For example:
+//
+//	server := MustNewServer(...)
+//	server.addRoute(...) // router a
+//	server.addRoute(...) // router b
+//	server.addRoute(...) // router c
+//
+//	r, _ := http.NewRequest(...)
+//	w := httptest.NewRecorder(...)
+//	serve(server, w, r)
+//	// verify the response
+func serve(s *Server, w http.ResponseWriter, r *http.Request) {
+	s.ngin.bindRoutes(s.router)
+	s.router.ServeHTTP(w, r)
 }

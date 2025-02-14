@@ -119,25 +119,6 @@ func (s *Server) Use(middleware Middleware) {
 	s.ngin.use(middleware)
 }
 
-// serve is for test purpose, allow developer to do a unit test with
-// all defined router without starting an HTTP Server.
-//
-// For example:
-//
-//	server := MustNewServer(...)
-//	server.addRoute(...) // router a
-//	server.addRoute(...) // router b
-//	server.addRoute(...) // router c
-//
-//	r, _ := http.NewRequest(...)
-//	w := httptest.NewRecorder(...)
-//	server.serve(w, r)
-//	// verify the response
-func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
-	s.ngin.bindRoutes(s.router)
-	s.router.ServeHTTP(w, r)
-}
-
 // ToMiddleware converts the given handler to a Middleware.
 func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
 	return func(handle http.HandlerFunc) http.HandlerFunc {
