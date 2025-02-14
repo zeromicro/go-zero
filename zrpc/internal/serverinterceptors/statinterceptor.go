@@ -25,7 +25,7 @@ var (
 
 // StatConf defines the static configuration for stat interceptor.
 type StatConf struct {
-	SlowThreshold        time.Duration `json:",optional"`
+	SlowThreshold        time.Duration `json:",default=500ms"`
 	IgnoreContentMethods []string      `json:",optional"`
 }
 
@@ -63,7 +63,8 @@ func UnaryStatInterceptor(metrics *stat.Metrics, conf StatConf) grpc.UnaryServer
 }
 
 func isSlow(duration, durationThreshold time.Duration) bool {
-	return durationThreshold > 0 && duration > durationThreshold
+	return duration > slowThreshold.Load() ||
+		(durationThreshold > 0 && duration > durationThreshold)
 }
 
 func logDuration(ctx context.Context, method string, req any, duration time.Duration,
