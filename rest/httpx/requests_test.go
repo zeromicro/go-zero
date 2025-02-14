@@ -160,7 +160,7 @@ func TestParseFormArray(t *testing.T) {
 			http.NoBody)
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []string{"1", "2", "3"}, v.Names)
+			assert.ElementsMatch(t, []string{"1,2,3"}, v.Names)
 		}
 	})
 
@@ -189,9 +189,7 @@ func TestParseFormArray(t *testing.T) {
 			"/a?numbers=1,2,3",
 			http.NoBody)
 		assert.NoError(t, err)
-		if assert.NoError(t, Parse(r, &v)) {
-			assert.ElementsMatch(t, []int{1, 2, 3}, v.Numbers)
-		}
+		assert.Error(t, Parse(r, &v))
 	})
 
 	t.Run("slice with one value on array format brackets", func(t *testing.T) {
@@ -266,6 +264,36 @@ func TestParseFormArray(t *testing.T) {
 		assert.NoError(t, err)
 		if assert.NoError(t, Parse(r, &v)) {
 			assert.ElementsMatch(t, []float64{2}, v.Numbers)
+		}
+	})
+
+	t.Run("slice with one value", func(t *testing.T) {
+		var v struct {
+			Codes []string `form:"codes"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?codes=aaa,bbb,ccc",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"aaa,bbb,ccc"}, v.Codes)
+		}
+	})
+
+	t.Run("slice with multiple values", func(t *testing.T) {
+		var v struct {
+			Codes []string `form:"codes,arrayComma=false"`
+		}
+
+		r, err := http.NewRequest(
+			http.MethodGet,
+			"/a?codes=aaa,bbb,ccc&codes=ccc,ddd,eee",
+			http.NoBody)
+		assert.NoError(t, err)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.ElementsMatch(t, []string{"aaa,bbb,ccc", "ccc,ddd,eee"}, v.Codes)
 		}
 	})
 }

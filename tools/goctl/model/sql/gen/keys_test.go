@@ -34,7 +34,7 @@ func TestGenCacheKeys(t *testing.T) {
 		Comment:    "姓名",
 		SeqInIndex: 2,
 	}
-	primariCacheKey, uniqueCacheKey := genCacheKeys(parser.Table{
+	primariCacheKey, uniqueCacheKey := genCacheKeys("cache", parser.Table{
 		Name: stringx.From("user"),
 		Db:   stringx.From("go_zero"),
 		PrimaryKey: parser.Primary{
@@ -129,7 +129,7 @@ func TestGenCacheKeys(t *testing.T) {
 		}())
 	})
 	t.Run("no database name", func(t *testing.T) {
-		primariCacheKey, _ = genCacheKeys(parser.Table{
+		primariCacheKey, _ = genCacheKeys("cache", parser.Table{
 			Name: stringx.From("user"),
 			Db:   stringx.From(""),
 			PrimaryKey: parser.Primary{

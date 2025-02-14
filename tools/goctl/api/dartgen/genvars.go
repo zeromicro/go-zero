@@ -10,10 +10,10 @@ const (
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/tokens.dart';
 
-/// 保存tokens到本地
+/// store tokens to local
 ///
-/// 传入null则删除本地tokens
-/// 返回：true：设置成功  false：设置失败
+/// pass null will clean local stored tokens
+/// returns true if success, otherwise false
 Future<bool> setTokens(Tokens tokens) async {
   var sp = await SharedPreferences.getInstance();
   if (tokens == null) {
@@ -23,9 +23,9 @@ Future<bool> setTokens(Tokens tokens) async {
   return await sp.setString('tokens', jsonEncode(tokens.toJson()));
 }
 
-/// 获取本地存储的tokens
+/// get local stored tokens
 ///
-/// 如果没有，则返回null
+/// if no, returns null
 Future<Tokens> getTokens() async {
   try {
     var sp = await SharedPreferences.getInstance();
@@ -82,7 +82,8 @@ func genVars(dir string, isLegacy bool, scheme string, hostname string) error {
 	}
 
 	if !fileExists(dir + "vars.dart") {
-		err = os.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s://%s';`, scheme, hostname)), 0o644)
+		err = os.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s://%s';`,
+			scheme, hostname)), 0o644)
 		if err != nil {
 			return err
 		}
