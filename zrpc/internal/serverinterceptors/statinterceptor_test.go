@@ -241,6 +241,16 @@ func Test_isSlow(t *testing.T) {
 			true,
 			nil,
 		},
+		{
+			"dynamic",
+			args{
+				duration: time.Millisecond * 200,
+			},
+			true,
+			func() {
+				SetSlowThreshold(time.Millisecond * 100)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
