@@ -111,7 +111,7 @@ function api<T>(
     }
 }
 
-export const webapi = {
+export const {{.Caller}} = {
     get<T>(url: string, params?: QueryParams, config?: RequestInit): Promise<T> {
         return api<T>("get", url, params, config);
     },
@@ -137,4 +137,4 @@ export const webapi = {
     },
 };
 
-export default webapi;
+export default {{.Caller}};

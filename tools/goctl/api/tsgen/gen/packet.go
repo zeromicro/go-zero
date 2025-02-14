@@ -1,111 +1,75 @@
-package tsgen
+package gen
 
 import (
 	_ "embed"
 	"fmt"
-	"path"
 	"strings"
-	"text/template"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen/template"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-//go:embed handler.tpl
-var handlerTemplate string
+func GenHandler(dir, caller string, api *spec.ApiSpec, unwrapAPI bool, customBody bool, baseUrl string) error {
+	filename := strings.Replace(api.Service.Name, "-api", "", 1)
 
-func genHandler(dir, webAPI, caller string, api *spec.ApiSpec, unwrapAPI bool) error {
-	filename := strings.Replace(api.Service.Name, "-api", "", 1) + ".ts"
-	if err := pathx.RemoveIfExist(path.Join(dir, filename)); err != nil {
-		return err
-	}
-	fp, created, err := apiutil.MaybeCreateFile(dir, "", filename)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	imports := ""
-	if len(caller) == 0 {
-		caller = "webapi"
-	}
-	importCaller := caller
-	if unwrapAPI {
-		importCaller = "{ " + importCaller + " }"
-	}
-	if len(webAPI) > 0 {
-		imports += `import ` + importCaller + ` from ` + `"./gocliRequest"`
+	data := template.HandlerTemplateData{
+		Caller:      caller,
+		IsUnwrapAPI: unwrapAPI,
 	}
 
 	if len(api.Types) != 0 {
-		if len(imports) > 0 {
-			imports += pathx.NL
-		}
-		outputFile := apiutil.ComponentName(api)
-		imports += fmt.Sprintf(`import * as components from "%s"`, "./"+outputFile)
-		imports += fmt.Sprintf(`%sexport * from "%s"`, pathx.NL, "./"+outputFile)
+		data.ComponentName = apiutil.ComponentName(api)
 	}
 
-	apis, err := genAPI(api, caller)
+	apis, err := genAPI(api, customBody, baseUrl)
 	if err != nil {
 		return err
 	}
+	data.Routes = apis
 
-	t := template.Must(template.New("handlerTemplate").Parse(handlerTemplate))
-	return t.Execute(fp, map[string]string{
-		"imports": imports,
-		"apis":    strings.TrimSpace(apis),
-	})
+	return template.GenTsFile(dir, filename, template.Handlers, data)
 }
 
-func genAPI(api *spec.ApiSpec, caller string) (string, error) {
-	var builder strings.Builder
+func genAPI(api *spec.ApiSpec, customBody bool, baseUrl string) ([]*template.HandlerRouteTemplateData, error) {
+	routes := []*template.HandlerRouteTemplateData{}
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
+			hrt := template.HandlerRouteTemplateData{}
 			handler := route.Handler
 			if len(handler) == 0 {
-				return "", fmt.Errorf("missing handler annotation for route %q", route.Path)
+				return nil, fmt.Errorf("missing handler annotation for route %q", route.Path)
 			}
 
 			handler = util.Untitle(handler)
-			handler = strings.Replace(handler, "Handler", "", 1)
-			comment := commentForRoute(route)
-			if len(comment) > 0 {
-				fmt.Fprintf(&builder, "%s\n", comment)
-			}
-			genericsType := ""
-			if VarBoolCustomBody {
-				genericsType = "<T>"
-			}
-			fmt.Fprintf(&builder, "export function %s%s(%s) {\n", handler, genericsType, paramsForRoute(route))
-			writeIndent(&builder, 1)
-			responseGeneric := "<null>"
-			if len(route.ResponseTypeName()) > 0 {
-				val, err := goTypeToTs(route.ResponseType, true)
-				if err != nil {
-					return "", err
-				}
+			hrt.FuncName = strings.Replace(handler, "Handler", "", 1)
+			hrt.Comment = commentForRoute(route, customBody)
 
-				responseGeneric = fmt.Sprintf("<%s>", val)
+			if customBody {
+				hrt.GenericsTypes = "<T>"
 			}
-			fmt.Fprintf(&builder, `return %s.%s%s(%s)`, caller, strings.ToLower(route.Method),
-				util.Title(responseGeneric), callParamsForRoute(route, group))
-			builder.WriteString("\n}\n\n")
+			hrt.FuncArgs = paramsForRoute(route, customBody)
+			hrt.ResponseType = "null"
+			if len(route.ResponseTypeName()) > 0 {
+				val, err := GoTypeToTs(route.ResponseType, true)
+				if err != nil {
+					return nil, err
+				}
+				hrt.ResponseType = val
+			}
+			hrt.HttpMethod = strings.ToLower(route.Method)
+			hrt.CallArgs = callParamsForRoute(route, group, customBody, baseUrl)
+			routes = append(routes, &hrt)
 		}
 	}
 
-	apis := builder.String()
-	return apis, nil
+	return routes, nil
 }
 
-func paramsForRoute(route spec.Route) string {
+func paramsForRoute(route spec.Route, customBody bool) string {
 	if route.RequestType == nil {
-		if VarBoolCustomBody {
+		if customBody {
 			return "body?: T"
 		}
 		return ""
@@ -114,7 +78,7 @@ func paramsForRoute(route spec.Route) string {
 	hasBody := hasRequestBody(route)
 	hasHeader := hasRequestHeader(route)
 	hasPath := hasRequestPath(route)
-	rt, err := goTypeToTs(route.RequestType, true)
+	rt, err := GoTypeToTs(route.RequestType, true)
 	if err != nil {
 		fmt.Println(err.Error())
 		return ""
@@ -139,7 +103,7 @@ func paramsForRoute(route spec.Route) string {
 			tags := member.Tags()
 
 			if len(tags) > 0 && tags[0].Key == pathTagKey {
-				valueType, err := goTypeToTs(member.Type, false)
+				valueType, err := GoTypeToTs(member.Type, false)
 				if err != nil {
 					fmt.Println(err.Error())
 					return ""
@@ -149,13 +113,13 @@ func paramsForRoute(route spec.Route) string {
 		}
 	}
 
-	if VarBoolCustomBody {
+	if customBody {
 		params = append(params, "body?: T")
 	}
 	return strings.Join(params, ", ")
 }
 
-func commentForRoute(route spec.Route) string {
+func commentForRoute(route spec.Route, customBody bool) string {
 	var builder strings.Builder
 	comment := route.JoinedDoc()
 	builder.WriteString("/**")
@@ -172,16 +136,19 @@ func commentForRoute(route spec.Route) string {
 	if hasHeader {
 		builder.WriteString("\n * @param headers")
 	}
+	if customBody {
+		builder.WriteString("\n * @param body")
+	}
 	builder.WriteString("\n */")
 	return builder.String()
 }
 
-func callParamsForRoute(route spec.Route, group spec.Group) string {
+func callParamsForRoute(route spec.Route, group spec.Group, customBody bool, baseUrl string) string {
 	hasParams := pathHasParams(route)
 	hasBody := hasRequestBody(route)
 	hasHeader := hasRequestHeader(route)
 
-	var params = []string{pathForRoute(route, group)}
+	var params = []string{pathForRoute(route, group, baseUrl)}
 	if hasParams {
 		params = append(params, "params")
 	} else {
@@ -191,12 +158,12 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 	configParams := []string{}
 
 	if hasBody {
-		if VarBoolCustomBody {
+		if customBody {
 			configParams = append(configParams, "body: JSON.stringify(body ?? req)")
 		} else {
 			configParams = append(configParams, "body: JSON.stringify(req)")
 		}
-	} else if VarBoolCustomBody {
+	} else if customBody {
 		configParams = append(configParams, "body: body ? JSON.stringify(body): null")
 	}
 	if hasHeader {
@@ -208,7 +175,7 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 	return strings.Join(params, ", ")
 }
 
-func pathForRoute(route spec.Route, group spec.Group) string {
+func pathForRoute(route spec.Route, group spec.Group, baseUrl string) string {
 	prefix := group.GetAnnotation(pathPrefix)
 
 	routePath := route.Path
@@ -222,12 +189,12 @@ func pathForRoute(route spec.Route, group spec.Group) string {
 		routePath = strings.Join(pathSlice, "/")
 	}
 	if len(prefix) == 0 {
-		return "`" + VarStringUrlPrefix + routePath + "`"
+		return "`" + baseUrl + routePath + "`"
 	}
 
 	prefix = strings.TrimPrefix(prefix, `"`)
 	prefix = strings.TrimSuffix(prefix, `"`)
-	return fmt.Sprintf("`%s%s/%s`", VarStringUrlPrefix, prefix, strings.TrimPrefix(routePath, "/"))
+	return fmt.Sprintf("`%s%s/%s`", baseUrl, prefix, strings.TrimPrefix(routePath, "/"))
 }
 
 func pathHasParams(route spec.Route) bool {

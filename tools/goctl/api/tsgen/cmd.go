@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen/gen"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -16,8 +17,6 @@ var (
 	VarStringDir string
 	// VarStringAPI describes an API file.
 	VarStringAPI string
-	// VarStringWebAPI describes a web API file.
-	VarStringWebAPI string
 	// VarStringCaller describes a caller.
 	VarStringCaller string
 	// VarBoolUnWrap describes whether wrap or not.
@@ -32,19 +31,12 @@ var (
 func TsCommand(_ *cobra.Command, _ []string) error {
 	apiFile := VarStringAPI
 	dir := VarStringDir
-	webAPI := VarStringWebAPI
-	caller := VarStringCaller
-	unwrapAPI := VarBoolUnWrap
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
 
 	if len(dir) == 0 {
 		return errors.New("missing -dir")
-	}
-
-	if len(webAPI) == 0 {
-		webAPI = "."
 	}
 
 	api, err := parser.Parse(apiFile)
@@ -57,11 +49,16 @@ func TsCommand(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	caller := VarStringCaller
+	if len(caller) == 0 {
+		caller = "webapi"
+	}
+
 	api.Service = api.Service.JoinPrefix()
 	logx.Must(pathx.MkdirIfNotExist(dir))
-	logx.Must(genRequest(dir))
-	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
-	logx.Must(genComponents(dir, api))
+	logx.Must(gen.GenRequests(dir, caller))
+	logx.Must(gen.GenHandler(dir, caller, api, VarBoolUnWrap, VarBoolCustomBody, VarStringUrlPrefix))
+	logx.Must(gen.GenComponents(dir, api))
 
 	fmt.Println(color.Green.Render("Done."))
 	return nil
