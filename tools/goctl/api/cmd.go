@@ -96,6 +96,8 @@ func init() {
 	tsCmdFlags.StringVar(&tsgen.VarStringAPI, "api")
 	tsCmdFlags.StringVar(&tsgen.VarStringCaller, "caller")
 	tsCmdFlags.BoolVar(&tsgen.VarBoolUnWrap, "unwrap")
+	tsCmdFlags.StringVar(&tsgen.VarStringUrlPrefix, "url")
+	tsCmdFlags.BoolVar(&tsgen.VarBoolCustomBody, "body")
 
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
