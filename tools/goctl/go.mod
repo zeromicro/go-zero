@@ -9,7 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gookit/color v1.5.4
 	github.com/iancoleman/strcase v0.3.0
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
