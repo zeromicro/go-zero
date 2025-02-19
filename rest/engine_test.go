@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -426,6 +427,43 @@ func TestEngine_start(t *testing.T) {
 		})
 		ng.tlsConfig = &tls.Config{}
 		assert.Error(t, ng.start(router.NewRouter()))
+	})
+}
+
+func TestEngine_startWithListener(t *testing.T) {
+	logx.Disable()
+
+	t.Run("http", func(t *testing.T) {
+		ng := newEngine(RestConf{
+			Host: "localhost",
+			Port: -1,
+		})
+		address := fmt.Sprintf("%s:%d", ng.conf.Host, ng.conf.Port)
+		listener, err := net.Listen("tcp", address)
+		assert.Error(t, err)
+		if listener != nil {
+			assert.Error(t, ng.startWithListener(listener, router.NewRouter()))
+		} else {
+			assert.Error(t, ng.start(router.NewRouter()))
+		}
+	})
+
+	t.Run("https", func(t *testing.T) {
+		ng := newEngine(RestConf{
+			Host:     "localhost",
+			Port:     -1,
+			CertFile: "foo",
+			KeyFile:  "bar",
+		})
+		ng.tlsConfig = &tls.Config{}
+		address := fmt.Sprintf("%s:%d", ng.conf.Host, ng.conf.Port)
+		listener, err := net.Listen("tcp", address)
+		assert.Error(t, err)
+		if listener != nil {
+			assert.Error(t, ng.startWithListener(listener, router.NewRouter()))
+		} else {
+			assert.Error(t, ng.start(router.NewRouter()))
+		}
 	})
 }
 
