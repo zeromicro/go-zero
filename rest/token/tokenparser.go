@@ -20,6 +20,8 @@ const (
 	jwtLookupHeader = "header"
 	jwtLookupQuery  = "query"
 	jwtLookupForm   = "form"
+	jwtLookupParam  = "param"
+	jwtLookupCookie = "cookie"
 )
 
 type (
@@ -134,7 +136,7 @@ func WithResetDuration(duration time.Duration) ParseOption {
 // WithExtractor used to configure the token extraction method of the TokenParser.
 func WithExtractor(tokenLookups []string) ParseOption {
 	return func(parser *TokenParser) {
-		var headerNames, argumentNames []string
+		var extractors request.MultiExtractor
 		for _, lookup := range tokenLookups {
 			parts := strings.Split(strings.TrimSpace(lookup), ":")
 			if len(parts) < 2 {
@@ -143,19 +145,23 @@ func WithExtractor(tokenLookups []string) ParseOption {
 
 			source := strings.TrimSpace(parts[0])
 			name := strings.TrimSpace(parts[1])
+
 			switch source {
+			case jwtLookupCookie:
+				extractors = append(extractors, CookieExtractor{name})
+			case jwtLookupParam:
+				extractors = append(extractors, ParamExtractor{name})
 			case jwtLookupHeader:
-				headerNames = append(headerNames, name)
+				extractors = append(extractors, request.HeaderExtractor{name})
 			case jwtLookupQuery, jwtLookupForm:
-				argumentNames = append(argumentNames, name)
+				extractors = append(extractors, request.ArgumentExtractor{name})
 			}
 		}
 
-		parser.extractor = request.MultiExtractor{
-			request.HeaderExtractor(headerNames),
-			request.ArgumentExtractor(argumentNames),
-			request.AuthorizationHeaderExtractor,
-		}
+		// the default value is bearer token from Authorization header
+		extractors = append(extractors, request.AuthorizationHeaderExtractor)
+
+		parser.extractor = extractors
 	}
 }
 

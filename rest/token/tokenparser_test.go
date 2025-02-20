@@ -9,8 +9,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/request"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 func TestTokenParser(t *testing.T) {
@@ -47,7 +50,28 @@ func TestTokenParser(t *testing.T) {
 	}
 }
 
-func TestTokenParser_CustomHeader(t *testing.T) {
+func TestTokenParser_NoTokenInReqError(t *testing.T) {
+	extractor := request.MultiExtractor{
+		CookieExtractor{},
+		ParamExtractor{},
+		request.HeaderExtractor{},
+		request.ArgumentExtractor{},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	token, err := extractor.ExtractToken(req)
+	assert.Equal(t, token, "")
+	assert.ErrorIs(t, err, request.ErrNoTokenInRequest)
+}
+
+func TestTokenParser_Panics(t *testing.T) {
+	logtest.PanicOnFatal(t)
+	assert.Panics(t, func() {
+		NewTokenParser(WithExtractor([]string{"header"}))
+	})
+}
+
+func TestTokenParser_Header(t *testing.T) {
 	const (
 		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
 		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
@@ -70,7 +94,40 @@ func TestTokenParser_CustomHeader(t *testing.T) {
 	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
 }
 
-func TestTokenParser_URLArgument(t *testing.T) {
+func TestTokenParser_Cookie(t *testing.T) {
+	const (
+		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
+		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	token, err := buildToken(key, map[string]any{"key": "value"}, 3600)
+	assert.Nil(t, err)
+	req.Header.Set("Cookie", "token="+token)
+
+	parser := NewTokenParser(WithExtractor([]string{"cookie:token"}))
+	tok, err := parser.ParseToken(req, key, prevKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
+}
+
+func TestTokenParser_Param(t *testing.T) {
+	const (
+		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
+		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	)
+	token, err := buildToken(key, map[string]any{"key": "value"}, 3600)
+	assert.Nil(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	req = pathvar.WithVars(req, map[string]string{"token": token})
+
+	parser := NewTokenParser(WithExtractor([]string{"param:token"}))
+	tok, err := parser.ParseToken(req, key, prevKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
+}
+
+func TestTokenParser_URL(t *testing.T) {
 	const (
 		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
 		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
@@ -93,7 +150,7 @@ func TestTokenParser_URLArgument(t *testing.T) {
 	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
 }
 
-func TestTokenParser_FormArgument(t *testing.T) {
+func TestTokenParser_Form(t *testing.T) {
 	const (
 		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
 		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
