@@ -46,6 +46,8 @@ type (
 		// - "header:<name>"
 		// - "query:<name>"
 		// - "form:<name>"
+		// - "param:<name>"
+		// - "cookie:<name>"
 		TokenLookup []string `json:",optional"`
 	}
 
@@ -60,6 +62,8 @@ type (
 		// - "header:<name>"
 		// - "query:<name>"
 		// - "form:<name>"
+		// - "param:<name>"
+		// - "cookie:<name>"
 		TokenLookup []string `json:",optional"`
 	}
 
