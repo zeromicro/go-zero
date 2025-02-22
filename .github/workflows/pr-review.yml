@@ -1,0 +1,51 @@
+name: PR Review
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run linters
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Static code analysis
+        run: npm run analyze
+
+      - name: Comment on PR
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const { pull_request } = context.payload;
+            const comment = `
+              ### Automated PR Review
+              - Linter results: ${resultsLinter}
+              - Test results: ${resultsTests}
+              - Static analysis: ${resultsAnalysis}
+            
+              Please review the suggested changes by GitHub Copilot.
+            `;
+            github.issues.createComment({
+              issue_number: pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
