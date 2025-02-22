@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
+	"github.com/zeromicro/go-zero/tools/goctl/api/cgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/format"
@@ -31,6 +32,7 @@ var (
 	ktCmd       = cobrax.NewCommand("kt", cobrax.WithRunE(ktgen.KtCommand))
 	pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
 	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
+	cCmd        = cobrax.NewCommand("c", cobrax.WithRunE(cgen.CCommand))
 )
 
 func init() {
@@ -45,6 +47,7 @@ func init() {
 		newCmdFlags      = newCmd.Flags()
 		pluginCmdFlags   = pluginCmd.Flags()
 		tsCmdFlags       = tsCmd.Flags()
+		cCmdFlags        = cCmd.Flags()
 		validateCmdFlags = validateCmd.Flags()
 	)
 
@@ -99,8 +102,11 @@ func init() {
 	tsCmdFlags.StringVar(&tsgen.VarStringUrlPrefix, "url")
 	tsCmdFlags.BoolVar(&tsgen.VarBoolCustomBody, "body")
 
+	cCmdFlags.StringVar(&cgen.VarStringDir, "dir")
+	cCmdFlags.StringVar(&cgen.VarStringAPI, "api")
+
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd)
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, cCmd, validateCmd)
 }

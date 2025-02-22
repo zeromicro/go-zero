@@ -1,0 +1,1 @@
+{{indent $.Indent}}cJSON* v_{{$.VarName}} = {{$.VarCtor}}({{$.VarExpr}});
