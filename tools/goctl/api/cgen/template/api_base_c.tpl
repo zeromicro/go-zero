@@ -1,4 +1,6 @@
 #include "base.h"
+#include <stdlib.h>
+#include <string.h>
 
 static bool is_curl_inited = false;
 static char last_error[1024];
@@ -170,3 +172,15 @@ char* replace_substr(char* source, const char* substr, const char* replacement) 
     }
     return source;
 }
+
+
+#ifdef __GNUC__
+char* strdup(const char* s) {
+	size_t len = strlen(s) + 1;
+	char* result = (char*)malloc(len);
+	if (result == NULL) {
+		return NULL;
+	}
+	return (char*)memcpy(result, s, len);
+}
+#endif

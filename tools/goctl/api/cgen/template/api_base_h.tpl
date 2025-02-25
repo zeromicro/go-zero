@@ -47,4 +47,8 @@ void base_client_clearup();
 
 char* replace_substr(char* source, const char* substr, const char* replacement);
 
+#ifdef __GNUC__
+char* strdup(const char* s) __attribute__((weak));
+#endif
+
 #endif

@@ -1,4 +1,6 @@
 #include "client.h"
+#include <stdlib.h>
+#include <string.h>
 
 // define
 {{range $i, $a := .Actions}}
