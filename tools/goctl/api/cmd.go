@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/javagen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/ktgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/new"
+	"github.com/zeromicro/go-zero/tools/goctl/api/pygen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
@@ -33,6 +34,7 @@ var (
 	pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
 	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
 	cCmd        = cobrax.NewCommand("c", cobrax.WithRunE(cgen.CCommand))
+	pyCmd       = cobrax.NewCommand("py", cobrax.WithRunE(pygen.PythonCommand))
 )
 
 func init() {
@@ -48,6 +50,7 @@ func init() {
 		pluginCmdFlags   = pluginCmd.Flags()
 		tsCmdFlags       = tsCmd.Flags()
 		cCmdFlags        = cCmd.Flags()
+		pyCmdFlags       = pyCmd.Flags()
 		validateCmdFlags = validateCmd.Flags()
 	)
 
@@ -105,8 +108,11 @@ func init() {
 	cCmdFlags.StringVar(&cgen.VarStringDir, "dir")
 	cCmdFlags.StringVar(&cgen.VarStringAPI, "api")
 
+	pyCmdFlags.StringVar(&pygen.VarStringDir, "dir")
+	pyCmdFlags.StringVar(&pygen.VarStringAPI, "api")
+
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, cCmd, validateCmd)
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, cCmd, pyCmd, validateCmd)
 }
