@@ -14,7 +14,7 @@ class {{$.ClientName}}:
             json=body{{end}}{{if $a.RequestMessage.FormCount}},
             params=req.get_query_params(){{end}}
         {{else}},json=body{{end}})
-        if r.status_code == httpx.codes.OK:
+        if r.status_code != httpx.codes.OK:
             raise OpenApiException(r.content, r.status_code)
         {{if $a.ResponseMessage}}
         result = {{$a.ResponseMessage.MessageName}}(){{if $a.ResponseMessage.HeaderCount}}
