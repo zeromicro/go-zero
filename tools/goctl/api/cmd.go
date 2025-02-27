@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
+	"github.com/zeromicro/go-zero/tools/goctl/api/cgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/format"
@@ -10,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/javagen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/ktgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/new"
+	"github.com/zeromicro/go-zero/tools/goctl/api/pygen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
@@ -31,6 +33,8 @@ var (
 	ktCmd       = cobrax.NewCommand("kt", cobrax.WithRunE(ktgen.KtCommand))
 	pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
 	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
+	cCmd        = cobrax.NewCommand("c", cobrax.WithRunE(cgen.CCommand))
+	pyCmd       = cobrax.NewCommand("py", cobrax.WithRunE(pygen.PythonCommand))
 )
 
 func init() {
@@ -45,6 +49,8 @@ func init() {
 		newCmdFlags      = newCmd.Flags()
 		pluginCmdFlags   = pluginCmd.Flags()
 		tsCmdFlags       = tsCmd.Flags()
+		cCmdFlags        = cCmd.Flags()
+		pyCmdFlags       = pyCmd.Flags()
 		validateCmdFlags = validateCmd.Flags()
 	)
 
@@ -96,9 +102,17 @@ func init() {
 	tsCmdFlags.StringVar(&tsgen.VarStringAPI, "api")
 	tsCmdFlags.StringVar(&tsgen.VarStringCaller, "caller")
 	tsCmdFlags.BoolVar(&tsgen.VarBoolUnWrap, "unwrap")
+	tsCmdFlags.StringVar(&tsgen.VarStringUrlPrefix, "url")
+	tsCmdFlags.BoolVar(&tsgen.VarBoolCustomBody, "body")
+
+	cCmdFlags.StringVar(&cgen.VarStringDir, "dir")
+	cCmdFlags.StringVar(&cgen.VarStringAPI, "api")
+
+	pyCmdFlags.StringVar(&pygen.VarStringDir, "dir")
+	pyCmdFlags.StringVar(&pygen.VarStringAPI, "api")
 
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd)
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, cCmd, pyCmd, validateCmd)
 }
