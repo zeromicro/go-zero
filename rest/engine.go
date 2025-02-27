@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"sort"
 	"time"
@@ -327,6 +328,31 @@ func (ng *engine) start(router httpx.Router, opts ...StartOption) error {
 	}, opts...)
 
 	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
+		ng.conf.KeyFile, router, opts...)
+}
+
+func (ng *engine) startWithListener(listener net.Listener, router httpx.Router, opts ...StartOption) error {
+	if err := ng.bindRoutes(router); err != nil {
+		return err
+	}
+
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{ng.withTimeout()}, opts...)
+
+	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
+		return internal.StartHttpWithListener(listener, router, opts...)
+	}
+
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{
+		func(svr *http.Server) {
+			if ng.tlsConfig != nil {
+				svr.TLSConfig = ng.tlsConfig
+			}
+		},
+	}, opts...)
+
+	return internal.StartHttpsWithListener(listener, ng.conf.CertFile,
 		ng.conf.KeyFile, router, opts...)
 }
 
