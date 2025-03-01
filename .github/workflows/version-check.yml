@@ -21,7 +21,8 @@ jobs:
         id: get_version
         run: |
           # Extract version from tools/goctl/v* format
-          echo "VERSION=${GITHUB_REF#refs/tags/tools/goctl/v}" >> $GITHUB_ENV
+          VERSION="${GITHUB_REF#refs/tags/tools/goctl/v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Extracted version: $VERSION"
 
       - name: Check version in goctl source code
@@ -31,7 +32,11 @@ jobs:
           
           # Check version in BuildVersion constant
           VERSION_IN_CODE=$(grep -r "const BuildVersion =" . | grep -o '".*"' | tr -d '"')
+          echo "Version in code: $VERSION_IN_CODE"
+          echo "Expected version: $VERSION"
+          
           if [ "$VERSION_IN_CODE" != "$VERSION" ]; then
             echo "Version mismatch: Version in code ($VERSION_IN_CODE) doesn't match tag version ($VERSION)"
             exit 1
           fi
+          echo "✅ Version check passed!"
