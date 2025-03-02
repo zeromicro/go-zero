@@ -13,6 +13,15 @@ const (
 
 // Marshal marshals the given val and returns the map that contains the fields.
 // optional=another is not implemented, and it's hard to implement and not commonly used.
+// support anonymous field, e.g.:
+//
+//	type Foo struct {
+//		Token string `header:"token"`
+//	}
+//	type FooB struct {
+//		Foo
+//		Bar string  `json:"bar"`
+//	}
 func Marshal(val any) (map[string]map[string]any, error) {
 	ret := make(map[string]map[string]any)
 	tp := reflect.TypeOf(val)
@@ -69,15 +78,35 @@ func processMember(field reflect.StructField, value reflect.Value,
 		val = fmt.Sprint(val)
 	}
 
-	m, ok := collector[tag]
-	if ok {
-		m[key] = val
-	} else {
-		m = map[string]any{
-			key: val,
+	if field.Anonymous {
+		anonCollector, err := Marshal(val)
+		if err != nil {
+			return err
 		}
+		for anonTag, anonMap := range anonCollector {
+			for anonKey, anonVal := range anonMap {
+				m, ok := collector[anonTag]
+				if ok {
+					m[anonKey] = anonVal
+				} else {
+					m = map[string]any{
+						anonKey: anonVal,
+					}
+				}
+				collector[anonTag] = m
+			}
+		}
+	} else {
+		m, ok := collector[tag]
+		if ok {
+			m[key] = val
+		} else {
+			m = map[string]any{
+				key: val,
+			}
+		}
+		collector[tag] = m
 	}
-	collector[tag] = m
 
 	return nil
 }
