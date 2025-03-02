@@ -53,6 +53,16 @@ func getTag(field reflect.StructField) (string, bool) {
 	return strings.TrimSpace(tag), false
 }
 
+func insertValue(collector map[string]map[string]any, tag string, key string, val any) {
+	if m, ok := collector[tag]; ok {
+		m[key] = val
+	} else {
+		collector[tag] = map[string]any{
+			key: val,
+		}
+	}
+}
+
 func processMember(field reflect.StructField, value reflect.Value,
 	collector map[string]map[string]any) error {
 	var key string
@@ -83,29 +93,14 @@ func processMember(field reflect.StructField, value reflect.Value,
 		if err != nil {
 			return err
 		}
+
 		for anonTag, anonMap := range anonCollector {
 			for anonKey, anonVal := range anonMap {
-				m, ok := collector[anonTag]
-				if ok {
-					m[anonKey] = anonVal
-				} else {
-					m = map[string]any{
-						anonKey: anonVal,
-					}
-				}
-				collector[anonTag] = m
+				insertValue(collector, anonTag, anonKey, anonVal)
 			}
 		}
 	} else {
-		m, ok := collector[tag]
-		if ok {
-			m[key] = val
-		} else {
-			m = map[string]any{
-				key: val,
-			}
-		}
-		collector[tag] = m
+		insertValue(collector, tag, key, val)
 	}
 
 	return nil
