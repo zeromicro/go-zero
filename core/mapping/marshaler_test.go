@@ -1,7 +1,6 @@
 package mapping
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -141,9 +140,8 @@ func TestMarshal_Anonymous(t *testing.T) {
 			},
 		}
 
-		val, err := Marshal(v)
+		_, err := Marshal(v)
 		assert.NotNil(t, err)
-		fmt.Println(val)
 	})
 }
 
