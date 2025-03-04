@@ -5,24 +5,17 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"io"
-	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
-const (
-	maxIdleConns = 64
-	maxOpenConns = 64
-	maxLifetime  = time.Minute
-)
-
 var connManager = syncx.NewResourceManager()
 
-func getCachedSqlConn(driverName, server string) (*sql.DB, error) {
+func getCachedSqlConn(driverName, server string, poolConfig PoolConfig) (*sql.DB, error) {
 	val, err := connManager.GetResource(server, func() (io.Closer, error) {
-		conn, err := newDBConnection(driverName, server)
+		conn, err := newDBConnection(driverName, server, poolConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -53,8 +46,8 @@ func getCachedSqlConn(driverName, server string) (*sql.DB, error) {
 	return val.(*sql.DB), nil
 }
 
-func getSqlConn(driverName, server string) (*sql.DB, error) {
-	conn, err := getCachedSqlConn(driverName, server)
+func getSqlConn(driverName, server string, poolConfig PoolConfig) (*sql.DB, error) {
+	conn, err := getCachedSqlConn(driverName, server, poolConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +55,7 @@ func getSqlConn(driverName, server string) (*sql.DB, error) {
 	return conn, nil
 }
 
-func newDBConnection(driverName, datasource string) (*sql.DB, error) {
+func newDBConnection(driverName, datasource string, poolConfig PoolConfig) (*sql.DB, error) {
 	conn, err := sql.Open(driverName, datasource)
 	if err != nil {
 		return nil, err
@@ -72,9 +65,9 @@ func newDBConnection(driverName, datasource string) (*sql.DB, error) {
 	// discussed here https://github.com/go-sql-driver/mysql/issues/257
 	// if the discussed SetMaxIdleTimeout methods added, we'll change this behavior
 	// 8 means we can't have more than 8 goroutines to concurrently access the same database.
-	conn.SetMaxIdleConns(maxIdleConns)
-	conn.SetMaxOpenConns(maxOpenConns)
-	conn.SetConnMaxLifetime(maxLifetime)
+	conn.SetMaxIdleConns(poolConfig.MaxIdleConns)
+	conn.SetMaxOpenConns(poolConfig.MaxOpenConns)
+	conn.SetConnMaxLifetime(poolConfig.MaxLifetime)
 
 	if err := conn.Ping(); err != nil {
 		_ = conn.Close()

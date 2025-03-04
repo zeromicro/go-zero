@@ -44,6 +44,9 @@ func init() {
 	datasourceCmdFlags.StringVar(&command.VarStringHome, "home")
 	datasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
 	datasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
+	datasourceCmdFlags.IntVarP(&command.VarIntMaxIdleConns, "max-idle-conns", "i", 64)
+	datasourceCmdFlags.IntVarP(&command.VarIntMaxOpenConns, "max-open-conns", "o", 64)
+	datasourceCmdFlags.IntVarP(&command.VarIntMaxLifetime, "max-lifetime", "l", 60)
 
 	pgDatasourceCmdFlags.StringVar(&command.VarStringURL, "url")
 	pgDatasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
@@ -56,6 +59,9 @@ func init() {
 	pgDatasourceCmdFlags.StringVar(&command.VarStringHome, "home")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
 	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
+	pgDatasourceCmdFlags.IntVarP(&command.VarIntMaxIdleConns, "max-idle-conns", "i", 64)
+	pgDatasourceCmdFlags.IntVarP(&command.VarIntMaxOpenConns, "max-open-conns", "o", 64)
+	pgDatasourceCmdFlags.IntVarP(&command.VarIntMaxLifetime, "max-lifetime", "l", 60)
 	pgCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns,
 		"ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
 
