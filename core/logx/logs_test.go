@@ -1054,3 +1054,27 @@ type panicStringer struct {
 func (s panicStringer) String() string {
 	panic("panic")
 }
+
+func TestSetupFileTimeFormat(t *testing.T) {
+	testFileTimeFormat := "2006-01-02T15-04-05.000"
+	MustSetup(LogConf{
+		ServiceName:    "any",
+		Mode:           "file",
+		Encoding:       "json",
+		TimeFormat:     timeFormat,
+		FileTimeFormat: testFileTimeFormat,
+		Path:           "./logtest/log",
+		Level:          "debug",
+		//Compress:            true,
+		KeepDays:            2,
+		StackCooldownMillis: 1,
+		MaxBackups:          2,
+		MaxSize:             1,
+		Rotation:            "size",
+	})
+
+	for i := 0; i < 10000000; i++ {
+		Infof("%stestinfo============================>%d", testFileTimeFormat, i)
+	}
+
+}
