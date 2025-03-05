@@ -2,14 +2,15 @@ package model
 
 import (
 	"database/sql"
-	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"strings"
 )
 
 var p2m = map[string]string{
 	"int8":        "bigint",
-	"numeric":     "bigint",
+	"numeric":     "double",
+	"decimal":     "double",
 	"float8":      "double",
 	"float4":      "float",
 	"int2":        "smallint",
