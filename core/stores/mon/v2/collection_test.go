@@ -10,7 +10,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/core/timex"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	mopt "go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -249,11 +248,11 @@ func TestCollection_UpdateOne(t *testing.T) {
 
 func TestCollection_UpdateByID(t *testing.T) {
 	c := newTestCollection(breaker.GetBreaker("localhost"))
-	_, err := c.UpdateByID(context.Background(), primitive.NewObjectID(),
+	_, err := c.UpdateByID(context.Background(), bson.NewObjectID(),
 		bson.D{{Key: "$set", Value: bson.D{{Key: "baz", Value: "qux"}}}})
 	assert.Nil(t, err)
 	c.brk = new(dropBreaker)
-	_, err = c.UpdateByID(context.Background(), primitive.NewObjectID(),
+	_, err = c.UpdateByID(context.Background(), bson.NewObjectID(),
 		bson.D{{Key: "$set", Value: bson.D{{Key: "baz", Value: "qux"}}}})
 	assert.Equal(t, errDummy, err)
 }
