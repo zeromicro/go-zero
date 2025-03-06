@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -98,11 +97,6 @@ func TestModel_FindOneAndUpdate(t *testing.T) {
 		{Key: "$set", Value: bson.D{{Key: "name", Value: "Mary"}}},
 	}))
 
-}
-
-func createModel(mt *mtest.T) *Model {
-	//Inject(mt.Name(), mt.Client)
-	return MustNewModel(mt.Name(), mt.DB.Name(), mt.Coll.Name())
 }
 
 func triggerBreaker(m *Model) {
