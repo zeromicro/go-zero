@@ -1462,7 +1462,9 @@ func TestUnmarshalIntSlice(t *testing.T) {
 
 		ast := assert.New(t)
 		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
-		ast.Error(unmarshaler.Unmarshal(m, &v))
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]int{1, 2}, v.Ages)
+		}
 	})
 }
 
@@ -1544,7 +1546,7 @@ func TestUnmarshalStringSliceFromString(t *testing.T) {
 		ast := assert.New(t)
 		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
 		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
-			ast.ElementsMatch([]string{","}, v.Names)
+			ast.ElementsMatch([]string{"", ""}, v.Names)
 		}
 	})
 
@@ -1558,6 +1560,36 @@ func TestUnmarshalStringSliceFromString(t *testing.T) {
 
 		ast := assert.New(t)
 		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]string{"aa", "bb"}, v.Names)
+		}
+	})
+
+	t.Run("slice from empty and valid string", func(t *testing.T) {
+		var v struct {
+			Names []string `key:"names"`
+		}
+		m := map[string]any{
+			"names": []string{","},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray(), WithFormCommaArray(false))
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]string{","}, v.Names)
+		}
+	})
+
+	t.Run("slice from valid strings with comma", func(t *testing.T) {
+		var v struct {
+			Names []string `key:"names"`
+		}
+		m := map[string]any{
+			"names": []string{"aa,bb"},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray(), WithFormCommaArray(false))
 		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
 			ast.ElementsMatch([]string{"aa,bb"}, v.Names)
 		}
