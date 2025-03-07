@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
@@ -54,6 +55,12 @@ type (
 		accept   breaker.Acceptable
 	}
 
+	PoolConfig struct {
+		MaxIdleConns int
+		MaxOpenConns int
+		MaxLifetime  time.Duration
+	}
+
 	connProvider func() (*sql.DB, error)
 
 	sessionConn interface {
@@ -65,10 +72,10 @@ type (
 )
 
 // NewSqlConn returns a SqlConn with given driver name and datasource.
-func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
+func NewSqlConn(driverName, datasource string, poolConfig PoolConfig, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
 		connProv: func() (*sql.DB, error) {
-			return getSqlConn(driverName, datasource)
+			return getSqlConn(driverName, datasource, poolConfig)
 		},
 		onError: func(ctx context.Context, err error) {
 			logInstanceError(ctx, datasource, err)
