@@ -18,14 +18,21 @@ if last_refreshed == nil then
 end
 
 local delta = math.max(0, now-last_refreshed)
-local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
+local add = delta*rate
+local filled_tokens = math.min(capacity, last_tokens+add)
 local allowed = filled_tokens >= requested
 local new_tokens = filled_tokens
 if allowed then
     new_tokens = filled_tokens - requested
 end
 
-redis.call("setex", KEYS[1], ttl, new_tokens)
-redis.call("setex", KEYS[2], ttl, now)
+if new_tokens ~= last_tokens then
+    redis.call("setex", KEYS[1], ttl, new_tokens)
+end
+
+if add > 0 then
+    redis.call("setex", KEYS[2], ttl, now)
+end
 
 return allowed
+
