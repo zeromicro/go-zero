@@ -18,7 +18,7 @@ if last_refreshed == nil then
 end
 
 local delta = math.max(0, now-last_refreshed)
-local add = delta*rate
+local add = delta * rate
 local filled_tokens = math.min(capacity, last_tokens+add)
 local allowed = filled_tokens >= requested
 local new_tokens = filled_tokens
