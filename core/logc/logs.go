@@ -37,6 +37,13 @@ func Debugf(ctx context.Context, format string, v ...interface{}) {
 	getLogger(ctx).Debugf(format, v...)
 }
 
+// Debugfn writes fn result into access log.
+// This is useful when the function is expensive to compute,
+// and we want to log it only when necessary.
+func Debugfn(ctx context.Context, fn func() any) {
+	getLogger(ctx).Debugfn(fn)
+}
+
 // Debugv writes v into access log with json content.
 func Debugv(ctx context.Context, v interface{}) {
 	getLogger(ctx).Debugv(v)
@@ -55,6 +62,13 @@ func Error(ctx context.Context, v ...any) {
 // Errorf writes v with format into error log.
 func Errorf(ctx context.Context, format string, v ...any) {
 	getLogger(ctx).Errorf(fmt.Errorf(format, v...).Error())
+}
+
+// Errorfn writes fn result into error log.
+// This is useful when the function is expensive to compute,
+// and we want to log it only when necessary.
+func Errorfn(ctx context.Context, fn func() any) {
+	getLogger(ctx).Errorfn(fn)
 }
 
 // Errorv writes v into error log with json content.
@@ -81,6 +95,13 @@ func Info(ctx context.Context, v ...any) {
 // Infof writes v with format into access log.
 func Infof(ctx context.Context, format string, v ...any) {
 	getLogger(ctx).Infof(format, v...)
+}
+
+// Infofn writes fn result into access log.
+// This is useful when the function is expensive to compute,
+// and we want to log it only when necessary.
+func Infofn(ctx context.Context, fn func() any) {
+	getLogger(ctx).Infofn(fn)
 }
 
 // Infov writes v into access log with json content.
@@ -125,6 +146,13 @@ func Slow(ctx context.Context, v ...any) {
 // Slowf writes v with format into slow log.
 func Slowf(ctx context.Context, format string, v ...any) {
 	getLogger(ctx).Slowf(format, v...)
+}
+
+// Slowfn writes fn result into slow log.
+// This is useful when the function is expensive to compute,
+// and we want to log it only when necessary.
+func Slowfn(ctx context.Context, fn func() any) {
+	getLogger(ctx).Slowfn(fn)
 }
 
 // Slowv writes v into slow log with json content.

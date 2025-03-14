@@ -5,6 +5,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -91,12 +92,12 @@ func (p *Publisher) doKeepAlive() error {
 		default:
 			cli, err := p.doRegister()
 			if err != nil {
-				logx.Errorf("etcd publisher doRegister: %s", err.Error())
+				logc.Errorf(cli.Ctx(), "etcd publisher doRegister: %s", err.Error())
 				break
 			}
 
 			if err := p.keepAliveAsync(cli); err != nil {
-				logx.Errorf("etcd publisher keepAliveAsync: %s", err.Error())
+				logc.Errorf(cli.Ctx(), "etcd publisher keepAliveAsync: %s", err.Error())
 				break
 			}
 
@@ -130,17 +131,17 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 				if !ok {
 					p.revoke(cli)
 					if err := p.doKeepAlive(); err != nil {
-						logx.Errorf("etcd publisher KeepAlive: %s", err.Error())
+						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
 					}
 					return
 				}
 			case <-p.pauseChan:
-				logx.Infof("paused etcd renew, key: %s, value: %s", p.key, p.value)
+				logc.Infof(cli.Ctx(), "paused etcd renew, key: %s, value: %s", p.key, p.value)
 				p.revoke(cli)
 				select {
 				case <-p.resumeChan:
 					if err := p.doKeepAlive(); err != nil {
-						logx.Errorf("etcd publisher KeepAlive: %s", err.Error())
+						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
 					}
 					return
 				case <-p.quit.Done():
@@ -175,7 +176,7 @@ func (p *Publisher) register(client internal.EtcdClient) (clientv3.LeaseID, erro
 
 func (p *Publisher) revoke(cli internal.EtcdClient) {
 	if _, err := cli.Revoke(cli.Ctx(), p.lease); err != nil {
-		logx.Errorf("etcd publisher revoke: %s", err.Error())
+		logc.Errorf(cli.Ctx(), "etcd publisher revoke: %s", err.Error())
 	}
 }
 

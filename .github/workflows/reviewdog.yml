@@ -14,6 +14,6 @@ jobs:
           # Report all results.
           filter_mode: nofilter
           # Exit with 1 when it find at least one finding.
-          fail_on_error: true
+          fail_level: any
           # Set staticcheck flags
           staticcheck_flags: -checks=inherit,-SA1019,-SA1029,-SA5008

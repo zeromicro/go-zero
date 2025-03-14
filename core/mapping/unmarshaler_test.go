@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -1461,9 +1462,7 @@ func TestUnmarshalIntSlice(t *testing.T) {
 
 		ast := assert.New(t)
 		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
-		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
-			ast.ElementsMatch([]int{1, 2}, v.Ages)
-		}
+		ast.Error(unmarshaler.Unmarshal(m, &v))
 	})
 }
 
@@ -1545,7 +1544,22 @@ func TestUnmarshalStringSliceFromString(t *testing.T) {
 		ast := assert.New(t)
 		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
 		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
-			ast.ElementsMatch([]string{"", ""}, v.Names)
+			ast.ElementsMatch([]string{","}, v.Names)
+		}
+	})
+
+	t.Run("slice from valid strings with comma", func(t *testing.T) {
+		var v struct {
+			Names []string `key:"names"`
+		}
+		m := map[string]any{
+			"names": []string{"aa,bb"},
+		}
+
+		ast := assert.New(t)
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithFromArray())
+		if ast.NoError(unmarshaler.Unmarshal(m, &v)) {
+			ast.ElementsMatch([]string{"aa,bb"}, v.Names)
 		}
 	})
 
@@ -4868,14 +4882,28 @@ func TestUnmarshal_EnvWithOptionsWrongValueString(t *testing.T) {
 
 func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
 	t.Run("reader multi array", func(t *testing.T) {
-		var res struct {
+		type testRes struct {
 			A string     `json:"a"`
 			B [][]string `json:"b"`
+			C []byte     `json:"c"`
 		}
-		payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
+
+		var res testRes
+		marshal := testRes{
+			A: "133",
+			B: [][]string{
+				{"add", "cccd"},
+				{"eeee"},
+			},
+			C: []byte("11122344wsss"),
+		}
+		bytes, err := jsonx.Marshal(marshal)
+		assert.NoError(t, err)
+		payload := string(bytes)
 		reader := strings.NewReader(payload)
 		if assert.NoError(t, UnmarshalJsonReader(reader, &res)) {
 			assert.Equal(t, 2, len(res.B))
+			assert.Equal(t, string(marshal.C), string(res.C))
 		}
 	})
 

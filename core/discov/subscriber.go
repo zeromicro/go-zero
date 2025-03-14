@@ -17,6 +17,7 @@ type (
 	Subscriber struct {
 		endpoints  []string
 		exclusive  bool
+		key        string
 		exactMatch bool
 		items      *container
 	}
@@ -29,13 +30,14 @@ type (
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
 	sub := &Subscriber{
 		endpoints: endpoints,
+		key:       key,
 	}
 	for _, opt := range opts {
 		opt(sub)
 	}
 	sub.items = newContainer(sub.exclusive)
 
-	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items, sub.exactMatch); err != nil {
+	if err := internal.GetRegistry().Monitor(endpoints, key, sub.exactMatch, sub.items); err != nil {
 		return nil, err
 	}
 
@@ -45,6 +47,11 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 // AddListener adds listener to s.
 func (s *Subscriber) AddListener(listener func()) {
 	s.items.addListener(listener)
+}
+
+// Close closes the subscriber.
+func (s *Subscriber) Close() {
+	internal.GetRegistry().Unmonitor(s.endpoints, s.key, s.exactMatch, s.items)
 }
 
 // Values returns all the subscription values.

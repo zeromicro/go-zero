@@ -13,6 +13,15 @@ const (
 
 // Marshal marshals the given val and returns the map that contains the fields.
 // optional=another is not implemented, and it's hard to implement and not commonly used.
+// support anonymous field, e.g.:
+//
+//	type Foo struct {
+//		Token string `header:"token"`
+//	}
+//	type FooB struct {
+//		Foo
+//		Bar string  `json:"bar"`
+//	}
 func Marshal(val any) (map[string]map[string]any, error) {
 	ret := make(map[string]map[string]any)
 	tp := reflect.TypeOf(val)
@@ -44,6 +53,16 @@ func getTag(field reflect.StructField) (string, bool) {
 	return strings.TrimSpace(tag), false
 }
 
+func insertValue(collector map[string]map[string]any, tag string, key string, val any) {
+	if m, ok := collector[tag]; ok {
+		m[key] = val
+	} else {
+		collector[tag] = map[string]any{
+			key: val,
+		}
+	}
+}
+
 func processMember(field reflect.StructField, value reflect.Value,
 	collector map[string]map[string]any) error {
 	var key string
@@ -69,15 +88,20 @@ func processMember(field reflect.StructField, value reflect.Value,
 		val = fmt.Sprint(val)
 	}
 
-	m, ok := collector[tag]
-	if ok {
-		m[key] = val
-	} else {
-		m = map[string]any{
-			key: val,
+	if field.Anonymous {
+		anonCollector, err := Marshal(val)
+		if err != nil {
+			return err
 		}
+
+		for anonTag, anonMap := range anonCollector {
+			for anonKey, anonVal := range anonMap {
+				insertValue(collector, anonTag, anonKey, anonVal)
+			}
+		}
+	} else {
+		insertValue(collector, tag, key, val)
 	}
-	collector[tag] = m
 
 	return nil
 }

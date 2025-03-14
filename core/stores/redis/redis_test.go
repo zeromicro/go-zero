@@ -1996,9 +1996,9 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
-func TestRedis_WithPass(t *testing.T) {
+func TestRedis_WithUserPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := newRedis(client.Addr, WithPass("any")).Ping()
+		err := newRedis(client.Addr, WithUser("any"), WithPass("any")).Ping()
 		assert.NotNil(t, err)
 	})
 }
@@ -2119,9 +2119,9 @@ func TestRedisUnlink(t *testing.T) {
 func TestRedisTxPipeline(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		ctx := context.Background()
-		pipe, err := newRedis(client.Addr, badType()).TxPipeline()
+		_, err := newRedis(client.Addr, badType()).TxPipeline()
 		assert.NotNil(t, err)
-		pipe, err = client.TxPipeline()
+		pipe, err := client.TxPipeline()
 		assert.Nil(t, err)
 		key := "key"
 		hashKey := "field"

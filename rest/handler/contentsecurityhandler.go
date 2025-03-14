@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/codec"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/security"
 )
@@ -34,11 +34,11 @@ func LimitContentSecurityHandler(limitBytes int64, decrypters map[string]codec.R
 			case http.MethodDelete, http.MethodGet, http.MethodPost, http.MethodPut:
 				header, err := security.ParseContentSecurity(decrypters, r)
 				if err != nil {
-					logx.Errorf("Signature parse failed, X-Content-Security: %s, error: %s",
+					logc.Errorf(r.Context(), "Signature parse failed, X-Content-Security: %s, error: %s",
 						r.Header.Get(contentSecurity), err.Error())
 					executeCallbacks(w, r, next, strict, httpx.CodeSignatureInvalidHeader, callbacks)
 				} else if code := security.VerifySignature(r, header, tolerance); code != httpx.CodeSignaturePass {
-					logx.Errorf("Signature verification failed, X-Content-Security: %s",
+					logc.Errorf(r.Context(), "Signature verification failed, X-Content-Security: %s",
 						r.Header.Get(contentSecurity))
 					executeCallbacks(w, r, next, strict, code, callbacks)
 				} else if r.ContentLength > 0 && header.Encrypted() {

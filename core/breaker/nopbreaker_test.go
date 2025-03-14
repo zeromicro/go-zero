@@ -11,9 +11,9 @@ import (
 func TestNopBreaker(t *testing.T) {
 	b := NopBreaker()
 	assert.Equal(t, nopBreakerName, b.Name())
-	p, err := b.Allow()
+	_, err := b.Allow()
 	assert.Nil(t, err)
-	p, err = b.AllowCtx(context.Background())
+	p, err := b.AllowCtx(context.Background())
 	assert.Nil(t, err)
 	p.Accept()
 	for i := 0; i < 1000; i++ {

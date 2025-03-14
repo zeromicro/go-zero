@@ -248,6 +248,32 @@ func TestStructedLogDebugf(t *testing.T) {
 	})
 }
 
+func TestStructedLogDebugfn(t *testing.T) {
+	t.Run("debugfn with output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLog(t, levelDebug, w, func(v ...any) {
+			Debugfn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
+	})
+
+	t.Run("debugfn without output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLogEmpty(t, w, InfoLevel, func(v ...any) {
+			Debugfn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
+	})
+}
+
 func TestStructedLogDebugv(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -288,6 +314,32 @@ func TestStructedLogErrorf(t *testing.T) {
 	})
 }
 
+func TestStructedLogErrorfn(t *testing.T) {
+	t.Run("errorfn with output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLog(t, levelError, w, func(v ...any) {
+			Errorfn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
+	})
+
+	t.Run("errorfn without output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLogEmpty(t, w, SevereLevel, func(v ...any) {
+			Errorfn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
+	})
+}
+
 func TestStructedLogErrorv(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -325,6 +377,32 @@ func TestStructedLogInfof(t *testing.T) {
 
 	doTestStructedLog(t, levelInfo, w, func(v ...any) {
 		Infof("%s", fmt.Sprint(v...))
+	})
+}
+
+func TestStructedInfofn(t *testing.T) {
+	t.Run("infofn with output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLog(t, levelInfo, w, func(v ...any) {
+			Infofn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
+	})
+
+	t.Run("infofn without output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLogEmpty(t, w, ErrorLevel, func(v ...any) {
+			Infofn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
 	})
 }
 
@@ -451,6 +529,17 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 	})
 }
 
+func TestInfofnWithErrorLevel(t *testing.T) {
+	called := false
+	SetLevel(ErrorLevel)
+	defer SetLevel(DebugLevel)
+	Infofn(func() any {
+		called = true
+		return "info log"
+	})
+	assert.False(t, called)
+}
+
 func TestStructedLogSlow(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -468,6 +557,32 @@ func TestStructedLogSlowf(t *testing.T) {
 
 	doTestStructedLog(t, levelSlow, w, func(v ...any) {
 		Slowf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogSlowfn(t *testing.T) {
+	t.Run("slowfn with output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLog(t, levelSlow, w, func(v ...any) {
+			Slowfn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
+	})
+
+	t.Run("slowfn without output", func(t *testing.T) {
+		w := new(mockWriter)
+		old := writer.Swap(w)
+		defer writer.Store(old)
+
+		doTestStructedLogEmpty(t, w, SevereLevel, func(v ...any) {
+			Slowfn(func() any {
+				return fmt.Sprint(v...)
+			})
+		})
 	})
 }
 
@@ -845,6 +960,16 @@ func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...any)) {
 	const message = "hello there"
 	write(message)
 	assert.True(t, strings.Contains(w.String(), message))
+}
+
+func doTestStructedLogEmpty(t *testing.T, w *mockWriter, level uint32, write func(...any)) {
+	olevel := atomic.LoadUint32(&logLevel)
+	SetLevel(level)
+	defer SetLevel(olevel)
+
+	const message = "hello there"
+	write(message)
+	assert.Empty(t, w.String())
 }
 
 func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {

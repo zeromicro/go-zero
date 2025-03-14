@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"encoding"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,6 @@ import (
 )
 
 const (
-	comma            = ","
 	defaultKeyName   = "key"
 	delimiter        = '.'
 	ignoreKey        = "-"
@@ -37,7 +37,6 @@ var (
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]any{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
-	stringSliceType     = reflect.TypeOf([]string{})
 )
 
 type (
@@ -161,10 +160,6 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	if refValue.Len() == 0 {
 		value.Set(reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
 		return nil
-	}
-
-	if u.opts.fromArray {
-		refValue = makeStringSlice(refValue)
 	}
 
 	var valid bool
@@ -621,6 +616,22 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	case valueKind == reflect.String && typeKind == reflect.Map:
 		return u.fillMapFromString(value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
+		// try to find out if it's a byte slice,
+		// more details https://pkg.go.dev/encoding/json#Marshal
+		// array and slice values encode as JSON arrays,
+		// except that []byte encodes as a base64-encoded string,
+		// and a nil slice encoded as the null JSON value.
+		// https://stackoverflow.com/questions/34089750/marshal-byte-to-json-giving-a-strange-string
+		if fieldType.Elem().Kind() == reflect.Uint8 {
+			// check whether string type, because the kind of some other types can be string
+			if strVal, ok := mapValue.(string); ok {
+				if decodedBytes, err := base64.StdEncoding.DecodeString(strVal); err == nil {
+					value.Set(reflect.ValueOf(decodedBytes))
+					return nil
+				}
+			}
+		}
+
 		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
 	case valueKind == reflect.String && derefedFieldType == durationType:
 		return fillDurationValue(fieldType, value, mapValue.(string))
@@ -1195,35 +1206,6 @@ func join(elem ...string) string {
 	}
 
 	return builder.String()
-}
-
-func makeStringSlice(refValue reflect.Value) reflect.Value {
-	if refValue.Len() != 1 {
-		return refValue
-	}
-
-	element := refValue.Index(0)
-	if element.Kind() != reflect.String {
-		return refValue
-	}
-
-	val, ok := element.Interface().(string)
-	if !ok {
-		return refValue
-	}
-
-	splits := strings.Split(val, comma)
-	if len(splits) <= 1 {
-		return refValue
-	}
-
-	slice := reflect.MakeSlice(stringSliceType, len(splits), len(splits))
-	for i, split := range splits {
-		// allow empty strings
-		slice.Index(i).Set(reflect.ValueOf(split))
-	}
-
-	return slice
 }
 
 func newInitError(name string) error {

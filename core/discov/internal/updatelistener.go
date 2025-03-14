@@ -10,6 +10,7 @@ type (
 	}
 
 	// UpdateListener wraps the OnAdd and OnDelete methods.
+	// The implementation should be thread-safe and idempotent.
 	UpdateListener interface {
 		OnAdd(kv KV)
 		OnDelete(kv KV)

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"io"
@@ -174,7 +175,7 @@ func TestCryptionResponseWriter_Flush(t *testing.T) {
 		w := newCryptionResponseWriter(f)
 		_, err := w.Write(body)
 		assert.NoError(t, err)
-		w.flush(aesKey)
+		w.flush(context.Background(), aesKey)
 		b, err := io.ReadAll(recorder.Body)
 		assert.NoError(t, err)
 		expected, err := codec.EcbEncrypt(aesKey, body)
@@ -191,7 +192,7 @@ func TestCryptionResponseWriter_Flush(t *testing.T) {
 		w := newCryptionResponseWriter(f)
 		_, err := w.Write(body)
 		assert.NoError(t, err)
-		w.flush(aesKey)
+		w.flush(context.Background(), aesKey)
 		b, err := io.ReadAll(recorder.Body)
 		assert.NoError(t, err)
 		expected, err := codec.EcbEncrypt(aesKey, body)
@@ -207,7 +208,7 @@ func TestCryptionResponseWriter_Flush(t *testing.T) {
 		w := newCryptionResponseWriter(f)
 		_, err := w.Write(body)
 		assert.NoError(t, err)
-		w.flush(aesKey)
+		w.flush(context.Background(), aesKey)
 		assert.True(t, strings.Contains(buf.Content(), io.ErrClosedPipe.Error()))
 	})
 }

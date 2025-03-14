@@ -37,12 +37,12 @@ type Key struct {
 // Join describes an alias of string slice
 type Join []string
 
-func genCacheKeys(table parser.Table) (Key, []Key) {
+func genCacheKeys(prefix string, table parser.Table) (Key, []Key) {
 	var primaryKey Key
 	var uniqueKey []Key
-	primaryKey = genCacheKey(table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field})
+	primaryKey = genCacheKey(prefix, table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field})
 	for _, each := range table.UniqueIndex {
-		uniqueKey = append(uniqueKey, genCacheKey(table.Db, table.Name, each))
+		uniqueKey = append(uniqueKey, genCacheKey(prefix, table.Db, table.Name, each))
 	}
 	sort.Slice(uniqueKey, func(i, j int) bool {
 		return uniqueKey[i].VarLeft < uniqueKey[j].VarLeft
@@ -51,7 +51,7 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 	return primaryKey, uniqueKey
 }
 
-func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
+func genCacheKey(prefix string, db, table stringx.String, in []*parser.Field) Key {
 	var (
 		varLeftJoin, varRightJoin, fieldNameJoin Join
 		varLeft, varRight, varExpression         string
@@ -62,12 +62,12 @@ func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 
 	dbName, tableName := util.SafeString(db.Source()), util.SafeString(table.Source())
 	if len(dbName) > 0 {
-		varLeftJoin = append(varLeftJoin, "cache", dbName, tableName)
-		varRightJoin = append(varRightJoin, "cache", dbName, tableName)
+		varLeftJoin = append(varLeftJoin, prefix, dbName, tableName)
+		varRightJoin = append(varRightJoin, prefix, dbName, tableName)
 		keyLeftJoin = append(keyLeftJoin, dbName, tableName)
 	} else {
-		varLeftJoin = append(varLeftJoin, "cache", tableName)
-		varRightJoin = append(varRightJoin, "cache", tableName)
+		varLeftJoin = append(varLeftJoin, prefix, tableName)
+		varRightJoin = append(varRightJoin, prefix, tableName)
 		keyLeftJoin = append(keyLeftJoin, tableName)
 	}
 
