@@ -52,6 +52,12 @@ var (
 	VarStringSliceIgnoreColumns []string
 	// VarStringCachePrefix describes the prefix of cache.
 	VarStringCachePrefix string
+	// VarIntMaxIdleConns describes the max idle conns.
+	VarIntMaxIdleConns int
+	// VarIntMaxOpenConns describes the max open conns.
+	VarIntMaxOpenConns int
+	// VarIntMaxLifetime describes the max lifetime.
+	VarIntMaxLifetime int
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -113,6 +119,9 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	maxIdleConns := VarIntMaxIdleConns
+	maxOpenConns := VarIntMaxOpenConns
+	maxLifetime := VarIntMaxLifetime
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -140,6 +149,9 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 		strict:        VarBoolStrict,
 		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 		prefix:        VarStringCachePrefix,
+		maxIdleConns:  maxIdleConns,
+		maxOpenConns:  maxOpenConns,
+		maxLifetime:   maxLifetime,
 	}
 	return fromMysqlDataSource(arg)
 }
@@ -204,6 +216,9 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	maxIdleConns := VarIntMaxIdleConns
+	maxOpenConns := VarIntMaxOpenConns
+	maxLifetime := VarIntMaxLifetime
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -225,7 +240,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	}
 	ignoreColumns := mergeColumns(VarStringSliceIgnoreColumns)
 
-	return fromPostgreSqlDataSource(url, patterns, dir, schema, cfg, cache, idea, VarBoolStrict, ignoreColumns)
+	return fromPostgreSqlDataSource(url, patterns, dir, schema, cfg, cache, idea, VarBoolStrict, ignoreColumns, maxIdleConns, maxOpenConns, maxLifetime)
 }
 
 type ddlArg struct {
@@ -278,6 +293,9 @@ type dataSourceArg struct {
 	strict        bool
 	ignoreColumns []string
 	prefix        string
+	maxIdleConns  int
+	maxOpenConns  int
+	maxLifetime   int
 }
 
 func fromMysqlDataSource(arg dataSourceArg) error {
@@ -299,7 +317,11 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 
 	logx.Disable()
 	databaseSource := strings.TrimSuffix(arg.url, "/"+dsn.DBName) + "/information_schema"
-	db := sqlx.NewMysql(databaseSource)
+	db := sqlx.NewMysql(databaseSource, sqlx.PoolConfig{
+		MaxIdleConns: arg.maxIdleConns,
+		MaxOpenConns: arg.maxOpenConns,
+		MaxLifetime:  arg.maxLifetime,
+	})
 	im := model.NewInformationSchemaModel(db)
 
 	tables, err := im.GetAllTables(dsn.DBName)
@@ -339,7 +361,7 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict)
 }
 
-func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string) error {
+func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string, maxIdleConns, maxOpenConns, maxLifetime int) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of postgresql, but nothing found")
@@ -350,7 +372,11 @@ func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, c
 		log.Error("%v", "expected table or table globbing patterns, but nothing found")
 		return nil
 	}
-	db := postgres.New(url)
+	db := postgres.New(url, sqlx.PoolConfig{
+		MaxIdleConns: maxIdleConns,
+		MaxOpenConns: maxOpenConns,
+		MaxLifetime:  time.Duration(maxLifetime),
+	})
 	im := model.NewPostgreSqlModel(db)
 
 	tables, err := im.GetAllTables(schema)
