@@ -170,7 +170,7 @@ func generateDockerfile(goFile, base string, port int, version, timezone string,
 	t := template.Must(template.New("dockerfile").Parse(text))
 	return t.Execute(out, Docker{
 		Chinese:     env.InChina(),
-		GoMainFrom:  path.Join(projPath, goFile),
+		GoMainFrom:  path.Join(projPath, filepath.Base(goFile)),
 		GoRelPath:   projPath,
 		GoFile:      goFile,
 		ExeFile:     exeName,
