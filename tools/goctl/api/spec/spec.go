@@ -76,6 +76,7 @@ type (
 		Path               string
 		RequestType        Type
 		ResponseType       Type
+		OpenFiles          []string
 		Docs               Doc
 		Handler            string
 		AtDoc              AtDoc
