@@ -1071,6 +1071,27 @@ func TestRedis_Set(t *testing.T) {
 	})
 }
 
+func TestRedis_GetDel(t *testing.T) {
+	t.Run("get_del", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			val, err := newRedis(client.Addr).GetDel("hello")
+			assert.Equal(t, "", val)
+			assert.Nil(t, err)
+			err = client.Set("hello", "world")
+			assert.Nil(t, err)
+			val, err = client.Get("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "world", val)
+			val, err = client.GetDel("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "world", val)
+			val, err = client.Get("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "", val)
+		})
+	})
+}
+
 func TestRedis_GetSet(t *testing.T) {
 	t.Run("set_get", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
