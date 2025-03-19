@@ -1090,6 +1090,13 @@ func TestRedis_GetDel(t *testing.T) {
 			assert.Equal(t, "", val)
 		})
 	})
+
+	t.Run("get_del_with_error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := newRedis(client.Addr, badType()).GetDel("hello")
+			assert.Error(t, err)
+		})
+	})
 }
 
 func TestRedis_GetSet(t *testing.T) {
