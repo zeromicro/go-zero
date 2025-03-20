@@ -609,6 +609,28 @@ func (s *Redis) GetBitCtx(ctx context.Context, key string, offset int64) (int, e
 	return int(v), nil
 }
 
+// GetDel is the implementation of redis getdel command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetDel(key string) (string, error) {
+	return s.GetDelCtx(context.Background(), key)
+}
+
+// GetDelCtx is the implementation of redis getdel command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetDelCtx(ctx context.Context, key string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	val, err := conn.GetDel(ctx, key).Result()
+	if errors.Is(err, red.Nil) {
+		return "", nil
+	}
+
+	return val, err
+}
+
 // GetSet is the implementation of redis getset command.
 func (s *Redis) GetSet(key, value string) (string, error) {
 	return s.GetSetCtx(context.Background(), key, value)
