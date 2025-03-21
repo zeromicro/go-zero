@@ -200,6 +200,13 @@ func WithMaxBytes(maxBytes int64) RouteOption {
 	}
 }
 
+// WithMetricsReqDurBuckets returns a RouteOption to set metrics request duration buckets.
+func WithMetricsReqDurBuckets(buckets []float64) RouteOption {
+	return func(r *featuredRoutes) {
+		r.metricReqDurBuckets = buckets
+	}
+}
+
 // WithMiddlewares adds given middlewares to given routes.
 func WithMiddlewares(ms []Middleware, rs ...Route) []Route {
 	for i := len(ms) - 1; i >= 0; i-- {

@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
-	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
-	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
+	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/zeromicro/go-zero/zrpc/resolver"
 )
 
 const (
@@ -32,10 +33,11 @@ type (
 
 	// A ClientOptions is a client options.
 	ClientOptions struct {
-		NonBlock    bool
-		Timeout     time.Duration
-		Secure      bool
-		DialOptions []grpc.DialOption
+		NonBlock            bool
+		Timeout             time.Duration
+		Secure              bool
+		DialOptions         []grpc.DialOption
+		MetricReqDurBuckets []float64
 	}
 
 	// ClientOption defines the method to customize a ClientOptions.
@@ -84,7 +86,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	}
 
 	options = append(options,
-		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts.Timeout)...),
+		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts)...),
 		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
 	)
 
@@ -101,7 +103,7 @@ func (c *client) buildStreamInterceptors() []grpc.StreamClientInterceptor {
 	return interceptors
 }
 
-func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClientInterceptor {
+func (c *client) buildUnaryInterceptors(cliOpts ClientOptions) []grpc.UnaryClientInterceptor {
 	var interceptors []grpc.UnaryClientInterceptor
 
 	if c.middlewares.Trace {
@@ -111,13 +113,13 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 		interceptors = append(interceptors, clientinterceptors.DurationInterceptor)
 	}
 	if c.middlewares.Prometheus {
-		interceptors = append(interceptors, clientinterceptors.PrometheusInterceptor)
+		interceptors = append(interceptors, clientinterceptors.PrometheusInterceptor(cliOpts.MetricReqDurBuckets))
 	}
 	if c.middlewares.Breaker {
 		interceptors = append(interceptors, clientinterceptors.BreakerInterceptor)
 	}
 	if c.middlewares.Timeout {
-		interceptors = append(interceptors, clientinterceptors.TimeoutInterceptor(timeout))
+		interceptors = append(interceptors, clientinterceptors.TimeoutInterceptor(cliOpts.Timeout))
 	}
 
 	return interceptors
@@ -149,6 +151,13 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 func WithDialOption(opt grpc.DialOption) ClientOption {
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions, opt)
+	}
+}
+
+// WithMetricReqDurBuckets returns a func to customize a ClientOptions with given buckets.
+func WithMetricReqDurBuckets(buckets []float64) ClientOption {
+	return func(options *ClientOptions) {
+		options.MetricReqDurBuckets = buckets
 	}
 }
 

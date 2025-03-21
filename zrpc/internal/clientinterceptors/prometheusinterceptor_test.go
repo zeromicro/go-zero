@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/prometheus"
 	"google.golang.org/grpc"
+
+	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
 func TestPromMetricInterceptor(t *testing.T) {
@@ -39,7 +40,7 @@ func TestPromMetricInterceptor(t *testing.T) {
 				})
 			}
 			cc := new(grpc.ClientConn)
-			err := PrometheusInterceptor(context.Background(), "/foo", nil, nil, cc,
+			err := PrometheusInterceptor(nil)(context.Background(), "/foo", nil, nil, cc,
 				func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 					opts ...grpc.CallOption) error {
 					return test.err

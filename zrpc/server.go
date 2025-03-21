@@ -3,6 +3,8 @@ package zrpc
 import (
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
@@ -10,27 +12,40 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
-// A RpcServer is a rpc server.
-type RpcServer struct {
-	server   internal.Server
-	register internal.RegisterFn
-}
+type (
+	// A RpcServer is a rpc server.
+	RpcServer struct {
+		server   internal.Server
+		register internal.RegisterFn
+	}
+
+	// RpcServerOption defines the method to customize a rpcServerOptions.
+	RpcServerOption func(options *rpcServerOptions)
+
+	rpcServerOptions struct {
+		metricReqDurBuckets []float64
+	}
+)
 
 // MustNewServer returns a RpcSever, exits on any error.
-func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
-	server, err := NewServer(c, register)
+func MustNewServer(c RpcServerConf, register internal.RegisterFn, ops ...RpcServerOption) *RpcServer {
+	server, err := NewServer(c, register, ops...)
 	logx.Must(err)
 	return server
 }
 
 // NewServer returns a RpcServer.
-func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error) {
+func NewServer(c RpcServerConf, register internal.RegisterFn, ops ...RpcServerOption) (*RpcServer, error) {
 	var err error
 	if err = c.Validate(); err != nil {
 		return nil, err
+	}
+
+	var options rpcServerOptions
+	for _, op := range ops {
+		op(&options)
 	}
 
 	var server internal.Server
@@ -51,7 +66,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	server.SetName(c.Name)
 	metrics.SetName(c.Name)
 	setupStreamInterceptors(server, c)
-	setupUnaryInterceptors(server, c, metrics)
+	setupUnaryInterceptors(server, c, metrics, options)
 	if err = setupAuthInterceptors(server, c); err != nil {
 		return nil, err
 	}
@@ -109,6 +124,13 @@ func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
 }
 
+// WithServerMetricReqDurBuckets returns a func to customize a rpcServerOptions with given buckets.
+func WithServerMetricReqDurBuckets(buckets []float64) RpcServerOption {
+	return func(options *rpcServerOptions) {
+		options.metricReqDurBuckets = buckets
+	}
+}
+
 func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
 	if !c.Auth {
 		return nil
@@ -141,7 +163,7 @@ func setupStreamInterceptors(svr internal.Server, c RpcServerConf) {
 	}
 }
 
-func setupUnaryInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.Metrics) {
+func setupUnaryInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.Metrics, op rpcServerOptions) {
 	if c.Middlewares.Trace {
 		svr.AddUnaryInterceptors(serverinterceptors.UnaryTracingInterceptor)
 	}
@@ -152,7 +174,7 @@ func setupUnaryInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.
 		svr.AddUnaryInterceptors(serverinterceptors.UnaryStatInterceptor(metrics, c.Middlewares.StatConf))
 	}
 	if c.Middlewares.Prometheus {
-		svr.AddUnaryInterceptors(serverinterceptors.UnaryPrometheusInterceptor)
+		svr.AddUnaryInterceptors(serverinterceptors.UnaryPrometheusInterceptor(op.metricReqDurBuckets))
 	}
 	if c.Middlewares.Breaker {
 		svr.AddUnaryInterceptors(serverinterceptors.UnaryBreakerInterceptor)
