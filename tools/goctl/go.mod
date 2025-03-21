@@ -1,12 +1,13 @@
 module github.com/zeromicro/go-zero/tools/goctl
 
 go 1.21
+toolchain go1.24.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/emicklei/proto v1.14.0
 	github.com/fatih/structtag v1.2.0
-	github.com/go-sql-driver/mysql v1.9.0
+	github.com/go-sql-driver/mysql v1.9.1
 	github.com/gookit/color v1.5.4
 	github.com/iancoleman/strcase v0.3.0
 	github.com/spf13/cobra v1.9.1
