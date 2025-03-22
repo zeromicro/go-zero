@@ -15,6 +15,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
@@ -54,6 +55,9 @@ func newEngine(c RestConf) *engine {
 }
 
 func (ng *engine) addRoutes(r featuredRoutes) {
+	if r.sse {
+		r.routes = buildSSERoutes(r.routes)
+	}
 	ng.routes = append(ng.routes, r)
 
 	// need to guarantee the timeout is the max of all routes
@@ -61,6 +65,20 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 	if r.timeout > ng.timeout {
 		ng.timeout = r.timeout
 	}
+}
+
+func buildSSERoutes(routes []Route) []Route {
+	for i, route := range routes {
+		h := route.Handler
+		routes[i].Handler = func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set(header.ContentType, header.ContentTypeEventStream)
+			w.Header().Set(header.CacheControl, header.CacheControlNoCache)
+			w.Header().Set(header.Connection, header.ConnectionKeepAlive)
+			h(w, r)
+		}
+	}
+
+	return routes
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,

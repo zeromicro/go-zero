@@ -20,6 +20,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
@@ -754,6 +755,40 @@ Port: 54321
 	}
 }
 
+func TestServerEventStream(t *testing.T) {
+	server := MustNewServer(RestConf{})
+	server.AddRoutes([]Route{
+		{
+			Method: http.MethodGet,
+			Path:   "/foo",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("foo"))
+			},
+		},
+		{
+			Method: http.MethodGet,
+			Path:   "/bar",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("bar"))
+			},
+		},
+	}, WithSSE())
+
+	check := func(val string) {
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/%s", val), http.NoBody)
+		assert.Nil(t, err)
+		rr := httptest.NewRecorder()
+		serve(server, rr, req)
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.Equal(t, header.ContentTypeEventStream, rr.Header().Get(header.ContentType))
+		assert.Equal(t, header.CacheControlNoCache, rr.Header().Get(header.CacheControl))
+		assert.Equal(t, header.ConnectionKeepAlive, rr.Header().Get(header.Connection))
+		assert.Equal(t, val, rr.Body.String())
+	}
+	check("foo")
+	check("bar")
+}
+
 //go:embed testdata
 var content embed.FS
 
@@ -770,7 +805,7 @@ func TestServerEmbedFileSystem(t *testing.T) {
 }
 
 // serve is for test purpose, allow developer to do a unit test with
-// all defined router without starting an HTTP Server.
+// all defined routes without starting an HTTP Server.
 //
 // For example:
 //
