@@ -68,6 +68,12 @@ type (
 		red.BitMapCmdable
 	}
 
+	// RedisPubSub interface represents a redis pubsub node.
+	RedisPubSub interface {
+		Subscribe(ctx context.Context, channels ...string) *PubSub
+		PSubscribe(ctx context.Context, patterns ...string) *PubSub
+	}
+
 	// GeoLocation is used with GeoAdd to add geospatial location.
 	GeoLocation = red.GeoLocation
 	// GeoRadiusQuery is used with GeoRadius to query geospatial index.
@@ -103,6 +109,9 @@ type (
 
 	// Cmder is an alias of redis.Cmder.
 	Cmder = red.Cmder
+
+	// PubSub is an alias of redis.PubSub.
+	PubSub = red.PubSub
 )
 
 // MustNewRedis returns a Redis with given options.
@@ -1218,7 +1227,6 @@ func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) erro
 	if err != nil {
 		return err
 	}
-
 	_, err = conn.Pipelined(ctx, fn)
 	return err
 }
@@ -2402,6 +2410,42 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 	return conn.ZUnionStore(ctx, dest, store).Result()
 }
 
+// Subscribe is the implementation of redis subscribe command.
+func (s *Redis) Subscribe(channels ...string) (*PubSub, error) {
+	conn, err := getPubSubRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.Subscribe(context.Background(), channels...), nil
+}
+
+// PSubscribe is the implementation of redis psubscribe command.
+func (s *Redis) PSubscribe(patterns ...string) (*PubSub, error) {
+	conn, err := getPubSubRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.PSubscribe(context.Background(), patterns...), nil
+}
+
+// SubscribeCtx is the implementation of redis subscribe command.
+func (s *Redis) SubscribeCtx(ctx context.Context, channels ...string) (*PubSub, error) {
+	conn, err := getPubSubRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.Subscribe(ctx, channels...), nil
+}
+
+// PSubscribeCtx is the implementation of redis psubscribe command.
+func (s *Redis) PSubscribeCtx(ctx context.Context, patterns ...string) (*PubSub, error) {
+	conn, err := getPubSubRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.PSubscribe(ctx, patterns...), nil
+}
+
 func (s *Redis) checkConnection(pingTimeout time.Duration) error {
 	conn, err := getRedis(s)
 	if err != nil {
@@ -2469,6 +2513,17 @@ func getRedis(r *Redis) (RedisNode, error) {
 		return getCluster(r)
 	case NodeType:
 		return getClient(r)
+	default:
+		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
+	}
+}
+
+func getPubSubRedis(r *Redis) (RedisPubSub, error) {
+	switch r.Type {
+	case ClusterType:
+		return getPubSubClient(r)
+	case NodeType:
+		return getPubSubCluster(r)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}

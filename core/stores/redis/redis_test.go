@@ -2175,3 +2175,84 @@ func TestRedisTxPipeline(t *testing.T) {
 		assert.Equal(t, hashValue, value)
 	})
 }
+func TestRedisSubscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+
+		pubsub, err := client.Subscribe("TestChannel")
+		defer pubsub.Close()
+		assert.Nil(t, err)
+		_, err = client.Publish("TestChannel", "TestMessage")
+
+		msg, err := pubsub.ReceiveMessage(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, msg, &red.Message{
+			Channel: "TestChannel",
+			Payload: "TestMessage",
+		})
+	})
+}
+func TestRedisSubscribeCtx(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		pubsub, err := client.SubscribeCtx(context.Background(), "TestChannel")
+		defer pubsub.Close()
+		assert.Nil(t, err)
+		_, err = client.Publish("TestChannel", "TestMessage")
+
+		msg, err := pubsub.ReceiveMessage(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, msg, &red.Message{
+			Channel: "TestChannel",
+			Payload: "TestMessage",
+		})
+	})
+}
+func TestRedisPSubscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		pubsub, err := client.PSubscribe("TestPattern*")
+		defer pubsub.Close()
+		assert.Nil(t, err)
+
+		_, err = client.Publish("TestPattern1", "TestMessage")
+		assert.Nil(t, err)
+
+		_, err = client.Publish("NoMatchChannel", "NoMatchMessage")
+		assert.Nil(t, err)
+
+		msg, err := pubsub.ReceiveMessage(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, msg, &red.Message{
+			Channel: "TestPattern1",
+			Pattern: "TestPattern*",
+			Payload: "TestMessage",
+		})
+	})
+}
+func TestRedisPSubscribeMultiplePatterns(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		pubsub, err := client.PSubscribe("TestPattern*", "AnotherPattern*")
+		defer pubsub.Close()
+		assert.Nil(t, err)
+
+		_, err = client.Publish("TestPattern1", "MessageForPattern1")
+		assert.Nil(t, err)
+
+		_, err = client.Publish("AnotherPattern1", "MessageForAnotherPattern")
+		assert.Nil(t, err)
+
+		msg, err := pubsub.ReceiveMessage(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, msg, &red.Message{
+			Channel: "TestPattern1",
+			Pattern: "TestPattern*",
+			Payload: "MessageForPattern1",
+		})
+
+		msg, err = pubsub.ReceiveMessage(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, msg, &red.Message{
+			Channel: "AnotherPattern1",
+			Pattern: "AnotherPattern*",
+			Payload: "MessageForAnotherPattern",
+		})
+	})
+}
