@@ -9,6 +9,8 @@ import (
 	"github.com/zeromicro/go-zero/core/breaker"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/x/mongo/driver/drivertest"
 	"go.uber.org/mock/gomock"
 )
 
@@ -181,4 +183,17 @@ func TestNewModel(t *testing.T) {
 func Test_newModel(t *testing.T) {
 	Inject("mongodb://localhost:27019", &mongo.Client{})
 	newModel("mongodb://localhost:27019", nil, nil, nil)
+}
+
+func Test_mockMonClient_StartSession(t *testing.T) {
+	md := drivertest.NewMockDeployment()
+	opts := options.Client()
+	opts.Deployment = md
+	client, err := mongo.Connect(opts)
+	assert.Nil(t, err)
+	m := mockMonClient{
+		c: client,
+	}
+	_, err = m.StartSession()
+	assert.Nil(t, err)
 }
