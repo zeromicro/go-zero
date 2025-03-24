@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	mopt "go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.uber.org/mock/gomock"
 )
 
 var errDummy = errors.New("dummy")
@@ -69,13 +70,21 @@ func TestNewCollection(t *testing.T) {
 }
 
 func TestCollection_Aggregate(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Aggregate(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.Cursor{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.Aggregate(context.Background(), []interface{}{}, mopt.Aggregate())
 	assert.Nil(t, err)
 }
 
 func TestCollection_BulkWrite(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().BulkWrite(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.BulkWriteResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.BulkWrite(context.Background(), []mongo.WriteModel{
 		mongo.NewInsertOneModel().SetDocument(bson.D{{Key: "foo", Value: 1}}),
 	})
@@ -88,29 +97,38 @@ func TestCollection_BulkWrite(t *testing.T) {
 }
 
 func TestCollection_CountDocuments(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().CountDocuments(gomock.Any(), gomock.Any(), gomock.Any()).Return(int64(0), nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	res, err := c.CountDocuments(context.Background(), bson.D{})
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), res)
-
 	c.brk = new(dropBreaker)
 	_, err = c.CountDocuments(context.Background(), bson.D{{Key: "foo", Value: 1}})
 	assert.Equal(t, errDummy, err)
 }
 
 func TestDecoratedCollection_DeleteMany(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().DeleteMany(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.DeleteResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.DeleteMany(context.Background(), bson.D{})
 	assert.Nil(t, err)
-	//assert.Equal(t, int64(1), res.DeletedCount)
-
 	c.brk = new(dropBreaker)
 	_, err = c.DeleteMany(context.Background(), bson.D{{Key: "foo", Value: 1}})
 	assert.Equal(t, errDummy, err)
 }
 
 func TestCollection_Distinct(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Distinct(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.DistinctResult{})
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.Distinct(context.Background(), "foo", bson.D{})
 	assert.Nil(t, err)
 	c.brk = new(dropBreaker)
@@ -119,7 +137,11 @@ func TestCollection_Distinct(t *testing.T) {
 }
 
 func TestCollection_EstimatedDocumentCount(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().EstimatedDocumentCount(gomock.Any(), gomock.Any()).Return(int64(0), nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.EstimatedDocumentCount(context.Background())
 	assert.Nil(t, err)
 	c.brk = new(dropBreaker)
@@ -128,7 +150,11 @@ func TestCollection_EstimatedDocumentCount(t *testing.T) {
 }
 
 func TestCollection_Find(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.Cursor{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{{Key: "x", Value: 1}}
 	_, err := c.Find(context.Background(), filter, mopt.Find())
 	assert.Nil(t, err)
@@ -138,7 +164,11 @@ func TestCollection_Find(t *testing.T) {
 }
 
 func TestCollection_FindOne(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().FindOne(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{{Key: "x", Value: 1}}
 	_, err := c.FindOne(context.Background(), filter)
 	c.brk = new(dropBreaker)
@@ -147,8 +177,13 @@ func TestCollection_FindOne(t *testing.T) {
 }
 
 func TestCollection_FindOneAndDelete(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().FindOneAndDelete(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{}
+	mockCollection.EXPECT().FindOneAndDelete(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
 	_, err := c.FindOneAndDelete(context.Background(), filter, mopt.FindOneAndDelete())
 	assert.Equal(t, mongo.ErrNoDocuments, err)
 	_, err = c.FindOneAndDelete(context.Background(), filter, mopt.FindOneAndDelete())
@@ -158,10 +193,15 @@ func TestCollection_FindOneAndDelete(t *testing.T) {
 }
 
 func TestCollection_FindOneAndReplace(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().FindOneAndReplace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{{Key: "x", Value: 1}}
 	replacement := bson.D{{Key: "x", Value: 2}}
 	opts := mopt.FindOneAndReplace().SetUpsert(true)
+	mockCollection.EXPECT().FindOneAndReplace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
 	_, err := c.FindOneAndReplace(context.Background(), filter, replacement, opts)
 	assert.Equal(t, mongo.ErrNoDocuments, err)
 	_, err = c.FindOneAndReplace(context.Background(), filter, replacement, opts)
@@ -171,9 +211,14 @@ func TestCollection_FindOneAndReplace(t *testing.T) {
 }
 
 func TestCollection_FindOneAndUpdate(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().FindOneAndUpdate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{{Key: "x", Value: 1}}
 	update := bson.D{{Key: "$x", Value: 2}}
+	mockCollection.EXPECT().FindOneAndUpdate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
 	opts := mopt.FindOneAndUpdate().SetUpsert(true)
 	_, err := c.FindOneAndUpdate(context.Background(), filter, update, opts)
 	assert.Equal(t, mongo.ErrNoDocuments, err)
@@ -184,7 +229,11 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 }
 
 func TestCollection_InsertOne(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().InsertOne(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.InsertOneResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	res, err := c.InsertOne(context.Background(), bson.D{{Key: "foo", Value: "bar"}})
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
@@ -194,7 +243,11 @@ func TestCollection_InsertOne(t *testing.T) {
 }
 
 func TestCollection_InsertMany(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().InsertMany(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.InsertManyResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.InsertMany(context.Background(), []any{
 		bson.D{{Key: "foo", Value: "bar"}},
 		bson.D{{Key: "foo", Value: "baz"}},
@@ -206,7 +259,11 @@ func TestCollection_InsertMany(t *testing.T) {
 }
 
 func TestCollection_DeleteOne(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().DeleteOne(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.DeleteResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.DeleteOne(context.Background(), bson.D{{Key: "foo", Value: "bar"}})
 	assert.Nil(t, err)
 	c.brk = new(dropBreaker)
@@ -215,7 +272,11 @@ func TestCollection_DeleteOne(t *testing.T) {
 }
 
 func TestCollection_DeleteMany(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().DeleteMany(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.DeleteResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.DeleteMany(context.Background(), bson.D{{Key: "foo", Value: "bar"}})
 	assert.Nil(t, err)
 	c.brk = new(dropBreaker)
@@ -224,7 +285,11 @@ func TestCollection_DeleteMany(t *testing.T) {
 }
 
 func TestCollection_ReplaceOne(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().ReplaceOne(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.UpdateResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.ReplaceOne(context.Background(), bson.D{{Key: "foo", Value: "bar"}},
 		bson.D{{Key: "foo", Value: "baz"}},
 	)
@@ -236,7 +301,11 @@ func TestCollection_ReplaceOne(t *testing.T) {
 }
 
 func TestCollection_UpdateOne(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().UpdateOne(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.UpdateResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.UpdateOne(context.Background(), bson.D{{Key: "foo", Value: "bar"}},
 		bson.D{{Key: "$set", Value: bson.D{{Key: "baz", Value: "qux"}}}})
 	assert.Nil(t, err)
@@ -247,7 +316,11 @@ func TestCollection_UpdateOne(t *testing.T) {
 }
 
 func TestCollection_UpdateByID(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().UpdateByID(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.UpdateResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.UpdateByID(context.Background(), bson.NewObjectID(),
 		bson.D{{Key: "$set", Value: bson.D{{Key: "baz", Value: "qux"}}}})
 	assert.Nil(t, err)
@@ -258,7 +331,11 @@ func TestCollection_UpdateByID(t *testing.T) {
 }
 
 func TestCollection_UpdateMany(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().UpdateMany(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.UpdateResult{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.UpdateMany(context.Background(), bson.D{{Key: "foo", Value: "bar"}},
 		bson.D{{Key: "$set", Value: bson.D{{Key: "baz", Value: "qux"}}}})
 	assert.Nil(t, err)
@@ -269,34 +346,61 @@ func TestCollection_UpdateMany(t *testing.T) {
 }
 
 func TestCollection_Watch(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.ChangeStream{}, nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	_, err := c.Watch(context.Background(), bson.D{{Key: "foo", Value: "bar"}})
 	assert.Nil(t, err)
 }
 
 func TestCollection_Clone(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
-	c.Clone()
-
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Clone(gomock.Any()).Return(nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
+	cc := c.Clone()
+	assert.Nil(t, cc)
 }
 
 func TestCollection_Database(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
-	c.Database()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Database().Return(nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
+	db := c.Database()
+	assert.Nil(t, db)
 }
 
 func TestCollection_Drop(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
-	_ = c.Drop(context.Background())
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	mockCollection.EXPECT().Drop(gomock.Any()).Return(nil)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
+	err := c.Drop(context.Background())
+	assert.Nil(t, err)
 }
 
 func TestCollection_Indexes(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
-	c.Indexes()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	idx := mongo.IndexView{}
+	mockCollection.EXPECT().Indexes().Return(idx)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
+	index := c.Indexes()
+	assert.Equal(t, index, idx)
 }
 
 func TestDecoratedCollection_LogDuration(t *testing.T) {
-	c := newTestCollection(breaker.GetBreaker("localhost"))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockCollection := NewMockmonCollection(ctrl)
+	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 
 	buf := logtest.NewCollector(t)
 

@@ -1,3 +1,4 @@
+//go:generate mockgen -package mon -destination model_mock.go -source model.go monClient monSession
 package mon
 
 import (
@@ -24,7 +25,7 @@ type (
 	Model struct {
 		Collection
 		name string
-		cli  monCli
+		cli  monClient
 		brk  breaker.Breaker
 		opts []Option
 	}
@@ -34,30 +35,11 @@ type (
 		name    string
 		brk     breaker.Breaker
 	}
-
-	//for unit test, this is a little annoying
-	monCli interface {
-		StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error)
-	}
-	monSession interface {
-		AbortTransaction(ctx context.Context) error
-		CommitTransaction(ctx context.Context) error
-		EndSession(ctx context.Context)
-		WithTransaction(ctx context.Context, fn func(sessCtx context.Context) (any, error),
-			opts ...mopt.Lister[mopt.TransactionOptions]) (any, error)
-	}
 )
 
 // MustNewModel returns a Model, exits on errors.
 func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 	model, err := NewModel(uri, db, collection, opts...)
-	logx.Must(err)
-	return model
-}
-
-// mustNewTestModel returns a Model for unit test, exits on errors.
-func mustNewTestModel(uri, db, collection string, opts ...Option) *Model {
-	model, err := newUnitTestModel(uri, db, collection, opts...)
 	logx.Must(err)
 	return model
 }
@@ -75,67 +57,23 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	return newModel(name, cli, coll, brk, opts...), nil
 }
 
-// newUnitTestModel returns a Model for unit test.
-func newUnitTestModel(uri, db, collection string, opts ...Option) (*Model, error) {
-	//cli, err := getClient(uri, opts...)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	name := strings.Join([]string{uri, collection}, "/")
-	brk := breaker.GetBreaker(uri)
-	coll := newTestCollection(brk)
-	return newModelTest(name, coll, brk, opts...), nil
-}
-
-type mockMonClient struct {
-	cli *mongo.Client
-}
-
-func (m *mockMonClient) StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error) {
-	if m.cli != nil {
-		return m.cli.StartSession(opts...)
-	}
-	return &mockSession{}, nil
-}
-
-type mockSession struct {
-}
-
-func (m *mockSession) AbortTransaction(ctx context.Context) error {
-	return nil
-}
-
-func (m *mockSession) CommitTransaction(ctx context.Context) error {
-	return nil
-}
-
-func (m *mockSession) EndSession(ctx context.Context) {
-
-}
-
-func (m *mockSession) WithTransaction(ctx context.Context, fn func(sessCtx context.Context) (any, error),
-	opts ...mopt.Lister[mopt.TransactionOptions]) (any, error) {
-	return nil, nil
-}
-
-func newModelTest(name string, coll Collection, brk breaker.Breaker,
-	opts ...Option) *Model {
-	return &Model{
-		name:       name,
-		Collection: coll,
-		cli:        &mockMonClient{},
-		brk:        brk,
-		opts:       opts,
-	}
-}
-
 func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Breaker,
 	opts ...Option) *Model {
 	return &Model{
 		name:       name,
 		Collection: coll,
-		cli:        &mockMonClient{cli: cli},
+		cli:        &mockMonClient{c: cli},
+		brk:        brk,
+		opts:       opts,
+	}
+}
+
+func newTestModel(name string, cli monClient, coll monCollection, brk breaker.Breaker,
+	opts ...Option) *Model {
+	return &Model{
+		name:       name,
+		Collection: newTestCollection(coll, breaker.GetBreaker("localhost")),
+		cli:        cli,
 		brk:        brk,
 		opts:       opts,
 	}
@@ -320,4 +258,27 @@ func (w *WrappedSession) EndSession(ctx context.Context) {
 		w.session.EndSession(ctx)
 		return nil
 	}, acceptable)
+}
+
+type (
+	//for unit test
+	monClient interface {
+		StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error)
+	}
+	monSession interface {
+		AbortTransaction(ctx context.Context) error
+		CommitTransaction(ctx context.Context) error
+		EndSession(ctx context.Context)
+		WithTransaction(ctx context.Context, fn func(sessCtx context.Context) (any, error),
+			opts ...mopt.Lister[mopt.TransactionOptions]) (any, error)
+	}
+)
+
+type mockMonClient struct {
+	c *mongo.Client
+}
+
+func (m *mockMonClient) StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error) {
+	se, err := m.c.StartSession(opts...)
+	return se, err
 }
