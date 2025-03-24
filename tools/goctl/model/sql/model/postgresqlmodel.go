@@ -9,7 +9,8 @@ import (
 
 var p2m = map[string]string{
 	"int8":        "bigint",
-	"numeric":     "bigint",
+	"numeric":     "double",
+	"decimal":     "double",
 	"float8":      "double",
 	"float4":      "float",
 	"int2":        "smallint",
