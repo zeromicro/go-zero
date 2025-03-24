@@ -1,3 +1,4 @@
+//go:generate mockgen -package mon -destination collection_inserter_mock.go -source bulkinserter.go collectionInserter
 package mon
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/core/executors"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -61,8 +63,16 @@ func (bi *BulkInserter) SetResultHandler(handler ResultHandler) {
 	})
 }
 
+type collectionInserter interface {
+	InsertMany(
+		ctx context.Context,
+		documents interface{},
+		opts ...options.Lister[options.InsertManyOptions],
+	) (*mongo.InsertManyResult, error)
+}
+
 type dbInserter struct {
-	collection    *mongo.Collection
+	collection    collectionInserter
 	documents     []any
 	resultHandler ResultHandler
 }
