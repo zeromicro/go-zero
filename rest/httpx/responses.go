@@ -179,7 +179,7 @@ func doWriteJson(w http.ResponseWriter, code int, v any) error {
 		return fmt.Errorf("marshal json failed, error: %w", err)
 	}
 
-	w.Header().Set(ContentType, header.JsonContentType)
+	w.Header().Set(ContentType, header.ContentTypeJson)
 	w.WriteHeader(code)
 
 	if n, err := w.Write(bs); err != nil {

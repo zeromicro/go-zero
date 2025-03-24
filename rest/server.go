@@ -63,6 +63,11 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 	return server, nil
 }
 
+// AddRoute adds given route into the Server.
+func (s *Server) AddRoute(r Route, opts ...RouteOption) {
+	s.AddRoutes([]Route{r}, opts...)
+}
+
 // AddRoutes add given routes into the Server.
 func (s *Server) AddRoutes(rs []Route, opts ...RouteOption) {
 	r := featuredRoutes{
@@ -72,11 +77,6 @@ func (s *Server) AddRoutes(rs []Route, opts ...RouteOption) {
 		opt(&r)
 	}
 	s.ngin.addRoutes(r)
-}
-
-// AddRoute adds given route into the Server.
-func (s *Server) AddRoute(r Route, opts ...RouteOption) {
-	s.AddRoutes([]Route{r}, opts...)
 }
 
 // PrintRoutes prints the added routes to stdout.
@@ -93,25 +93,6 @@ func (s *Server) Routes() []Route {
 	}
 
 	return routes
-}
-
-// ServeHTTP is for test purpose, allow developer to do a unit test with
-// all defined router without starting an HTTP Server.
-//
-// For example:
-//
-//	server := MustNewServer(...)
-//	server.addRoute(...) // router a
-//	server.addRoute(...) // router b
-//	server.addRoute(...) // router c
-//
-//	r, _ := http.NewRequest(...)
-//	w := httptest.NewRecorder(...)
-//	server.ServeHTTP(w, r)
-//	// verify the response
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.ngin.bindRoutes(s.router)
-	s.router.ServeHTTP(w, r)
 }
 
 // Start starts the Server.
@@ -295,6 +276,14 @@ func WithSignature(signature SignatureConf) RouteOption {
 		r.signature.Strict = signature.Strict
 		r.signature.Expiry = signature.Expiry
 		r.signature.PrivateKeys = signature.PrivateKeys
+	}
+}
+
+// WithSSE returns a RouteOption to enable server-sent events.
+func WithSSE() RouteOption {
+	return func(r *featuredRoutes) {
+		r.sse = true
+		r.timeout = 0
 	}
 }
 

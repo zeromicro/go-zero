@@ -35,6 +35,7 @@ type (
 		priority  bool
 		jwt       jwtSetting
 		signature signatureSetting
+		sse       bool
 		routes    []Route
 		maxBytes  int64
 	}

@@ -101,54 +101,54 @@ func Test_getRealModule(t *testing.T) {
 		{
 			name: "go work duplicate prefix",
 			args: args{
-				workDir: "D:\\code\\company\\core-ee\\service",
+				workDir: "/code/company/core-ee/service",
 				execRun: func(arg, dir string, in ...*bytes.Buffer) (string, error) {
 					return `
 					{
 						"Path": "gitee.com/unitedrhino/core",
-						"Dir": "D:\\code\\company\\core",
-						"GoMod": "D:\\code\\company\\core\\go.mod",
+						"Dir": "/code/company/core",
+						"GoMod": "/code/company/core/go.mod",
 						"GoVersion": "1.21.4"
 					}
 					{
 						"Path": "gitee.com/unitedrhino/core-ee",
-						"Dir": "D:\\code\\company\\core-ee",
-						"GoMod": "D:\\code\\company\\core-ee\\go.mod",
+						"Dir": "/code/company/core-ee",
+						"GoMod": "/code/company/core-ee/go.mod",
 						"GoVersion": "1.21.4"
 					}`, nil
 				},
 			},
 			want: &Module{
 				Path:      "gitee.com/unitedrhino/core-ee",
-				Dir:       "D:\\code\\company\\core-ee",
-				GoMod:     "D:\\code\\company\\core-ee\\go.mod",
+				Dir:       "/code/company/core-ee",
+				GoMod:     "/code/company/core-ee/go.mod",
 				GoVersion: "1.21.4",
 			},
 		},
 		{
 			name: "go work duplicate prefix2",
 			args: args{
-				workDir: "D:\\code\\company\\core-ee",
+				workDir: "/code/company/core-ee",
 				execRun: func(arg, dir string, in ...*bytes.Buffer) (string, error) {
 					return `
 					{
 						"Path": "gitee.com/unitedrhino/core",
-						"Dir": "D:\\code\\company\\core",
-						"GoMod": "D:\\code\\company\\core\\go.mod",
+						"Dir": "/code/company/core",
+						"GoMod": "/code/company/core/go.mod",
 						"GoVersion": "1.21.4"
 					}
 					{
 						"Path": "gitee.com/unitedrhino/core-ee",
-						"Dir": "D:\\code\\company\\core-ee",
-						"GoMod": "D:\\code\\company\\core-ee\\go.mod",
+						"Dir": "/code/company/core-ee",
+						"GoMod": "/code/company/core-ee/go.mod",
 						"GoVersion": "1.21.4"
 					}`, nil
 				},
 			},
 			want: &Module{
 				Path:      "gitee.com/unitedrhino/core-ee",
-				Dir:       "D:\\code\\company\\core-ee",
-				GoMod:     "D:\\code\\company\\core-ee\\go.mod",
+				Dir:       "/code/company/core-ee",
+				GoMod:     "/code/company/core-ee/go.mod",
 				GoVersion: "1.21.4",
 			},
 		},

@@ -27,6 +27,124 @@ func TestMarshal(t *testing.T) {
 	assert.True(t, m[emptyTag]["Anonymous"].(bool))
 }
 
+func TestMarshal_Anonymous(t *testing.T) {
+	t.Run("anonymous", func(t *testing.T) {
+		type BaseHeader struct {
+			Token string `header:"token"`
+		}
+		v := struct {
+			Name    string `json:"name"`
+			Address string `json:"address,options=[beijing,shanghai]"`
+			Age     int    `json:"age"`
+			BaseHeader
+		}{
+			Name:    "kevin",
+			Address: "shanghai",
+			Age:     20,
+			BaseHeader: BaseHeader{
+				Token: "token_xxx",
+			},
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		assert.Equal(t, "kevin", m["json"]["name"])
+		assert.Equal(t, "shanghai", m["json"]["address"])
+		assert.Equal(t, 20, m["json"]["age"].(int))
+		assert.Equal(t, "token_xxx", m["header"]["token"])
+
+		v1 := struct {
+			Name    string `json:"name"`
+			Address string `json:"address,options=[beijing,shanghai]"`
+			Age     int    `json:"age"`
+			BaseHeader
+		}{
+			Name:    "kevin",
+			Address: "shanghai",
+			Age:     20,
+		}
+		m1, err1 := Marshal(v1)
+		assert.Nil(t, err1)
+		assert.Equal(t, "kevin", m1["json"]["name"])
+		assert.Equal(t, "shanghai", m1["json"]["address"])
+		assert.Equal(t, 20, m1["json"]["age"].(int))
+
+		type AnotherHeader struct {
+			Version string `header:"version"`
+		}
+		v2 := struct {
+			Name    string `json:"name"`
+			Address string `json:"address,options=[beijing,shanghai]"`
+			Age     int    `json:"age"`
+			BaseHeader
+			AnotherHeader
+		}{
+			Name:    "kevin",
+			Address: "shanghai",
+			Age:     20,
+			BaseHeader: BaseHeader{
+				Token: "token_xxx",
+			},
+			AnotherHeader: AnotherHeader{
+				Version: "v1.0",
+			},
+		}
+		m2, err2 := Marshal(v2)
+		assert.Nil(t, err2)
+		assert.Equal(t, "kevin", m2["json"]["name"])
+		assert.Equal(t, "shanghai", m2["json"]["address"])
+		assert.Equal(t, 20, m2["json"]["age"].(int))
+		assert.Equal(t, "token_xxx", m2["header"]["token"])
+		assert.Equal(t, "v1.0", m2["header"]["version"])
+
+		type PointerHeader struct {
+			Ref *string `header:"ref"`
+		}
+		ref := "reference"
+		v3 := struct {
+			Name    string `json:"name"`
+			Address string `json:"address,options=[beijing,shanghai]"`
+			Age     int    `json:"age"`
+			PointerHeader
+		}{
+			Name:    "kevin",
+			Address: "shanghai",
+			Age:     20,
+			PointerHeader: PointerHeader{
+				Ref: &ref,
+			},
+		}
+		m3, err3 := Marshal(v3)
+		assert.Nil(t, err3)
+		assert.Equal(t, "kevin", m3["json"]["name"])
+		assert.Equal(t, "shanghai", m3["json"]["address"])
+		assert.Equal(t, 20, m3["json"]["age"].(int))
+		assert.Equal(t, "reference", *m3["header"]["ref"].(*string))
+	})
+
+	t.Run("bad anonymous", func(t *testing.T) {
+		type BaseHeader struct {
+			Token string `json:"token,options=[a,b]"`
+		}
+
+		v := struct {
+			Name    string `json:"name"`
+			Address string `json:"address,options=[beijing,shanghai]"`
+			Age     int    `json:"age"`
+			BaseHeader
+		}{
+			Name:    "kevin",
+			Address: "shanghai",
+			Age:     20,
+			BaseHeader: BaseHeader{
+				Token: "c",
+			},
+		}
+
+		_, err := Marshal(v)
+		assert.NotNil(t, err)
+	})
+}
+
 func TestMarshal_Ptr(t *testing.T) {
 	v := &struct {
 		Name      string `path:"name"`

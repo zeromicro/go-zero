@@ -44,7 +44,7 @@ func TestNamedService_DoRequestPost(t *testing.T) {
 	service := NewService("foo")
 	req, err := http.NewRequest(http.MethodPost, svr.URL, nil)
 	assert.Nil(t, err)
-	req.Header.Set(header.ContentType, header.JsonContentType)
+	req.Header.Set(header.ContentType, header.ContentTypeJson)
 	resp, err := service.DoRequest(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)

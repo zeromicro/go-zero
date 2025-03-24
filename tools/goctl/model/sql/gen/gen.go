@@ -30,6 +30,7 @@ type (
 		cfg           *config.Config
 		isPostgreSql  bool
 		ignoreColumns []string
+		prefix        string
 	}
 
 	// Option defines a function with argument defaultGenerator
@@ -56,7 +57,7 @@ type (
 )
 
 // NewDefaultGenerator creates an instance for defaultGenerator
-func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
+func NewDefaultGenerator(prefix, dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
 	if dir == "" {
 		dir = pwd
 	}
@@ -72,7 +73,7 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 		return nil, err
 	}
 
-	generator := &defaultGenerator{dir: dir, cfg: cfg, pkg: pkg}
+	generator := &defaultGenerator{dir: dir, cfg: cfg, pkg: pkg, prefix: prefix}
 	var optionList []Option
 	optionList = append(optionList, newDefaultOption())
 	optionList = append(optionList, opt...)
@@ -260,7 +261,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
 
-	primaryKey, uniqueKey := genCacheKeys(in)
+	primaryKey, uniqueKey := genCacheKeys(g.prefix, in)
 
 	var table Table
 	table.Table = in

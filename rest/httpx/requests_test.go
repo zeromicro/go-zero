@@ -274,6 +274,7 @@ func TestParseFormArray(t *testing.T) {
 		var v struct {
 			Codes []string `form:"codes"`
 		}
+
 		r, err := http.NewRequest(
 			http.MethodGet,
 			"/a?codes=aaa,bbb,ccc",
@@ -756,7 +757,7 @@ func TestParseJsonBody(t *testing.T) {
 
 		body := `{"name":"kevin", "age": 18}`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-		r.Header.Set(ContentType, header.JsonContentType)
+		r.Header.Set(ContentType, header.ContentTypeJson)
 
 		if assert.NoError(t, Parse(r, &v)) {
 			assert.Equal(t, "kevin", v.Name)
@@ -772,7 +773,7 @@ func TestParseJsonBody(t *testing.T) {
 
 		body := `{"name":"kevin", "ag": 18}`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-		r.Header.Set(ContentType, header.JsonContentType)
+		r.Header.Set(ContentType, header.ContentTypeJson)
 
 		assert.Error(t, Parse(r, &v))
 	})
@@ -797,7 +798,7 @@ func TestParseJsonBody(t *testing.T) {
 
 		body := `[{"name":"kevin", "age": 18}]`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-		r.Header.Set(ContentType, header.JsonContentType)
+		r.Header.Set(ContentType, header.ContentTypeJson)
 
 		assert.NoError(t, Parse(r, &v))
 		assert.Equal(t, 1, len(v))
@@ -817,7 +818,7 @@ func TestParseJsonBody(t *testing.T) {
 
 		body := `[{"name":"apple", "age": 18}]`
 		r := httptest.NewRequest(http.MethodPost, "/a?product=tree", strings.NewReader(body))
-		r.Header.Set(ContentType, header.JsonContentType)
+		r.Header.Set(ContentType, header.ContentTypeJson)
 
 		assert.NoError(t, Parse(r, &v))
 		assert.Equal(t, 1, len(v))
@@ -835,7 +836,7 @@ func TestParseJsonBody(t *testing.T) {
 		body, _ := json.Marshal(v1)
 		t.Logf("body:%s", string(body))
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(string(body)))
-		r.Header.Set(ContentType, header.JsonContentType)
+		r.Header.Set(ContentType, header.ContentTypeJson)
 		var v2 v
 		err := ParseJsonBody(r, &v2)
 		if assert.NoError(t, err) {
@@ -889,7 +890,7 @@ func TestParseHeaders(t *testing.T) {
 	request.Header.Add("addrs", "addr2")
 	request.Header.Add("X-Forwarded-For", "10.0.10.11")
 	request.Header.Add("x-real-ip", "10.0.11.10")
-	request.Header.Add("Accept", header.JsonContentType)
+	request.Header.Add("Accept", header.ContentTypeJson)
 	err = ParseHeaders(request, &v)
 	if err != nil {
 		t.Fatal(err)
@@ -899,7 +900,7 @@ func TestParseHeaders(t *testing.T) {
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
 	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
 	assert.Equal(t, "10.0.11.10", v.XRealIP)
-	assert.Equal(t, header.JsonContentType, v.Accept)
+	assert.Equal(t, header.ContentTypeJson, v.Accept)
 }
 
 func TestParseHeaders_Error(t *testing.T) {
@@ -991,7 +992,7 @@ func TestParseWithFloatPtr(t *testing.T) {
 		}
 		body := `{"weightFloat32": 3.2}`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-		r.Header.Set(ContentType, header.JsonContentType)
+		r.Header.Set(ContentType, header.ContentTypeJson)
 
 		if assert.NoError(t, Parse(r, &v)) {
 			assert.Equal(t, float32(3.2), *v.WeightFloat32)
