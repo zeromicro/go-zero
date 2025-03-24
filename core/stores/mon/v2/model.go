@@ -279,6 +279,5 @@ type mockMonClient struct {
 }
 
 func (m *mockMonClient) StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error) {
-	se, err := m.c.StartSession(opts...)
-	return se, err
+	return m.c.StartSession(opts...)
 }
