@@ -2181,7 +2181,7 @@ func TestRedisSubscribe(t *testing.T) {
 		defer pubsub.Close()
 		assert.Nil(t, err)
 		_, err = client.Publish("TestChannel", "TestMessage")
-
+		assert.Nil(t, err)
 		msg, err := pubsub.ReceiveMessage(context.Background())
 		assert.Nil(t, err)
 		assert.Equal(t, msg, &red.Message{
@@ -2196,7 +2196,7 @@ func TestRedisSubscribeCtx(t *testing.T) {
 		defer pubsub.Close()
 		assert.Nil(t, err)
 		_, err = client.Publish("TestChannel", "TestMessage")
-
+		assert.Nil(t, err)
 		msg, err := pubsub.ReceiveMessage(context.Background())
 		assert.Nil(t, err)
 		assert.Equal(t, msg, &red.Message{
