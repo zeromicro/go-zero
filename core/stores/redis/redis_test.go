@@ -2177,7 +2177,6 @@ func TestRedisTxPipeline(t *testing.T) {
 }
 func TestRedisSubscribe(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-
 		pubsub, err := client.Subscribe("TestChannel")
 		defer pubsub.Close()
 		assert.Nil(t, err)

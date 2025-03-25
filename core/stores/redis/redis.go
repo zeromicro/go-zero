@@ -2521,9 +2521,9 @@ func getRedis(r *Redis) (RedisNode, error) {
 func getPubSubRedis(r *Redis) (RedisPubSub, error) {
 	switch r.Type {
 	case ClusterType:
-		return getPubSubClient(r)
-	case NodeType:
 		return getPubSubCluster(r)
+	case NodeType:
+		return getPubSubClient(r)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
