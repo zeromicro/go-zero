@@ -6,7 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/syncx"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	mopt "go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const defaultTimeout = time.Second * 3
@@ -28,7 +28,7 @@ type (
 		Decoder   bson.ValueDecoder
 	}
 
-	clientOptions = mopt.ClientOptions
+	clientOptions = options.ClientOptions
 )
 
 // DisableLog disables logging of mongo commands, includes info and slow logs.

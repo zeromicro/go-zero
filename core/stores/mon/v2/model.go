@@ -9,7 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	mopt "go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -80,7 +80,7 @@ func newTestModel(name string, cli monClient, coll monCollection, brk breaker.Br
 }
 
 // StartSession starts a new session.
-func (m *Model) StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (sess *WrappedSession, err error) {
+func (m *Model) StartSession(opts ...options.Lister[options.SessionOptions]) (sess *WrappedSession, err error) {
 	starTime := timex.Now()
 	defer func() {
 		logDuration(context.Background(), m.name, startSession, starTime, err)
@@ -99,7 +99,7 @@ func (m *Model) StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (sess *Wr
 }
 
 // Aggregate executes an aggregation pipeline.
-func (m *Model) Aggregate(ctx context.Context, v, pipeline any, opts ...mopt.Lister[mopt.AggregateOptions]) error {
+func (m *Model) Aggregate(ctx context.Context, v, pipeline any, opts ...options.Lister[options.AggregateOptions]) error {
 	cur, err := m.Collection.Aggregate(ctx, pipeline, opts...)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (m *Model) Aggregate(ctx context.Context, v, pipeline any, opts ...mopt.Lis
 }
 
 // DeleteMany deletes documents that match the filter.
-func (m *Model) DeleteMany(ctx context.Context, filter any, opts ...mopt.Lister[mopt.DeleteManyOptions]) (int64, error) {
+func (m *Model) DeleteMany(ctx context.Context, filter any, opts ...options.Lister[options.DeleteManyOptions]) (int64, error) {
 	res, err := m.Collection.DeleteMany(ctx, filter, opts...)
 	if err != nil {
 		return 0, err
@@ -120,7 +120,7 @@ func (m *Model) DeleteMany(ctx context.Context, filter any, opts ...mopt.Lister[
 }
 
 // DeleteOne deletes the first document that matches the filter.
-func (m *Model) DeleteOne(ctx context.Context, filter any, opts ...mopt.Lister[mopt.DeleteOneOptions]) (int64, error) {
+func (m *Model) DeleteOne(ctx context.Context, filter any, opts ...options.Lister[options.DeleteOneOptions]) (int64, error) {
 	res, err := m.Collection.DeleteOne(ctx, filter, opts...)
 	if err != nil {
 		return 0, err
@@ -130,7 +130,7 @@ func (m *Model) DeleteOne(ctx context.Context, filter any, opts ...mopt.Lister[m
 }
 
 // Find finds documents that match the filter.
-func (m *Model) Find(ctx context.Context, v, filter any, opts ...mopt.Lister[mopt.FindOptions]) error {
+func (m *Model) Find(ctx context.Context, v, filter any, opts ...options.Lister[options.FindOptions]) error {
 	cur, err := m.Collection.Find(ctx, filter, opts...)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func (m *Model) Find(ctx context.Context, v, filter any, opts ...mopt.Lister[mop
 }
 
 // FindOne finds the first document that matches the filter.
-func (m *Model) FindOne(ctx context.Context, v, filter any, opts ...mopt.Lister[mopt.FindOneOptions]) error {
+func (m *Model) FindOne(ctx context.Context, v, filter any, opts ...options.Lister[options.FindOneOptions]) error {
 	res, err := m.Collection.FindOne(ctx, filter, opts...)
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (m *Model) FindOne(ctx context.Context, v, filter any, opts ...mopt.Lister[
 
 // FindOneAndDelete finds a single document and deletes it.
 func (m *Model) FindOneAndDelete(ctx context.Context, v, filter any,
-	opts ...mopt.Lister[mopt.FindOneAndDeleteOptions]) error {
+	opts ...options.Lister[options.FindOneAndDeleteOptions]) error {
 	res, err := m.Collection.FindOneAndDelete(ctx, filter, opts...)
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func (m *Model) FindOneAndDelete(ctx context.Context, v, filter any,
 
 // FindOneAndReplace finds a single document and replaces it.
 func (m *Model) FindOneAndReplace(ctx context.Context, v, filter, replacement any,
-	opts ...mopt.Lister[mopt.FindOneAndReplaceOptions]) error {
+	opts ...options.Lister[options.FindOneAndReplaceOptions]) error {
 	res, err := m.Collection.FindOneAndReplace(ctx, filter, replacement, opts...)
 	if err != nil {
 		return err
@@ -174,7 +174,7 @@ func (m *Model) FindOneAndReplace(ctx context.Context, v, filter, replacement an
 
 // FindOneAndUpdate finds a single document and updates it.
 func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter, update any,
-	opts ...mopt.Lister[mopt.FindOneAndUpdateOptions]) error {
+	opts ...options.Lister[options.FindOneAndUpdateOptions]) error {
 	res, err := m.Collection.FindOneAndUpdate(ctx, filter, update, opts...)
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func (w *WrappedSession) CommitTransaction(ctx context.Context) (err error) {
 func (w *WrappedSession) WithTransaction(
 	ctx context.Context,
 	fn func(sessCtx context.Context) (any, error),
-	opts ...mopt.Lister[mopt.TransactionOptions],
+	opts ...options.Lister[options.TransactionOptions],
 ) (res any, err error) {
 	ctx, span := startSpan(ctx, withTransaction)
 	defer func() {
@@ -263,14 +263,14 @@ func (w *WrappedSession) EndSession(ctx context.Context) {
 type (
 	//for unit test
 	monClient interface {
-		StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error)
+		StartSession(opts ...options.Lister[options.SessionOptions]) (monSession, error)
 	}
 	monSession interface {
 		AbortTransaction(ctx context.Context) error
 		CommitTransaction(ctx context.Context) error
 		EndSession(ctx context.Context)
 		WithTransaction(ctx context.Context, fn func(sessCtx context.Context) (any, error),
-			opts ...mopt.Lister[mopt.TransactionOptions]) (any, error)
+			opts ...options.Lister[options.TransactionOptions]) (any, error)
 	}
 )
 
@@ -278,6 +278,6 @@ type mockMonClient struct {
 	c *mongo.Client
 }
 
-func (m *mockMonClient) StartSession(opts ...mopt.Lister[mopt.SessionOptions]) (monSession, error) {
+func (m *mockMonClient) StartSession(opts ...options.Lister[options.SessionOptions]) (monSession, error) {
 	return m.c.StartSession(opts...)
 }
