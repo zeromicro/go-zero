@@ -28,10 +28,10 @@ func TestModel_StartSession(t *testing.T) {
 
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
 	mockedMonClient.EXPECT().StartSession(gomock.Any()).Return(warpSession, errors.New("error"))
-	sess, err := m.StartSession()
+	_, err := m.StartSession()
 	assert.NotNil(t, err)
 	mockedMonClient.EXPECT().StartSession(gomock.Any()).Return(warpSession, nil)
-	sess, err = m.StartSession()
+	sess, err := m.StartSession()
 	assert.Nil(t, err)
 	defer sess.EndSession(context.Background())
 	mockMonSession.EXPECT().WithTransaction(gomock.Any(), gomock.Any()).Return(nil, nil)
