@@ -25,9 +25,13 @@ func TestModel_StartSession(t *testing.T) {
 		name:    "",
 		brk:     breaker.GetBreaker("localhost"),
 	}
-	mockedMonClient.EXPECT().StartSession(gomock.Any()).Return(warpSession, nil)
+
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
+	mockedMonClient.EXPECT().StartSession(gomock.Any()).Return(warpSession, errors.New("error"))
 	sess, err := m.StartSession()
+	assert.NotNil(t, err)
+	mockedMonClient.EXPECT().StartSession(gomock.Any()).Return(warpSession, nil)
+	sess, err = m.StartSession()
 	assert.Nil(t, err)
 	defer sess.EndSession(context.Background())
 	mockMonSession.EXPECT().WithTransaction(gomock.Any(), gomock.Any()).Return(nil, nil)
@@ -176,6 +180,7 @@ func TestMustNewModel(t *testing.T) {
 }
 
 func TestNewModel(t *testing.T) {
+	NewModel("mongo://localhost:27018", "test", "test")
 	Inject("mongodb://localhost:27018", &mongo.Client{})
 	NewModel("mongodb://localhost:27018", "test", "test")
 }
