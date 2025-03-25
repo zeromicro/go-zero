@@ -10,7 +10,7 @@ import (
 
 var (
 	pubSubClusterManager = syncx.NewResourceManager()
-	// clusterPoolSize is default pool size for cluster type of redis.
+	// pubSubClusterPoolSize is default pool size for cluster type of redis.
 	pubSubClusterPoolSize = 5 * runtime.GOMAXPROCS(0)
 )
 
