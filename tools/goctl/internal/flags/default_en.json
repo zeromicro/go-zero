@@ -185,6 +185,7 @@
       },
       "pg": {
         "short": "Generate postgresql model",
+        "prefix": "The cache prefix, effective when --cache is true",
         "datasource": {
           "short": "Generate model from datasource",
           "url": "The data source of database,like \"postgres://root:password@127.0.0.1:5432/database?sslmode=disable\"",
