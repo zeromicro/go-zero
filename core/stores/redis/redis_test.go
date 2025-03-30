@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -2152,6 +2153,7 @@ func TestRedisPSubscribe(t *testing.T) {
 		pattern := "Test.*"
 		pubSubs := make([]*red.PubSub, 3)
 		receivedMessages := make([][]string, 3)
+		var mu sync.Mutex
 		for i := 0; i < 3; i++ {
 			pubSub, err := client.PSubscribe(pattern)
 			assert.Nil(t, err)
@@ -2160,7 +2162,9 @@ func TestRedisPSubscribe(t *testing.T) {
 			go func(idx int) {
 				ch := pubSub.Channel()
 				for msg := range ch {
+					mu.Lock()
 					receivedMessages[idx] = append(receivedMessages[idx], msg.Payload)
+					mu.Unlock()
 				}
 			}(i)
 		}
@@ -2179,7 +2183,9 @@ func TestRedisPSubscribe(t *testing.T) {
 		}
 		time.Sleep(10 * time.Millisecond)
 		for i := 0; i < 3; i++ {
+			mu.Lock()
 			assert.ElementsMatch(t, messages, receivedMessages[i])
+			mu.Unlock()
 		}
 	})
 }
