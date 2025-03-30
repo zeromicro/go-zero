@@ -2119,6 +2119,13 @@ func TestRedisPublish(t *testing.T) {
 	})
 }
 
+func TestRedisSPublish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).SPublish("Test", "message")
+		assert.NotNil(t, err)
+	})
+}
+
 func TestRedisSubscribe(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).Subscribe("Test")
@@ -2151,6 +2158,9 @@ func TestRedisSubscribe(t *testing.T) {
 func TestRedisPSubscribe(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		pattern := "Test.*"
+		_, err := newRedis(client.Addr, badType()).PSubscribe(pattern)
+		assert.NotNil(t, err)
+
 		pubSubs := make([]*red.PubSub, 3)
 		receivedMessages := make([][]string, 3)
 		var mu sync.Mutex
