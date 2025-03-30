@@ -2118,6 +2118,72 @@ func TestRedisPublish(t *testing.T) {
 	})
 }
 
+func TestRedisSubscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Subscribe("Test")
+		assert.NotNil(t, err)
+
+		pubSub, err := client.Subscribe("Test")
+		defer pubSub.Close()
+		assert.Nil(t, err)
+
+		messages := []string{"message1", "message2", "message3"}
+		for _, msg := range messages {
+			_, err := client.Publish("Test", msg)
+			assert.Nil(t, err)
+		}
+
+		ch := pubSub.Channel()
+		receivedMessages := make([]string, 0, len(messages))
+		for i := 0; i < len(messages); i++ {
+			select {
+			case msg := <-ch:
+				receivedMessages = append(receivedMessages, msg.Payload)
+			case <-time.After(time.Second):
+				t.Error("Timeout waiting for message")
+			}
+		}
+		assert.Equal(t, messages, receivedMessages)
+	})
+}
+
+func TestRedisPSubscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		pattern := "Test.*"
+		pubSubs := make([]*red.PubSub, 3)
+		receivedMessages := make([][]string, 3)
+		for i := 0; i < 3; i++ {
+			pubSub, err := client.PSubscribe(pattern)
+			assert.Nil(t, err)
+			pubSubs[i] = pubSub
+			receivedMessages[i] = make([]string, 0)
+			go func(idx int) {
+				ch := pubSub.Channel()
+				for msg := range ch {
+					receivedMessages[idx] = append(receivedMessages[idx], msg.Payload)
+				}
+			}(i)
+		}
+
+		// 確保在測試結束時關閉所有訂閱
+		defer func() {
+			for _, pubSub := range pubSubs {
+				pubSub.Close()
+			}
+		}()
+		messages := []string{"message1", "message2", "message3"}
+		channels := []string{"Test.1", "Test.2", "Test.3"}
+		for i, msg := range messages {
+			_, err := client.Publish(channels[i], msg)
+			assert.Nil(t, err)
+		}
+		time.Sleep(10 * time.Millisecond)
+		for i := 0; i < 3; i++ {
+			assert.ElementsMatch(t, messages, receivedMessages[i])
+		}
+	})
+}
+
 func TestRedisRPopLPush(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).RPopLPush("Source", "Destination")
