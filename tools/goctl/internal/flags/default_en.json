@@ -71,6 +71,11 @@
         "api": "{{.goctl.api.api}}",
         "caller": "The web api caller",
         "unwrap": "Unwrap the webapi caller for import"
+      },
+      "swagger": {
+        "short": "Generate swagger file from api",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}"
       }
     },
     "bug": {

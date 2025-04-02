@@ -72,3 +72,45 @@ func TestEscapeGoKeyword(t *testing.T) {
 		assert.False(t, isGolangKeyword(strings.Title(k)))
 	}
 }
+
+func TestFieldsAndTrimSpace(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected []string
+	}{
+		{input: " a b c ", expected: []string{"a", "b", "c"}},
+		{input: "  a   b   c  ", expected: []string{"a", "b", "c"}},
+		{input: "\ta\tb\tc\t", expected: []string{"a", "b", "c"}},
+		{input: "\na\nb\nc\n", expected: []string{"a", "b", "c"}},
+		{input: "a b c", expected: []string{"a", "b", "c"}},
+		{input: "a\tb\tc", expected: []string{"a", "b", "c"}},
+		{input: "a\nb\nc", expected: []string{"a", "b", "c"}},
+		{input: "", expected: []string{}},
+		{input: "   ", expected: []string{}},
+	}
+
+	for _, tc := range testCases {
+		result := FieldsAndTrimSpace(tc.input, func(r rune) bool {
+			return r == ' ' || r == '\t' || r == '\n'
+		})
+		assert.Equal(t, tc.expected, result)
+	}
+}
+
+func TestUnquote(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected string
+	}{
+		{input: `"hello"`, expected: `hello`},
+		{input: "`world`", expected: `world`},
+		{input: `'test'`, expected: `test`},
+		{input: `"foo'bar"`, expected: `foobar`},
+		{input: "", expected: ""},
+	}
+
+	for _, tc := range testCases {
+		result := Unquote(tc.input)
+		assert.Equal(t, tc.expected, result)
+	}
+}
