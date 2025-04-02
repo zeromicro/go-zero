@@ -6,14 +6,18 @@ import (
 )
 
 func jsonResponseFromType(tp apiSpec.Type) *spec.Responses {
+	p, _ := propertiesFromType(tp)
 	return &spec.Responses{
 		ResponsesProps: spec.ResponsesProps{
 			Default: &spec.Response{
 				ResponseProps: spec.ResponseProps{
-					Description: "",
-					Schema:      &spec.Schema{},
-					Examples: map[string]any{
-						applicationJson: `{"example":true}`,
+					Schema: &spec.Schema{
+						SchemaProps: spec.SchemaProps{
+							Type:                 typeFromGoType(tp),
+							Properties:           p,
+							AdditionalProperties: mapFromGoType(tp),
+							Items:                itemsFromGoType(tp),
+						},
 					},
 				},
 			},
