@@ -135,6 +135,20 @@ func FieldsAndTrimSpace(s string, f func(r rune) bool) []string {
 }
 
 func Unquote(s string) string {
-	replacer := strings.NewReplacer(`"`, "", "`", "", "'", "")
-	return replacer.Replace(s)
+	if len(s) == 0 {
+		return s
+	}
+	left := s[0]
+
+	if left == '`' || left == '"' {
+		s = s[1:len(s)]
+	}
+	if len(s) == 0 {
+		return s
+	}
+	right := s[len(s)-1]
+	if right == '`' || right == '"' {
+		s = s[0 : len(s)-1]
+	}
+	return s
 }

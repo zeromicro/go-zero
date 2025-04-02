@@ -104,8 +104,7 @@ func TestUnquote(t *testing.T) {
 	}{
 		{input: `"hello"`, expected: `hello`},
 		{input: "`world`", expected: `world`},
-		{input: `'test'`, expected: `test`},
-		{input: `"foo'bar"`, expected: `foobar`},
+		{input: `"foo'bar"`, expected: `foo'bar`},
 		{input: "", expected: ""},
 	}
 

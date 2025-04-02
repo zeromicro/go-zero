@@ -1,7 +1,10 @@
 package swagger
 
 import (
+	"encoding/json"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-openapi/spec"
@@ -22,6 +25,32 @@ func spec2Paths(srv apiSpec.Service) *spec.Paths {
 }
 
 func spec2Path(group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+	var example = map[int]map[string]any{}
+	for k, v := range route.AtDoc.Properties {
+		exampleVal := util.Unquote(v)
+		if !strings.HasPrefix(k, "status") {
+			continue
+		}
+		statusCode, _ := strconv.ParseInt(strings.TrimPrefix(k, "status"), 10, 32)
+		if statusCode == 0 {
+			continue
+		}
+		code := int(statusCode)
+		text := http.StatusText(code)
+		if len(text) == 0 {
+			continue
+		}
+		if len(exampleVal) == 0 {
+			example[code] = map[string]any{}
+			continue
+		}
+		var v map[string]any
+		if err := json.Unmarshal([]byte(exampleVal), &v); err != nil {
+			example[code] = map[string]any{}
+			continue
+		}
+		example[code] = v
+	}
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
 			Description: getStringFromKVOrDefault(route.AtDoc.Properties, "description", ""),
@@ -32,7 +61,7 @@ func spec2Path(group apiSpec.Group, route apiSpec.Route) spec.PathItem {
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", ""),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
-			Responses:   jsonResponseFromType(route.ResponseType),
+			Responses:   jsonResponseFromType(route.ResponseType, example),
 		},
 	}
 	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsDescription", "")
