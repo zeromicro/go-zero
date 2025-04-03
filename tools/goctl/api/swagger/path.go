@@ -11,22 +11,22 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func spec2Paths(srv apiSpec.Service) *spec.Paths {
+func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {
 	paths := &spec.Paths{
 		Paths: make(map[string]spec.PathItem),
 	}
 	for _, group := range srv.Groups {
 		for _, route := range group.Routes {
 			path := pathVariable2SwaggerVariable(route.Path)
-			paths.Paths[path] = spec2Path(group, route)
+			paths.Paths[path] = spec2Path(info, group, route)
 		}
 	}
 	return paths
 }
 
-func spec2Path(group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+func getExample(properties map[string]string) map[int]map[string]any {
 	var example = map[int]map[string]any{}
-	for k, v := range route.AtDoc.Properties {
+	for k, v := range properties {
 		exampleVal := util.Unquote(v)
 		if !strings.HasPrefix(k, "status") {
 			continue
@@ -51,6 +51,18 @@ func spec2Path(group apiSpec.Group, route apiSpec.Route) spec.PathItem {
 		}
 		example[code] = v
 	}
+	return example
+}
+
+func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+	globalExample := getExample(info.Properties)
+	pathExample := getExample(route.AtDoc.Properties)
+	// add global example to path example
+	for k, v := range globalExample {
+		if _, ok := pathExample[k]; !ok {
+			pathExample[k] = v
+		}
+	}
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
 			Description: getStringFromKVOrDefault(route.AtDoc.Properties, "description", ""),
@@ -61,7 +73,7 @@ func spec2Path(group apiSpec.Group, route apiSpec.Route) spec.PathItem {
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", ""),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
-			Responses:   jsonResponseFromType(route.ResponseType, example),
+			Responses:   jsonResponseFromType(route.ResponseType, pathExample),
 		},
 	}
 	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsDescription", "")

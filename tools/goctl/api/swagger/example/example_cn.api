@@ -15,6 +15,8 @@ info (
 	schemes:        "https" // 对应 swagger 的 schemes,不填默认为 https
 	host:           "example.com" // 对应 swagger 的 host,不填默认为 127.0.0.1
 	basePath:       "/v1" // 对应 swagger 的 basePath,不填默认为 /
+	status404:      `{"code":40004,"msg":"not found"}`
+	status500:      `{"code":50000,"msg":"服务器内部错误"}`
 )
 
 type (
@@ -257,20 +259,16 @@ service Swagger {
 	post /status/404 (JsonReq) returns (JsonResp)
 
 	@doc (
-		description: "500 返回格式自定义响应体参考数据"
-		status500:   `{"code":50000,"msg":"服务器内部错误"}`
+		description: "使用全局错误"
 	)
-	@handler status500
-	post /status/500 (JsonReq) returns (JsonResp)
+	@handler statusGlobal
+	post /status/global (JsonReq) returns (JsonResp)
 
 	@doc (
-		description: "多种错误状态并存返回格式自定义响应体参考数据"
-		status400:   `{"code":40000,"msg":"参数错误"}`
-		status401:   `{"code":40001,"msg":"授权失败"}`
-		status404:   `{"code":40004,"msg":"not found"}`
-		status500:   `{"code":50000,"msg":"服务器内部错误"}`
+		description: "覆盖全局错误"
+		status404:   `{"code":40004,"msg":"覆盖全局错误"}`
 	)
 	@handler statusError
-	post /status/error (JsonReq) returns (JsonResp)
+	post /status/override (JsonReq) returns (JsonResp)
 }
 

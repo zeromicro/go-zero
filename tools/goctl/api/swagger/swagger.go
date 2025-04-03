@@ -25,7 +25,7 @@ func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 			Info:     info,
 			Host:     getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
 			BasePath: getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
-			Paths:    spec2Paths(api.Service),
+			Paths:    spec2Paths(api.Info, api.Service),
 		},
 	}
 

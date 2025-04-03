@@ -15,6 +15,8 @@ info (
 	schemes:        "https" // schemes corresponding to Swagger,default value is `https``
 	host:           "example.com" // host corresponding to Swagger,default value is `127.0.0.1`
 	basePath:       "/v1" // basePath corresponding to Swagger,default value is `/`
+	status404:      `{"code":40004,"msg":"Not found"}`
+	status500:      `{"code":50000,"msg":"Internal error"}`
 )
 
 type (
@@ -257,20 +259,16 @@ service Swagger {
 	post /status/404 (JsonReq) returns (JsonResp)
 
 	@doc (
-		description: "500 Return format custom response body reference data."
-		status500:   `{"code":50000,"msg":"Internal error"}`
+		description: "Use global error template"
 	)
-	@handler status500
-	post /status/500 (JsonReq) returns (JsonResp)
+	@handler statusGlobal
+	post /status/global (JsonReq) returns (JsonResp)
 
 	@doc (
-		description: "Multiple error states coexist, and the response body reference data can be customized in the return format."
-		status400:   `{"code":40000,"msg":"Bad request"}`
-		status401:   `{"code":40001,"msg":"Auth failed"}`
-		status404:   `{"code":40004,"msg":"Not found"}`
-		status500:   `{"code":50000,"msg":"Internal error"}`
+		description: "Override global 404 template"
+		status404:   `{"code":40004,"msg":"Override error"}`
 	)
 	@handler statusError
-	post /status/error (JsonReq) returns (JsonResp)
+	post /status/override (JsonReq) returns (JsonResp)
 }
 
