@@ -103,6 +103,7 @@ func init() {
 
 	swaggerCmdFlags.StringVar(&swagger.VarStringAPI, "api")
 	swaggerCmdFlags.StringVar(&swagger.VarStringDir, "dir")
+	swaggerCmdFlags.BoolVar(&swagger.VarBoolYaml, "yaml")
 
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 

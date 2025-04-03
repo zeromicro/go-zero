@@ -3,6 +3,7 @@ package swagger
 import (
 	"encoding/json"
 	"errors"
+	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +18,9 @@ var (
 
 	// VarStringDir specifies the directory to generate swagger file.
 	VarStringDir string
+
+	// VarBoolYaml specifies whether to generate a YAML file.
+	VarBoolYaml bool
 )
 
 func Command(_ *cobra.Command, _ []string) error {
@@ -42,10 +46,27 @@ func Command(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	filename := strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI)) + ".json"
 	data, err := json.MarshalIndent(swagger, "", "  ")
 	if err != nil {
 		return err
 	}
+
+	if VarBoolYaml {
+		filename := strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI)) + ".yaml"
+
+		var jsonObj interface{}
+		if err := yaml.Unmarshal(data, &jsonObj); err != nil {
+			return err
+		}
+
+		data, err := yaml.Marshal(jsonObj)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(filename, data, 0644)
+	}
+	// generate json swagger file
+	filename := strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI)) + ".json"
+
 	return os.WriteFile(filename, data, 0644)
 }
