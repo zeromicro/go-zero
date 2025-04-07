@@ -1,13 +1,14 @@
 module github.com/zeromicro/go-zero
 
 go 1.21
+toolchain go1.24.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpcurl v1.9.3
-	github.com/go-sql-driver/mysql v1.9.0
+	github.com/go-sql-driver/mysql v1.9.2
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
