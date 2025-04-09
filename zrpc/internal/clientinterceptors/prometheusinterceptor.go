@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/metric"
 	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/internal/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )
@@ -36,7 +37,7 @@ func PrometheusInterceptor(ctx context.Context, method string, req, reply any,
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	startTime := timex.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
-	metricClientReqDur.Observe(timex.Since(startTime).Milliseconds(), method)
+	metricClientReqDur.ObserveWithTrace(float64(timex.Since(startTime).Milliseconds()), trace.TraceIDFromContext(ctx), method)
 	metricClientReqCodeTotal.Inc(method, strconv.Itoa(int(status.Code(err))))
 	return err
 }
