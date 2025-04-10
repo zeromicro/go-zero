@@ -24,6 +24,9 @@ var typesTemplate string
 // BuildTypes gen types to string
 func BuildTypes(types []spec.Type) (string, error) {
 	var builder strings.Builder
+
+	builder.WriteString("import \"reflect\"\n")
+
 	first := true
 	for _, tp := range types {
 		if first {
@@ -35,6 +38,13 @@ func BuildTypes(types []spec.Type) (string, error) {
 			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
 		}
 	}
+
+	builder.WriteString("\n\n")
+	builder.WriteString("var AllTypes = []reflect.Type{\n")
+	for _, tp := range types {
+		builder.WriteString(fmt.Sprintf("\treflect.TypeOf(%s{}),\n", util.Title(tp.Name())))
+	}
+	builder.WriteString("}\n")
 
 	return builder.String(), nil
 }
