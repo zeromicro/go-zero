@@ -42,6 +42,13 @@ var (
 func GoFormatApi(_ *cobra.Command, _ []string) error {
 	var be errorx.BatchError
 	if VarBoolUseStdin {
+		if env.UseExperimental() {
+			data, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				return err
+			}
+			return apiF.Source(data, os.Stdout)
+		}
 		if err := apiFormatReader(os.Stdin, VarStringDir, VarBoolSkipCheckDeclare); err != nil {
 			be.Add(err)
 		}
