@@ -1335,9 +1335,7 @@ func TestAnonymousStructPr(t *testing.T) {
 }
 
 func TestAnonymousStructPrError(t *testing.T) {
-
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
-
 		type Score struct {
 			Discipline string `db:"discipline"`
 			score      uint   `db:"score"`
@@ -1350,6 +1348,7 @@ func TestAnonymousStructPrError(t *testing.T) {
 			*ClassType
 			Score
 		}
+
 		var value []*struct {
 			Age int64 `db:"age"`
 			Class
@@ -1375,8 +1374,8 @@ func TestAnonymousStructPrError(t *testing.T) {
 			assert.Equal(t, value[0].score, 0)
 		}
 	})
-	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		type Score struct {
 			Discipline string
 			score      uint
@@ -1389,6 +1388,7 @@ func TestAnonymousStructPrError(t *testing.T) {
 			*ClassType
 			Score
 		}
+
 		var value []*struct {
 			Age int64
 			Class
@@ -1414,7 +1414,6 @@ func TestAnonymousStructPrError(t *testing.T) {
 			assert.Equal(t, value[0].score, 0)
 		}
 	})
-
 }
 
 type mockedScanner struct {
