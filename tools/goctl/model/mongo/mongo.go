@@ -17,6 +17,12 @@ var (
 	VarStringSliceType []string
 	// VarStringDir describes an output directory.
 	VarStringDir string
+	//VarBoolAutoPackage Default false;
+	//  - Whether to automatically use the name of the directory where the build file is located as the package name
+	//  - It is mainly used to be compatible with previous versions,If this parameter is set to false, the package name is set to model by default
+	VarBoolAutoPackage bool
+	//VarStringPackage Manually specify the package name, which takes precedence over VarBoolPkgAuto
+	VarStringPackage string
 	// VarBoolCache describes whether cache is enabled.
 	VarBoolCache bool
 	// VarBoolEasy  describes whether to generate Collection Name in the code for easy declare.
@@ -66,22 +72,25 @@ func Action(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-
 	if err = pathx.MkdirIfNotExist(a); err != nil {
 		return err
 	}
 
-	baseDir := filepath.Base(a)
-	if baseDir == "" || baseDir == "." {
-		baseDir = "model" // as default
+	var pkg string
+	if VarStringPackage != "" {
+		pkg = VarStringPackage
+	} else if VarBoolAutoPackage {
+		pkg = file.SafeString(filepath.Base(a))
+	} else {
+		pkg = "model"
 	}
 
 	return generate.Do(&generate.Context{
-		Types:  tp,
-		Cache:  c,
-		Easy:   easy,
-		Output: a,
-		Cfg:    cfg,
-		PackageName: baseDir,
+		Types:       tp,
+		Cache:       c,
+		Easy:        easy,
+		Output:      a,
+		Cfg:         cfg,
+		PackageName: pkg,
 	})
 }
