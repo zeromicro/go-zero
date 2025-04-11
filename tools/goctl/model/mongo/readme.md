@@ -191,15 +191,20 @@ Usage:
   goctl model mongo [flags]
 
 Flags:
-      --branch string   The branch of the remote repo, it does work with --remote
-  -c, --cache           Generate code with cache [optional]
-  -d, --dir string      The target dir
-  -h, --help            help for mongo
-      --home string     The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
-      --remote string   The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
-                                The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
-      --style string    The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]
-  -t, --type strings    Specified model type name
+  -a, --auto-package     Whether to automatically use the name of the directory where the build file is located as the package name [optional,default=false]
+                         It is mainly used to be compatible with previous versions,If this parameter is set to false, the package name is set to model by default
+      --branch string    The branch of the remote repo, it does work with --remote
+  -c, --cache            Generate code with cache [optional]
+  -d, --dir string       The target dir
+  -e, --easy             Generate code with auto generated CollectionName for easy declare [optional]
+  -h, --help             help for mongo
+      --home string      The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+  -p, --package string   Manually specify the package name, which takes precedence over VarBoolPkgAuto [optional]
+      --remote string    The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                         The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
+      --style string     The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]
+  -t, --type strings     Specified model type name
+
 
 ```
 
