@@ -63,6 +63,8 @@ func init() {
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c")
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolEasy, "easy", "e")
 	mongoCmdFlags.StringVarP(&mongo.VarStringDir, "dir", "d")
+	mongoCmdFlags.BoolVarP(&mongo.VarBoolAutoPackage, "auto-package", "a")
+	mongoCmdFlags.StringVarP(&mongo.VarStringPackage, "package", "p")
 	mongoCmdFlags.StringVar(&mongo.VarStringStyle, "style")
 	mongoCmdFlags.StringVar(&mongo.VarStringHome, "home")
 	mongoCmdFlags.StringVar(&mongo.VarStringRemote, "remote")
