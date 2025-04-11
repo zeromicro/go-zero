@@ -204,6 +204,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	prefix := VarStringCachePrefix
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -225,7 +226,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	}
 	ignoreColumns := mergeColumns(VarStringSliceIgnoreColumns)
 
-	return fromPostgreSqlDataSource(url, patterns, dir, schema, cfg, cache, idea, VarBoolStrict, ignoreColumns)
+	return fromPostgreSqlDataSource(url, patterns, dir, schema, prefix, cfg, cache, idea, VarBoolStrict, ignoreColumns)
 }
 
 type ddlArg struct {
@@ -339,7 +340,7 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict)
 }
 
-func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string) error {
+func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, prefix string, cfg *config.Config, cache, idea, strict bool, ignoreColumns []string) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of postgresql, but nothing found")
@@ -381,7 +382,7 @@ func fromPostgreSqlDataSource(url string, pattern pattern, dir, schema string, c
 		return errors.New("no tables matched")
 	}
 
-	generator, err := gen.NewDefaultGenerator("", dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql(), gen.WithIgnoreColumns(ignoreColumns))
+	generator, err := gen.NewDefaultGenerator(prefix, dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql(), gen.WithIgnoreColumns(ignoreColumns))
 	if err != nil {
 		return err
 	}
