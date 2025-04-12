@@ -126,12 +126,12 @@ func FieldsAndTrimSpace(s string, f func(r rune) bool) []string {
 	fields := strings.FieldsFunc(s, f)
 	var resp []string
 	for _, v := range fields {
-		val := strings.TrimSpace(v)
+		val := TrimWhiteSpace(v)
 		if len(val) > 0 {
 			resp = append(resp, val)
 		}
 	}
-	return fields
+	return resp
 }
 
 func Unquote(s string) string {
