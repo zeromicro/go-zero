@@ -235,6 +235,39 @@ func pathVariable2SwaggerVariable(path string) string {
 	return "/" + filepath.Join(resp...)
 }
 
+func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info) spec.SchemaProps {
+	wrapCodeMsg := getBoolFromKVOrDefault(api.Properties, "wrapCodeMsg", false)
+	if !wrapCodeMsg {
+		return properties
+	}
+	return spec.SchemaProps{
+		Type: []string{swaggerTypeObject},
+		Properties: spec.SchemaProperties{
+			"code": {
+				SwaggerSchemaProps: spec.SwaggerSchemaProps{
+					Example: 0,
+				},
+				SchemaProps: spec.SchemaProps{
+					Type:        []string{swaggerTypeInteger},
+					Description: getStringFromKVOrDefault(api.Properties, "bizCodeEnumDescription", "business code"),
+				},
+			},
+			"msg": {
+				SwaggerSchemaProps: spec.SwaggerSchemaProps{
+					Example: "ok",
+				},
+				SchemaProps: spec.SchemaProps{
+					Type:        []string{swaggerTypeString},
+					Description: "business message",
+				},
+			},
+			"data": {
+				SchemaProps: properties,
+			},
+		},
+	}
+}
+
 func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {
 	ext := spec.Extensions{}
 	ext.Add("x-goctl-version", version.BuildVersion)

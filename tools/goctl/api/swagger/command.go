@@ -66,7 +66,7 @@ func Command(_ *cobra.Command, _ []string) error {
 		return os.WriteFile(filename, data, 0644)
 	}
 	// generate json swagger file
-	filename := strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI)) + ".json"
+	filename := filepath.Join(VarStringDir, strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI))+".json")
 
 	return os.WriteFile(filename, data, 0644)
 }

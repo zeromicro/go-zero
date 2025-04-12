@@ -8,6 +8,10 @@ is_docker_running() {
     fi
 }
 
+mkdir bin output
+
+export GOBIN=$(pwd)/bin
+
 # 1. Check and install Docker if not exists
 if ! command -v docker &> /dev/null; then
     echo "Docker not found, attempting to install..."
@@ -30,47 +34,17 @@ else
     echo "Docker already installed"
 fi
 
-# 2. Check and install/verify goctl
-if ! command -v goctl &> /dev/null; then
-    echo "goctl not found, installing from GitHub..."
-    # Install latest goctl version
-    GOPROXY=https://goproxy.cn,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-    if [ $? -ne 0 ]; then
-        echo "Failed to install goctl"
-        exit 1
-    fi
-    echo "goctl installed successfully"
-else
-    echo "goctl found, checking version..."
-    # Get goctl version and compare
-    version=$(goctl --version | awk '{print $3}' | tr -d 'v')
-    required="1.8.2"
-
-    # Version comparison function
-    version_compare() {
-        if [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]; then
-            return 0  # $1 >= $2
-        else
-            return 1  # $1 < $2
-        fi
-    }
-
-    if version_compare "$version" "$required"; then
-        echo "goctl version $version meets requirement (>= $required)"
-    else
-        echo "goctl version $version is lower than required (>= $required), updating..."
-        GOPROXY=https://goproxy.cn,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-        if [ $? -ne 0 ]; then
-            echo "Failed to update goctl"
-            exit 1
-        fi
-        echo "goctl updated successfully"
-    fi
+# 2. Install latest goctl version
+go install ../../..
+if [ $? -ne 0 ]; then
+    echo "Failed to install goctl"
+    exit 1
 fi
+echo "goctl installed successfully"
 
 # 3. Generate swagger files
 echo "Generating swagger files..."
-goctl api swagger --api example.api --dir .
+./bin/goctl api swagger --api example.api --dir output
 if [ $? -ne 0 ]; then
     echo "Failed to generate swagger files"
     exit 1
@@ -86,7 +60,7 @@ docker rm -f swagger-ui 2>/dev/null && echo "Removed existing swagger-ui contain
 
 # 5. Run swagger-ui in Docker
 echo "Starting swagger-ui in Docker..."
-docker run -d --name swagger-ui -p 8080:8080 -e SWAGGER_JSON=/tmp/example.json -v $(pwd)/example.json:/tmp/example.json swaggerapi/swagger-ui
+docker run -d --name swagger-ui -p 8080:8080 -e SWAGGER_JSON=/tmp/example.json -v $(pwd)/output/example.json:/tmp/example.json swaggerapi/swagger-ui
 if [ $? -ne 0 ]; then
     echo "Failed to start swagger-ui container"
     exit 1

@@ -15,8 +15,8 @@ info (
 	schemes:        "https" // 对应 swagger 的 schemes,不填默认为 https
 	host:           "example.com" // 对应 swagger 的 host,不填默认为 127.0.0.1
 	basePath:       "/v1" // 对应 swagger 的 basePath,不填默认为 /
-	status404:      `{"code":40004,"msg":"not found"}`
-	status500:      `{"code":50000,"msg":"服务器内部错误"}`
+	wrapCodeMsg:    "true" // 是否用 code-msg 通用响应体，如果开启，则以格式 {"code":0,"msg":"OK","data":$data} 包括响应体
+	bizCodeEnumDescription: "1001-未登录<br>1002-无权限操作"// 业务错误码枚举描述，json 格式,key 为业务错误码，value 为该错误码的描述，仅当 wrapCodeMsg 为 true 时生效
 )
 
 type (

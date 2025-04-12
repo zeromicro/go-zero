@@ -55,14 +55,6 @@ func getExample(properties map[string]string) map[int]map[string]any {
 }
 
 func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
-	globalExample := getExample(info.Properties)
-	pathExample := getExample(route.AtDoc.Properties)
-	// add global example to path example
-	for k, v := range globalExample {
-		if _, ok := pathExample[k]; !ok {
-			pathExample[k] = v
-		}
-	}
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
 			Description: getStringFromKVOrDefault(route.AtDoc.Properties, "description", ""),
@@ -73,7 +65,7 @@ func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", ""),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
-			Responses:   jsonResponseFromType(route.ResponseType, pathExample),
+			Responses:   jsonResponseFromType(info, route.ResponseType),
 		},
 	}
 	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsDescription", "")

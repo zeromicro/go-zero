@@ -15,8 +15,8 @@ info (
 	schemes:        "https" // schemes corresponding to Swagger,default value is `https``
 	host:           "example.com" // host corresponding to Swagger,default value is `127.0.0.1`
 	basePath:       "/v1" // basePath corresponding to Swagger,default value is `/`
-	status404:      `{"code":40004,"msg":"Not found"}`
-	status500:      `{"code":50000,"msg":"Internal error"}`
+	wrapCodeMsg:    "true" // to wrap in the universal code-msg structure, like {"code":0,"msg":"OK","data":$data}
+	bizCodeEnumDescription: "1001-User not login<br>1002-User permission denied"// enums of business error codes, in JSON format, with the key being the business error code and the value being the description of that error code. This only takes effect when wrapCodeMsg is set to true.
 )
 
 type (
