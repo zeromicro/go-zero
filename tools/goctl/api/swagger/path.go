@@ -2,13 +2,13 @@ package swagger
 
 import (
 	"encoding/json"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/go-openapi/spec"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {

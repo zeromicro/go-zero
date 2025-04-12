@@ -3,13 +3,13 @@ package swagger
 import (
 	"encoding/json"
 	"errors"
-	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
+	"gopkg.in/yaml.v2"
 )
 
 var (
