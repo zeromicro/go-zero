@@ -15,31 +15,47 @@ func rangeValueFromOptions(options []string) (minimum *float64, maximum *float64
 	for _, option := range options {
 		if strings.HasPrefix(option, rangeFlag) {
 			val := option[6:]
-			index := strings.Index(val, ":")
-			if index < 0 {
+			start, end := val[0], val[len(val)-1]
+			if start != '[' && start != '(' {
 				return nil, nil, false, false
 			}
-			start, end := val[0], val[len(val)-1]
+			if end != ']' && end != ')' {
+				return nil, nil, false, false
+			}
 			exclusiveMinimum = start == '('
 			exclusiveMaximum = end == ')'
 
 			content := val[1 : len(val)-1]
-			parts := strings.Split(content, ":")
-			if len(parts) != 2 {
+			idxColon := strings.Index(content, ":")
+			if idxColon < 0 {
 				return nil, nil, false, false
 			}
-
-			minVal, err := strconv.ParseFloat(parts[0], 64)
-			if err != nil {
-				return nil, nil, false, false
+			var (
+				minStr, maxStr string
+				minVal, maxVal *float64
+			)
+			minStr = util.TrimWhiteSpace(content[:idxColon])
+			if len(val) >= idxColon+1 {
+				maxStr = util.TrimWhiteSpace(content[idxColon+1:])
 			}
 
-			maxVal, err := strconv.ParseFloat(parts[1], 64)
-			if err != nil {
-				return nil, nil, false, false
+			if len(minStr) > 0 {
+				min, err := strconv.ParseFloat(minStr, 64)
+				if err != nil {
+					return nil, nil, false, false
+				}
+				minVal= &min
 			}
 
-			return &minVal, &maxVal, exclusiveMinimum, exclusiveMaximum
+			if len(maxStr) > 0 {
+				max, err := strconv.ParseFloat(maxStr, 64)
+				if err != nil {
+					return nil, nil, false, false
+				}
+				maxVal = &max
+			}
+
+			return minVal, maxVal, exclusiveMinimum, exclusiveMaximum
 		}
 	}
 	return nil, nil, false, false
@@ -51,7 +67,7 @@ func enumsValueFromOptions(options []string) []any {
 	}
 	for _, option := range options {
 		if strings.HasPrefix(option, enumFlag) {
-			var resp []any
+			var resp = make([]any, 0)
 			val := option[8:]
 			fields := util.FieldsAndTrimSpace(val, func(r rune) bool {
 				return r == '|'
