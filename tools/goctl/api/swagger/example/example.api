@@ -232,43 +232,4 @@ service Swagger {
 	post /json/complex (ComplexJsonReq) returns (ComplexJsonResp)
 }
 
-@server (
-	tags:    "Custom Status Code Response" // tags corresponding to Swagger
-	summary: "Demonstration of the return format data corresponding to custom status codes, except for 200. For 200, the response body is defined and does not support customization." // summary corresponding to Swagger
-)
-service Swagger {
-	@doc (
-		description: "400 Return format custom response body reference data."
-		status400:   `{"code":40000,"msg":"Bad request"}`
-	)
-	@handler status400
-	post /status/400 (JsonReq) returns (JsonResp)
-
-	@doc (
-		description: "401 Return format custom response body reference data."
-		status401:   `{"code":40001,"msg":"Auth failed"}`
-	)
-	@handler status401
-	post /status/401 (JsonReq) returns (JsonResp)
-
-	@doc (
-		description: "404 Return format custom response body reference data."
-		status404:   `{"code":40004,"msg":"Not found"}`
-	)
-	@handler status404
-	post /status/404 (JsonReq) returns (JsonResp)
-
-	@doc (
-		description: "Use global error template"
-	)
-	@handler statusGlobal
-	post /status/global (JsonReq) returns (JsonResp)
-
-	@doc (
-		description: "Override global 404 template"
-		status404:   `{"code":40004,"msg":"Override error"}`
-	)
-	@handler statusError
-	post /status/override (JsonReq) returns (JsonResp)
-}
 
