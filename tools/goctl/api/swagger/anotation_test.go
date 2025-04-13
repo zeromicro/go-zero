@@ -8,10 +8,10 @@ import (
 
 func Test_getBoolFromKVOrDefault(t *testing.T) {
 	properties := map[string]string{
-		"enabled":  `"true"`,
-		"disabled": `"false"`,
-		"invalid":  `"notabool"`,
-		"empty_value":  `""`,
+		"enabled":     `"true"`,
+		"disabled":    `"false"`,
+		"invalid":     `"notabool"`,
+		"empty_value": `""`,
 	}
 
 	assert.True(t, getBoolFromKVOrDefault(properties, "enabled", false))
@@ -48,6 +48,6 @@ func Test_getListFromInfoOrDefault(t *testing.T) {
 	assert.Equal(t, []string{"default"}, getListFromInfoOrDefault(nil, "nil", []string{"default"}))
 	assert.Equal(t, []string{"default"}, getListFromInfoOrDefault(map[string]string{}, "empty", []string{"default"}))
 	assert.Equal(t, []string{"default"}, getListFromInfoOrDefault(map[string]string{
-		"foo":",,",
+		"foo": ",,",
 	}, "foo", []string{"default"}))
 }

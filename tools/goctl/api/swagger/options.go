@@ -44,7 +44,7 @@ func rangeValueFromOptions(options []string) (minimum *float64, maximum *float64
 				if err != nil {
 					return nil, nil, false, false
 				}
-				minVal= &min
+				minVal = &min
 			}
 
 			if len(maxStr) > 0 {
