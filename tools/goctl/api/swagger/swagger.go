@@ -189,7 +189,7 @@ func sampleTypeFromGoType(tp apiSpec.Type) string {
 		return tpMapper[val.RawName]
 	case apiSpec.ArrayType:
 		return swaggerTypeArray
-	case apiSpec.DefineStruct, apiSpec.MapType:
+	case apiSpec.DefineStruct, apiSpec.MapType, apiSpec.NestedStruct:
 		return swaggerTypeObject
 	case apiSpec.PointerType:
 		return sampleTypeFromGoType(val.Type)
@@ -210,8 +210,34 @@ func typeContainsTag(structType apiSpec.DefineStruct, tag string) bool {
 	return false
 }
 
-func rangeMemberAndDo(structType apiSpec.DefineStruct, do func(tag *apiSpec.Tags, required bool, member apiSpec.Member)) {
-	for _, field := range structType.Members {
+func expandMembers(tp apiSpec.Type) []apiSpec.Member {
+	var members []apiSpec.Member
+	switch val := tp.(type) {
+	case apiSpec.DefineStruct:
+		for _, v := range val.Members {
+			if v.IsInline {
+				members = append(members, expandMembers(v.Type)...)
+				continue
+			}
+			members = append(members, v)
+		}
+	case apiSpec.NestedStruct:
+		for _, v := range val.Members {
+			if v.IsInline {
+				members = append(members, expandMembers(v.Type)...)
+				continue
+			}
+			members = append(members, v)
+		}
+	}
+
+	return members
+}
+
+func rangeMemberAndDo(structType apiSpec.Type, do func(tag *apiSpec.Tags, required bool, member apiSpec.Member)) {
+	var members = expandMembers(structType)
+
+	for _, field := range members {
 		var required = false
 		for _, t := range field.Tags() {
 			required = len(t.Options) > 0 && t.Options[0] != "optional"

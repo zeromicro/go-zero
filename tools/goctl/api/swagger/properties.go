@@ -15,7 +15,7 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 		return propertiesFromType(val.Type)
 	case apiSpec.ArrayType:
 		return propertiesFromType(val.Value)
-	case apiSpec.DefineStruct:
+	case apiSpec.DefineStruct,apiSpec.NestedStruct:
 		rangeMemberAndDo(val, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 			jsonTag, _ := tag.Get(tagJson)
 			if jsonTag == nil {
@@ -48,5 +48,6 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 			}
 		})
 	}
+
 	return properties, requiredFields
 }
