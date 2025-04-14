@@ -3,6 +3,7 @@ package swagger
 import (
 	"encoding/json"
 	"errors"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,8 +52,14 @@ func Command(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	err = pathx.MkdirIfNotExist(VarStringDir)
+	if err != nil {
+		return err
+	}
+
+	base := filepath.Base(VarStringAPI)
 	if VarBoolYaml {
-		filename := strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI)) + ".yaml"
+		filename := filepath.Join(VarStringDir, strings.TrimSuffix(base, filepath.Ext(base))+".yaml")
 
 		var jsonObj interface{}
 		if err := yaml.Unmarshal(data, &jsonObj); err != nil {
@@ -66,7 +73,7 @@ func Command(_ *cobra.Command, _ []string) error {
 		return os.WriteFile(filename, data, 0644)
 	}
 	// generate json swagger file
-	filename := filepath.Join(VarStringDir, strings.TrimSuffix(VarStringAPI, filepath.Ext(VarStringAPI))+".json")
+	filename := filepath.Join(VarStringDir, strings.TrimSuffix(base, filepath.Ext(base))+".json")
 
 	return os.WriteFile(filename, data, 0644)
 }
