@@ -15,31 +15,41 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 		return propertiesFromType(val.Type)
 	case apiSpec.ArrayType:
 		return propertiesFromType(val.Value)
-	case apiSpec.DefineStruct,apiSpec.NestedStruct:
+	case apiSpec.DefineStruct, apiSpec.NestedStruct:
 		rangeMemberAndDo(val, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+			var (
+				jsonTagString                      = member.Name
+				minimum, maximum                   *float64
+				exclusiveMinimum, exclusiveMaximum bool
+				example, defaultValue              any
+				enum                               []any
+			)
 			jsonTag, _ := tag.Get(tagJson)
-			if jsonTag == nil {
-				return
+			if jsonTag != nil {
+				jsonTagString = jsonTag.Name
+				minimum, maximum, exclusiveMinimum, exclusiveMaximum = rangeValueFromOptions(jsonTag.Options)
+				example = exampleValueFromOptions(jsonTag.Options, member.Type)
+				defaultValue = defValueFromOptions(jsonTag.Options, member.Type)
+				enum = enumsValueFromOptions(jsonTag.Options)
 			}
 
-			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(jsonTag.Options)
 			if required {
-				requiredFields = append(requiredFields, jsonTag.Name)
+				requiredFields = append(requiredFields, jsonTagString)
 			}
 			p, r := propertiesFromType(member.Type)
-			properties[jsonTag.Name] = spec.Schema{
+			properties[jsonTagString] = spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
-					Example: exampleValueFromOptions(jsonTag.Options, member.Type),
+					Example: example,
 				},
 				SchemaProps: spec.SchemaProps{
 					Description:          formatComment(member.Comment),
 					Type:                 typeFromGoType(member.Type),
-					Default:              defValueFromOptions(jsonTag.Options, member.Type),
+					Default:              defaultValue,
 					Maximum:              maximum,
 					ExclusiveMaximum:     exclusiveMaximum,
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
-					Enum:                 enumsValueFromOptions(jsonTag.Options),
+					Enum:                 enum,
 					Items:                itemsFromGoType(member.Type),
 					Properties:           p,
 					Required:             r,
