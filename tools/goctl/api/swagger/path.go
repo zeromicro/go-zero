@@ -1,14 +1,11 @@
 package swagger
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/go-openapi/spec"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {
@@ -22,36 +19,6 @@ func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {
 		}
 	}
 	return paths
-}
-
-func getExample(properties map[string]string) map[int]map[string]any {
-	var example = map[int]map[string]any{}
-	for k, v := range properties {
-		exampleVal := util.Unquote(v)
-		if !strings.HasPrefix(k, "status") {
-			continue
-		}
-		statusCode, _ := strconv.ParseInt(strings.TrimPrefix(k, "status"), 10, 32)
-		if statusCode == 0 {
-			continue
-		}
-		code := int(statusCode)
-		text := http.StatusText(code)
-		if len(text) == 0 {
-			continue
-		}
-		if len(exampleVal) == 0 {
-			example[code] = map[string]any{}
-			continue
-		}
-		var v map[string]any
-		if err := json.Unmarshal([]byte(exampleVal), &v); err != nil {
-			example[code] = map[string]any{}
-			continue
-		}
-		example[code] = v
-	}
-	return example
 }
 
 func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
