@@ -18,7 +18,7 @@ func TestParse(t *testing.T) {
 	}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("foo", "bar")
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 		w.Write([]byte(`{"name":"kevin","value":100}`))
 	}))
 	defer svr.Close()
@@ -38,7 +38,7 @@ func TestParseHeaderError(t *testing.T) {
 	}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("foo", "bar")
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 	}))
 	defer svr.Close()
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
@@ -54,7 +54,7 @@ func TestParseNoBody(t *testing.T) {
 	}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("foo", "bar")
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 	}))
 	defer svr.Close()
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
@@ -72,7 +72,7 @@ func TestParseWithZeroValue(t *testing.T) {
 	}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("foo", "0")
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 		w.Write([]byte(`{"bar":0}`))
 	}))
 	defer svr.Close()
@@ -90,7 +90,7 @@ func TestParseWithNegativeContentLength(t *testing.T) {
 		Bar int `json:"bar"`
 	}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 		w.Write([]byte(`{"bar":0}`))
 	}))
 	defer svr.Close()
@@ -124,7 +124,7 @@ func TestParseWithNegativeContentLength(t *testing.T) {
 func TestParseWithNegativeContentLengthNoBody(t *testing.T) {
 	var val struct{}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 	}))
 	defer svr.Close()
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
@@ -156,7 +156,7 @@ func TestParseWithNegativeContentLengthNoBody(t *testing.T) {
 func TestParseJsonBody_BodyError(t *testing.T) {
 	var val struct{}
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Header().Set(header.ContentType, header.ContentTypeJson)
 	}))
 	defer svr.Close()
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)

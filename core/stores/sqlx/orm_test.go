@@ -268,6 +268,20 @@ func TestUnmarshalRowStruct(t *testing.T) {
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Name string
+			age  int
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("8")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
@@ -299,6 +313,20 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		value := new(struct {
 			age  *int   `db:"age"`
+			Name string `db:"name"`
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"), ErrNotReadableValue)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			age  int    `db:"age"`
 			Name string `db:"name"`
 		})
 
@@ -1307,25 +1335,25 @@ func TestAnonymousStructPr(t *testing.T) {
 }
 
 func TestAnonymousStructPrError(t *testing.T) {
-	type Score struct {
-		Discipline string `db:"discipline"`
-		score      uint   `db:"score"`
-	}
-	type ClassType struct {
-		Grade     sql.NullString `db:"grade"`
-		ClassName *string        `db:"class_name"`
-	}
-	type Class struct {
-		*ClassType
-		Score
-	}
-	var value []*struct {
-		Age int64 `db:"age"`
-		Class
-		Name string `db:"name"`
-	}
-
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		type Score struct {
+			Discipline string `db:"discipline"`
+			score      uint   `db:"score"`
+		}
+		type ClassType struct {
+			Grade     sql.NullString `db:"grade"`
+			ClassName *string        `db:"class_name"`
+		}
+		type Class struct {
+			*ClassType
+			Score
+		}
+
+		var value []*struct {
+			Age int64 `db:"age"`
+			Class
+			Name string `db:"name"`
+		}
 		rs := sqlmock.NewRows([]string{
 			"name",
 			"age",
@@ -1338,10 +1366,50 @@ func TestAnonymousStructPrError(t *testing.T) {
 			AddRow("second", 3, "grade one", "chinese", "class three grade two", 99)
 		mock.ExpectQuery("select (.+) from users where user=?").
 			WithArgs("anyone").WillReturnRows(rs)
-		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age, grade, discipline, class_name, score from users where user=?",
-			"anyone"))
+			"anyone"), ErrNotReadableValue)
+		if len(value) > 0 {
+			assert.Equal(t, value[0].score, 0)
+		}
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		type Score struct {
+			Discipline string
+			score      uint
+		}
+		type ClassType struct {
+			Grade     sql.NullString
+			ClassName *string
+		}
+		type Class struct {
+			*ClassType
+			Score
+		}
+
+		var value []*struct {
+			Age int64
+			Class
+			Name string
+		}
+		rs := sqlmock.NewRows([]string{
+			"name",
+			"age",
+			"grade",
+			"discipline",
+			"class_name",
+			"score",
+		}).
+			AddRow("first", 2, nil, "math", "experimental class", 100).
+			AddRow("second", 3, "grade one", "chinese", "class three grade two", 99)
+		mock.ExpectQuery("select (.+) from users where user=?").
+			WithArgs("anyone").WillReturnRows(rs)
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, rows, true)
+		}, "select name, age, grade, discipline, class_name, score from users where user=?",
+			"anyone"), ErrNotMatchDestination)
 		if len(value) > 0 {
 			assert.Equal(t, value[0].score, 0)
 		}
