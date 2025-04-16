@@ -239,10 +239,14 @@ Verbose: true
 	}
 }
 
+func getPtrTimeDuration(dur time.Duration) *time.Duration {
+	return &dur
+}
+
 func TestEngine_checkedTimeout(t *testing.T) {
 	tests := []struct {
 		name    string
-		timeout time.Duration
+		timeout *time.Duration
 		expect  time.Duration
 	}{
 		{
@@ -251,18 +255,23 @@ func TestEngine_checkedTimeout(t *testing.T) {
 		},
 		{
 			name:    "less",
-			timeout: time.Millisecond * 500,
+			timeout: getPtrTimeDuration(time.Millisecond * 500),
 			expect:  time.Millisecond * 500,
 		},
 		{
 			name:    "equal",
-			timeout: time.Second,
+			timeout: getPtrTimeDuration(time.Second),
 			expect:  time.Second,
 		},
 		{
 			name:    "more",
-			timeout: time.Millisecond * 1500,
+			timeout: getPtrTimeDuration(time.Millisecond * 1500),
 			expect:  time.Millisecond * 1500,
+		},
+		{
+			name:    "set zero",
+			timeout: getPtrTimeDuration(0),
+			expect:  0,
 		},
 	}
 
@@ -270,7 +279,7 @@ func TestEngine_checkedTimeout(t *testing.T) {
 		Timeout: 1000,
 	})
 	for _, test := range tests {
-		assert.Equal(t, test.expect, ng.checkedTimeout(&test.timeout))
+		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout))
 	}
 }
 
