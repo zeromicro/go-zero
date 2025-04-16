@@ -3,6 +3,7 @@ package util
 import (
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -75,25 +76,48 @@ func TestEscapeGoKeyword(t *testing.T) {
 
 func TestFieldsAndTrimSpace(t *testing.T) {
 	testCases := []struct {
+		name     string
 		input    string
+		delimiter func(r rune) bool
 		expected []string
 	}{
-		{input: " a b c ", expected: []string{"a", "b", "c"}},
-		{input: "  a   b   c  ", expected: []string{"a", "b", "c"}},
-		{input: "\ta\tb\tc\t", expected: []string{"a", "b", "c"}},
-		{input: "\na\nb\nc\n", expected: []string{"a", "b", "c"}},
-		{input: "a b c", expected: []string{"a", "b", "c"}},
-		{input: "a\tb\tc", expected: []string{"a", "b", "c"}},
-		{input: "a\nb\nc", expected: []string{"a", "b", "c"}},
-		{input: "", expected: []string{}},
-		{input: "   ", expected: []string{}},
+		{
+			name:     "Comma-separated values",
+			input:    "a, b, c",
+			delimiter: func(r rune) bool { return r == ',' },
+			expected: []string{"a", " b", " c"},
+		},
+		{
+			name:     "Space-separated values",
+			input:    "a b c",
+			delimiter: unicode.IsSpace,
+			expected: []string{"a", "b", "c"},
+		},
+		{
+			name:     "Mixed whitespace",
+			input:    "a\tb\nc",
+			delimiter: unicode.IsSpace,
+			expected: []string{"a", "b", "c"},
+		},
+		{
+			name:     "Empty input",
+			input:    "",
+			delimiter: unicode.IsSpace,
+			expected: []string(nil),
+		},
+		{
+			name:     "Trailing and leading spaces",
+			input:    "  a , b , c  ",
+			delimiter: func(r rune) bool { return r == ',' },
+			expected: []string{"  a ", " b ", " c  "},
+		},
 	}
 
 	for _, tc := range testCases {
-		result := FieldsAndTrimSpace(tc.input, func(r rune) bool {
-			return r == ' ' || r == '\t' || r == '\n'
+		t.Run(tc.name, func(t *testing.T) {
+			result := FieldsAndTrimSpace(tc.input, tc.delimiter)
+			assert.Equal(t, tc.expected, result)
 		})
-		assert.Equal(t, tc.expected, result)
 	}
 }
 

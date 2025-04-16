@@ -15,10 +15,44 @@ func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {
 	for _, group := range srv.Groups {
 		for _, route := range group.Routes {
 			path := pathVariable2SwaggerVariable(route.Path)
-			paths.Paths[path] = spec2Path(info, group, route)
+			pathItem := spec2Path(info, group, route)
+			existPathItem, ok := paths.Paths[path]
+			if !ok {
+				paths.Paths[path] = pathItem
+			} else {
+				paths.Paths[path] = mergePathItem(existPathItem, pathItem)
+			}
 		}
 	}
 	return paths
+}
+
+func mergePathItem(old, new spec.PathItem) spec.PathItem {
+	if new.Get != nil {
+		old.Get = new.Get
+	}
+	if new.Put != nil {
+		old.Put = new.Put
+	}
+	if new.Post != nil {
+		old.Post = new.Post
+	}
+	if new.Delete != nil {
+		old.Delete = new.Delete
+	}
+	if new.Options != nil {
+		old.Options = new.Options
+	}
+	if new.Head != nil {
+		old.Head = new.Head
+	}
+	if new.Patch != nil {
+		old.Patch = new.Patch
+	}
+	if new.Parameters != nil {
+		old.Parameters = new.Parameters
+	}
+	return old
 }
 
 func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {

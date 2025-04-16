@@ -128,7 +128,7 @@ func FieldsAndTrimSpace(s string, f func(r rune) bool) []string {
 	for _, v := range fields {
 		val := TrimWhiteSpace(v)
 		if len(val) > 0 {
-			resp = append(resp, val)
+			resp = append(resp, v)
 		}
 	}
 	return resp

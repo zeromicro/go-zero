@@ -60,6 +60,51 @@ func fillStruct(parent string, tp spec.Type, allTypes map[string]spec.DefineStru
 						member.Type = fillStruct("", st, allTypes)
 					}
 				}
+			case spec.NestedStruct:
+				member.Type = fillStruct("", member.Type, allTypes)
+			}
+			members = append(members, member)
+		}
+		if len(members) == 0 {
+			st, ok := allTypes[val.RawName]
+			if ok {
+				members = st.Members
+			}
+		}
+		val.Members = members
+		return val
+	case spec.NestedStruct:
+		var members []spec.Member
+		for _, member := range val.Members {
+			switch memberType := member.Type.(type) {
+			case spec.PointerType:
+				member.Type = spec.PointerType{
+					RawName: memberType.RawName,
+					Type:    fillStruct(val.Name(), memberType.Type, allTypes),
+				}
+			case spec.ArrayType:
+				member.Type = spec.ArrayType{
+					RawName: memberType.RawName,
+					Value:   fillStruct(val.Name(), memberType.Value, allTypes),
+				}
+			case spec.MapType:
+				member.Type = spec.MapType{
+					RawName: memberType.RawName,
+					Key:     memberType.Key,
+					Value:   fillStruct(val.Name(), memberType.Value, allTypes),
+				}
+			case spec.DefineStruct:
+				if parent != memberType.Name() { // avoid recursive struct
+					if st, ok := allTypes[memberType.Name()]; ok {
+						member.Type = fillStruct("", st, allTypes)
+					}
+				}
+			case spec.NestedStruct:
+				if parent != memberType.Name() {
+					if st, ok := allTypes[memberType.Name()]; ok {
+						member.Type = fillStruct("", st, allTypes)
+					}
+				}
 			}
 			members = append(members, member)
 		}

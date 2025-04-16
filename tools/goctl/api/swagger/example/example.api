@@ -1,22 +1,22 @@
 syntax = "v1"
 
 info (
-	title:          "Demo API" // title corresponding to Swagger
-	description:    "Generating Swagger files using the API demo." // description corresponding to Swagger
-	version:        "v1" // version corresponding to Swagger
-	termsOfService: "https://github.com/zeromicro/go-zero" // termsOfService corresponding to Swagger
-	contactName:    "keson.an" // contactName corresponding to Swagger
-	contactURL:     "https://github.com/zeromicro/go-zero" // contactURL corresponding to Swagger
-	contactEmail:   "example@gmail.com" // contactEmail corresponding to Swagger
-	licenseName:    "MIT" // licenseName corresponding to Swagger
-	licenseURL:     "https://github.com/zeromicro/go-zero" // licenseURL corresponding to Swagger
-	consumes:       "application/json" // consumes corresponding to Swagger,default value is `application/json`
-	produces:       "application/json" // produces corresponding to Swagger,default value is `application/json`
-	schemes:        "https" // schemes corresponding to Swagger,default value is `https``
-	host:           "example.com" // host corresponding to Swagger,default value is `127.0.0.1`
-	basePath:       "/v1" // basePath corresponding to Swagger,default value is `/`
-	wrapCodeMsg:    "true" // to wrap in the universal code-msg structure, like {"code":0,"msg":"OK","data":$data}
-	bizCodeEnumDescription: "1001-User not login<br>1002-User permission denied"// enums of business error codes, in JSON format, with the key being the business error code and the value being the description of that error code. This only takes effect when wrapCodeMsg is set to true.
+	title:                  "Demo API" // title corresponding to Swagger
+	description:            "Generating Swagger files using the API demo." // description corresponding to Swagger
+	version:                "v1" // version corresponding to Swagger
+	termsOfService:         "https://github.com/zeromicro/go-zero" // termsOfService corresponding to Swagger
+	contactName:            "keson.an" // contactName corresponding to Swagger
+	contactURL:             "https://github.com/zeromicro/go-zero" // contactURL corresponding to Swagger
+	contactEmail:           "example@gmail.com" // contactEmail corresponding to Swagger
+	licenseName:            "MIT" // licenseName corresponding to Swagger
+	licenseURL:             "https://github.com/zeromicro/go-zero" // licenseURL corresponding to Swagger
+	consumes:               "application/json" // consumes corresponding to Swagger,default value is `application/json`
+	produces:               "application/json" // produces corresponding to Swagger,default value is `application/json`
+	schemes:                "https" // schemes corresponding to Swagger,default value is `https``
+	host:                   "example.com" // host corresponding to Swagger,default value is `127.0.0.1`
+	basePath:               "/v1" // basePath corresponding to Swagger,default value is `/`
+	wrapCodeMsg:            "true" // to wrap in the universal code-msg structure, like {"code":0,"msg":"OK","data":$data}
+	bizCodeEnumDescription: "1001-User not login<br>1002-User permission denied" // enums of business error codes, in JSON format, with the key being the business error code and the value being the description of that error code. This only takes effect when wrapCodeMsg is set to true.
 )
 
 type (
@@ -231,5 +231,4 @@ service Swagger {
 	@handler jsonComplex
 	post /json/complex (ComplexJsonReq) returns (ComplexJsonResp)
 }
-
 
