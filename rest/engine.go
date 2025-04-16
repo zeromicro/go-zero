@@ -62,8 +62,8 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 
 	// need to guarantee the timeout is the max of all routes
 	// otherwise impossible to set http.Server.ReadTimeout & WriteTimeout
-	if r.timeout > ng.timeout {
-		ng.timeout = r.timeout
+	if r.timeout != nil {
+		ng.timeout = *r.timeout
 	}
 }
 
@@ -192,9 +192,9 @@ func (ng *engine) checkedMaxBytes(bytes int64) int64 {
 	return ng.conf.MaxBytes
 }
 
-func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {
-	if timeout > 0 {
-		return timeout
+func (ng *engine) checkedTimeout(timeout *time.Duration) time.Duration {
+	if timeout != nil {
+		return *timeout
 	}
 
 	return time.Duration(ng.conf.Timeout) * time.Millisecond
