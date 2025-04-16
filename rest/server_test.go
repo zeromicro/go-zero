@@ -345,7 +345,7 @@ func TestWithPriority(t *testing.T) {
 func TestWithTimeout(t *testing.T) {
 	var fr featuredRoutes
 	WithTimeout(time.Hour)(&fr)
-	assert.Equal(t, time.Hour, fr.timeout)
+	assert.Equal(t, time.Hour, *fr.timeout)
 }
 
 func TestWithTLSConfig(t *testing.T) {
