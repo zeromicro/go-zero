@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/go-openapi/spec"
@@ -13,14 +14,18 @@ func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {
 		Paths: make(map[string]spec.PathItem),
 	}
 	for _, group := range srv.Groups {
+		prefix := path.Clean(strings.TrimPrefix(group.GetAnnotation("prefix"), "/"))
 		for _, route := range group.Routes {
-			path := pathVariable2SwaggerVariable(route.Path)
+			routPath := pathVariable2SwaggerVariable(route.Path)
+			if len(prefix) > 0 && prefix != "." {
+				routPath = "/" + path.Clean(prefix) + routPath
+			}
 			pathItem := spec2Path(info, group, route)
-			existPathItem, ok := paths.Paths[path]
+			existPathItem, ok := paths.Paths[routPath]
 			if !ok {
-				paths.Paths[path] = pathItem
+				paths.Paths[routPath] = pathItem
 			} else {
-				paths.Paths[path] = mergePathItem(existPathItem, pathItem)
+				paths.Paths[routPath] = mergePathItem(existPathItem, pathItem)
 			}
 		}
 	}
