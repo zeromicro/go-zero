@@ -97,12 +97,16 @@ goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.
 
 Flags:
       --branch string     The branch of the remote repo, it does work with --remote
+  -c, --client            Whether to generate rpc client (default true)
   -h, --help              help for protoc
-      --home string       The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+      --home string       The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priori
+ty
   -m, --multiple          Generated in multiple rpc service mode
-      --remote string     The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
-                          	The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
-      --style string      The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md] (default "gozero")
+      --remote string     The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priori
+ty
+                          The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
+  -s, --skip_pb           Whether to skip generating pb & grpc file
+      --style string      The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]
   -v, --verbose           Enable log output
       --zrpc_out string   The zrpc output directory
 ```
@@ -115,6 +119,7 @@ Flags:
 * --style 指定文件输出格式
 * -v, --verbose 显示日志
 * --zrpc_out 指定zrpc输出目录
+* --skip_pb goctl不生成*.pb.go文件
 
 > ## --multiple
 > 是否开启多个 rpc service 生成，如果开启，则满足一下新特性
