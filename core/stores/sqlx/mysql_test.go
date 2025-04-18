@@ -3,7 +3,7 @@ package sqlx
 import (
 	"errors"
 	"testing"
-
+	"time"
 	"github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -35,7 +35,11 @@ func TestBreakerOnNotHandlingDuplicateEntry(t *testing.T) {
 }
 
 func TestMysqlAcceptable(t *testing.T) {
-	conn := NewMysql("nomysql").(*commonSqlConn)
+	conn := NewMysql("nomysql", PoolConfig{
+		MaxIdleConns: 10,	
+		MaxOpenConns: 10,
+		MaxLifetime:  time.Minute,
+	}).(*commonSqlConn)
 	withMysqlAcceptable()(conn)
 	assert.True(t, mysqlAcceptable(nil))
 	assert.False(t, mysqlAcceptable(errors.New("any")))
