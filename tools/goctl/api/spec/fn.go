@@ -229,6 +229,20 @@ func (r Route) JoinedDoc() string {
 	return strings.TrimSpace(doc)
 }
 
+func (r Route) JoinedAtDoc() map[string]string {
+	properties := r.AtDoc.Properties
+
+	if properties != nil {
+		return properties
+	}
+	if len(r.AtDoc.Text) <= 0 {
+		return nil
+	}
+	m := make(map[string]string)
+	m["atDoc"] = r.AtDoc.Text
+	return m
+}
+
 // GetAnnotation returns the value by specified key from @server
 func (r Route) GetAnnotation(key string) string {
 	if r.AtServerAnnotation.Properties == nil {
