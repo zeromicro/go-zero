@@ -2,10 +2,10 @@ package mon
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
@@ -37,7 +37,7 @@ func logDurationWithDocs(ctx context.Context, name, method string, startTime tim
 	duration := timex.Since(startTime)
 	logger := logx.WithContext(ctx).WithDuration(duration)
 
-	content, jerr := json.Marshal(docs)
+	content, jerr := jsoncode.Marshal(docs)
 	// jerr should not be non-nil, but we don't care much on this,
 	// if non-nil, we just log without docs.
 	if jerr != nil {

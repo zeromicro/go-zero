@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
@@ -278,7 +279,7 @@ func TestLogWithFields(t *testing.T) {
 	l.Info(testlog)
 
 	var val mockValue
-	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Nil(t, jsoncode.Unmarshal([]byte(w.String()), &val))
 	assert.Equal(t, "bar", val.Foo)
 }
 
@@ -368,7 +369,7 @@ func TestLoggerWithFields(t *testing.T) {
 	l.Info(testlog)
 
 	var val mockValue
-	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Nil(t, jsoncode.Unmarshal([]byte(w.String()), &val))
 	assert.Equal(t, "bar", val.Foo)
 }
 

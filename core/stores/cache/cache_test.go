@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -14,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/hash"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -51,7 +51,7 @@ func (mc *mockedNode) Get(key string, val any) error {
 func (mc *mockedNode) GetCtx(ctx context.Context, key string, val any) error {
 	bs, ok := mc.vals[key]
 	if ok {
-		return json.Unmarshal(bs, val)
+		return jsoncode.Unmarshal(bs, val)
 	}
 
 	return mc.errNotFound
@@ -66,7 +66,7 @@ func (mc *mockedNode) Set(key string, val any) error {
 }
 
 func (mc *mockedNode) SetCtx(ctx context.Context, key string, val any) error {
-	data, err := json.Marshal(val)
+	data, err := jsoncode.Marshal(val)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
@@ -552,7 +552,7 @@ func TestParseJsonBody(t *testing.T) {
 		v1 := v{
 			Signature: []byte{0x01, 0xff, 0x00},
 		}
-		body, _ := json.Marshal(v1)
+		body, _ := jsoncode.Marshal(v1)
 		t.Logf("body:%s", string(body))
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(string(body)))
 		r.Header.Set(ContentType, header.ContentTypeJson)
