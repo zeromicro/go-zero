@@ -1,13 +1,13 @@
 package logx
 
 import (
-	"encoding/json"
 	"log"
 	"strings"
 	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 )
 
 const testlog = "Stay hungry, stay foolish."
@@ -45,7 +45,7 @@ func captureOutput(f func()) string {
 
 func getContent(jsonStr string) string {
 	var entry map[string]any
-	json.Unmarshal([]byte(jsonStr), &entry)
+	jsoncode.Unmarshal([]byte(jsonStr), &entry)
 
 	val, ok := entry[contentKey]
 	if !ok {

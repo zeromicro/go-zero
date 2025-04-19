@@ -2,10 +2,10 @@ package logtest
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"testing"
 
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -45,7 +45,7 @@ func (b *Buffer) Bytes() []byte {
 
 func (b *Buffer) Content() string {
 	var m map[string]interface{}
-	if err := json.Unmarshal(b.buf.Bytes(), &m); err != nil {
+	if err := jsoncode.Unmarshal(b.buf.Bytes(), &m); err != nil {
 		return ""
 	}
 
@@ -59,7 +59,7 @@ func (b *Buffer) Content() string {
 		return val
 	default:
 		// err is impossible to be not nil, unmarshaled from b.buf.Bytes()
-		bs, _ := json.Marshal(content)
+		bs, _ := jsoncode.Marshal(content)
 		return string(bs)
 	}
 }

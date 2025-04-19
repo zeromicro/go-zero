@@ -2,11 +2,11 @@ package stat
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -31,7 +31,7 @@ func NewRemoteWriter(endpoint string) Writer {
 }
 
 func (rw *RemoteWriter) Write(report *StatReport) error {
-	bs, err := json.Marshal(report)
+	bs, err := jsoncode.Marshal(report)
 	if err != nil {
 		return err
 	}

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/zeromicro/go-zero/core/jsoncode"
 )
 
 // Marshal marshals v into json bytes.
 func Marshal(v any) ([]byte, error) {
-	return json.Marshal(v)
+	return jsoncode.Marshal(v)
 }
 
 // MarshalToString marshals v into a string.

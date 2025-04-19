@@ -3,7 +3,6 @@ package sqlc
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +18,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/fx"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -409,7 +409,7 @@ func TestCachedConnQueryRow(t *testing.T) {
 	actualValue, err := r.Get(key)
 	assert.Nil(t, err)
 	var actual string
-	assert.Nil(t, json.Unmarshal([]byte(actualValue), &actual))
+	assert.Nil(t, jsoncode.Unmarshal([]byte(actualValue), &actual))
 	assert.Equal(t, value, actual)
 	assert.Equal(t, value, user)
 	assert.True(t, ran)
@@ -436,7 +436,7 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 	actualValue, err := r.Get(key)
 	assert.Nil(t, err)
 	var actual string
-	assert.Nil(t, json.Unmarshal([]byte(actualValue), &actual))
+	assert.Nil(t, jsoncode.Unmarshal([]byte(actualValue), &actual))
 	assert.Equal(t, value, actual)
 	assert.Equal(t, value, user)
 	assert.False(t, ran)

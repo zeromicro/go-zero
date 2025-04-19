@@ -2,13 +2,13 @@ package logc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
@@ -23,7 +23,7 @@ func TestAddGlobalFields(t *testing.T) {
 	AddGlobalFields(Field("c", "3"))
 	Info(context.Background(), "world")
 	var m map[string]any
-	assert.NoError(t, json.Unmarshal(buf.Bytes(), &m))
+	assert.NoError(t, jsoncode.Unmarshal(buf.Bytes(), &m))
 	assert.Equal(t, "1", m["a"])
 	assert.Equal(t, "2", m["b"])
 	assert.Equal(t, "3", m["c"])

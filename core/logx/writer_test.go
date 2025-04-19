@@ -2,7 +2,6 @@ package logx
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"log"
 	"sync/atomic"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 )
 
 func TestNewWriter(t *testing.T) {
@@ -30,7 +30,7 @@ func TestConsoleWriter(t *testing.T) {
 	w.(*concreteWriter).errorLog = lw
 	w.Alert("foo bar 1")
 	var val mockedEntry
-	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
+	if err := jsoncode.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, levelAlert, val.Level)
@@ -39,7 +39,7 @@ func TestConsoleWriter(t *testing.T) {
 	buf.Reset()
 	w.(*concreteWriter).errorLog = lw
 	w.Error("foo bar 2")
-	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
+	if err := jsoncode.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, levelError, val.Level)
@@ -48,7 +48,7 @@ func TestConsoleWriter(t *testing.T) {
 	buf.Reset()
 	w.(*concreteWriter).infoLog = lw
 	w.Info("foo bar 3")
-	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
+	if err := jsoncode.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, levelInfo, val.Level)
@@ -57,7 +57,7 @@ func TestConsoleWriter(t *testing.T) {
 	buf.Reset()
 	w.(*concreteWriter).severeLog = lw
 	w.Severe("foo bar 4")
-	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
+	if err := jsoncode.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, levelFatal, val.Level)
@@ -66,7 +66,7 @@ func TestConsoleWriter(t *testing.T) {
 	buf.Reset()
 	w.(*concreteWriter).slowLog = lw
 	w.Slow("foo bar 5")
-	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
+	if err := jsoncode.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, levelSlow, val.Level)
@@ -75,7 +75,7 @@ func TestConsoleWriter(t *testing.T) {
 	buf.Reset()
 	w.(*concreteWriter).statLog = lw
 	w.Stat("foo bar 6")
-	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
+	if err := jsoncode.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, levelStat, val.Level)
@@ -238,7 +238,7 @@ func TestLogWithLimitContentLength(t *testing.T) {
 		w := NewWriter(&buf)
 		w.Info("1234567890")
 		var v1 mockedEntry
-		if err := json.Unmarshal(buf.Bytes(), &v1); err != nil {
+		if err := jsoncode.Unmarshal(buf.Bytes(), &v1); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "1234567890", v1.Content)
@@ -247,7 +247,7 @@ func TestLogWithLimitContentLength(t *testing.T) {
 		buf.Reset()
 		var v2 mockedEntry
 		w.Info("12345678901")
-		if err := json.Unmarshal(buf.Bytes(), &v2); err != nil {
+		if err := jsoncode.Unmarshal(buf.Bytes(), &v2); err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "1234567890", v2.Content)

@@ -1,7 +1,6 @@
 package logx
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/jsoncode"
 )
 
 var (
@@ -654,7 +654,7 @@ func TestStructedLogWithDuration(t *testing.T) {
 
 	WithDuration(time.Second).Info(message)
 	var entry map[string]any
-	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
+	if err := jsoncode.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, levelInfo, entry[levelKey])
@@ -946,7 +946,7 @@ func doTestStructedLog(t *testing.T, level string, w *mockWriter, write func(...
 	write(message)
 
 	var entry map[string]any
-	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
+	if err := jsoncode.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
 
@@ -1009,7 +1009,7 @@ func (v ValStringer) String() string {
 
 func validateFields(t *testing.T, content string, fields map[string]any) {
 	var m map[string]any
-	if err := json.Unmarshal([]byte(content), &m); err != nil {
+	if err := jsoncode.Unmarshal([]byte(content), &m); err != nil {
 		t.Error(err)
 	}
 
