@@ -472,5 +472,5 @@ func TestMarshal_Array(t *testing.T) {
 
 	m, err := Marshal(v)
 	assert.Nil(t, err)
-	assert.Equal(t, "[1]", m["json"]["age"].(string))
+	assert.Equal(t, "[1]", m["json"]["h"].(string))
 }
