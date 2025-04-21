@@ -238,14 +238,35 @@ func rangeMemberAndDo(structType apiSpec.Type, do func(tag *apiSpec.Tags, requir
 	var members = expandMembers(structType)
 
 	for _, field := range members {
-		var required = false
-		for _, t := range field.Tags() {
-			required = len(t.Options) > 0 && t.Options[0] != "optional"
-		}
 		tags, _ := apiSpec.Parse(field.Tag)
+		required := isRequired(tags)
 		do(tags, required, field)
-
 	}
+}
+
+func isRequired(tags *apiSpec.Tags) bool {
+	tag, err := tags.Get(tagJson)
+	if err == nil {
+		return !isOptional(tag.Options)
+	}
+	tag, err = tags.Get(tagForm)
+	if err == nil {
+		return !isOptional(tag.Options)
+	}
+	tag, err = tags.Get(tagPath)
+	if err == nil {
+		return !isOptional(tag.Options)
+	}
+	return false
+}
+
+func isOptional(options []string) bool {
+	for _, option := range options {
+		if option == "optional" {
+			return true
+		}
+	}
+	return false
 }
 
 func pathVariable2SwaggerVariable(path string) string {
