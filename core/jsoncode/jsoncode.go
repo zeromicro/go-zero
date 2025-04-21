@@ -2,31 +2,25 @@ package jsoncode
 
 import "encoding/json"
 
-var defaultJsonCode JsonCode = &stdJson{}
+type (
+	MarshalFn   func(v any) ([]byte, error)
+	UnmarshalFn func(by []byte, v any) error
+)
 
-func SetJsonCode(jsonCode JsonCode) {
-	defaultJsonCode = jsonCode
+var (
+	Marshal MarshalFn = func(v any) ([]byte, error) {
+		return json.Marshal(v)
+	}
+
+	Unmarshal UnmarshalFn = func(by []byte, v any) error {
+		return json.Unmarshal(by, v)
+	}
+)
+
+func SetMarshalFn(fn MarshalFn) {
+	Marshal = fn
 }
 
-func Marshal(v any) ([]byte, error) {
-	return defaultJsonCode.Marshal(v)
-}
-
-func Unmarshal(by []byte, v any) error {
-	return defaultJsonCode.Unmarshal(by, v)
-}
-
-type stdJson struct{}
-
-func (s *stdJson) Marshal(v any) ([]byte, error) {
-	return json.Marshal(v)
-}
-
-func (s *stdJson) Unmarshal(by []byte, v any) error {
-	return json.Unmarshal(by, v)
-}
-
-type JsonCode interface {
-	Marshal(v any) ([]byte, error)
-	Unmarshal(data []byte, v any) error
+func SetUnmarshalFn(fn UnmarshalFn) {
+	Unmarshal = fn
 }
