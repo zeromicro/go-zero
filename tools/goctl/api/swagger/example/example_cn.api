@@ -144,6 +144,8 @@ type (
 		MapMapNumber  map[string]map[string]float64 `json:"mapMapNumber"`
 		MapMapBoolean map[string]map[string]bool    `json:"mapMapBoolean"`
 		MapMapString  map[string]map[string]string  `json:"mapMapString"`
+		MapMapObject  map[string]map[string]ComplexJsonLevel1  `json:"mapMapObject"`
+		MapMapPointerObject  map[string]map[string]*ComplexJsonLevel1  `json:"mapMapPointerObject"`
 		// Object
 		Object        ComplexJsonLevel1  `json:"object"`
 		PointerObject *ComplexJsonLevel1 `json:"pointerObject"`
@@ -194,6 +196,8 @@ type (
 		MapMapNumber  map[string]map[string]float64 `json:"mapMapNumber"`
 		MapMapBoolean map[string]map[string]bool    `json:"mapMapBoolean"`
 		MapMapString  map[string]map[string]string  `json:"mapMapString"`
+		MapMapObject  map[string]map[string]ComplexJsonLevel1  `json:"mapMapObject"`
+		MapMapPointerObject  map[string]map[string]*ComplexJsonLevel1  `json:"mapMapPointerObject"`
 		// Object
 		Object        ComplexJsonLevel1  `json:"object"`
 		PointerObject *ComplexJsonLevel1 `json:"pointerObject"`
