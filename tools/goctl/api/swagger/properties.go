@@ -36,8 +36,7 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 			if required {
 				requiredFields = append(requiredFields, jsonTagString)
 			}
-			p, r := propertiesFromType(member.Type)
-			properties[jsonTagString] = spec.Schema{
+			var schema = spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
 					Example: example,
 				},
@@ -50,12 +49,19 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
 					Enum:                 enum,
-					Items:                itemsFromGoType(member.Type),
-					Properties:           p,
-					Required:             r,
 					AdditionalProperties: mapFromGoType(member.Type),
 				},
 			}
+			switch sampleTypeFromGoType(member.Type) {
+			case swaggerTypeArray:
+				schema.Items=itemsFromGoType(member.Type)
+			case swaggerTypeObject:
+				p, r := propertiesFromType(member.Type)
+				schema.Properties = p
+				schema.Required = r
+			}
+
+			properties[jsonTagString] = schema
 		})
 	}
 
