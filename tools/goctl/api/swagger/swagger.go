@@ -1,7 +1,6 @@
 package swagger
 
 import (
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -279,7 +278,7 @@ func pathVariable2SwaggerVariable(path string) string {
 			resp = append(resp, v)
 		}
 	}
-	return "/" + filepath.Join(resp...)
+	return "/" + strings.Join(resp, "/")
 }
 
 func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info) spec.SchemaProps {
