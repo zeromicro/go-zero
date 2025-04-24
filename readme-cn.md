@@ -337,3 +337,11 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 官方团队运营的知识星球
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zsxq.jpg" alt="知识星球" width="300" />
+
+## 14. 贡献者
+
+感谢所有开源贡献者的付出
+
+<a href="https://openomy.app/github/zeromicro/go-zero" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.app/svg?repo=zeromicro/go-zero&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
+ </a>

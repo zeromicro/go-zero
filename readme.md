@@ -255,3 +255,11 @@ If you like this project or are using it to learn or start your own solution, gi
 ## Buy me a coffee
 
 <a href="https://www.buymeacoffee.com/kevwan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
+## Contributors
+
+thanks to all open source contributors
+
+<a href="https://openomy.app/github/zeromicro/go-zero" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.app/svg?repo=zeromicro/go-zero&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
+ </a>
