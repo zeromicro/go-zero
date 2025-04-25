@@ -61,6 +61,15 @@ func mergePathItem(old, new spec.PathItem) spec.PathItem {
 }
 
 func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+	needJwt := hasKey(group.Annotation.Properties, "jwt")
+	var security []map[string][]string
+	if needJwt {
+		security = []map[string][]string{
+			{
+				swaggerSecurityDefinitionBearerAuth: []string{},
+			},
+		}
+	}
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
 			Description: getStringFromKVOrDefault(route.AtDoc.Properties, "description", ""),
@@ -72,6 +81,7 @@ func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
 			Responses:   jsonResponseFromType(info, route.ResponseType),
+			Security:    security,
 		},
 	}
 	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsDescription", "")

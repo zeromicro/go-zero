@@ -149,13 +149,13 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					ExclusiveMaximum:     exclusiveMaximum,
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
-					Enum:                  enumsValueFromOptions(jsonTag.Options),
+					Enum:                 enumsValueFromOptions(jsonTag.Options),
 					AdditionalProperties: mapFromGoType(member.Type),
 				},
 			}
 			switch sampleTypeFromGoType(member.Type) {
 			case swaggerTypeArray:
-				schema.Items=itemsFromGoType(member.Type)
+				schema.Items = itemsFromGoType(member.Type)
 			case swaggerTypeObject:
 				p, r := propertiesFromType(member.Type)
 				schema.Properties = p
@@ -168,6 +168,7 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 		resp = append(resp, spec.Parameter{
 			ParamProps: spec.ParamProps{
 				In:       paramsInBody,
+				Name:     paramsInBody,
 				Required: true,
 				Schema: &spec.Schema{
 					SchemaProps: spec.SchemaProps{

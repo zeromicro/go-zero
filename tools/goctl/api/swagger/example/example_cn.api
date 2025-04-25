@@ -43,6 +43,7 @@ type (
 	tags:    "query 演示" // 对应 swagger 的 tags,可以对 swagger 中的 api 进行分组
 	summary: "query 类型接口集合" // 对应 swagger 的 summary
 	prefix: v1
+	jwt: Auth
 )
 service Swagger {
 	@doc (

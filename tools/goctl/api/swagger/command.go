@@ -3,13 +3,13 @@ package swagger
 import (
 	"encoding/json"
 	"errors"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"gopkg.in/yaml.v2"
 )
 
