@@ -54,7 +54,7 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 			}
 			switch sampleTypeFromGoType(member.Type) {
 			case swaggerTypeArray:
-				schema.Items=itemsFromGoType(member.Type)
+				schema.Items = itemsFromGoType(member.Type)
 			case swaggerTypeObject:
 				p, r := propertiesFromType(member.Type)
 				schema.Properties = p

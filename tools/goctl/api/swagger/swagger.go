@@ -12,6 +12,7 @@ import (
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 	extensions, info := specExtensions(api.Info)
+
 	swagger := &spec.Swagger{
 		VendorExtensible: spec.VendorExtensible{
 			Extensions: extensions,
@@ -25,6 +26,9 @@ func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 			Host:     getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
 			BasePath: getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
 			Paths:    spec2Paths(api.Info, api.Service),
+			SecurityDefinitions: spec.SecurityDefinitions{
+				swaggerSecurityDefinitionBearerAuth: spec.APIKeyAuth(swaggerSecurityDefinitionName, swaggerSecurityDefinitionIn),
+			},
 		},
 	}
 
