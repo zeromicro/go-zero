@@ -76,6 +76,7 @@
         "short": "Generate swagger file from api",
         "dir": "{{.goctl.api.dir}}",
         "api": "{{.goctl.api.api}}",
+        "filename": "The generated swagger file name without the extension",
         "yaml": "Generate swagger yaml file, default to json"
       }
     },
