@@ -61,12 +61,12 @@ func mergePathItem(old, new spec.PathItem) spec.PathItem {
 }
 
 func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
-	needJwt := hasKey(group.Annotation.Properties, "jwt")
+	authType := getStringFromKVOrDefault(group.Annotation.Properties, "authType", "")
 	var security []map[string][]string
-	if needJwt {
+	if len(authType) > 0 {
 		security = []map[string][]string{
 			{
-				swaggerSecurityDefinitionBearerAuth: []string{},
+				authType: []string{},
 			},
 		}
 	}

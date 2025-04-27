@@ -1,6 +1,7 @@
 package swagger
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -13,22 +14,23 @@ import (
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 	extensions, info := specExtensions(api.Info)
 
+	var securityDefinitions spec.SecurityDefinitions
+	securityDefinitionsFromJson := getStringFromKVOrDefault(api.Info.Properties, "securityDefinitionsFromJson", `{}`)
+	_ = json.Unmarshal([]byte(securityDefinitionsFromJson), &securityDefinitions)
 	swagger := &spec.Swagger{
 		VendorExtensible: spec.VendorExtensible{
 			Extensions: extensions,
 		},
 		SwaggerProps: spec.SwaggerProps{
-			Consumes: getListFromInfoOrDefault(api.Info.Properties, "consumes", []string{applicationJson}),
-			Produces: getListFromInfoOrDefault(api.Info.Properties, "produces", []string{applicationJson}),
-			Schemes:  getListFromInfoOrDefault(api.Info.Properties, "schemes", []string{schemeHttps}),
-			Swagger:  swaggerVersion,
-			Info:     info,
-			Host:     getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
-			BasePath: getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
-			Paths:    spec2Paths(api.Info, api.Service),
-			SecurityDefinitions: spec.SecurityDefinitions{
-				swaggerSecurityDefinitionBearerAuth: spec.APIKeyAuth(swaggerSecurityDefinitionName, swaggerSecurityDefinitionIn),
-			},
+			Consumes:            getListFromInfoOrDefault(api.Info.Properties, "consumes", []string{applicationJson}),
+			Produces:            getListFromInfoOrDefault(api.Info.Properties, "produces", []string{applicationJson}),
+			Schemes:             getListFromInfoOrDefault(api.Info.Properties, "schemes", []string{schemeHttps}),
+			Swagger:             swaggerVersion,
+			Info:                info,
+			Host:                getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
+			BasePath:            getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
+			Paths:               spec2Paths(api.Info, api.Service),
+			SecurityDefinitions: securityDefinitions,
 		},
 	}
 

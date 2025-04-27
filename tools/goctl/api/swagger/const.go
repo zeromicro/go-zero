@@ -29,8 +29,4 @@ const (
 	schemeHttps     = "https"
 	defaultHost     = "127.0.0.1"
 	defaultBasePath = "/"
-
-	swaggerSecurityDefinitionBearerAuth = "BearerAuth"
-	swaggerSecurityDefinitionName       = "Authorization"
-	swaggerSecurityDefinitionIn         = "header"
 )
