@@ -3,7 +3,6 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"io"
 	"os"
 	"path"
@@ -14,6 +13,7 @@ import (
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
