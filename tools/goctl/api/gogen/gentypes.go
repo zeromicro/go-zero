@@ -3,9 +3,11 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"io"
 	"os"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -39,20 +41,89 @@ func BuildTypes(types []spec.Type) (string, error) {
 	return builder.String(), nil
 }
 
-func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	val, err := BuildTypes(api.Types)
+func removeTypeFromDefault(tp spec.Type, group string, groupTypes map[string]map[string]spec.Type) map[string]map[string]spec.Type {
+	switch val := tp.(type) {
+	case spec.DefineStruct:
+		typeName := util.Title(tp.Name())
+		defaultGroups, ok := groupTypes[groupTypeDefault]
+		if ok {
+			delete(defaultGroups, typeName)
+			types, ok := groupTypes[group]
+			if !ok {
+				types = make(map[string]spec.Type)
+			}
+			types[typeName] = tp
+			groupTypes[group] = types
+		}
+		groupTypes[groupTypeDefault] = defaultGroups
+	case spec.PointerType:
+		groupTypes = removeTypeFromDefault(val.Type, group, groupTypes)
+	case spec.ArrayType:
+		groupTypes = removeTypeFromDefault(val.Value, group, groupTypes)
+	}
+	return groupTypes
+}
+
+func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+	groupTypes := make(map[string]map[string]spec.Type)
+	for _, v := range api.Types {
+		types, ok := groupTypes[groupTypeDefault]
+		if !ok {
+			types = make(map[string]spec.Type)
+		}
+		types[util.Title(v.Name())] = v
+		groupTypes[groupTypeDefault] = types
+	}
+
+	for _, v := range api.Service.Groups {
+		group := v.GetAnnotation(groupProperty)
+		if len(group) == 0 {
+			continue
+		}
+		for _, v := range v.Routes {
+			if v.RequestType != nil {
+				groupTypes = removeTypeFromDefault(v.RequestType, group, groupTypes)
+			}
+			if v.ResponseType != nil {
+				groupTypes = removeTypeFromDefault(v.ResponseType, group, groupTypes)
+			}
+		}
+	}
+
+	for group, typeGroup := range groupTypes {
+		var types []spec.Type
+		for _, v := range typeGroup {
+			types = append(types, v)
+		}
+		sort.Slice(types, func(i, j int) bool {
+			return types[i].Name() < types[j].Name()
+		})
+
+		if err := writeTypes(dir, group, cfg, types); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type) error {
+	if len(types) == 0 {
+		return nil
+	}
+	val, err := BuildTypes(types)
 	if err != nil {
 		return err
 	}
 
-	typeFilename, err := format.FileNamingFormat(cfg.NamingFormat, typesFile)
+	typeFilename, err := format.FileNamingFormat(cfg.NamingFormat, baseFilename)
 	if err != nil {
 		return err
 	}
 
 	typeFilename = typeFilename + ".go"
 	filename := path.Join(dir, typesDir, typeFilename)
-	os.Remove(filename)
+	_ = os.Remove(filename)
 
 	return genFile(fileGenConfig{
 		dir:             dir,
@@ -68,6 +139,13 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			"version":      version.BuildVersion,
 		},
 	})
+}
+
+func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+	if env.UseExperimental() {
+		return genTypesWithGroup(dir, cfg, api)
+	}
+	return writeTypes(dir, typesFile, cfg, api.Types)
 }
 
 func writeType(writer io.Writer, tp spec.Type) error {
