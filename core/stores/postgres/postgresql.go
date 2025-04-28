@@ -10,6 +10,6 @@ import (
 const postgresDriverName = "pgx"
 
 // New returns a postgres connection.
-func New(datasource string, opts ...sqlx.SqlOption) sqlx.SqlConn {
-	return sqlx.NewSqlConn(postgresDriverName, datasource, opts...)
+func New(datasource string, poolConfig sqlx.PoolConfig, opts ...sqlx.SqlOption) sqlx.SqlConn {
+	return sqlx.NewSqlConn(postgresDriverName, datasource, poolConfig, opts...)
 }
