@@ -80,7 +80,7 @@ func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", getFirstUsableString(route.AtDoc.Text, route.Handler)),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
-			Responses:   jsonResponseFromType(info, route.ResponseType),
+			Responses:   jsonResponseFromType(info, route.AtDoc, route.ResponseType),
 			Security:    security,
 		},
 	}
