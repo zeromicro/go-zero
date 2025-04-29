@@ -11,6 +11,7 @@ func TestMarshal(t *testing.T) {
 		Name      string `path:"name"`
 		Address   string `json:"address,options=[beijing,shanghai]"`
 		Age       int    `json:"age"`
+		Score     int    `json:"score,omitempty"`
 		Anonymous bool
 	}{
 		Name:      "kevin",
@@ -21,6 +22,7 @@ func TestMarshal(t *testing.T) {
 
 	m, err := Marshal(v)
 	assert.Nil(t, err)
+	assert.Nil(t, m["json"]["score"])
 	assert.Equal(t, "kevin", m["path"]["name"])
 	assert.Equal(t, "shanghai", m["json"]["address"])
 	assert.Equal(t, 20, m["json"]["age"].(int))

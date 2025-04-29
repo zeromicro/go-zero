@@ -21,6 +21,7 @@ const (
 	stringOption       = "string"
 	optionalOption     = "optional"
 	optionsOption      = "options"
+	omitemptyOption    = "omitempty"
 	rangeOption        = "range"
 	optionSeparator    = "|"
 	equalToken         = "="
@@ -366,6 +367,8 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 		fieldOpts.Inherit = true
 	case option == stringOption:
 		fieldOpts.FromString = true
+	case option == omitemptyOption:
+		fieldOpts.Omitempty = true
 	case strings.HasPrefix(option, optionalOption):
 		segs := strings.Split(option, equalToken)
 		switch len(segs) {

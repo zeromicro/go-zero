@@ -100,6 +100,9 @@ func processMember(field reflect.StructField, value reflect.Value,
 			}
 		}
 	} else {
+		if opt != nil && opt.Omitempty && value.IsZero() {
+			return nil
+		}
 		insertValue(collector, tag, key, val)
 	}
 

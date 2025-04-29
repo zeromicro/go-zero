@@ -449,6 +449,7 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 					Inherit:    options.Inherit,
 					FromString: options.FromString,
 					Optional:   options.Optional,
+					Omitempty:  options.Omitempty,
 					Options:    options.Options,
 					Default:    options.Default,
 					EnvVar:     options.EnvVar,
