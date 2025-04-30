@@ -201,6 +201,13 @@ func TestHttpToHttp(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
+
+	t.Run("method not allowed", func(t *testing.T) {
+		resp, err := httpc.Do(context.Background(), http.MethodPost,
+			"http://localhost:18882/api/ping", nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	})
 }
 
 func TestHttpToHttpBadUpstream(t *testing.T) {
