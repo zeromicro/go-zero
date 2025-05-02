@@ -69,3 +69,16 @@ func getListFromInfoOrDefault(properties map[string]string, key string, def []st
 	}
 	return resp
 }
+
+func getFirstUsableString(def ...string) string {
+	if len(def) == 0 {
+		return ""
+	}
+	for _, val := range def {
+		str := util.Unquote(val)
+		if len(str) != 0 {
+			return str
+		}
+	}
+	return ""
+}
