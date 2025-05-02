@@ -28,7 +28,7 @@
         "dir": "{{.goctl.api.dir}}",
         "iu": "Ignore update",
         "stdin": "Use stdin to input api doc content, press \"ctrl + d\" to send EOF",
-        "declare": "Use to skip check api types already declare"
+        "declare": "Use to skip check api types already declare, deprecated if goctl version >= 1.8.3"
       },
       "go": {
         "short": "Generate go files for provided api in api file",
