@@ -1,7 +1,7 @@
 package swagger
 
 import (
-	"path/filepath"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -13,19 +13,24 @@ import (
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 	extensions, info := specExtensions(api.Info)
+
+	var securityDefinitions spec.SecurityDefinitions
+	securityDefinitionsFromJson := getStringFromKVOrDefault(api.Info.Properties, "securityDefinitionsFromJson", `{}`)
+	_ = json.Unmarshal([]byte(securityDefinitionsFromJson), &securityDefinitions)
 	swagger := &spec.Swagger{
 		VendorExtensible: spec.VendorExtensible{
 			Extensions: extensions,
 		},
 		SwaggerProps: spec.SwaggerProps{
-			Consumes: getListFromInfoOrDefault(api.Info.Properties, "consumes", []string{applicationJson}),
-			Produces: getListFromInfoOrDefault(api.Info.Properties, "produces", []string{applicationJson}),
-			Schemes:  getListFromInfoOrDefault(api.Info.Properties, "schemes", []string{schemeHttps}),
-			Swagger:  swaggerVersion,
-			Info:     info,
-			Host:     getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
-			BasePath: getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
-			Paths:    spec2Paths(api.Info, api.Service),
+			Consumes:            getListFromInfoOrDefault(api.Info.Properties, "consumes", []string{applicationJson}),
+			Produces:            getListFromInfoOrDefault(api.Info.Properties, "produces", []string{applicationJson}),
+			Schemes:             getListFromInfoOrDefault(api.Info.Properties, "schemes", []string{schemeHttps}),
+			Swagger:             swaggerVersion,
+			Info:                info,
+			Host:                getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
+			BasePath:            getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
+			Paths:               spec2Paths(api.Info, api.Service),
+			SecurityDefinitions: securityDefinitions,
 		},
 	}
 
@@ -68,7 +73,7 @@ func itemsFromGoType(tp apiSpec.Type) *spec.SchemaOrArray {
 	if !ok {
 		return nil
 	}
-	return itemFromGoType(array)
+	return itemFromGoType(array.Value)
 }
 
 func mapFromGoType(tp apiSpec.Type) *spec.SchemaOrBool {
@@ -76,18 +81,23 @@ func mapFromGoType(tp apiSpec.Type) *spec.SchemaOrBool {
 	if !ok {
 		return nil
 	}
-	p, r := propertiesFromType(mapType.Value)
+	var schema = &spec.Schema{
+		SchemaProps: spec.SchemaProps{
+			Type:                 typeFromGoType(mapType.Value),
+			AdditionalProperties: mapFromGoType(mapType.Value),
+		},
+	}
+	switch sampleTypeFromGoType(mapType.Value) {
+	case swaggerTypeArray:
+		schema.Items = itemsFromGoType(mapType.Value)
+	case swaggerTypeObject:
+		p, r := propertiesFromType(mapType.Value)
+		schema.Properties = p
+		schema.Required = r
+	}
 	return &spec.SchemaOrBool{
 		Allows: true,
-		Schema: &spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type:                 typeFromGoType(mapType.Value),
-				Items:                itemsFromGoType(mapType.Value),
-				Properties:           p,
-				Required:             r,
-				AdditionalProperties: mapFromGoType(mapType.Value),
-			},
-		},
+		Schema: schema,
 	}
 }
 
@@ -102,41 +112,8 @@ func itemFromGoType(tp apiSpec.Type) *spec.SchemaOrArray {
 				},
 			},
 		}
-	case apiSpec.DefineStruct:
-		var (
-			properties     = map[string]spec.Schema{}
-			requiredFields []string
-		)
-		rangeMemberAndDo(itemType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
-			jsonTag, _ := tag.Get(tagJson)
-			if jsonTag == nil {
-				return
-			}
-			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(jsonTag.Options)
-			if required {
-				requiredFields = append(requiredFields, jsonTag.Name)
-			}
-			p, r := propertiesFromType(member.Type)
-			properties[jsonTag.Name] = spec.Schema{
-				SwaggerSchemaProps: spec.SwaggerSchemaProps{
-					Example: exampleValueFromOptions(jsonTag.Options, member.Type),
-				},
-				SchemaProps: spec.SchemaProps{
-					Description:          formatComment(member.Comment),
-					Type:                 typeFromGoType(member.Type),
-					Default:              defValueFromOptions(jsonTag.Options, member.Type),
-					Maximum:              maximum,
-					ExclusiveMaximum:     exclusiveMaximum,
-					Minimum:              minimum,
-					ExclusiveMinimum:     exclusiveMinimum,
-					Enum:                 enumsValueFromOptions(jsonTag.Options),
-					Items:                itemsFromGoType(member.Type),
-					Properties:           p,
-					Required:             r,
-					AdditionalProperties: mapFromGoType(member.Type),
-				},
-			}
-		})
+	case apiSpec.DefineStruct, apiSpec.NestedStruct:
+		properties, requiredFields := propertiesFromType(itemType)
 		return &spec.SchemaOrArray{
 			Schema: &spec.Schema{
 				SchemaProps: spec.SchemaProps{
@@ -149,16 +126,13 @@ func itemFromGoType(tp apiSpec.Type) *spec.SchemaOrArray {
 			},
 		}
 	case apiSpec.PointerType:
-		return itemsFromGoType(itemType.Type)
+		return itemFromGoType(itemType.Type)
 	case apiSpec.ArrayType:
-		p, r := propertiesFromType(itemType.Value)
 		return &spec.SchemaOrArray{
 			Schema: &spec.Schema{
 				SchemaProps: spec.SchemaProps{
-					Type:       typeFromGoType(itemType.Value),
-					Items:      itemsFromGoType(itemType.Value),
-					Properties: p,
-					Required:   r,
+					Type:  typeFromGoType(itemType),
+					Items: itemsFromGoType(itemType),
 				},
 			},
 		}
@@ -238,14 +212,35 @@ func rangeMemberAndDo(structType apiSpec.Type, do func(tag *apiSpec.Tags, requir
 	var members = expandMembers(structType)
 
 	for _, field := range members {
-		var required = false
-		for _, t := range field.Tags() {
-			required = len(t.Options) > 0 && t.Options[0] != "optional"
-		}
 		tags, _ := apiSpec.Parse(field.Tag)
+		required := isRequired(tags)
 		do(tags, required, field)
-
 	}
+}
+
+func isRequired(tags *apiSpec.Tags) bool {
+	tag, err := tags.Get(tagJson)
+	if err == nil {
+		return !isOptional(tag.Options)
+	}
+	tag, err = tags.Get(tagForm)
+	if err == nil {
+		return !isOptional(tag.Options)
+	}
+	tag, err = tags.Get(tagPath)
+	if err == nil {
+		return !isOptional(tag.Options)
+	}
+	return false
+}
+
+func isOptional(options []string) bool {
+	for _, option := range options {
+		if option == "optional" {
+			return true
+		}
+	}
+	return false
 }
 
 func pathVariable2SwaggerVariable(path string) string {
@@ -258,7 +253,7 @@ func pathVariable2SwaggerVariable(path string) string {
 			resp = append(resp, v)
 		}
 	}
-	return "/" + filepath.Join(resp...)
+	return "/" + strings.Join(resp, "/")
 }
 
 func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info) spec.SchemaProps {

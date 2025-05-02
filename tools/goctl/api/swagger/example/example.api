@@ -17,6 +17,10 @@ info (
 	basePath:               "/v1" // basePath corresponding to Swagger,default value is `/`
 	wrapCodeMsg:            "true" // to wrap in the universal code-msg structure, like {"code":0,"msg":"OK","data":$data}
 	bizCodeEnumDescription: "1001-User not login<br>1002-User permission denied" // enums of business error codes, in JSON format, with the key being the business error code and the value being the description of that error code. This only takes effect when wrapCodeMsg is set to true.
+	// securityDefinitionsFromJson is a custom authentication configuration, and the JSON content will be directly inserted into the securityDefinitions of Swagger.
+	// Format reference: https://swagger.io/specification/v2/#security-definitions-object
+	// You can declare authType in the @server of the API to specify the authentication type used for its routes.
+	securityDefinitionsFromJson: `{"apiKey":{"description":"apiKey type description","type":"apiKey","name":"x-api-key","in":"header"}}`
 )
 
 type (
@@ -42,6 +46,8 @@ type (
 @server (
 	tags:    "query" // tags corresponding to Swagger
 	summary: "query API set" // summary corresponding to Swagger
+	prefix: v1
+	authType: apiKey // Specifies the authentication type used for this route, which is the name defined in securityDefinitionsFromJson.
 )
 service Swagger {
 	@doc (

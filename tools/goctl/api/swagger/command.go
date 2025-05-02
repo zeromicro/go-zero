@@ -3,14 +3,15 @@ package swagger
 import (
 	"encoding/json"
 	"errors"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 	"gopkg.in/yaml.v2"
+
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 var (
@@ -19,6 +20,9 @@ var (
 
 	// VarStringDir specifies the directory to generate swagger file.
 	VarStringDir string
+
+	// VarStringFilename specifies the generated swagger file name without the extension.
+	VarStringFilename string
 
 	// VarBoolYaml specifies whether to generate a YAML file.
 	VarBoolYaml bool
@@ -57,9 +61,14 @@ func Command(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	base := filepath.Base(VarStringAPI)
+	filename := VarStringFilename
+	if filename == "" {
+		base := filepath.Base(VarStringAPI)
+		filename = strings.TrimSuffix(base, filepath.Ext(base))
+	}
+
 	if VarBoolYaml {
-		filename := filepath.Join(VarStringDir, strings.TrimSuffix(base, filepath.Ext(base))+".yaml")
+		filePath := filepath.Join(VarStringDir, filename+".yaml")
 
 		var jsonObj interface{}
 		if err := yaml.Unmarshal(data, &jsonObj); err != nil {
@@ -70,10 +79,10 @@ func Command(_ *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(filename, data, 0644)
+		return os.WriteFile(filePath, data, 0644)
 	}
-	// generate json swagger file
-	filename := filepath.Join(VarStringDir, strings.TrimSuffix(base, filepath.Ext(base))+".json")
 
-	return os.WriteFile(filename, data, 0644)
+	// generate json swagger file
+	filePath := filepath.Join(VarStringDir, filename+".json")
+	return os.WriteFile(filePath, data, 0644)
 }

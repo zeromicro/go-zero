@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
@@ -103,6 +104,7 @@ func init() {
 
 	swaggerCmdFlags.StringVar(&swagger.VarStringAPI, "api")
 	swaggerCmdFlags.StringVar(&swagger.VarStringDir, "dir")
+	swaggerCmdFlags.StringVar(&swagger.VarStringFilename, "filename")
 	swaggerCmdFlags.BoolVar(&swagger.VarBoolYaml, "yaml")
 
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")

@@ -61,6 +61,15 @@ func mergePathItem(old, new spec.PathItem) spec.PathItem {
 }
 
 func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+	authType := getStringFromKVOrDefault(group.Annotation.Properties, "authType", "")
+	var security []map[string][]string
+	if len(authType) > 0 {
+		security = []map[string][]string{
+			{
+				authType: []string{},
+			},
+		}
+	}
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
 			Description: getStringFromKVOrDefault(route.AtDoc.Properties, "description", ""),
@@ -68,10 +77,11 @@ func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec
 			Produces:    getListFromInfoOrDefault(route.AtDoc.Properties, "produces", []string{applicationJson}),
 			Schemes:     getListFromInfoOrDefault(route.AtDoc.Properties, "schemes", []string{schemeHttps}),
 			Tags:        getListFromInfoOrDefault(group.Annotation.Properties, "tags", []string{""}),
-			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", ""),
+			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", getFirstUsableString(route.AtDoc.Text, route.Handler)),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
 			Responses:   jsonResponseFromType(info, route.ResponseType),
+			Security:    security,
 		},
 	}
 	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsDescription", "")

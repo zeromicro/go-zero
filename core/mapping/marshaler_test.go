@@ -462,3 +462,15 @@ func TestMarshal_FromString(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "10", m["json"]["age"].(string))
 }
+
+func TestMarshal_Array(t *testing.T) {
+	v := struct {
+		H [1]int `json:"h,string"`
+	}{
+		H: [1]int{1},
+	}
+
+	m, err := Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, "[1]", m["json"]["h"].(string))
+}

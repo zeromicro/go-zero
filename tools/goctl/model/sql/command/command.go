@@ -204,6 +204,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	prefix := VarStringCachePrefix
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -405,7 +406,8 @@ func fromPostgreSqlDataSource(arg pgDataSourceArg) error {
 		return errors.New("no tables matched")
 	}
 
-	generator, err := gen.NewDefaultGenerator(arg.prefix, arg.dir, arg.cfg, gen.WithConsoleOption(log), gen.WithPostgreSql(), gen.WithIgnoreColumns(arg.ignoreColumns))
+	generator, err := gen.NewDefaultGenerator(arg.prefix, arg.dir, arg.cfg, gen.WithConsoleOption(log),
+                                            gen.WithPostgreSql(), gen.WithIgnoreColumns(arg.ignoreColumns))
 	if err != nil {
 		return err
 	}
