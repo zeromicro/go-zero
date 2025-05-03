@@ -146,13 +146,9 @@ func TestCollectionKeys(t *testing.T) {
 
 // TestRoleTypes checks that role types are used correctly
 func TestRoleTypes(t *testing.T) {
-	// Verify role type constants
-	assert.Equal(t, "user", string(roleUser), "User role should be 'user'")
-	assert.Equal(t, "assistant", string(roleAssistant), "Assistant role should be 'assistant'")
-
 	// Test in annotations
 	annotations := Annotations{
-		Audience: []roleType{roleUser, roleAssistant},
+		Audience: []RoleType{RoleUser, RoleAssistant},
 	}
 	data, err := json.Marshal(annotations)
 	assert.NoError(t, err)

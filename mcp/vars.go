@@ -13,6 +13,9 @@ const (
 
 	// Session identifier key used in request URLs
 	sessionIdKey = "session_id"
+
+	// progressTokenKey is used to track progress of long-running tasks
+	progressTokenKey = "progressToken"
 )
 
 // Server-Sent Events (SSE) event types
@@ -26,11 +29,20 @@ const (
 
 // Content type identifiers
 const (
-	// Text content type
-	contentTypeText = "text"
+	// ContentTypeObject is object content type
+	ContentTypeObject = "object"
 
-	// Image content type
-	contentTypeImage = "image"
+	// ContentTypeText is text content type
+	ContentTypeText = "text"
+
+	// ContentTypeImage is image content type
+	ContentTypeImage = "image"
+
+	// ContentTypeAudio is audio content type
+	ContentTypeAudio = "audio"
+
+	// ContentTypeResource is resource content type
+	ContentTypeResource = "resource"
 )
 
 // Collection keys for broadcast events
@@ -72,11 +84,11 @@ const (
 
 // User and assistant role definitions
 const (
-	// The "user" role - the entity asking questions
-	roleUser roleType = "user"
+	// RoleUser is the "user" role - the entity asking questions
+	RoleUser RoleType = "user"
 
-	// The "assistant" role - the entity providing responses
-	roleAssistant roleType = "assistant"
+	// RoleAssistant is the "assistant" role - the entity providing responses
+	RoleAssistant RoleType = "assistant"
 )
 
 // Method names as defined in the MCP specification

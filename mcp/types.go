@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"context"
 	"encoding/json"
 	"sync"
 
@@ -45,19 +46,18 @@ type ListToolsResult struct {
 
 // Message Content Types
 
-// roleType represents the sender or recipient of messages in a conversation
-type roleType string
+// RoleType represents the sender or recipient of messages in a conversation
+type RoleType string
 
 // PromptArgument defines a single argument that can be passed to a prompt
 type PromptArgument struct {
 	Name        string `json:"name"`                  // Argument name
 	Description string `json:"description,omitempty"` // Human-readable description
 	Required    bool   `json:"required,omitempty"`    // Whether this argument is required
-	Default     string `json:"default,omitempty"`     // Default value if not provided
 }
 
 // PromptHandler is a function that dynamically generates prompt content
-type PromptHandler func(args map[string]string) ([]PromptMessage, error)
+type PromptHandler func(ctx context.Context, args map[string]string) ([]PromptMessage, error)
 
 // Prompt represents an MCP Prompt definition
 type Prompt struct {
@@ -70,29 +70,41 @@ type Prompt struct {
 
 // PromptMessage represents a message in a conversation
 type PromptMessage struct {
-	Role    roleType `json:"role"`    // Message sender role
+	Role    RoleType `json:"role"`    // Message sender role
 	Content any      `json:"content"` // Message content (TextContent, ImageContent, etc.)
 }
 
 // TextContent represents text content in a message
 type TextContent struct {
-	Type        string       `json:"type"`                  // Always "text"
 	Text        string       `json:"text"`                  // The text content
 	Annotations *Annotations `json:"annotations,omitempty"` // Optional annotations
 }
 
+type typedTextContent struct {
+	Type string `json:"type"`
+	TextContent
+}
+
 // ImageContent represents image data in a message
 type ImageContent struct {
-	Type     string `json:"type"`     // Always "image"
 	Data     string `json:"data"`     // Base64-encoded image data
 	MimeType string `json:"mimeType"` // MIME type (e.g., "image/png")
 }
 
+type typedImageContent struct {
+	Type string `json:"type"`
+	ImageContent
+}
+
 // AudioContent represents audio data in a message
 type AudioContent struct {
-	Type     string `json:"type"`     // Always "audio"
 	Data     string `json:"data"`     // Base64-encoded audio data
 	MimeType string `json:"mimeType"` // MIME type (e.g., "audio/mp3")
+}
+
+type typedAudioContent struct {
+	Type string `json:"type"`
+	AudioContent
 }
 
 // FileContent represents file content
@@ -115,16 +127,14 @@ type EmbeddedResource struct {
 
 // Annotations provides additional metadata for content
 type Annotations struct {
-	Audience []roleType `json:"audience,omitempty"` // Who should see this content
+	Audience []RoleType `json:"audience,omitempty"` // Who should see this content
 	Priority *float64   `json:"priority,omitempty"` // Optional priority (0-1)
 }
 
 // Tool-related Types
 
-// Tool Definition Types
-
 // ToolHandler is a function that handles tool calls
-type ToolHandler func(params map[string]any) (any, error)
+type ToolHandler func(ctx context.Context, params map[string]any) (any, error)
 
 // Tool represents a Model Context Protocol Tool definition
 type Tool struct {
@@ -136,7 +146,7 @@ type Tool struct {
 
 // InputSchema represents tool's input schema in JSON Schema format
 type InputSchema struct {
-	Type       string         `json:"type"`               // Always "object" for tool inputs
+	Type       string         `json:"type"`
 	Properties map[string]any `json:"properties"`         // Property definitions
 	Required   []string       `json:"required,omitempty"` // List of required properties
 }
@@ -144,8 +154,8 @@ type InputSchema struct {
 // CallToolResult represents a tool call result that conforms to the MCP schema
 type CallToolResult struct {
 	Result
-	Content []interface{} `json:"content"`           // Content items (text, images, etc.)
-	IsError bool          `json:"isError,omitempty"` // True if tool execution failed
+	Content []any `json:"content"`           // Content items (text, images, etc.)
+	IsError bool  `json:"isError,omitempty"` // True if tool execution failed
 }
 
 // Resource represents a Model Context Protocol Resource definition
@@ -158,7 +168,7 @@ type Resource struct {
 }
 
 // ResourceHandler is a function that handles resource read requests
-type ResourceHandler func() (ResourceContent, error)
+type ResourceHandler func(ctx context.Context) (ResourceContent, error)
 
 // ResourceContent represents the content of a resource
 type ResourceContent struct {
