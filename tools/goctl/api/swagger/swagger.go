@@ -256,11 +256,13 @@ func pathVariable2SwaggerVariable(path string) string {
 	return "/" + strings.Join(resp, "/")
 }
 
-func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info) spec.SchemaProps {
+func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info, atDoc apiSpec.AtDoc) spec.SchemaProps {
 	wrapCodeMsg := getBoolFromKVOrDefault(api.Properties, "wrapCodeMsg", false)
 	if !wrapCodeMsg {
 		return properties
 	}
+	globalCodeDesc := getStringFromKVOrDefault(api.Properties, "bizCodeEnumDescription", "business code")
+	methodCodeDesc := getStringFromKVOrDefault(atDoc.Properties, "bizCodeEnumDescription", globalCodeDesc)
 	return spec.SchemaProps{
 		Type: []string{swaggerTypeObject},
 		Properties: spec.SchemaProperties{
@@ -270,7 +272,7 @@ func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info) spec.Schema
 				},
 				SchemaProps: spec.SchemaProps{
 					Type:        []string{swaggerTypeInteger},
-					Description: getStringFromKVOrDefault(api.Properties, "bizCodeEnumDescription", "business code"),
+					Description: methodCodeDesc,
 				},
 			},
 			"msg": {
