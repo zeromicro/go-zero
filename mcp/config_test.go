@@ -27,7 +27,7 @@ mcp:
 	assert.Equal(t, "2024-11-05", c.Mcp.ProtocolVersion, "Default protocol version should be 2024-11-05")
 	assert.Equal(t, "/sse", c.Mcp.SseEndpoint, "Default SSE endpoint should be /sse")
 	assert.Equal(t, "/message", c.Mcp.MessageEndpoint, "Default message endpoint should be /message")
-	assert.Equal(t, 30*time.Second, c.Mcp.ToolTimeout, "Default tool timeout should be 30s")
+	assert.Equal(t, 30*time.Second, c.Mcp.MessageTimeout, "Default message timeout should be 30s")
 }
 
 func TestMcpConfCustomValues(t *testing.T) {
@@ -43,7 +43,7 @@ func TestMcpConfCustomValues(t *testing.T) {
 			"SseEndpoint": "/custom-sse",
 			"MessageEndpoint": "/custom-message",
 			"Cors": ["http://localhost:3000", "http://example.com"],
-			"ToolTimeout": "60s"
+			"MessageTimeout": "60s"
 		}
 	}`
 
@@ -59,5 +59,5 @@ func TestMcpConfCustomValues(t *testing.T) {
 	assert.Equal(t, "/custom-sse", c.Mcp.SseEndpoint, "SSE endpoint should be customizable")
 	assert.Equal(t, "/custom-message", c.Mcp.MessageEndpoint, "Message endpoint should be customizable")
 	assert.Equal(t, []string{"http://localhost:3000", "http://example.com"}, c.Mcp.Cors, "CORS settings should be customizable")
-	assert.Equal(t, 60*time.Second, c.Mcp.ToolTimeout, "Tool timeout should be customizable")
+	assert.Equal(t, 60*time.Second, c.Mcp.MessageTimeout, "Tool timeout should be customizable")
 }

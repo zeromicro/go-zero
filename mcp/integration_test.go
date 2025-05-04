@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -59,7 +60,7 @@ func TestHTTPHandlerIntegration(t *testing.T) {
 	conf := McpConf{}
 	conf.Mcp.Name = "test-integration"
 	conf.Mcp.Version = "1.0.0-test"
-	conf.Mcp.ToolTimeout = 1 * time.Second
+	conf.Mcp.MessageTimeout = 1 * time.Second
 
 	// Create a mock server directly
 	server := &sseMcpServer{
@@ -75,7 +76,6 @@ func TestHTTPHandlerIntegration(t *testing.T) {
 		Name:        "echo",
 		Description: "Echo tool for testing",
 		InputSchema: InputSchema{
-			Type: "object",
 			Properties: map[string]any{
 				"message": map[string]any{
 					"type":        "string",
@@ -83,7 +83,7 @@ func TestHTTPHandlerIntegration(t *testing.T) {
 				},
 			},
 		},
-		Handler: func(params map[string]any) (any, error) {
+		Handler: func(ctx context.Context, params map[string]any) (any, error) {
 			if msg, ok := params["message"].(string); ok {
 				return fmt.Sprintf("Echo: %s", msg), nil
 			}
@@ -181,7 +181,7 @@ func TestHandlerResponseFlow(t *testing.T) {
 		Name:        "test.tool",
 		Description: "Test tool",
 		InputSchema: InputSchema{Type: "object"},
-		Handler: func(params map[string]any) (any, error) {
+		Handler: func(ctx context.Context, params map[string]any) (any, error) {
 			return "tool result", nil
 		},
 	})
@@ -329,7 +329,7 @@ func TestProcessListMethods(t *testing.T) {
 		Params:  json.RawMessage(`{"cursor": "", "_meta": {"progressToken": "token1"}}`),
 	}
 
-	server.processListTools(client, req)
+	server.processListTools(context.Background(), client, req)
 
 	// Read response
 	select {
@@ -344,7 +344,7 @@ func TestProcessListMethods(t *testing.T) {
 	req.ID = 2
 	req.Method = methodPromptsList
 	req.Params = json.RawMessage(`{"cursor": "next"}`)
-	server.processListPrompts(client, req)
+	server.processListPrompts(context.Background(), client, req)
 
 	// Read response
 	select {
@@ -358,7 +358,7 @@ func TestProcessListMethods(t *testing.T) {
 	req.ID = 3
 	req.Method = methodResourcesList
 	req.Params = json.RawMessage(`{"cursor": "next"}`)
-	server.processListResources(client, req)
+	server.processListResources(context.Background(), client, req)
 
 	// Read response
 	select {
@@ -393,7 +393,7 @@ func TestErrorResponseHandling(t *testing.T) {
 	}
 
 	// Mock handleRequest by directly calling error handler
-	server.sendErrorResponse(client, req.ID, "Method not found", errCodeMethodNotFound)
+	server.sendErrorResponse(context.Background(), client, req.ID, "Method not found", errCodeMethodNotFound)
 
 	// Check response
 	select {
@@ -412,7 +412,7 @@ func TestErrorResponseHandling(t *testing.T) {
 	}
 
 	// Call process method directly
-	server.processToolCall(client, toolReq)
+	server.processToolCall(context.Background(), client, toolReq)
 
 	// Check response
 	select {
@@ -431,7 +431,7 @@ func TestErrorResponseHandling(t *testing.T) {
 	}
 
 	// Call process method directly
-	server.processGetPrompt(client, promptReq)
+	server.processGetPrompt(context.Background(), client, promptReq)
 
 	// Check response
 	select {

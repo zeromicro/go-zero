@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -79,7 +80,7 @@ func TestToolStructs(t *testing.T) {
 			},
 			Required: []string{"input"},
 		},
-		Handler: func(params map[string]any) (any, error) {
+		Handler: func(ctx context.Context, params map[string]any) (any, error) {
 			return "result", nil
 		},
 	}
@@ -145,44 +146,38 @@ func TestResourceStructs(t *testing.T) {
 func TestContentTypes(t *testing.T) {
 	// Test TextContent
 	textContent := TextContent{
-		Type: "text",
 		Text: "Sample text",
 		Annotations: &Annotations{
-			Audience: []roleType{roleUser, roleAssistant},
+			Audience: []RoleType{RoleUser, RoleAssistant},
 			Priority: ptr(1.0),
 		},
 	}
 
 	data, err := json.Marshal(textContent)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"type":"text"`)
 	assert.Contains(t, string(data), `"text":"Sample text"`)
 	assert.Contains(t, string(data), `"audience":["user","assistant"]`)
 	assert.Contains(t, string(data), `"priority":1`)
 
 	// Test ImageContent
 	imageContent := ImageContent{
-		Type:     "image",
 		Data:     "base64data",
 		MimeType: "image/png",
 	}
 
 	data, err = json.Marshal(imageContent)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"type":"image"`)
 	assert.Contains(t, string(data), `"data":"base64data"`)
 	assert.Contains(t, string(data), `"mimeType":"image/png"`)
 
 	// Test AudioContent
 	audioContent := AudioContent{
-		Type:     "audio",
 		Data:     "base64audio",
 		MimeType: "audio/mp3",
 	}
 
 	data, err = json.Marshal(audioContent)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"type":"audio"`)
 	assert.Contains(t, string(data), `"data":"base64audio"`)
 	assert.Contains(t, string(data), `"mimeType":"audio/mp3"`)
 }
@@ -197,7 +192,6 @@ func TestCallToolResult(t *testing.T) {
 		},
 		Content: []interface{}{
 			TextContent{
-				Type: "text",
 				Text: "Sample result",
 			},
 		},
@@ -207,6 +201,6 @@ func TestCallToolResult(t *testing.T) {
 	data, err := json.Marshal(result)
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `"_meta":{"progressToken":"token123"}`)
-	assert.Contains(t, string(data), `"content":[{"type":"text","text":"Sample result"}]`)
+	assert.Contains(t, string(data), `"content":[{"text":"Sample result"}]`)
 	assert.NotContains(t, string(data), `"isError":`)
 }

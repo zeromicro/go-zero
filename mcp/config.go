@@ -34,7 +34,10 @@ type McpConf struct {
 		// Cors contains allowed CORS origins
 		Cors []string `json:",optional"`
 
-		// ToolTimeout is the maximum time allowed for tool execution
-		ToolTimeout time.Duration `json:",default=30s"`
+		// SseTimeout is the maximum time allowed for SSE connections
+		SseTimeout time.Duration `json:",default=24h"`
+
+		// MessageTimeout is the maximum time allowed for request execution
+		MessageTimeout time.Duration `json:",default=30s"`
 	}
 }
