@@ -70,7 +70,7 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 				SimpleSchema: spec.SimpleSchema{
 					Type:    sampleTypeFromGoType(member.Type),
 					Default: defValueFromOptions(pathParameterTag.Options, member.Type),
-					Example: exampleValueFromOptions(pathParameterTag.Options, member.Type),
+					//Example: exampleValueFromOptions(pathParameterTag.Options, member.Type),
 					Items:   sampleItemsFromGoType(member.Type),
 				},
 				ParamProps: spec.ParamProps{
