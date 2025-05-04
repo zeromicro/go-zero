@@ -46,7 +46,6 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 				SimpleSchema: spec.SimpleSchema{
 					Type:    sampleTypeFromGoType(member.Type),
 					Default: defValueFromOptions(headerTag.Options, member.Type),
-					Example: exampleValueFromOptions(headerTag.Options, member.Type),
 					Items:   sampleItemsFromGoType(member.Type),
 				},
 				ParamProps: spec.ParamProps{
@@ -70,7 +69,6 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 				SimpleSchema: spec.SimpleSchema{
 					Type:    sampleTypeFromGoType(member.Type),
 					Default: defValueFromOptions(pathParameterTag.Options, member.Type),
-					//Example: exampleValueFromOptions(pathParameterTag.Options, member.Type),
 					Items:   sampleItemsFromGoType(member.Type),
 				},
 				ParamProps: spec.ParamProps{
@@ -95,7 +93,6 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					SimpleSchema: spec.SimpleSchema{
 						Type:    sampleTypeFromGoType(member.Type),
 						Default: defValueFromOptions(formTag.Options, member.Type),
-						Example: exampleValueFromOptions(formTag.Options, member.Type),
 						Items:   sampleItemsFromGoType(member.Type),
 					},
 					ParamProps: spec.ParamProps{
@@ -118,7 +115,6 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					SimpleSchema: spec.SimpleSchema{
 						Type:    sampleTypeFromGoType(member.Type),
 						Default: defValueFromOptions(formTag.Options, member.Type),
-						Example: exampleValueFromOptions(formTag.Options, member.Type),
 						Items:   sampleItemsFromGoType(member.Type),
 					},
 					ParamProps: spec.ParamProps{
