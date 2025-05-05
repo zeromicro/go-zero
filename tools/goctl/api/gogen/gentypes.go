@@ -199,7 +199,7 @@ func genTypes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 	if env.UseExperimental() {
 		return genTypesWithGroup(dir, rootPkg, cfg, api)
 	}
-	return writeTypes(dir, rootPkg, typesFile, cfg, api.Types)
+	return writeTypes(dir, rootPkg, "", cfg, api.Types)
 }
 
 func writeType(writer io.Writer, tp spec.Type) error {
