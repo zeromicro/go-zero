@@ -37,7 +37,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		return err
 	}
 
-	imports := genLogicImports(route, rootPkg)
+	imports := genLogicImports(group, route, rootPkg)
 	var responseString string
 	var returnString string
 	var requestString string
@@ -89,12 +89,20 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 	return path.Join(logicDir, folder)
 }
 
-func genLogicImports(route spec.Route, parentPkg string) string {
+func genLogicImports(group spec.Group, route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, `"context"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	if shallImportTypesPackage(route) {
-		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
+		pkg := pathx.JoinPackages(parentPkg, typesDir)
+		groupDir := route.GetAnnotation(groupProperty)
+		if len(groupDir) == 0 {
+			groupDir = group.GetAnnotation(groupProperty)
+		}
+		if len(groupDir) > 0 {
+			pkg = pathx.JoinPackages(parentPkg, typesDir, groupDir)
+		}
+		imports = append(imports, fmt.Sprintf("\"%s\"\n", pkg))
 	}
 	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")

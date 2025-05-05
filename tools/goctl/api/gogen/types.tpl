@@ -2,7 +2,6 @@
 // goctl {{.version}}
 
 package types{{if .containsTime}}
-import (
-	"time"
-){{end}}
+import "time"{{end}}
+{{.baseTypesPkg}}
 {{.types}}

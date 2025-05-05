@@ -3,9 +3,11 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -64,7 +66,7 @@ func removeTypeFromDefault(tp spec.Type, group string, groupTypes map[string]map
 	return groupTypes
 }
 
-func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genTypesWithGroup(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	groupTypes := make(map[string]map[string]spec.Type)
 	for _, v := range api.Types {
 		types, ok := groupTypes[groupTypeDefault]
@@ -99,7 +101,7 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 			return types[i].Name() < types[j].Name()
 		})
 
-		if err := writeTypes(dir, group, cfg, types); err != nil {
+		if err := writeTypes(dir, rootPkg, group, cfg, types); err != nil {
 			return err
 		}
 	}
@@ -107,7 +109,39 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 	return nil
 }
 
-func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type) error {
+func containsBaseType(types []spec.Type) bool {
+	for _, tp := range types {
+		switch val := tp.(type) {
+		case spec.DefineStruct:
+			for _, member := range val.Members {
+				if member.IsInline {
+					return true
+				}
+				if isStructType(member.Type) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func isStructType(tp spec.Type) bool {
+	switch val := tp.(type) {
+	case spec.DefineStruct:
+		return true
+	case spec.PointerType:
+		return isStructType(val.Type)
+	case spec.ArrayType:
+		return isStructType(val.Value)
+	case spec.MapType:
+		return isStructType(val.Value)
+	default:
+		return false
+	}
+}
+
+func writeTypes(dir, parentPkg, group string, cfg *config.Config, types []spec.Type) error {
 	if len(types) == 0 {
 		return nil
 	}
@@ -116,18 +150,37 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 		return err
 	}
 
+	td := typesDir
+	var baseFilename string
+	if len(group) == 0 {
+		baseFilename = typesFile + ".go"
+	} else {
+		td = path.Join(td, group)
+		base := filepath.Base(group)
+		baseFilename = base + ".go"
+	}
+
 	typeFilename, err := format.FileNamingFormat(cfg.NamingFormat, baseFilename)
 	if err != nil {
 		return err
 	}
 
-	typeFilename = typeFilename + ".go"
-	filename := path.Join(dir, typesDir, typeFilename)
+	filename := path.Join(dir, td, typeFilename)
+	outputDir := filepath.Dir(filename)
+	if err := pathx.MkdirIfNotExist(outputDir); err != nil {
+		return err
+	}
 	_ = os.Remove(filename)
 
+	dirOfBaseTypes := path.Join(dir, typesDir)
+	shouldImportBasePkg := dirOfBaseTypes != outputDir && containsBaseType(types)
+	var baseTypesPkg string
+	if shouldImportBasePkg {
+		baseTypesPkg = fmt.Sprintf("import . %q", pathx.JoinPackages(parentPkg, typesDir))
+	}
 	return genFile(fileGenConfig{
 		dir:             dir,
-		subdir:          typesDir,
+		subdir:          td,
 		filename:        typeFilename,
 		templateName:    "typesTemplate",
 		category:        category,
@@ -135,17 +188,18 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 		builtinTemplate: typesTemplate,
 		data: map[string]any{
 			"types":        val,
+			"baseTypesPkg": baseTypesPkg,
 			"containsTime": false,
 			"version":      version.BuildVersion,
 		},
 	})
 }
 
-func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genTypes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	if env.UseExperimental() {
-		return genTypesWithGroup(dir, cfg, api)
+		return genTypesWithGroup(dir, rootPkg, cfg, api)
 	}
-	return writeTypes(dir, typesFile, cfg, api.Types)
+	return writeTypes(dir, rootPkg, typesFile, cfg, api.Types)
 }
 
 func writeType(writer io.Writer, tp spec.Type) error {

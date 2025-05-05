@@ -97,7 +97,7 @@ func DoGenProject(apiFile, dir, style string, withTest bool) error {
 	logx.Must(genConfig(dir, cfg, api))
 	logx.Must(genMain(dir, rootPkg, cfg, api))
 	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
-	logx.Must(genTypes(dir, cfg, api))
+	logx.Must(genTypes(dir, rootPkg, cfg, api))
 	logx.Must(genRoutes(dir, rootPkg, cfg, api))
 	logx.Must(genHandlers(dir, rootPkg, cfg, api))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))

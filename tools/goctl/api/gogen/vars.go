@@ -11,5 +11,5 @@ const (
 	typesDir      = internal + typesPacket
 	groupProperty = "group"
 
-	groupTypeDefault="types"
+	groupTypeDefault = ""
 )
