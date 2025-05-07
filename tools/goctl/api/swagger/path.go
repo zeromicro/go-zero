@@ -78,6 +78,7 @@ func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec
 			Schemes:     getListFromInfoOrDefault(route.AtDoc.Properties, "schemes", []string{schemeHttps}),
 			Tags:        getListFromInfoOrDefault(group.Annotation.Properties, "tags", []string{""}),
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", getFirstUsableString(route.AtDoc.Text, route.Handler)),
+			ID:          getStringFromKVOrDefault(route.AtDoc.Properties, "operationId", getFirstUsableString(route.AtDoc.Text, route.Handler)),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
 			Parameters:  parametersFromType(route.Method, route.RequestType),
 			Responses:   jsonResponseFromType(info, route.AtDoc, route.ResponseType),
