@@ -18,6 +18,10 @@ func TestNewRpcPubServer(t *testing.T) {
 	assert.NotPanics(t, func() {
 		s.Start(nil)
 	})
+
+	assert.NotPanics(t, func() {
+		s.StartWithListener(nil, nil)
+	})
 }
 
 func TestFigureOutListenOn(t *testing.T) {
