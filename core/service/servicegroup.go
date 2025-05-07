@@ -1,9 +1,10 @@
 package service
 
 import (
+	"sync"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
-	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/threading"
 )
 
@@ -35,7 +36,7 @@ type (
 // NewServiceGroup returns a ServiceGroup.
 func NewServiceGroup() *ServiceGroup {
 	sg := new(ServiceGroup)
-	sg.stopOnce = syncx.Once(sg.doStop)
+	sg.stopOnce = sync.OnceFunc(sg.doStop)
 	return sg
 }
 
