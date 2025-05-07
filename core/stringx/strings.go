@@ -2,6 +2,7 @@ package stringx
 
 import (
 	"errors"
+	"slices"
 	"unicode"
 
 	"github.com/zeromicro/go-zero/core/lang"
@@ -13,17 +14,6 @@ var (
 	// ErrInvalidStopPosition is an error that indicates the stop position is invalid.
 	ErrInvalidStopPosition = errors.New("stop position is invalid")
 )
-
-// Contains checks if str is in list.
-func Contains(list []string, str string) bool {
-	for _, each := range list {
-		if each == str {
-			return true
-		}
-	}
-
-	return false
-}
 
 // Filter filters chars from s with given filter function.
 func Filter(s string, filter func(r rune) bool) string {
@@ -123,11 +113,7 @@ func Remove(strings []string, strs ...string) []string {
 // Reverse reverses s.
 func Reverse(s string) string {
 	runes := []rune(s)
-
-	for from, to := 0, len(runes)-1; from < to; from, to = from+1, to-1 {
-		runes[from], runes[to] = runes[to], runes[from]
-	}
-
+	slices.Reverse(runes)
 	return string(runes)
 }
 
