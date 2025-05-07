@@ -6,6 +6,7 @@
     "application/json"
   ],
   "schemes": [
+    "http",
     "https"
   ],
   "swagger": "2.0",
@@ -27,6 +28,270 @@
   "host": "example.com",
   "basePath": "/v1",
   "paths": {
+    "/doc/replace-operation-id": {
+      "post": {
+        "description": "replace operation id API",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "doc"
+        ],
+        "summary": "docReplaceOperationId",
+        "operationId": "replace-operation-id",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "name": {
+                  "type": "string",
+                  "example": "keson.an"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "description": "1001-User not login\u003cbr\u003e1002-User permission denied",
+                  "type": "integer",
+                  "example": 0
+                },
+                "data": {
+                  "$ref": "#/definitions/DocReplaceOperationIdResp"
+                },
+                "msg": {
+                  "description": "business message",
+                  "type": "string",
+                  "example": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/replace-operation-id/group": {
+      "post": {
+        "description": "replace operation id API",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "doc"
+        ],
+        "summary": "docReplaceOperationIdWithGroup",
+        "operationId": "replace-operation-id-group",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "name": {
+                  "type": "string",
+                  "example": "keson.an"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "description": "1001-User not login\u003cbr\u003e1002-User permission denied",
+                  "type": "integer",
+                  "example": 0
+                },
+                "data": {
+                  "$ref": "#/definitions/DocReplaceOperationIdResp"
+                },
+                "msg": {
+                  "description": "business message",
+                  "type": "string",
+                  "example": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/simple": {
+      "post": {
+        "description": "simple doc request body API",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "doc"
+        ],
+        "summary": "docSimple",
+        "operationId": "docSimple",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "name": {
+                  "type": "string",
+                  "example": "keson.an"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "description": "1001-User not login\u003cbr\u003e1002-User permission denied",
+                  "type": "integer",
+                  "example": 0
+                },
+                "data": {
+                  "$ref": "#/definitions/DocSimpleResp"
+                },
+                "msg": {
+                  "description": "business message",
+                  "type": "string",
+                  "example": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/simple/group": {
+      "post": {
+        "description": "simple doc request body API",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "doc"
+        ],
+        "summary": "docSimpleWithGroup",
+        "operationId": "doc_docSimpleWithGroup",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "name": {
+                  "type": "string",
+                  "example": "keson.an"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "description": "1001-User not login\u003cbr\u003e1002-User permission denied",
+                  "type": "integer",
+                  "example": 0
+                },
+                "data": {
+                  "$ref": "#/definitions/DocSimpleResp"
+                },
+                "msg": {
+                  "description": "business message",
+                  "type": "string",
+                  "example": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/form": {
       "post": {
         "description": "form demo",
@@ -43,6 +308,7 @@
           "form"
         ],
         "summary": "form",
+        "operationId": "form",
         "parameters": [
           {
             "maximum": 10000,
@@ -100,6 +366,7 @@
           "postJson"
         ],
         "summary": "jsonComplex",
+        "operationId": "jsonComplex",
         "parameters": [
           {
             "name": "body",
@@ -1579,6 +1846,7 @@
           "postJson"
         ],
         "summary": "jsonSimple",
+        "operationId": "jsonSimple",
         "parameters": [
           {
             "name": "body",
@@ -1672,6 +1940,7 @@
           "query"
         ],
         "summary": "query",
+        "operationId": "query",
         "parameters": [
           {
             "maximum": 10000,
@@ -1737,6 +2006,7 @@
           "query"
         ],
         "summary": "queryPath",
+        "operationId": "queryPath",
         "parameters": [
           {
             "maximum": 10000,
@@ -4794,6 +5064,74 @@
         }
       }
     },
+    "DocReplaceOperationIdReq": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 10
+        },
+        "name": {
+          "type": "string",
+          "example": "keson.an"
+        }
+      }
+    },
+    "DocReplaceOperationIdResp": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 10
+        },
+        "name": {
+          "type": "string",
+          "example": "keson.an"
+        }
+      }
+    },
+    "DocSimpleReq": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 10
+        },
+        "name": {
+          "type": "string",
+          "example": "keson.an"
+        }
+      }
+    },
+    "DocSimpleResp": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 10
+        },
+        "name": {
+          "type": "string",
+          "example": "keson.an"
+        }
+      }
+    },
     "FormReq": {
       "type": "object",
       "required": [
@@ -4972,7 +5310,7 @@
       "in": "header"
     }
   },
-  "x-date": "2025-05-10 21:16:52",
+  "x-date": "2025-05-17 12:41:13",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",
