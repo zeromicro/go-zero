@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"github.com/zeromicro/go-zero/core/collection"
 	"io"
 	"os"
 	"path"
@@ -13,7 +14,6 @@ import (
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
@@ -41,53 +41,116 @@ func BuildTypes(types []spec.Type) (string, error) {
 	return builder.String(), nil
 }
 
-func removeTypeFromDefault(tp spec.Type, group string, groupTypes map[string]map[string]spec.Type) map[string]map[string]spec.Type {
+func getTypeName(tp spec.Type) string {
+	if tp == nil {
+		return ""
+	}
 	switch val := tp.(type) {
 	case spec.DefineStruct:
 		typeName := util.Title(tp.Name())
-		defaultGroups, ok := groupTypes[groupTypeDefault]
-		if ok {
-			delete(defaultGroups, typeName)
-			types, ok := groupTypes[group]
-			if !ok {
-				types = make(map[string]spec.Type)
-			}
-			types[typeName] = tp
-			groupTypes[group] = types
-		}
-		groupTypes[groupTypeDefault] = defaultGroups
+		return typeName
 	case spec.PointerType:
-		groupTypes = removeTypeFromDefault(val.Type, group, groupTypes)
+		return getTypeName(val.Type)
 	case spec.ArrayType:
-		groupTypes = removeTypeFromDefault(val.Value, group, groupTypes)
+		return getTypeName(val.Value)
 	}
-	return groupTypes
+	return ""
 }
 
 func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	groupTypes := make(map[string]map[string]spec.Type)
-	for _, v := range api.Types {
-		types, ok := groupTypes[groupTypeDefault]
-		if !ok {
-			types = make(map[string]spec.Type)
-		}
-		types[util.Title(v.Name())] = v
-		groupTypes[groupTypeDefault] = types
-	}
+	typesBelongToFiles := make(map[string]*collection.Set)
 
 	for _, v := range api.Service.Groups {
 		group := v.GetAnnotation(groupProperty)
 		if len(group) == 0 {
+			group = groupTypeDefault
+		}
+		// convert filepath to Identifier name spec.
+		group = strings.TrimPrefix(group, "/")
+		group = strings.TrimSuffix(group, "/")
+		group = util.SafeString(group)
+		for _, v := range v.Routes {
+			requestTypeName := getTypeName(v.RequestType)
+			responseTypeName := getTypeName(v.ResponseType)
+			requestTypeFileSet, ok := typesBelongToFiles[requestTypeName]
+			if !ok {
+				requestTypeFileSet = collection.NewSet()
+			}
+			if len(requestTypeName) > 0 {
+				requestTypeFileSet.AddStr(group)
+			}
+			typesBelongToFiles[requestTypeName] = requestTypeFileSet
+
+			responseTypeFileSet, ok := typesBelongToFiles[responseTypeName]
+			if !ok {
+				responseTypeFileSet = collection.NewSet()
+			}
+			if len(responseTypeName) > 0 {
+				responseTypeFileSet.AddStr(group)
+			}
+			typesBelongToFiles[responseTypeName] = responseTypeFileSet
+		}
+	}
+
+	typesInOneFile := make(map[string]*collection.Set)
+	for typeName, fileSet := range typesBelongToFiles {
+		count := fileSet.Count()
+		switch {
+		case count == 0: // it means there has no structure type or no request/response body
+			continue
+		case count == 1: // it means a structure type used in only one group.
+			groupName := fileSet.KeysStr()[0]
+			typeSet, ok := typesInOneFile[groupName]
+			if !ok {
+				typeSet = collection.NewSet()
+			}
+			typeSet.AddStr(typeName)
+			typesInOneFile[groupName] = typeSet
+		default: // it means this type is used in multiple groups.
 			continue
 		}
-		for _, v := range v.Routes {
-			if v.RequestType != nil {
-				groupTypes = removeTypeFromDefault(v.RequestType, group, groupTypes)
-			}
-			if v.ResponseType != nil {
-				groupTypes = removeTypeFromDefault(v.ResponseType, group, groupTypes)
-			}
+	}
+
+	for _, v := range api.Types {
+		typeName := util.Title(v.Name())
+		groupSet, ok := typesBelongToFiles[typeName]
+		var typeCount int
+		if !ok {
+			typeCount = 0
+		} else {
+			typeCount = groupSet.Count()
 		}
+
+		if typeCount == 0 { // not belong to any group
+			types, ok := groupTypes[groupTypeDefault]
+			if !ok {
+				types = make(map[string]spec.Type)
+			}
+			types[typeName] = v
+			groupTypes[groupTypeDefault] = types
+			continue
+		}
+
+		if typeCount == 1 { // belong to one group
+			groupName := groupSet.KeysStr()[0]
+			types, ok := groupTypes[groupName]
+			if !ok {
+				types = make(map[string]spec.Type)
+			}
+			types[typeName] = v
+			groupTypes[groupName] = types
+			continue
+		}
+
+		// belong to multiple groups
+		types, ok := groupTypes[groupTypeDefault]
+		if !ok {
+			types = make(map[string]spec.Type)
+		}
+		types[typeName] = v
+		groupTypes[groupTypeDefault] = types
+
 	}
 
 	for group, typeGroup := range groupTypes {
@@ -142,7 +205,7 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 }
 
 func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	if env.UseExperimental() {
+	if VarBoolTypesGroup {
 		return genTypesWithGroup(dir, cfg, api)
 	}
 	return writeTypes(dir, typesFile, cfg, api.Types)
