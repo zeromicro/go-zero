@@ -3,13 +3,13 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"github.com/zeromicro/go-zero/core/collection"
 	"io"
 	"os"
 	"path"
 	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
