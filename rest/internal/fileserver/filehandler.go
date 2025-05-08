@@ -2,6 +2,7 @@ package fileserver
 
 import (
 	"net/http"
+	pathpkg "path"
 	"strings"
 	"sync"
 )
@@ -29,6 +30,11 @@ func createFileChecker(fs http.FileSystem) func(string) bool {
 	fileChecker := make(map[string]bool)
 
 	return func(path string) bool {
+		path = pathpkg.Clean("/" + path)[1:]
+		if path == "" {
+			path = "."
+		}
+
 		lock.RLock()
 		exist, ok := fileChecker[path]
 		lock.RUnlock()
