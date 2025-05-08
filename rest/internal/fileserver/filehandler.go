@@ -30,6 +30,13 @@ func createFileChecker(fs http.FileSystem) func(string) bool {
 	fileChecker := make(map[string]bool)
 
 	return func(path string) bool {
+		// Emulate http.Dir.Open’s path normalization for embed.FS.Open.
+		// http.FileServer redirects any request ending in "/index.html"
+		// to the same path without the final "index.html".
+		// So the path here may be empty or end with a "/".
+		// http.Dir.Open uses this logic to clean the path,
+		// correctly handling those two cases.
+		// embed.FS doesn’t perform this normalization, so we apply the same logic here.
 		path = pathpkg.Clean("/" + path)[1:]
 		if path == "" {
 			path = "."
