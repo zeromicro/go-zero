@@ -2,11 +2,11 @@ package serverinterceptors
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
@@ -81,13 +81,13 @@ func logDuration(ctx context.Context, method string, req any, duration time.Dura
 			logger.Slowf("[RPC] slowcall - %s - %s", addr, method)
 		}
 	} else {
-		content, err := json.Marshal(req)
+		content, err := jsonx.MarshalToString(req)
 		if err != nil {
 			logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
 		} else if isSlow(duration, durationThreshold) {
-			logger.Slowf("[RPC] slowcall - %s - %s - %s", addr, method, string(content))
+			logger.Slowf("[RPC] slowcall - %s - %s - %s", addr, method, content)
 		} else {
-			logger.Infof("%s - %s - %s", addr, method, string(content))
+			logger.Infof("%s - %s - %s", addr, method, content)
 		}
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
 )
@@ -895,9 +896,9 @@ func (s *sseMcpServer) sendErrorResponse(ctx context.Context, client *mcpClient,
 	}
 
 	// all fields are primitive types, impossible to fail
-	jsonData, _ := json.Marshal(errorResponse)
+	jsonData, _ := jsonx.MarshalToString(errorResponse)
 	// Use CRLF line endings as requested
-	sseMessage := fmt.Sprintf("event: %s\r\ndata: %s\r\n\r\n", eventMessage, string(jsonData))
+	sseMessage := fmt.Sprintf("event: %s\r\ndata: %s\r\n\r\n", eventMessage, jsonData)
 	logx.Infof("Sending error for ID %d: %s", id, sseMessage)
 
 	// cannot receive from ctx.Done() because we're sending to the channel for SSE messages
@@ -917,14 +918,14 @@ func (s *sseMcpServer) sendResponse(ctx context.Context, client *mcpClient, id i
 		Result:  result,
 	}
 
-	jsonData, err := json.Marshal(response)
+	jsonData, err := jsonx.MarshalToString(response)
 	if err != nil {
 		s.sendErrorResponse(ctx, client, id, "Failed to marshal response", errCodeInternalError)
 		return
 	}
 
 	// Use CRLF line endings as requested
-	sseMessage := fmt.Sprintf("event: %s\r\ndata: %s\r\n\r\n", eventMessage, string(jsonData))
+	sseMessage := fmt.Sprintf("event: %s\r\ndata: %s\r\n\r\n", eventMessage, jsonData)
 	logx.Infof("Sending response for ID %d: %s", id, sseMessage)
 
 	// cannot receive from ctx.Done() because we're sending to the channel for SSE messages
