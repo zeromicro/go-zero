@@ -522,14 +522,14 @@ func TestStringToSliceByte(t *testing.T) {
 		want []byte
 	}{
 		{
-			name: "foo",
+			name: "empty",
 			args: args{
 				s: "",
 			},
 			want: nil,
 		},
 		{
-			name: "",
+			name: "bar",
 			args: args{
 				s: "bar",
 			},
