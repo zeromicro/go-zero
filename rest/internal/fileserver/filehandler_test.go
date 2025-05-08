@@ -157,7 +157,7 @@ func TestMiddleware_embedFS(t *testing.T) {
 			expectedContent: "1",
 		},
 		{
-			name:            "Root Path",
+			name:            "Root path",
 			path:            "/",
 			requestPath:     "/example.txt",
 			expectedStatus:  http.StatusOK,
