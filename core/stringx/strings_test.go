@@ -480,3 +480,65 @@ func TestUnion(t *testing.T) {
 	assert.True(t, contains("three"))
 	assert.True(t, contains("four"))
 }
+
+func TestByteSliceToString(t *testing.T) {
+	type args struct {
+		b []byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "empty",
+			args: args{
+				b: nil,
+			},
+			want: "",
+		},
+		{
+			name: "foo",
+			args: args{
+				b: []byte{'f', 'o', 'o'},
+			},
+			want: "foo",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, ByteSliceToString(tt.args.b), "ByteSliceToString(%v)", tt.args.b)
+		})
+	}
+}
+
+func TestStringToSliceByte(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		{
+			name: "foo",
+			args: args{
+				s: "",
+			},
+			want: nil,
+		},
+		{
+			name: "",
+			args: args{
+				s: "bar",
+			},
+			want: []byte{'b', 'a', 'r'},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, StringToSliceByte(tt.args.s), "StringToSliceByte(%v)", tt.args.s)
+		})
+	}
+}
