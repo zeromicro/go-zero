@@ -752,7 +752,7 @@ func (p *Parser) parseDataType() ast.DataType {
 			return p.parseMapDataType()
 		}
 
-		if p.peekTokenIs(token.STRUCT) {
+		if p.peekTokenIs(token.StructKeyword) {
 			// Handle "struct {" case
 			if !p.nextToken() {
 				return nil
