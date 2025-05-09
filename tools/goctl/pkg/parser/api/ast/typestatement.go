@@ -676,6 +676,8 @@ func (t *SliceDataType) dataTypeNode() {}
 
 // StructDataType is the structure data type.
 type StructDataType struct {
+	// Struct is the optional struct keyword token node.
+	Struct *TokenNode
 	// Lbrace is the left brace token node.
 	LBrace *TokenNode
 	// Elements is the structure elements.
@@ -686,6 +688,9 @@ type StructDataType struct {
 }
 
 func (t *StructDataType) HasHeadCommentGroup() bool {
+	if t.Struct != nil {
+		return t.Struct.HasHeadCommentGroup()
+	}
 	return t.LBrace.HasHeadCommentGroup()
 }
 
@@ -694,18 +699,41 @@ func (t *StructDataType) HasLeadingCommentGroup() bool {
 }
 
 func (t *StructDataType) CommentGroup() (head, leading CommentGroup) {
+	if t.Struct != nil {
+		return t.Struct.HeadCommentGroup, t.RBrace.LeadingCommentGroup
+	}
 	return t.LBrace.HeadCommentGroup, t.RBrace.LeadingCommentGroup
 }
 
 func (t *StructDataType) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	if len(t.Elements) == 0 {
-		lbrace := transferTokenNode(t.LBrace, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+		var tokens []*TokenNode
+		if t.Struct != nil {
+			tokens = append(tokens, transferTokenNode(t.Struct, withTokenNodePrefix(prefix...), ignoreLeadingComment()))
+		}
+
+		var lbracePrefix []string
+		if t.Struct == nil {
+			lbracePrefix = prefix
+		}
+
+		lbrace := transferTokenNode(t.LBrace,
+			withTokenNodePrefix(lbracePrefix...),
+			ignoreLeadingComment())
 		rbrace := transferTokenNode(t.RBrace, ignoreHeadComment())
-		brace := transferNilInfixNode([]*TokenNode{lbrace, rbrace})
+
+		tokens = append(tokens, lbrace, rbrace)
+		brace := transferNilInfixNode(tokens)
 		w.Write(withNode(brace), expectSameLine())
 		return w.String()
 	}
+
+	if t.Struct != nil {
+		w.WriteText(t.Struct.Format(prefix...))
+		w.WriteText(" ")
+	}
+
 	w.WriteText(t.LBrace.Format(NilIndent))
 	w.NewLine()
 	for _, e := range t.Elements {
@@ -788,6 +816,9 @@ func (t *StructDataType) CanEqual() bool {
 }
 
 func (t *StructDataType) Pos() token.Position {
+	if t.Struct != nil {
+		return t.Struct.Pos()
+	}
 	return t.LBrace.Pos()
 }
 

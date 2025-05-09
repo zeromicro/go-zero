@@ -16,6 +16,7 @@ const (
 	TypeKeyword   = "type"
 	MapKeyword    = "map"
 	ImportKeyword = "import"
+	StructKeyword = "struct"
 )
 
 // Type is the type of token.
