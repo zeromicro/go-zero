@@ -51,6 +51,10 @@ func projectFromGoMod(workDir string) (*ProjectContext, error) {
 		return nil, err
 	}
 
+	if err := UpdateGoWorkIfExist(workDir); err != nil {
+		return nil, err
+	}
+
 	m, err := getRealModule(workDir, execx.Run)
 	if err != nil {
 		return nil, err
@@ -82,13 +86,15 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if workDir[len(workDir)-1] != os.PathSeparator {
+		workDir = workDir + string(os.PathSeparator)
+	}
 	for _, m := range modules {
 		realDir, err := pathx.ReadLink(m.Dir)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read go.mod, dir: %s, error: %w", m.Dir, err)
 		}
-
+		realDir += string(os.PathSeparator)
 		if strings.HasPrefix(workDir, realDir) {
 			return &m, nil
 		}

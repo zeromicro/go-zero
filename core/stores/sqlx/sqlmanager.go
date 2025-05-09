@@ -1,10 +1,14 @@
 package sqlx
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"io"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
@@ -21,6 +25,23 @@ func getCachedSqlConn(driverName, server string) (*sql.DB, error) {
 		conn, err := newDBConnection(driverName, server)
 		if err != nil {
 			return nil, err
+		}
+
+		if driverName != mysqlDriverName {
+			if cfg, e := mysql.ParseDSN(server); e != nil {
+				// if cannot parse, don't collect the metrics
+				logx.Error(e)
+			} else {
+				checksum := sha256.Sum256([]byte(server))
+				connCollector.registerClient(&statGetter{
+					host:   cfg.Addr,
+					dbName: cfg.DBName,
+					hash:   hex.EncodeToString(checksum[:]),
+					poolStats: func() sql.DBStats {
+						return conn.Stats()
+					},
+				})
+			}
 		}
 
 		return conn, nil

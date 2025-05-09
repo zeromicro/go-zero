@@ -3,8 +3,9 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
-	"sync/atomic"
+	"sync"
 
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/validation"
@@ -23,9 +24,20 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues(), mapping.WithOpaqueKeys())
-	validator       atomic.Value
+	formUnmarshaler = mapping.NewUnmarshaler(
+		formKey,
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys(),
+		mapping.WithFromArray())
+	pathUnmarshaler = mapping.NewUnmarshaler(
+		pathKey,
+		mapping.WithStringValues(),
+		mapping.WithOpaqueKeys())
+
+	// panic: sync/atomic: store of inconsistently typed value into Value
+	// don't use atomic.Value to store the validator, different concrete types still panic
+	validator     Validator
+	validatorLock sync.RWMutex
 )
 
 // Validator defines the interface for validating the request.
@@ -36,16 +48,19 @@ type Validator interface {
 
 // Parse parses the request.
 func Parse(r *http.Request, v any) error {
-	if err := ParsePath(r, v); err != nil {
-		return err
-	}
+	kind := mapping.Deref(reflect.TypeOf(v)).Kind()
+	if kind != reflect.Array && kind != reflect.Slice {
+		if err := ParsePath(r, v); err != nil {
+			return err
+		}
 
-	if err := ParseForm(r, v); err != nil {
-		return err
-	}
+		if err := ParseForm(r, v); err != nil {
+			return err
+		}
 
-	if err := ParseHeaders(r, v); err != nil {
-		return err
+		if err := ParseHeaders(r, v); err != nil {
+			return err
+		}
 	}
 
 	if err := ParseJsonBody(r, v); err != nil {
@@ -54,8 +69,8 @@ func Parse(r *http.Request, v any) error {
 
 	if valid, ok := v.(validation.Validator); ok {
 		return valid.Validate()
-	} else if val := validator.Load(); val != nil {
-		return val.(Validator).Validate(r, v)
+	} else if val := getValidator(); val != nil {
+		return val.Validate(r, v)
 	}
 
 	return nil
@@ -124,7 +139,15 @@ func ParsePath(r *http.Request, v any) error {
 // The validator is used to validate the request, only called in Parse,
 // not in ParseHeaders, ParseForm, ParseHeader, ParseJsonBody, ParsePath.
 func SetValidator(val Validator) {
-	validator.Store(val)
+	validatorLock.Lock()
+	defer validatorLock.Unlock()
+	validator = val
+}
+
+func getValidator() Validator {
+	validatorLock.RLock()
+	defer validatorLock.RUnlock()
+	return validator
 }
 
 func withJsonBody(r *http.Request) bool {

@@ -49,6 +49,15 @@ func TestErrorf(t *testing.T) {
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestErrorfn(t *testing.T) {
+	buf := logtest.NewCollector(t)
+	file, line := getFileLine()
+	Errorfn(context.Background(), func() any {
+		return fmt.Sprintf("foo %s", "bar")
+	})
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
 func TestErrorv(t *testing.T) {
 	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
@@ -77,6 +86,15 @@ func TestInfof(t *testing.T) {
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestInfofn(t *testing.T) {
+	buf := logtest.NewCollector(t)
+	file, line := getFileLine()
+	Infofn(context.Background(), func() any {
+		return fmt.Sprintf("foo %s", "bar")
+	})
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
 func TestInfov(t *testing.T) {
 	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
@@ -102,6 +120,15 @@ func TestDebugf(t *testing.T) {
 	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Debugf(context.Background(), "foo %s", "bar")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugfn(t *testing.T) {
+	buf := logtest.NewCollector(t)
+	file, line := getFileLine()
+	Debugfn(context.Background(), func() any {
+		return fmt.Sprintf("foo %s", "bar")
+	})
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
@@ -145,6 +172,15 @@ func TestSlowf(t *testing.T) {
 	buf := logtest.NewCollector(t)
 	file, line := getFileLine()
 	Slowf(context.Background(), "foo %s", "bar")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)), buf.String())
+}
+
+func TestSlowfn(t *testing.T) {
+	buf := logtest.NewCollector(t)
+	file, line := getFileLine()
+	Slowfn(context.Background(), func() any {
+		return fmt.Sprintf("foo %s", "bar")
+	})
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)), buf.String())
 }
 

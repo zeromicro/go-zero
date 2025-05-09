@@ -12,7 +12,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-GOPROXY="https://goproxy.cn,direct" && go mod tidy
+go mod tidy
 
 if [ $? -ne 0 ]; then
     echo "Tidy failed"

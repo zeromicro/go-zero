@@ -41,6 +41,7 @@ var (
 
 type (
 	statGetter struct {
+		host      string
 		dbName    string
 		hash      string
 		poolStats func() sql.DBStats

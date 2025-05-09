@@ -1,0 +1,42 @@
+name: Release Version Check
+
+on:
+  push:
+    tags:
+      - 'tools/goctl/v*'
+  workflow_dispatch:
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Extract tag version
+        id: get_version
+        run: |
+          # Extract version from tools/goctl/v* format
+          VERSION="${GITHUB_REF#refs/tags/tools/goctl/v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
+      - name: Check version in goctl source code
+        run: |
+          # Change to goctl directory
+          cd tools/goctl
+          
+          # Check version in BuildVersion constant
+          VERSION_IN_CODE=$(grep -r "const BuildVersion =" . | grep -o '".*"' | tr -d '"')
+          echo "Version in code: $VERSION_IN_CODE"
+          echo "Expected version: $VERSION"
+          
+          if [ "$VERSION_IN_CODE" != "$VERSION" ]; then
+            echo "Version mismatch: Version in code ($VERSION_IN_CODE) doesn't match tag version ($VERSION)"
+            exit 1
+          fi
+          echo "✅ Version check passed!"

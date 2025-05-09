@@ -1,0 +1,245 @@
+syntax = "v1"
+
+info (
+	title:                  "演示 API" // 对应 swagger 的 title
+	description:            "演示 api 生成 swagger 文件的 api 完整写法" // 对应 swagger 的 description
+	version:                "v1" // 对应 swagger 的 version
+	termsOfService:         "https://github.com/zeromicro/go-zero" // 对应 swagger 的 termsOfService
+	contactName:            "keson.an" // 对应 swagger 的 contactName
+	contactURL:             "https://github.com/zeromicro/go-zero" // 对应 swagger 的 contactURL
+	contactEmail:           "example@gmail.com" // 对应 swagger 的 contactEmail
+	licenseName:            "MIT" // 对应 swagger 的 licenseName
+	licenseURL:             "https://github.com/zeromicro/go-zero" // 对应 swagger 的 licenseURL
+	consumes:               "application/json" // 对应 swagger 的 consumes,不填默认为 application/json
+	produces:               "application/json" // 对应 swagger 的 produces,不填默认为 application/json
+	schemes:                "https" // 对应 swagger 的 schemes,不填默认为 https
+	host:                   "example.com" // 对应 swagger 的 host,不填默认为 127.0.0.1
+	basePath:               "/v1" // 对应 swagger 的 basePath,不填默认为 /
+	wrapCodeMsg:            "true" // 是否用 code-msg 通用响应体，如果开启，则以格式 {"code":0,"msg":"OK","data":$data} 包括响应体
+	bizCodeEnumDescription: "1001-未登录<br>1002-无权限操作" // 全局业务错误码枚举描述，json 格式,key 为业务错误码，value 为该错误码的描述，仅当 wrapCodeMsg 为 true 时生效
+	// securityDefinitionsFromJson 为自定义鉴权配置，json 内容将直接放入 swagger 的 securityDefinitions 中，
+	// 格式参考 https://swagger.io/specification/v2/#security-definitions-object
+	// 在 api 的 @server 中可声明 authType 来指定其路由使用的鉴权类型
+	securityDefinitionsFromJson: `{"apiKey":{"description":"apiKey 类型鉴权自定义","type":"apiKey","name":"x-api-key","in":"header"}}`
+)
+
+type (
+	QueryReq {
+		Id     int    `form:"id,range=[1:10000],example=10"`
+		Name   string `form:"name,example=keson.an"`
+		Avatar string `form:"avatar,optional,example=https://example.com/avatar.png"`
+	}
+	QueryResp {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+	PathQueryReq {
+		Id   int    `path:"id,range=[1:10000],example=10"`
+		Name string `form:"name,example=keson.an"`
+	}
+	PathQueryResp {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+)
+
+@server (
+	tags:    "query 演示" // 对应 swagger 的 tags,可以对 swagger 中的 api 进行分组
+	summary: "query 类型接口集合" // 对应 swagger 的 summary
+	prefix: v1
+	authType: apiKey // 指定该路由使用的鉴权类型，值为 securityDefinitionsFromJson 中定义的名称
+)
+service Swagger {
+	@doc (
+		description: "query 接口"
+		bizCodeEnumDescription: " 1003-用不存在<br>1004-非法操作" // 接口级别业务错误码枚举描述，会覆盖全局的业务错误码，json 格式,key 为业务错误码，value 为该错误码的描述，仅当 wrapCodeMsg 为 true 时生效
+	)
+	@handler query
+	get /query (QueryReq) returns (QueryResp)
+
+	@doc (
+		description: "query path 中包含 id 字段接口"
+	)
+	@handler queryPath
+	get /query/:id (PathQueryReq) returns (PathQueryResp)
+}
+
+type (
+	FormReq {
+		Id   int    `form:"id,range=[1:10000],example=10"`
+		Name string `form:"name,example=keson.an"`
+	}
+	FormResp {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+)
+
+@server (
+	tags:    "form 表单 api 演示" // 对应 swagger 的 tags,可以对 swagger 中的 api 进行分组
+	summary: "form 表单类型接口集合" // 对应 swagger 的 summary
+)
+service Swagger {
+	@doc (
+		description: "form 接口"
+	)
+	@handler form
+	post /form (FormReq) returns (FormResp)
+}
+
+type (
+	JsonReq {
+		Id       int    `json:"id,range=[1:10000],example=10"`
+		Name     string `json:"name,example=keson.an"`
+		Avatar   string `json:"avatar,optional"`
+		Language string `json:"language,options=golang|java|python|typescript|rust"`
+		Gender   string `json:"gender,default=male,options=male|female,example=male"`
+	}
+	JsonResp {
+		Id       int    `json:"id"`
+		Name     string `json:"name"`
+		Avatar   string `json:"avatar"`
+		Language string `json:"language"`
+		Gender   string `json:"gender"`
+	}
+	ComplexJsonLevel2 {
+		// basic
+		Integer int     `json:"integer,example=1"`
+		Number  float64 `json:"number,example=1.1"`
+		Boolean bool    `json:"boolean,options=true|false,example=true"`
+		String  string  `json:"string,example=some text"`
+	}
+	ComplexJsonLevel1 {
+		// basic
+		Integer int     `json:"integer,example=1"`
+		Number  float64 `json:"number,example=1.1"`
+		Boolean bool    `json:"boolean,options=true|false,example=true"`
+		String  string  `json:"string,example=some text"`
+		// Object
+		Object        ComplexJsonLevel2  `json:"object"`
+		PointerObject *ComplexJsonLevel2 `json:"pointerObject"`
+	}
+	ComplexJsonReq {
+		// basic
+		Integer int     `json:"integer,example=1"`
+		Number  float64 `json:"number,example=1.1"`
+		Boolean bool    `json:"boolean,options=true|false,example=true"`
+		String  string  `json:"string,example=some text"`
+		// basic array
+		ArrayInteger []int     `json:"arrayInteger"`
+		ArrayNumber  []float64 `json:"arrayNumber"`
+		ArrayBoolean []bool    `json:"arrayBoolean"`
+		ArrayString  []string  `json:"arrayString"`
+		// basic array array
+		ArrayArrayInteger [][]int     `json:"arrayArrayInteger"`
+		ArrayArrayNumber  [][]float64 `json:"arrayArrayNumber"`
+		ArrayArrayBoolean [][]bool    `json:"arrayArrayBoolean"`
+		ArrayArrayString  [][]string  `json:"arrayArrayString"`
+		// basic map
+		MapInteger map[string]int     `json:"mapInteger"`
+		MapNumber  map[string]float64 `json:"mapNumber"`
+		MapBoolean map[string]bool    `json:"mapBoolean"`
+		MapString  map[string]string  `json:"mapString"`
+		// basic map array
+		MapArrayInteger map[string][]int     `json:"mapArrayInteger"`
+		MapArrayNumber  map[string][]float64 `json:"mapArrayNumber"`
+		MapArrayBoolean map[string][]bool    `json:"mapArrayBoolean"`
+		MapArrayString  map[string][]string  `json:"mapArrayString"`
+		// basic map map
+		MapMapInteger map[string]map[string]int     `json:"mapMapInteger"`
+		MapMapNumber  map[string]map[string]float64 `json:"mapMapNumber"`
+		MapMapBoolean map[string]map[string]bool    `json:"mapMapBoolean"`
+		MapMapString  map[string]map[string]string  `json:"mapMapString"`
+		MapMapObject  map[string]map[string]ComplexJsonLevel1  `json:"mapMapObject"`
+		MapMapPointerObject  map[string]map[string]*ComplexJsonLevel1  `json:"mapMapPointerObject"`
+		// Object
+		Object        ComplexJsonLevel1  `json:"object"`
+		PointerObject *ComplexJsonLevel1 `json:"pointerObject"`
+		// Object array
+		ArrayObject        []ComplexJsonLevel1  `json:"arrayObject"`
+		ArrayPointerObject []*ComplexJsonLevel1 `json:"arrayPointerObject"`
+		// Object map
+		MapObject        map[string]ComplexJsonLevel1  `json:"mapObject"`
+		MapPointerObject map[string]*ComplexJsonLevel1 `json:"mapPointerObject"`
+		// Object array array
+		ArrayArrayObject        [][]ComplexJsonLevel1  `json:"arrayArrayObject"`
+		ArrayArrayPointerObject [][]*ComplexJsonLevel1 `json:"arrayArrayPointerObject"`
+		// Object array map
+		ArrayMapObject        []map[string]ComplexJsonLevel1  `json:"arrayMapObject"`
+		ArrayMapPointerObject []map[string]*ComplexJsonLevel1 `json:"arrayMapPointerObject"`
+		// Object map array
+		MapArrayObject        map[string][]ComplexJsonLevel1  `json:"mapArrayObject"`
+		MapArrayPointerObject map[string][]*ComplexJsonLevel1 `json:"mapArrayPointerObject"`
+	}
+	ComplexJsonResp {
+		// basic
+		Integer int     `json:"integer,example=1"`
+		Number  float64 `json:"number,example=1.1"`
+		Boolean bool    `json:"boolean,options=true|false,example=true"`
+		String  string  `json:"string,example=some text"`
+		// basic array
+		ArrayInteger []int     `json:"arrayInteger"`
+		ArrayNumber  []float64 `json:"arrayNumber"`
+		ArrayBoolean []bool    `json:"arrayBoolean"`
+		ArrayString  []string  `json:"arrayString"`
+		// basic array array
+		ArrayArrayInteger [][]int     `json:"arrayArrayInteger"`
+		ArrayArrayNumber  [][]float64 `json:"arrayArrayNumber"`
+		ArrayArrayBoolean [][]bool    `json:"arrayArrayBoolean"`
+		ArrayArrayString  [][]string  `json:"arrayArrayString"`
+		// basic map
+		MapInteger map[string]int     `json:"mapInteger"`
+		MapNumber  map[string]float64 `json:"mapNumber"`
+		MapBoolean map[string]bool    `json:"mapBoolean"`
+		MapString  map[string]string  `json:"mapString"`
+		// basic map array
+		MapArrayInteger map[string][]int     `json:"mapArrayInteger"`
+		MapArrayNumber  map[string][]float64 `json:"mapArrayNumber"`
+		MapArrayBoolean map[string][]bool    `json:"mapArrayBoolean"`
+		MapArrayString  map[string][]string  `json:"mapArrayString"`
+		// basic map map
+		MapMapInteger map[string]map[string]int     `json:"mapMapInteger"`
+		MapMapNumber  map[string]map[string]float64 `json:"mapMapNumber"`
+		MapMapBoolean map[string]map[string]bool    `json:"mapMapBoolean"`
+		MapMapString  map[string]map[string]string  `json:"mapMapString"`
+		MapMapObject  map[string]map[string]ComplexJsonLevel1  `json:"mapMapObject"`
+		MapMapPointerObject  map[string]map[string]*ComplexJsonLevel1  `json:"mapMapPointerObject"`
+		// Object
+		Object        ComplexJsonLevel1  `json:"object"`
+		PointerObject *ComplexJsonLevel1 `json:"pointerObject"`
+		// Object array
+		ArrayObject        []ComplexJsonLevel1  `json:"arrayObject"`
+		ArrayPointerObject []*ComplexJsonLevel1 `json:"arrayPointerObject"`
+		// Object map
+		MapObject        map[string]ComplexJsonLevel1  `json:"mapObject"`
+		MapPointerObject map[string]*ComplexJsonLevel1 `json:"mapPointerObject"`
+		// Object array array
+		ArrayArrayObject        [][]ComplexJsonLevel1  `json:"arrayArrayObject"`
+		ArrayArrayPointerObject [][]*ComplexJsonLevel1 `json:"arrayArrayPointerObject"`
+		// Object array map
+		ArrayMapObject        []map[string]ComplexJsonLevel1  `json:"arrayMapObject"`
+		ArrayMapPointerObject []map[string]*ComplexJsonLevel1 `json:"arrayMapPointerObject"`
+		// Object map array
+		MapArrayObject        map[string][]ComplexJsonLevel1  `json:"mapArrayObject"`
+		MapArrayPointerObject map[string][]*ComplexJsonLevel1 `json:"mapArrayPointerObject"`
+	}
+)
+
+@server (
+	tags:    "post json api 演示" // 对应 swagger 的 tags,可以对 swagger 中的 api 进行分组
+	summary: "json 请求类型接口集合" // 对应 swagger 的 summary
+)
+service Swagger {
+	@doc (
+		description: "简单的 json 请求体接口"
+	)
+	@handler jsonSimple
+	post /json/simple (JsonReq) returns (JsonResp)
+
+	@doc (
+		description: "复杂的 json 请求体接口"
+	)
+	@handler jsonComplex
+	post /json/complex (ComplexJsonReq) returns (ComplexJsonResp)
+}
+

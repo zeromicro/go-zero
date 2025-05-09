@@ -10,7 +10,7 @@ const (
 	// ContentType means Content-Type.
 	ContentType = header.ContentType
 	// JsonContentType means application/json.
-	JsonContentType = header.JsonContentType
+	JsonContentType = header.ContentTypeJson
 	// KeyField means key.
 	KeyField = "key"
 	// SecretField means secret.

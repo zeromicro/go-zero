@@ -19,4 +19,5 @@
     prefix3: v1/v2_
     prefix4: a-b-c
     summary:"test"
+    key:"bar"
 )

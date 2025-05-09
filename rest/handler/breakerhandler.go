@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/response"
@@ -22,7 +22,7 @@ func BreakerHandler(method, path string, metrics *stat.Metrics) func(http.Handle
 			promise, err := brk.Allow()
 			if err != nil {
 				metrics.AddDrop()
-				logx.Errorf("[http] dropped, %s - %s - %s",
+				logc.Errorf(r.Context(), "[http] dropped, %s - %s - %s",
 					r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent())
 				w.WriteHeader(http.StatusServiceUnavailable)
 				return

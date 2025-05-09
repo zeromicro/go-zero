@@ -151,13 +151,13 @@ service example {
 	@doc (
 		desc: "path demo"
 	)
-	@handler postPath
-	post /example/path (PostPathReq) returns (PostPathResp)
+	@handler getPath
+	get /example/path (PostPathReq) returns (PostPathResp)
 }
 
 @server (
-	group:    array
-	prefix:   /array
+	group :    array
+	prefix :   /array
 	maxBytes: 1024
 )
 service example {

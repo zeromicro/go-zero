@@ -38,9 +38,24 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ 
 	sub.AddListener(update)
 	update()
 
-	return &nopResolver{cc: cc}, nil
+	return &discovResolver{
+		cc:  cc,
+		sub: sub,
+	}, nil
 }
 
 func (b *discovBuilder) Scheme() string {
 	return DiscovScheme
+}
+
+type discovResolver struct {
+	cc  resolver.ClientConn
+	sub *discov.Subscriber
+}
+
+func (r *discovResolver) Close() {
+	r.sub.Close()
+}
+
+func (r *discovResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 }

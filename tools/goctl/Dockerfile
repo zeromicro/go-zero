@@ -3,7 +3,8 @@ FROM golang:alpine AS builder
 LABEL stage=gobuilder
 
 ENV CGO_ENABLED=0
-ENV GOPROXY=https://goproxy.cn,direct
+# if you are in China, you can use the following command to speed up the download
+# ENV GOPROXY=https://goproxy.cn,direct
 
 RUN apk update --no-cache && apk add --no-cache tzdata
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest

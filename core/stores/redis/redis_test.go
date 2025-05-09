@@ -1071,6 +1071,34 @@ func TestRedis_Set(t *testing.T) {
 	})
 }
 
+func TestRedis_GetDel(t *testing.T) {
+	t.Run("get_del", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			val, err := newRedis(client.Addr).GetDel("hello")
+			assert.Equal(t, "", val)
+			assert.Nil(t, err)
+			err = client.Set("hello", "world")
+			assert.Nil(t, err)
+			val, err = client.Get("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "world", val)
+			val, err = client.GetDel("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "world", val)
+			val, err = client.Get("hello")
+			assert.Nil(t, err)
+			assert.Equal(t, "", val)
+		})
+	})
+
+	t.Run("get_del_with_error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := newRedis(client.Addr, badType()).GetDel("hello")
+			assert.Error(t, err)
+		})
+	})
+}
+
 func TestRedis_GetSet(t *testing.T) {
 	t.Run("set_get", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
@@ -1996,9 +2024,9 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
-func TestRedis_WithPass(t *testing.T) {
+func TestRedis_WithUserPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := newRedis(client.Addr, WithPass("any")).Ping()
+		err := newRedis(client.Addr, WithUser("any"), WithPass("any")).Ping()
 		assert.NotNil(t, err)
 	})
 }
@@ -2079,4 +2107,71 @@ func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.
 	}
 
 	return cmd
+}
+
+func TestRedisPublish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Publish("Test", "message")
+		assert.NotNil(t, err)
+		_, err = client.Publish("Test", "message")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedisRPopLPush(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).RPopLPush("Source", "Destination")
+		assert.NotNil(t, err)
+		_, err = client.Rpush("Source", "Destination")
+		assert.Nil(t, err)
+		_, err = client.RPopLPush("Source", "Destination")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedisUnlink(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Unlink("Key1", "Key2")
+		assert.NotNil(t, err)
+		err = client.Set("Key1", "Key2")
+		assert.Nil(t, err)
+		get, err := client.Get("Key1")
+		assert.Nil(t, err)
+		assert.Equal(t, "Key2", get)
+		res, err := client.Unlink("Key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), res)
+	})
+}
+
+func TestRedisTxPipeline(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		ctx := context.Background()
+		_, err := newRedis(client.Addr, badType()).TxPipeline()
+		assert.NotNil(t, err)
+		pipe, err := client.TxPipeline()
+		assert.Nil(t, err)
+		key := "key"
+		hashKey := "field"
+		hashValue := "value"
+
+		// setting value
+		pipe.HSet(ctx, key, hashKey, hashValue)
+
+		existsCmd := pipe.Exists(ctx, key)
+		getCmd := pipe.HGet(ctx, key, hashKey)
+
+		// execution
+		_, err = pipe.Exec(ctx)
+		assert.Nil(t, err)
+
+		// verification results
+		exists, err := existsCmd.Result()
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), exists)
+
+		value, err := getCmd.Result()
+		assert.Nil(t, err)
+		assert.Equal(t, hashValue, value)
+	})
 }

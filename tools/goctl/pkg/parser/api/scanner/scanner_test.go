@@ -62,13 +62,13 @@ func TestNewScanner(t *testing.T) {
 		{
 			filename: "foo",
 			src:      "",
-			expected: missingInput,
+			expected: "missing input",
 		},
 	}
 	for _, v := range testData {
 		s, err := NewScanner(v.filename, v.src)
 		if err != nil {
-			assert.Equal(t, v.expected.(error).Error(), err.Error())
+			assert.Contains(t, err.Error(), v.expected)
 		} else {
 			assert.Equal(t, v.expected, s.filename)
 		}
@@ -581,8 +581,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type: token.KEY,
-			Text: "foo:",
+			Type: token.IDENT,
+			Text: "foo",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     2,
@@ -590,12 +590,30 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type: token.KEY,
-			Text: "bar:",
+			Type: token.COLON,
+			Text: ":",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     2,
+				Column:   4,
+			},
+		},
+		{
+			Type: token.IDENT,
+			Text: "bar",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     3,
 				Column:   1,
+			},
+		},
+		{
+			Type: token.COLON,
+			Text: ":",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     3,
+				Column:   4,
 			},
 		},
 		{
@@ -1090,9 +1108,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(3, 5),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `title:`,
+			Type:     token.IDENT,
+			Text:     `title`,
 			Position: position(4, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(4, 10),
 		},
 		{
 			Type:     token.STRING,
@@ -1100,9 +1123,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(4, 12),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `desc:`,
+			Type:     token.IDENT,
+			Text:     `desc`,
 			Position: position(5, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(5, 9),
 		},
 		{
 			Type:     token.STRING,
@@ -1110,9 +1138,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(5, 11),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `author:`,
+			Type:     token.IDENT,
+			Text:     `author`,
 			Position: position(6, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(6, 11),
 		},
 		{
 			Type:     token.STRING,
@@ -1120,9 +1153,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(6, 13),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `email:`,
+			Type:     token.IDENT,
+			Text:     `email`,
 			Position: position(7, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(7, 10),
 		},
 		{
 			Type:     token.STRING,
@@ -1130,9 +1168,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(7, 12),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `version:`,
+			Type:     token.IDENT,
+			Text:     `version`,
 			Position: position(8, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(8, 12),
 		},
 		{
 			Type:     token.STRING,
@@ -1205,9 +1248,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(20, 8),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `jwt:`,
+			Type:     token.IDENT,
+			Text:     `jwt`,
 			Position: position(21, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(21, 8),
 		},
 		{
 			Type:     token.IDENT,
@@ -1215,9 +1263,14 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(21, 10),
 		},
 		{
-			Type:     token.KEY,
-			Text:     `group:`,
+			Type:     token.IDENT,
+			Text:     `group`,
 			Position: position(22, 5),
+		},
+		{
+			Type:     token.COLON,
+			Text:     `:`,
+			Position: position(22, 10),
 		},
 		{
 			Type:     token.IDENT,

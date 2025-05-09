@@ -1,0 +1,21 @@
+syntax = "v1"
+
+@server (
+    group:      path2
+    middleware: Path
+    prefix:     /v1/v3
+    timeout:    100ms
+)
+service example {
+    @doc (
+        desc: "path demo"
+    )
+    @handler getPath1
+    get / (string) returns (string)
+
+    @doc (
+        desc: "path demo"
+    )
+    @handler getPath2
+    get / (string) returns (string)
+}

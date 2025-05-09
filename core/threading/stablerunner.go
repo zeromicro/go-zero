@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 const factor = 10
@@ -100,6 +101,6 @@ func (r *StableRunner[I, O]) Wait() {
 	close(r.done)
 	r.runner.Wait()
 	for atomic.LoadUint64(&r.consumedIndex) < atomic.LoadUint64(&r.writtenIndex) {
-		runtime.Gosched()
+		time.Sleep(time.Millisecond)
 	}
 }

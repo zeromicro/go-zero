@@ -125,11 +125,11 @@ var infoTestAPI string
 func TestParser_Parse_infoStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		expected := map[string]string{
-			"title:":   `"type title here"`,
-			"desc:":    `"type desc here"`,
-			"author:":  `"type author here"`,
-			"email:":   `"type email here"`,
-			"version:": `"type version here"`,
+			"title":   `"type title here"`,
+			"desc":    `"type desc here"`,
+			"author":  `"type author here"`,
+			"email":   `"type email here"`,
+			"version": `"type version here"`,
 		}
 		p := New("foo.api", infoTestAPI)
 		result := p.Parse()
@@ -285,26 +285,27 @@ var atServerTestAPI string
 func TestParser_Parse_atServerStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		var expectedData = map[string]string{
-			"foo:":        `bar`,
-			"bar:":        `baz`,
-			"baz:":        `foo`,
-			"qux:":        `/v1`,
-			"quux:":       `/v1/v2`,
-			"middleware:": `M1,M2`,
-			"timeout1:":   "1h",
-			"timeout2:":   "10m",
-			"timeout3:":   "10s",
-			"timeout4:":   "10ms",
-			"timeout5:":   "10µs",
-			"timeout6:":   "10ns",
-			"timeout7:":   "1h10m10s10ms10µs10ns",
-			"maxBytes:":   `1024`,
-			"prefix:":     "/v1",
-			"prefix1:":    "/v1/v2_test/v2-beta",
-			"prefix2:":    "v1/v2_test/v2-beta",
-			"prefix3:":    "v1/v2_",
-			"prefix4:":    "a-b-c",
-			"summary:":    `"test"`,
+			"foo":        `bar`,
+			"bar":        `baz`,
+			"baz":        `foo`,
+			"qux":        `/v1`,
+			"quux":       `/v1/v2`,
+			"middleware": `M1,M2`,
+			"timeout1":   "1h",
+			"timeout2":   "10m",
+			"timeout3":   "10s",
+			"timeout4":   "10ms",
+			"timeout5":   "10µs",
+			"timeout6":   "10ns",
+			"timeout7":   "1h10m10s10ms10µs10ns",
+			"maxBytes":   `1024`,
+			"prefix":     "/v1",
+			"prefix1":    "/v1/v2_test/v2-beta",
+			"prefix2":    "v1/v2_test/v2-beta",
+			"prefix3":    "v1/v2_",
+			"prefix4":    "a-b-c",
+			"summary":    `"test"`,
+			"key":        `"bar"`,
 		}
 
 		p := New("foo.api", atServerTestAPI)
@@ -760,11 +761,6 @@ func TestParser_Parse_service(t *testing.T) {
 							},
 							Request: &ast.BodyStmt{
 								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
-								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
-							},
-							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
-							Response: &ast.BodyStmt{
-								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
 									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 								},
@@ -1030,6 +1026,7 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			{input: "1", expected: "1"},
 			{input: "11", expected: "11"},
 		}
+
 		for _, v := range testData {
 			p := New("foo.api", v.input)
 			ok := p.nextToken()
@@ -1061,6 +1058,38 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			assert.True(t, ok)
 			p.parsePathItem()
 			assertx.ErrorOrigin(t, v, p.errors...)
+		}
+	})
+}
+
+func TestParser_Parse_pathItem_WithDot(t *testing.T) {
+	t.Run("valid with dots", func(t *testing.T) {
+		var testData = []struct {
+			input    string
+			expected string
+		}{
+			{input: "file.php", expected: "file.php"},
+			{input: "api_jsonrpc.php", expected: "api_jsonrpc.php"},
+			{input: "index.html", expected: "index.html"},
+			{input: "data.json", expected: "data.json"},
+			{input: "style.css", expected: "style.css"},
+			{input: "script.js", expected: "script.js"},
+			{input: "document.pdf", expected: "document.pdf"},
+			{input: "image.png", expected: "image.png"},
+			{input: "api.v1", expected: "api.v1"},
+			{input: "resource.with.multiple.dots", expected: "resource.with.multiple.dots"},
+		}
+
+		for _, v := range testData {
+			p := New("foo.api", v.input)
+			ok := p.nextToken()
+			assert.True(t, ok)
+			tokens := p.parsePathItem()
+			var expected []string
+			for _, tok := range tokens {
+				expected = append(expected, tok.Text)
+			}
+			assert.Equal(t, strings.Join(expected, ""), v.expected)
 		}
 	})
 }
@@ -1398,6 +1427,7 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			assertEqual(t, val.expected, one)
 		}
 	})
+
 	t.Run("parseTypeGroupStmt", func(t *testing.T) {
 		var testData = []struct {
 			input    string
@@ -1471,6 +1501,7 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 				},
 			},
 		}
+
 		for _, val := range testData {
 			p := New("test.api", val.input)
 			result := p.Parse()

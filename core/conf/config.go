@@ -62,7 +62,11 @@ func Load(file string, v any, opts ...Option) error {
 		return loader([]byte(os.ExpandEnv(string(content))), v)
 	}
 
-	return loader(content, v)
+	if err = loader(content, v); err != nil {
+		return err
+	}
+
+	return validate(v)
 }
 
 // LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -85,7 +89,12 @@ func LoadFromJsonBytes(content []byte, v any) error {
 
 	lowerCaseKeyMap := toLowerCaseKeyMap(m, info)
 
-	return mapping.UnmarshalJsonMap(lowerCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toLowerCase))
+	if err = mapping.UnmarshalJsonMap(lowerCaseKeyMap, v,
+		mapping.WithCanonicalKeyFunc(toLowerCase)); err != nil {
+		return err
+	}
+
+	return validate(v)
 }
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
@@ -192,7 +201,7 @@ func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
 	case reflect.Array, reflect.Slice, reflect.Map:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName)
 	case reflect.Chan, reflect.Func:
-		return nil, fmt.Errorf("unsupported type: %s", tp.Kind())
+		return nil, fmt.Errorf("unsupported type: %s, fullName: %s", tp.Kind(), fullName)
 	default:
 		return &fieldInfo{
 			children: make(map[string]*fieldInfo),

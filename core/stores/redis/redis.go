@@ -55,6 +55,7 @@ type (
 	Redis struct {
 		Addr  string
 		Type  string
+		User  string
 		Pass  string
 		tls   bool
 		brk   breaker.Breaker
@@ -125,6 +126,9 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 
 	if conf.Type == ClusterType {
 		opts = append([]Option{Cluster()}, opts...)
+	}
+	if len(conf.User) > 0 {
+		opts = append([]Option{WithUser(conf.User)}, opts...)
 	}
 	if len(conf.Pass) > 0 {
 		opts = append([]Option{WithPass(conf.Pass)}, opts...)
@@ -603,6 +607,28 @@ func (s *Redis) GetBitCtx(ctx context.Context, key string, offset int64) (int, e
 	}
 
 	return int(v), nil
+}
+
+// GetDel is the implementation of redis getdel command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetDel(key string) (string, error) {
+	return s.GetDelCtx(context.Background(), key)
+}
+
+// GetDelCtx is the implementation of redis getdel command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetDelCtx(ctx context.Context, key string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	val, err := conn.GetDel(ctx, key).Result()
+	if errors.Is(err, red.Nil) {
+		return "", nil
+	}
+
+	return val, err
 }
 
 // GetSet is the implementation of redis getset command.
@@ -1197,6 +1223,18 @@ func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) erro
 	return err
 }
 
+func (s *Redis) Publish(channel string, message interface{}) (int64, error) {
+	return s.PublishCtx(context.Background(), channel, message)
+}
+
+func (s *Redis) PublishCtx(ctx context.Context, channel string, message interface{}) (int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+	return conn.Publish(ctx, channel, message).Result()
+}
+
 // Rpop is the implementation of redis rpop command.
 func (s *Redis) Rpop(key string) (string, error) {
 	return s.RpopCtx(context.Background(), key)
@@ -1245,6 +1283,18 @@ func (s *Redis) RpushCtx(ctx context.Context, key string, values ...any) (int, e
 	}
 
 	return int(v), nil
+}
+
+func (s *Redis) RPopLPush(source string, destination string) (string, error) {
+	return s.RPopLPushCtx(context.Background(), source, destination)
+}
+
+func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+	return conn.RPopLPush(ctx, source, destination).Result()
 }
 
 // Sadd is the implementation of redis sadd command.
@@ -1643,6 +1693,26 @@ func (s *Redis) TtlCtx(ctx context.Context, key string) (int, error) {
 	// -2 means key does not exist
 	// -1 means key exists but has no expire
 	return int(duration), nil
+}
+
+func (s *Redis) TxPipeline() (pipe Pipeliner, err error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.TxPipeline(), nil
+}
+
+func (s *Redis) Unlink(keys ...string) (int64, error) {
+	return s.UnlinkCtx(context.Background(), keys...)
+}
+
+func (s *Redis) UnlinkCtx(ctx context.Context, keys ...string) (int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+	return conn.Unlink(ctx, keys...).Result()
 }
 
 // Zadd is the implementation of redis zadd command.
@@ -2361,6 +2431,13 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
+// WithHook customizes the given Redis with given durationHook.
+func WithHook(hook Hook) Option {
+	return func(r *Redis) {
+		r.hooks = append(r.hooks, hook)
+	}
+}
+
 // WithPass customizes the given Redis with given password.
 func WithPass(pass string) Option {
 	return func(r *Redis) {
@@ -2375,11 +2452,10 @@ func WithTLS() Option {
 	}
 }
 
-// WithHook customizes the given Redis with given durationHook, only for private use now,
-// maybe expose later.
-func WithHook(hook Hook) Option {
+// WithUser customizes the given Redis with given username.
+func WithUser(user string) Option {
 	return func(r *Redis) {
-		r.hooks = append(r.hooks, hook)
+		r.User = user
 	}
 }
 
