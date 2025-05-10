@@ -81,21 +81,21 @@ func enumsValueFromOptions(options []string) []any {
 	return []any{}
 }
 
-func defValueFromOptions(options []string, apiType spec.Type) any {
-	tp := sampleTypeFromGoType(apiType)
-	return valueFromOptions(options, defFlag, tp)
+func defValueFromOptions(ctx Context, options []string, apiType spec.Type) any {
+	tp := sampleTypeFromGoType(ctx, apiType)
+	return valueFromOptions(ctx, options, defFlag, tp)
 }
 
-func exampleValueFromOptions(options []string, apiType spec.Type) any {
-	tp := sampleTypeFromGoType(apiType)
-	val := valueFromOptions(options, exampleFlag, tp)
+func exampleValueFromOptions(ctx Context, options []string, apiType spec.Type) any {
+	tp := sampleTypeFromGoType(ctx, apiType)
+	val := valueFromOptions(ctx, options, exampleFlag, tp)
 	if val != nil {
 		return val
 	}
-	return defValueFromOptions(options, apiType)
+	return defValueFromOptions(ctx, options, apiType)
 }
 
-func valueFromOptions(options []string, key string, tp string) any {
+func valueFromOptions(_ Context, options []string, key string, tp string) any {
 	if len(options) == 0 {
 		return nil
 	}
@@ -103,16 +103,18 @@ func valueFromOptions(options []string, key string, tp string) any {
 		if strings.HasPrefix(option, key) {
 			s := option[len(key):]
 			switch tp {
-			case "integer":
+			case swaggerTypeInteger:
 				val, _ := strconv.ParseInt(s, 10, 64)
 				return val
-			case "boolean":
+			case swaggerTypeBoolean:
 				val, _ := strconv.ParseBool(s)
 				return val
-			case "number":
+			case swaggerTypeNumber:
 				val, _ := strconv.ParseFloat(s, 64)
 				return val
-			case "string":
+			case swaggerTypeArray:
+				return s
+			case swaggerTypeString:
 				return s
 			default:
 				return nil

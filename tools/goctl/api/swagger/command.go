@@ -8,10 +8,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"gopkg.in/yaml.v2"
 )
 
 var (

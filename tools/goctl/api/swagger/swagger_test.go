@@ -19,7 +19,7 @@ func Test_pathVariable2SwaggerVariable(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result := pathVariable2SwaggerVariable(tc.input)
+		result := pathVariable2SwaggerVariable(testingContext(t), tc.input)
 		assert.Equal(t, tc.expected, result)
 	}
 }

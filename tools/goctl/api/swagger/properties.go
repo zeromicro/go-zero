@@ -5,18 +5,18 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
+func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []string) {
 	var (
 		properties     = map[string]spec.Schema{}
 		requiredFields []string
 	)
 	switch val := tp.(type) {
 	case apiSpec.PointerType:
-		return propertiesFromType(val.Type)
+		return propertiesFromType(ctx, val.Type)
 	case apiSpec.ArrayType:
-		return propertiesFromType(val.Value)
+		return propertiesFromType(ctx, val.Value)
 	case apiSpec.DefineStruct, apiSpec.NestedStruct:
-		rangeMemberAndDo(val, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+		rangeMemberAndDo(ctx, val, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 			var (
 				jsonTagString                      = member.Name
 				minimum, maximum                   *float64
@@ -28,37 +28,45 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 			if jsonTag != nil {
 				jsonTagString = jsonTag.Name
 				minimum, maximum, exclusiveMinimum, exclusiveMaximum = rangeValueFromOptions(jsonTag.Options)
-				example = exampleValueFromOptions(jsonTag.Options, member.Type)
-				defaultValue = defValueFromOptions(jsonTag.Options, member.Type)
+				example = exampleValueFromOptions(ctx, jsonTag.Options, member.Type)
+				defaultValue = defValueFromOptions(ctx, jsonTag.Options, member.Type)
 				enum = enumsValueFromOptions(jsonTag.Options)
 			}
 
 			if required {
 				requiredFields = append(requiredFields, jsonTagString)
 			}
-			var schema = spec.Schema{
+
+			schema := spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
 					Example: example,
 				},
 				SchemaProps: spec.SchemaProps{
 					Description:          formatComment(member.Comment),
-					Type:                 typeFromGoType(member.Type),
+					Type:                 typeFromGoType(ctx, member.Type),
 					Default:              defaultValue,
 					Maximum:              maximum,
 					ExclusiveMaximum:     exclusiveMaximum,
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
 					Enum:                 enum,
-					AdditionalProperties: mapFromGoType(member.Type),
+					AdditionalProperties: mapFromGoType(ctx, member.Type),
 				},
 			}
-			switch sampleTypeFromGoType(member.Type) {
+
+			switch sampleTypeFromGoType(ctx, member.Type) {
 			case swaggerTypeArray:
-				schema.Items = itemsFromGoType(member.Type)
+				schema.Items = itemsFromGoType(ctx, member.Type)
 			case swaggerTypeObject:
-				p, r := propertiesFromType(member.Type)
+				p, r := propertiesFromType(ctx, member.Type)
 				schema.Properties = p
 				schema.Required = r
+			}
+			if ctx.UseDefinitions {
+				structName, containsStruct := containsStruct(member.Type)
+				if containsStruct {
+					schema.SchemaProps.Ref = spec.MustCreateRef(getRefName(structName))
+				}
 			}
 
 			properties[jsonTagString] = schema
@@ -66,4 +74,23 @@ func propertiesFromType(tp apiSpec.Type) (spec.SchemaProperties, []string) {
 	}
 
 	return properties, requiredFields
+}
+
+func containsStruct(tp apiSpec.Type) (string, bool) {
+	switch val := tp.(type) {
+	case apiSpec.PointerType:
+		return containsStruct(val.Type)
+	case apiSpec.ArrayType:
+		return containsStruct(val.Value)
+	case apiSpec.DefineStruct:
+		return val.RawName, true
+	case apiSpec.MapType:
+		return containsStruct(val.Value)
+	default:
+		return "", false
+	}
+}
+
+func getRefName(typeName string) string {
+	return "#/definitions/" + typeName
 }

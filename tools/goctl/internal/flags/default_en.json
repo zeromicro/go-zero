@@ -38,7 +38,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "style": "{{.global.style}}",
-        "test": "Generate test files"
+        "test": "Generate test files",
+        "types-group": "Generate types group files"
       },
       "new": {
         "short": "Fast create api service",
