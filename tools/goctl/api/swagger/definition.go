@@ -22,12 +22,12 @@ func definitionsFromTypes(ctx Context, types []apiSpec.Type) spec.Definitions {
 }
 
 func schemaFromType(ctx Context, tp apiSpec.Type) spec.Schema {
-	p, _ := propertiesFromType(ctx,tp)
+	p, _ := propertiesFromType(ctx, tp)
 	props := spec.SchemaProps{
-		Type:                 typeFromGoType(ctx,tp),
+		Type:                 typeFromGoType(ctx, tp),
 		Properties:           p,
-		AdditionalProperties: mapFromGoType(ctx,tp),
-		Items:                itemsFromGoType(ctx,tp),
+		AdditionalProperties: mapFromGoType(ctx, tp),
+		Items:                itemsFromGoType(ctx, tp),
 	}
 	return spec.Schema{
 		SchemaProps: wrapCodeMsgProps(ctx, props, emptyAtDoc),

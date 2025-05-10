@@ -7,7 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func consumesFromTypeOrDef(ctx Context,method string, tp spec.Type) []string {
+func consumesFromTypeOrDef(ctx Context, method string, tp spec.Type) []string {
 	if strings.EqualFold(method, http.MethodGet) {
 		return []string{}
 	}
@@ -18,7 +18,7 @@ func consumesFromTypeOrDef(ctx Context,method string, tp spec.Type) []string {
 	if !ok {
 		return []string{}
 	}
-	if typeContainsTag(ctx,structType, tagJson) {
+	if typeContainsTag(ctx, structType, tagJson) {
 		return []string{applicationJson}
 	}
 	return []string{applicationForm}
