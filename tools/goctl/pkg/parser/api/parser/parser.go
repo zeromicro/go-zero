@@ -1356,7 +1356,7 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 	expr.Colon = p.curTokenNode()
 
 	// token STRING
-	if !p.advanceIfPeekTokenIs(token.STRING, token.RAW_STRING) {
+	if !p.advanceIfPeekTokenIs(token.STRING, token.RAW_STRING, token.IDENT) {
 		return nil
 	}
 
