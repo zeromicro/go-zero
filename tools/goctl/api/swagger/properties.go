@@ -16,7 +16,7 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 	case apiSpec.ArrayType:
 		return propertiesFromType(ctx, val.Value)
 	case apiSpec.DefineStruct, apiSpec.NestedStruct:
-		rangeMemberAndDo(ctx,val, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+		rangeMemberAndDo(ctx, val, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 			var (
 				jsonTagString                      = member.Name
 				minimum, maximum                   *float64
@@ -28,8 +28,8 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 			if jsonTag != nil {
 				jsonTagString = jsonTag.Name
 				minimum, maximum, exclusiveMinimum, exclusiveMaximum = rangeValueFromOptions(jsonTag.Options)
-				example = exampleValueFromOptions(ctx,jsonTag.Options, member.Type)
-				defaultValue = defValueFromOptions(ctx,jsonTag.Options, member.Type)
+				example = exampleValueFromOptions(ctx, jsonTag.Options, member.Type)
+				defaultValue = defValueFromOptions(ctx, jsonTag.Options, member.Type)
 				enum = enumsValueFromOptions(jsonTag.Options)
 			}
 
@@ -42,21 +42,21 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 				},
 				SchemaProps: spec.SchemaProps{
 					Description:          formatComment(member.Comment),
-					Type:                 typeFromGoType(ctx,member.Type),
+					Type:                 typeFromGoType(ctx, member.Type),
 					Default:              defaultValue,
 					Maximum:              maximum,
 					ExclusiveMaximum:     exclusiveMaximum,
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
 					Enum:                 enum,
-					AdditionalProperties: mapFromGoType(ctx,member.Type),
+					AdditionalProperties: mapFromGoType(ctx, member.Type),
 				},
 			}
-			switch sampleTypeFromGoType(ctx,member.Type) {
+			switch sampleTypeFromGoType(ctx, member.Type) {
 			case swaggerTypeArray:
-				schema.Items = itemsFromGoType(ctx,member.Type)
+				schema.Items = itemsFromGoType(ctx, member.Type)
 			case swaggerTypeObject:
-				p, r := propertiesFromType(ctx,member.Type)
+				p, r := propertiesFromType(ctx, member.Type)
 				schema.Properties = p
 				schema.Required = r
 			}

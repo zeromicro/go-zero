@@ -8,7 +8,6 @@ import (
 	"github.com/go-openapi/spec"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
@@ -235,7 +234,7 @@ func isRequired(ctx Context, tags *apiSpec.Tags) bool {
 	return false
 }
 
-func isOptional(ctx Context, options []string) bool {
+func isOptional(_ Context, options []string) bool {
 	for _, option := range options {
 		if option == optionalFlag {
 			return true
@@ -300,22 +299,22 @@ func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {
 	ext.Add("x-go-zero-doc", "https://go-zero.dev/")
 
 	info := &spec.Info{}
-	info.Description = util.Unquote(api.Properties["description"])
-	info.Title = util.Unquote(api.Properties["title"])
-	info.TermsOfService = util.Unquote(api.Properties["termsOfService"])
-	info.Version = util.Unquote(api.Properties["version"])
+	info.Title = getStringFromKVOrDefault(api.Properties, propertyKeyTitle, "")
+	info.Description = getStringFromKVOrDefault(api.Properties, propertyKeyDescription, "")
+	info.TermsOfService = getStringFromKVOrDefault(api.Properties, propertyKeyTermsOfService, "")
+	info.Version = getStringFromKVOrDefault(api.Properties, propertyKeyVersion, "1.0")
 
 	contactInfo := spec.ContactInfo{}
-	contactInfo.Name = util.Unquote(api.Properties["contactName"])
-	contactInfo.URL = util.Unquote(api.Properties["contactURL"])
-	contactInfo.Email = util.Unquote(api.Properties["contactEmail"])
+	contactInfo.Name = getStringFromKVOrDefault(api.Properties, propertyKeyContactName, "")
+	contactInfo.URL = getStringFromKVOrDefault(api.Properties, propertyKeyContactURL, "")
+	contactInfo.Email = getStringFromKVOrDefault(api.Properties, propertyKeyContactEmail, "")
 	if len(contactInfo.Name) > 0 || len(contactInfo.URL) > 0 || len(contactInfo.Email) > 0 {
 		info.Contact = &contactInfo
 	}
 
 	license := &spec.License{}
-	license.Name = util.Unquote(api.Properties["licenseName"])
-	license.URL = util.Unquote(api.Properties["licenseURL"])
+	license.Name = getStringFromKVOrDefault(api.Properties, propertyKeyLicenseName, "")
+	license.URL = getStringFromKVOrDefault(api.Properties, propertyKeyLicenseURL, "")
 	if len(license.Name) > 0 || len(license.URL) > 0 {
 		info.License = license
 	}

@@ -1,8 +1,9 @@
 package swagger
 
 import (
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"testing"
+
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 type Context struct {

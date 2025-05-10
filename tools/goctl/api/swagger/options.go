@@ -81,21 +81,21 @@ func enumsValueFromOptions(options []string) []any {
 	return []any{}
 }
 
-func defValueFromOptions(ctx Context,options []string, apiType spec.Type) any {
-	tp := sampleTypeFromGoType(ctx,apiType)
-	return valueFromOptions(ctx,options, defFlag, tp)
+func defValueFromOptions(ctx Context, options []string, apiType spec.Type) any {
+	tp := sampleTypeFromGoType(ctx, apiType)
+	return valueFromOptions(ctx, options, defFlag, tp)
 }
 
-func exampleValueFromOptions(ctx Context,options []string, apiType spec.Type) any {
-	tp := sampleTypeFromGoType(ctx,apiType)
-	val := valueFromOptions(ctx,options, exampleFlag, tp)
+func exampleValueFromOptions(ctx Context, options []string, apiType spec.Type) any {
+	tp := sampleTypeFromGoType(ctx, apiType)
+	val := valueFromOptions(ctx, options, exampleFlag, tp)
 	if val != nil {
 		return val
 	}
-	return defValueFromOptions(ctx,options, apiType)
+	return defValueFromOptions(ctx, options, apiType)
 }
 
-func valueFromOptions(_ Context,options []string, key string, tp string) any {
+func valueFromOptions(_ Context, options []string, key string, tp string) any {
 	if len(options) == 0 {
 		return nil
 	}
