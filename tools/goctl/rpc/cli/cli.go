@@ -46,6 +46,8 @@ var (
 	VarBoolMultiple bool
 	// VarBoolClient describes whether to generate rpc client
 	VarBoolClient bool
+	// VarStringClientDirStyle describes the style of output rpc client directory
+	VarStringClientDirStyle string
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -91,6 +93,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 	ctx.IsGenClient = VarBoolClient
+	ctx.DirStyle = VarStringClientDirStyle
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

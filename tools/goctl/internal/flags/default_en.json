@@ -237,7 +237,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "verbose": "Enable log output",
-        "client": "Whether to generate rpc client"
+        "client": "Whether to generate rpc client",
+        "dir-style": "The directory naming format, like --style flag, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]"
       },
       "template": {
         "short": "Generate proto template",
@@ -255,7 +256,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "verbose": "Enable log output",
-        "client": "Whether to generate rpc client"
+        "client": "Whether to generate rpc client",
+        "dir-style": "The directory naming format, like --style flag, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]"
       }
     },
     "template": {

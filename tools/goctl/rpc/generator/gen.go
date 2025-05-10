@@ -30,6 +30,8 @@ type ZRpcContext struct {
 	Multiple bool
 	// Whether to generate rpc client
 	IsGenClient bool
+	// DirStyle is the output rpc client directory style
+	DirStyle string
 }
 
 // Generate generates a rpc service, through the proto file,
