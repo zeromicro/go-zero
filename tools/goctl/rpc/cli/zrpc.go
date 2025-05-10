@@ -103,6 +103,8 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
 	ctx.IsGenClient = VarBoolClient
+	ctx.DirStyle = VarStringClientDirStyle
+
 	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }
