@@ -112,7 +112,7 @@ func itemFromGoType(ctx Context, tp apiSpec.Type) *spec.SchemaOrArray {
 				},
 			},
 		}
-	case apiSpec.DefineStruct, apiSpec.NestedStruct:
+	case apiSpec.DefineStruct, apiSpec.NestedStruct, apiSpec.MapType:
 		properties, requiredFields := propertiesFromType(ctx, itemType)
 		return &spec.SchemaOrArray{
 			Schema: &spec.Schema{

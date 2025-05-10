@@ -30,6 +30,6 @@ func schemaFromType(ctx Context, tp apiSpec.Type) spec.Schema {
 		Items:                itemsFromGoType(ctx, tp),
 	}
 	return spec.Schema{
-		SchemaProps: wrapCodeMsgProps(ctx, props, emptyAtDoc),
+		SchemaProps: props,
 	}
 }

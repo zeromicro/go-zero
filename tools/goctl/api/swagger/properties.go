@@ -36,7 +36,8 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 			if required {
 				requiredFields = append(requiredFields, jsonTagString)
 			}
-			var schema = spec.Schema{
+
+			schema := spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
 					Example: example,
 				},
@@ -52,6 +53,7 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 					AdditionalProperties: mapFromGoType(ctx, member.Type),
 				},
 			}
+
 			switch sampleTypeFromGoType(ctx, member.Type) {
 			case swaggerTypeArray:
 				schema.Items = itemsFromGoType(ctx, member.Type)
@@ -60,10 +62,35 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 				schema.Properties = p
 				schema.Required = r
 			}
+			if ctx.UseDefinitions {
+				structName, containsStruct := containsStruct(member.Type)
+				if containsStruct {
+					schema.SchemaProps.Ref = spec.MustCreateRef(getRefName(structName))
+				}
+			}
 
 			properties[jsonTagString] = schema
 		})
 	}
 
 	return properties, requiredFields
+}
+
+func containsStruct(tp apiSpec.Type) (string, bool) {
+	switch val := tp.(type) {
+	case apiSpec.PointerType:
+		return containsStruct(val.Type)
+	case apiSpec.ArrayType:
+		return containsStruct(val.Value)
+	case apiSpec.DefineStruct:
+		return val.RawName, true
+	case apiSpec.MapType:
+		return containsStruct(val.Value)
+	default:
+		return "", false
+	}
+}
+
+func getRefName(typeName string) string {
+	return "#/definitions/" + typeName
 }
