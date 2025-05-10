@@ -12,7 +12,7 @@ info (
 	licenseURL:             "https://github.com/zeromicro/go-zero" // 对应 swagger 的 licenseURL
 	consumes:               "application/json" // 对应 swagger 的 consumes,不填默认为 application/json
 	produces:               "application/json" // 对应 swagger 的 produces,不填默认为 application/json
-	schemes:                "https" // 对应 swagger 的 schemes,不填默认为 https
+	schemes:                "http,https" // 对应 swagger 的 schemes,不填默认为 https
 	host:                   "example.com" // 对应 swagger 的 host,不填默认为 127.0.0.1
 	basePath:               "/v1" // 对应 swagger 的 basePath,不填默认为 /
 	wrapCodeMsg:            true // 是否用 code-msg 通用响应体，如果开启，则以格式 {"code":0,"msg":"OK","data":$data} 包括响应体

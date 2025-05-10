@@ -28,7 +28,6 @@ const (
 	applicationJson = "application/json"
 	applicationForm = "application/x-www-form-urlencoded"
 	schemeHttps     = "https"
-	defaultHost     = "127.0.0.1"
 	defaultBasePath = "/"
 )
 
