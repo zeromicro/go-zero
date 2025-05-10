@@ -12,7 +12,7 @@ info (
 	licenseURL:             "https://github.com/zeromicro/go-zero" // licenseURL corresponding to Swagger
 	consumes:               "application/json" // consumes corresponding to Swagger,default value is `application/json`
 	produces:               "application/json" // produces corresponding to Swagger,default value is `application/json`
-	schemes:                "https" // schemes corresponding to Swagger,default value is `https``
+	schemes:                "http,https" // schemes corresponding to Swagger,default value is `https``
 	host:                   "example.com" // host corresponding to Swagger,default value is `127.0.0.1`
 	basePath:               "/v1" // basePath corresponding to Swagger,default value is `/`
 	wrapCodeMsg:            true // to wrap in the universal code-msg structure, like {"code":0,"msg":"OK","data":$data}
