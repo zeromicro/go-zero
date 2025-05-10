@@ -5,10 +5,6 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-var emptyAtDoc = apiSpec.AtDoc{
-	Properties: map[string]string{},
-}
-
 func definitionsFromTypes(ctx Context, types []apiSpec.Type) spec.Definitions {
 	if !ctx.UseDefinitions {
 		return nil
@@ -22,12 +18,13 @@ func definitionsFromTypes(ctx Context, types []apiSpec.Type) spec.Definitions {
 }
 
 func schemaFromType(ctx Context, tp apiSpec.Type) spec.Schema {
-	p, _ := propertiesFromType(ctx, tp)
+	p, r := propertiesFromType(ctx, tp)
 	props := spec.SchemaProps{
 		Type:                 typeFromGoType(ctx, tp),
 		Properties:           p,
 		AdditionalProperties: mapFromGoType(ctx, tp),
 		Items:                itemsFromGoType(ctx, tp),
+		Required:             r,
 	}
 	return spec.Schema{
 		SchemaProps: props,

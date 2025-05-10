@@ -8,6 +8,24 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
+func isPostJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
+	if strings.EqualFold(method, http.MethodPost) {
+		return "", false
+	}
+	structType, ok := tp.(apiSpec.DefineStruct)
+	if !ok {
+		return "", false
+	}
+	var isPostJson bool
+	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+		jsonTag, _ := tag.Get(tagJson)
+		if !isPostJson {
+			isPostJson = jsonTag != nil
+		}
+	})
+	return structType.RawName, isPostJson
+}
+
 func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Parameter {
 	if tp == nil {
 		return []spec.Parameter{}
@@ -16,6 +34,24 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	if !ok {
 		return []spec.Parameter{}
 	}
+	structName, ok := isPostJson(ctx, method, tp)
+	if ok {
+		return []spec.Parameter{
+			{
+				ParamProps: spec.ParamProps{
+					In:       paramsInBody,
+					Name:     paramsInBody,
+					Required: true,
+					Schema: &spec.Schema{
+						SchemaProps: spec.SchemaProps{
+							Ref: spec.MustCreateRef(getRefName(structName)),
+						},
+					},
+				},
+			},
+		}
+	}
+
 	var (
 		resp           []spec.Parameter
 		properties     = map[string]spec.Schema{}
