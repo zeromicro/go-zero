@@ -1,9 +1,10 @@
 package swagger
 
 import (
+	"net/http"
+
 	"github.com/go-openapi/spec"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"net/http"
 )
 
 func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *spec.Responses {
