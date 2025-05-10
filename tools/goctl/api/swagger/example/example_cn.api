@@ -21,6 +21,7 @@ info (
 	// 格式参考 https://swagger.io/specification/v2/#security-definitions-object
 	// 在 api 的 @server 中可声明 authType 来指定其路由使用的鉴权类型
 	securityDefinitionsFromJson: `{"apiKey":{"description":"apiKey 类型鉴权自定义","type":"apiKey","name":"x-api-key","in":"header"}}`
+    useDefinitions:"true"
 )
 
 type (
@@ -52,7 +53,7 @@ type (
 service Swagger {
 	@doc (
 		description: "query 接口"
-		bizCodeEnumDescription: " 1003-用不存在<br>1004-非法操作" // 接口级别业务错误码枚举描述，会覆盖全局的业务错误码，json 格式,key 为业务错误码，value 为该错误码的描述，仅当 wrapCodeMsg 为 true 时生效
+		bizCodeEnumDescription: " 1003-用不存在<br>1004-非法操作" // 接口级别业务错误码枚举描述，会覆盖全局的业务错误码，json 格式,key 为业务错误码，value 为该错误码的描述，仅当 wrapCodeMsg 为 true 且 useDefinitions 为 false 时生效
 	)
 	@handler query
 	get /query (QueryReq) returns (QueryResp)
