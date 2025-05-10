@@ -21,7 +21,7 @@ info (
 	// 格式参考 https://swagger.io/specification/v2/#security-definitions-object
 	// 在 api 的 @server 中可声明 authType 来指定其路由使用的鉴权类型
 	securityDefinitionsFromJson: `{"apiKey":{"description":"apiKey 类型鉴权自定义","type":"apiKey","name":"x-api-key","in":"header"}}`
-    useDefinitions:"true"
+    useDefinitions:"true"// 开启声明将生成models 进行关联，definitions 仅对响应体和 json 请求体生效
 )
 
 type (

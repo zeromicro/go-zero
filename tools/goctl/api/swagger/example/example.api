@@ -21,6 +21,7 @@ info (
 	// Format reference: https://swagger.io/specification/v2/#security-definitions-object
 	// You can declare authType in the @server of the API to specify the authentication type used for its routes.
 	securityDefinitionsFromJson: `{"apiKey":{"description":"apiKey type description","type":"apiKey","name":"x-api-key","in":"header"}}`
+	useDefinitions:"true" // if set true, the definitions will be generated in the swagger.json for response body or json request body file, and the models will be referenced in the API.
 )
 
 type (
