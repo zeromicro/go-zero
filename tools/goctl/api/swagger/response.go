@@ -5,13 +5,13 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func jsonResponseFromType(info apiSpec.Info, atDoc apiSpec.AtDoc, tp apiSpec.Type) *spec.Responses {
-	p, _ := propertiesFromType(tp)
+func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *spec.Responses {
+	p, _ := propertiesFromType(ctx, tp)
 	props := spec.SchemaProps{
-		Type:                 typeFromGoType(tp),
+		Type:                 typeFromGoType(ctx, tp),
 		Properties:           p,
-		AdditionalProperties: mapFromGoType(tp),
-		Items:                itemsFromGoType(tp),
+		AdditionalProperties: mapFromGoType(ctx, tp),
+		Items:                itemsFromGoType(ctx, tp),
 	}
 
 	return &spec.Responses{
@@ -19,7 +19,7 @@ func jsonResponseFromType(info apiSpec.Info, atDoc apiSpec.AtDoc, tp apiSpec.Typ
 			Default: &spec.Response{
 				ResponseProps: spec.ResponseProps{
 					Schema: &spec.Schema{
-						SchemaProps: wrapCodeMsgProps(props, info, atDoc),
+						SchemaProps: wrapCodeMsgProps(ctx, props, atDoc),
 					},
 				},
 			},

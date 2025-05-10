@@ -161,7 +161,7 @@ func TestDefValueFromOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := defValueFromOptions(tt.options, tt.apiType)
+			result := defValueFromOptions(testingContext(t), tt.options, tt.apiType)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -202,7 +202,7 @@ func TestExampleValueFromOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			exampleValueFromOptions(tt.options, tt.apiType)
+			exampleValueFromOptions(testingContext(t), tt.options, tt.apiType)
 		})
 	}
 }
@@ -247,7 +247,7 @@ func TestValueFromOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := valueFromOptions(tt.options, tt.key, tt.tp)
+			result := valueFromOptions(testingContext(t), tt.options, tt.key, tt.tp)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

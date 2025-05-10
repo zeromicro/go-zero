@@ -12,8 +12,8 @@ import (
 )
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
+	ctx := contextFromApi(api.Info)
 	extensions, info := specExtensions(api.Info)
-
 	var securityDefinitions spec.SecurityDefinitions
 	securityDefinitionsFromJson := getStringFromKVOrDefault(api.Info.Properties, "securityDefinitionsFromJson", `{}`)
 	_ = json.Unmarshal([]byte(securityDefinitionsFromJson), &securityDefinitions)
@@ -22,14 +22,15 @@ func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 			Extensions: extensions,
 		},
 		SwaggerProps: spec.SwaggerProps{
-			Consumes:            getListFromInfoOrDefault(api.Info.Properties, "consumes", []string{applicationJson}),
-			Produces:            getListFromInfoOrDefault(api.Info.Properties, "produces", []string{applicationJson}),
-			Schemes:             getListFromInfoOrDefault(api.Info.Properties, "schemes", []string{schemeHttps}),
+			Definitions:         definitionsFromTypes(ctx, api.Types),
+			Consumes:            getListFromInfoOrDefault(api.Info.Properties, propertyKeyConsumes, []string{applicationJson}),
+			Produces:            getListFromInfoOrDefault(api.Info.Properties, propertyKeyProduces, []string{applicationJson}),
+			Schemes:             getListFromInfoOrDefault(api.Info.Properties, propertyKeySchemes, []string{schemeHttps}),
 			Swagger:             swaggerVersion,
 			Info:                info,
-			Host:                getStringFromKVOrDefault(api.Info.Properties, "host", defaultHost),
-			BasePath:            getStringFromKVOrDefault(api.Info.Properties, "basePath", defaultBasePath),
-			Paths:               spec2Paths(api.Info, api.Service),
+			Host:                getStringFromKVOrDefault(api.Info.Properties, propertyKeyHost, defaultHost),
+			BasePath:            getStringFromKVOrDefault(api.Info.Properties, propertyKeyBasePath, defaultBasePath),
+			Paths:               spec2Paths(ctx, api.Service),
 			SecurityDefinitions: securityDefinitions,
 		},
 	}
@@ -42,7 +43,7 @@ func formatComment(comment string) string {
 	return strings.TrimSpace(s)
 }
 
-func sampleItemsFromGoType(tp apiSpec.Type) *spec.Items {
+func sampleItemsFromGoType(ctx Context, tp apiSpec.Type) *spec.Items {
 	val, ok := tp.(apiSpec.ArrayType)
 	if !ok {
 		return nil
@@ -52,14 +53,14 @@ func sampleItemsFromGoType(tp apiSpec.Type) *spec.Items {
 	case apiSpec.PrimitiveType:
 		return &spec.Items{
 			SimpleSchema: spec.SimpleSchema{
-				Type: sampleTypeFromGoType(item),
+				Type: sampleTypeFromGoType(ctx, item),
 			},
 		}
 	case apiSpec.ArrayType:
 		return &spec.Items{
 			SimpleSchema: spec.SimpleSchema{
-				Type:  sampleTypeFromGoType(item),
-				Items: sampleItemsFromGoType(item),
+				Type:  sampleTypeFromGoType(ctx, item),
+				Items: sampleItemsFromGoType(ctx, item),
 			},
 		}
 	default: // unsupported type
@@ -68,30 +69,30 @@ func sampleItemsFromGoType(tp apiSpec.Type) *spec.Items {
 }
 
 // itemsFromGoType returns the schema or array of the type, just for non json body parameters.
-func itemsFromGoType(tp apiSpec.Type) *spec.SchemaOrArray {
+func itemsFromGoType(ctx Context, tp apiSpec.Type) *spec.SchemaOrArray {
 	array, ok := tp.(apiSpec.ArrayType)
 	if !ok {
 		return nil
 	}
-	return itemFromGoType(array.Value)
+	return itemFromGoType(ctx, array.Value)
 }
 
-func mapFromGoType(tp apiSpec.Type) *spec.SchemaOrBool {
+func mapFromGoType(ctx Context, tp apiSpec.Type) *spec.SchemaOrBool {
 	mapType, ok := tp.(apiSpec.MapType)
 	if !ok {
 		return nil
 	}
 	var schema = &spec.Schema{
 		SchemaProps: spec.SchemaProps{
-			Type:                 typeFromGoType(mapType.Value),
-			AdditionalProperties: mapFromGoType(mapType.Value),
+			Type:                 typeFromGoType(ctx, mapType.Value),
+			AdditionalProperties: mapFromGoType(ctx, mapType.Value),
 		},
 	}
-	switch sampleTypeFromGoType(mapType.Value) {
+	switch sampleTypeFromGoType(ctx, mapType.Value) {
 	case swaggerTypeArray:
-		schema.Items = itemsFromGoType(mapType.Value)
+		schema.Items = itemsFromGoType(ctx, mapType.Value)
 	case swaggerTypeObject:
-		p, r := propertiesFromType(mapType.Value)
+		p, r := propertiesFromType(ctx, mapType.Value)
 		schema.Properties = p
 		schema.Required = r
 	}
@@ -102,37 +103,37 @@ func mapFromGoType(tp apiSpec.Type) *spec.SchemaOrBool {
 }
 
 // itemFromGoType returns the schema or array of the type, just for non json body parameters.
-func itemFromGoType(tp apiSpec.Type) *spec.SchemaOrArray {
+func itemFromGoType(ctx Context, tp apiSpec.Type) *spec.SchemaOrArray {
 	switch itemType := tp.(type) {
 	case apiSpec.PrimitiveType:
 		return &spec.SchemaOrArray{
 			Schema: &spec.Schema{
 				SchemaProps: spec.SchemaProps{
-					Type: typeFromGoType(tp),
+					Type: typeFromGoType(ctx, tp),
 				},
 			},
 		}
 	case apiSpec.DefineStruct, apiSpec.NestedStruct:
-		properties, requiredFields := propertiesFromType(itemType)
+		properties, requiredFields := propertiesFromType(ctx, itemType)
 		return &spec.SchemaOrArray{
 			Schema: &spec.Schema{
 				SchemaProps: spec.SchemaProps{
-					Type:                 typeFromGoType(itemType),
-					Items:                itemsFromGoType(itemType),
+					Type:                 typeFromGoType(ctx, itemType),
+					Items:                itemsFromGoType(ctx, itemType),
 					Properties:           properties,
 					Required:             requiredFields,
-					AdditionalProperties: mapFromGoType(itemType),
+					AdditionalProperties: mapFromGoType(ctx, itemType),
 				},
 			},
 		}
 	case apiSpec.PointerType:
-		return itemFromGoType(itemType.Type)
+		return itemFromGoType(ctx, itemType.Type)
 	case apiSpec.ArrayType:
 		return &spec.SchemaOrArray{
 			Schema: &spec.Schema{
 				SchemaProps: spec.SchemaProps{
-					Type:  typeFromGoType(itemType),
-					Items: itemsFromGoType(itemType),
+					Type:  typeFromGoType(ctx, itemType),
+					Items: itemsFromGoType(ctx, itemType),
 				},
 			},
 		}
@@ -140,7 +141,7 @@ func itemFromGoType(tp apiSpec.Type) *spec.SchemaOrArray {
 	return nil
 }
 
-func typeFromGoType(tp apiSpec.Type) []string {
+func typeFromGoType(ctx Context, tp apiSpec.Type) []string {
 	switch val := tp.(type) {
 	case apiSpec.PrimitiveType:
 		res, ok := tpMapper[val.RawName]
@@ -152,12 +153,12 @@ func typeFromGoType(tp apiSpec.Type) []string {
 	case apiSpec.DefineStruct, apiSpec.MapType:
 		return []string{swaggerTypeObject}
 	case apiSpec.PointerType:
-		return typeFromGoType(val.Type)
+		return typeFromGoType(ctx, val.Type)
 	}
 	return nil
 }
 
-func sampleTypeFromGoType(tp apiSpec.Type) string {
+func sampleTypeFromGoType(ctx Context, tp apiSpec.Type) string {
 	switch val := tp.(type) {
 	case apiSpec.PrimitiveType:
 		return tpMapper[val.RawName]
@@ -166,13 +167,13 @@ func sampleTypeFromGoType(tp apiSpec.Type) string {
 	case apiSpec.DefineStruct, apiSpec.MapType, apiSpec.NestedStruct:
 		return swaggerTypeObject
 	case apiSpec.PointerType:
-		return sampleTypeFromGoType(val.Type)
+		return sampleTypeFromGoType(ctx, val.Type)
 	default:
 		return ""
 	}
 }
 
-func typeContainsTag(structType apiSpec.DefineStruct, tag string) bool {
+func typeContainsTag(_ Context, structType apiSpec.DefineStruct, tag string) bool {
 	for _, field := range structType.Members {
 		tags, _ := apiSpec.Parse(field.Tag)
 		for _, t := range tags.Tags() {
@@ -184,13 +185,13 @@ func typeContainsTag(structType apiSpec.DefineStruct, tag string) bool {
 	return false
 }
 
-func expandMembers(tp apiSpec.Type) []apiSpec.Member {
+func expandMembers(ctx Context, tp apiSpec.Type) []apiSpec.Member {
 	var members []apiSpec.Member
 	switch val := tp.(type) {
 	case apiSpec.DefineStruct:
 		for _, v := range val.Members {
 			if v.IsInline {
-				members = append(members, expandMembers(v.Type)...)
+				members = append(members, expandMembers(ctx, v.Type)...)
 				continue
 			}
 			members = append(members, v)
@@ -198,7 +199,7 @@ func expandMembers(tp apiSpec.Type) []apiSpec.Member {
 	case apiSpec.NestedStruct:
 		for _, v := range val.Members {
 			if v.IsInline {
-				members = append(members, expandMembers(v.Type)...)
+				members = append(members, expandMembers(ctx, v.Type)...)
 				continue
 			}
 			members = append(members, v)
@@ -208,42 +209,42 @@ func expandMembers(tp apiSpec.Type) []apiSpec.Member {
 	return members
 }
 
-func rangeMemberAndDo(structType apiSpec.Type, do func(tag *apiSpec.Tags, required bool, member apiSpec.Member)) {
-	var members = expandMembers(structType)
+func rangeMemberAndDo(ctx Context, structType apiSpec.Type, do func(tag *apiSpec.Tags, required bool, member apiSpec.Member)) {
+	var members = expandMembers(ctx, structType)
 
 	for _, field := range members {
 		tags, _ := apiSpec.Parse(field.Tag)
-		required := isRequired(tags)
+		required := isRequired(ctx, tags)
 		do(tags, required, field)
 	}
 }
 
-func isRequired(tags *apiSpec.Tags) bool {
+func isRequired(ctx Context, tags *apiSpec.Tags) bool {
 	tag, err := tags.Get(tagJson)
 	if err == nil {
-		return !isOptional(tag.Options)
+		return !isOptional(ctx, tag.Options)
 	}
 	tag, err = tags.Get(tagForm)
 	if err == nil {
-		return !isOptional(tag.Options)
+		return !isOptional(ctx, tag.Options)
 	}
 	tag, err = tags.Get(tagPath)
 	if err == nil {
-		return !isOptional(tag.Options)
+		return !isOptional(ctx, tag.Options)
 	}
 	return false
 }
 
-func isOptional(options []string) bool {
+func isOptional(ctx Context, options []string) bool {
 	for _, option := range options {
-		if option == "optional" {
+		if option == optionalFlag {
 			return true
 		}
 	}
 	return false
 }
 
-func pathVariable2SwaggerVariable(path string) string {
+func pathVariable2SwaggerVariable(_ Context, path string) string {
 	pathItems := strings.FieldsFunc(path, slashRune)
 	var resp []string
 	for _, v := range pathItems {
@@ -256,13 +257,12 @@ func pathVariable2SwaggerVariable(path string) string {
 	return "/" + strings.Join(resp, "/")
 }
 
-func wrapCodeMsgProps(properties spec.SchemaProps, api apiSpec.Info, atDoc apiSpec.AtDoc) spec.SchemaProps {
-	wrapCodeMsg := getBoolFromKVOrDefault(api.Properties, "wrapCodeMsg", false)
-	if !wrapCodeMsg {
+func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.AtDoc) spec.SchemaProps {
+	if !ctx.WrapCodeMsg {
 		return properties
 	}
-	globalCodeDesc := getStringFromKVOrDefault(api.Properties, "bizCodeEnumDescription", "business code")
-	methodCodeDesc := getStringFromKVOrDefault(atDoc.Properties, "bizCodeEnumDescription", globalCodeDesc)
+	globalCodeDesc := ctx.BizCodeEnumDescription
+	methodCodeDesc := getStringFromKVOrDefault(atDoc.Properties, propertyKeyBizCodeEnumDescription, globalCodeDesc)
 	return spec.SchemaProps{
 		Type: []string{swaggerTypeObject},
 		Properties: spec.SchemaProperties{

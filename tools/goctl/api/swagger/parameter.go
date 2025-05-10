@@ -8,7 +8,7 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
+func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Parameter {
 	if tp == nil {
 		return []spec.Parameter{}
 	}
@@ -21,7 +21,7 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 		properties     = map[string]spec.Schema{}
 		requiredFields []string
 	)
-	rangeMemberAndDo(structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 		headerTag, _ := tag.Get(tagHeader)
 		hasHeader := headerTag != nil
 
@@ -44,9 +44,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					Enum:             enumsValueFromOptions(headerTag.Options),
 				},
 				SimpleSchema: spec.SimpleSchema{
-					Type:    sampleTypeFromGoType(member.Type),
-					Default: defValueFromOptions(headerTag.Options, member.Type),
-					Items:   sampleItemsFromGoType(member.Type),
+					Type:    sampleTypeFromGoType(ctx, member.Type),
+					Default: defValueFromOptions(ctx, headerTag.Options, member.Type),
+					Items:   sampleItemsFromGoType(ctx, member.Type),
 				},
 				ParamProps: spec.ParamProps{
 					In:          paramsInHeader,
@@ -67,9 +67,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					Enum:             enumsValueFromOptions(pathParameterTag.Options),
 				},
 				SimpleSchema: spec.SimpleSchema{
-					Type:    sampleTypeFromGoType(member.Type),
-					Default: defValueFromOptions(pathParameterTag.Options, member.Type),
-					Items:   sampleItemsFromGoType(member.Type),
+					Type:    sampleTypeFromGoType(ctx, member.Type),
+					Default: defValueFromOptions(ctx, pathParameterTag.Options, member.Type),
+					Items:   sampleItemsFromGoType(ctx, member.Type),
 				},
 				ParamProps: spec.ParamProps{
 					In:          paramsInPath,
@@ -91,9 +91,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 						Enum:             enumsValueFromOptions(formTag.Options),
 					},
 					SimpleSchema: spec.SimpleSchema{
-						Type:    sampleTypeFromGoType(member.Type),
-						Default: defValueFromOptions(formTag.Options, member.Type),
-						Items:   sampleItemsFromGoType(member.Type),
+						Type:    sampleTypeFromGoType(ctx, member.Type),
+						Default: defValueFromOptions(ctx, formTag.Options, member.Type),
+						Items:   sampleItemsFromGoType(ctx, member.Type),
 					},
 					ParamProps: spec.ParamProps{
 						In:              paramsInQuery,
@@ -113,9 +113,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 						Enum:             enumsValueFromOptions(formTag.Options),
 					},
 					SimpleSchema: spec.SimpleSchema{
-						Type:    sampleTypeFromGoType(member.Type),
-						Default: defValueFromOptions(formTag.Options, member.Type),
-						Items:   sampleItemsFromGoType(member.Type),
+						Type:    sampleTypeFromGoType(ctx, member.Type),
+						Default: defValueFromOptions(ctx, formTag.Options, member.Type),
+						Items:   sampleItemsFromGoType(ctx, member.Type),
 					},
 					ParamProps: spec.ParamProps{
 						In:              paramsInForm,
@@ -135,25 +135,25 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 			}
 			var schema = spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
-					Example: exampleValueFromOptions(jsonTag.Options, member.Type),
+					Example: exampleValueFromOptions(ctx, jsonTag.Options, member.Type),
 				},
 				SchemaProps: spec.SchemaProps{
 					Description:          formatComment(member.Comment),
-					Type:                 typeFromGoType(member.Type),
-					Default:              defValueFromOptions(jsonTag.Options, member.Type),
+					Type:                 typeFromGoType(ctx, member.Type),
+					Default:              defValueFromOptions(ctx, jsonTag.Options, member.Type),
 					Maximum:              maximum,
 					ExclusiveMaximum:     exclusiveMaximum,
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
 					Enum:                 enumsValueFromOptions(jsonTag.Options),
-					AdditionalProperties: mapFromGoType(member.Type),
+					AdditionalProperties: mapFromGoType(ctx, member.Type),
 				},
 			}
-			switch sampleTypeFromGoType(member.Type) {
+			switch sampleTypeFromGoType(ctx, member.Type) {
 			case swaggerTypeArray:
-				schema.Items = itemsFromGoType(member.Type)
+				schema.Items = itemsFromGoType(ctx, member.Type)
 			case swaggerTypeObject:
-				p, r := propertiesFromType(member.Type)
+				p, r := propertiesFromType(ctx, member.Type)
 				schema.Properties = p
 				schema.Required = r
 			}
@@ -168,7 +168,7 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 				Required: true,
 				Schema: &spec.Schema{
 					SchemaProps: spec.SchemaProps{
-						Type:       typeFromGoType(structType),
+						Type:       typeFromGoType(ctx, structType),
 						Properties: properties,
 						Required:   requiredFields,
 					},

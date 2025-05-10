@@ -1,14 +1,15 @@
 package swagger
 
 const (
-	tagHeader   = "header"
-	tagPath     = "path"
-	tagForm     = "form"
-	tagJson     = "json"
-	defFlag     = "default="
-	enumFlag    = "options="
-	rangeFlag   = "range="
-	exampleFlag = "example="
+	tagHeader    = "header"
+	tagPath      = "path"
+	tagForm      = "form"
+	tagJson      = "json"
+	defFlag      = "default="
+	enumFlag     = "options="
+	rangeFlag    = "range="
+	exampleFlag  = "example="
+	optionalFlag = "optional"
 
 	paramsInHeader = "header"
 	paramsInPath   = "path"
@@ -29,4 +30,27 @@ const (
 	schemeHttps     = "https"
 	defaultHost     = "127.0.0.1"
 	defaultBasePath = "/"
+)
+
+const (
+	propertyKeyUseDefinitions          = "useDefinitions"
+	propertyKeyExternalDocsDescription = "externalDocsDescription"
+	propertyKeyExternalDocsURL         = "externalDocsURL"
+	propertyKeyDescription             = "description"
+	propertyKeyProduces                = "produces"
+	propertyKeyConsumes                = "consumes"
+	propertyKeySchemes                 = "schemes"
+	propertyKeyTags                    = "tags"
+	propertyKeySummary                 = "summary"
+	propertyKeyDeprecated              = "deprecated"
+	propertyKeyPrefix                  = "prefix"
+	propertyKeyAuthType                = "authType"
+	propertyKeyHost                    = "host"
+	propertyKeyBasePath                = "basePath"
+	propertyKeyWrapCodeMsg             = "wrapCodeMsg"
+	propertyKeyBizCodeEnumDescription  = "bizCodeEnumDescription"
+)
+
+const (
+	defaultValueOfPropertyUseDefinition = false
 )
