@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 // Marshal marshals v into json bytes.
@@ -19,8 +21,8 @@ func MarshalToString(v any) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	return string(data), nil
+	//data slice won't be modified afterward, so it's safe to use ByteSliceToString
+	return stringx.ByteSliceToString(data), nil
 }
 
 // Unmarshal unmarshals data bytes into v.

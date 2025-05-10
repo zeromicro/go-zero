@@ -3,6 +3,7 @@ package stringx
 import (
 	"errors"
 	"unicode"
+	"unsafe"
 
 	"github.com/zeromicro/go-zero/core/lang"
 )
@@ -195,4 +196,16 @@ func Union(first, second []string) []string {
 	}
 
 	return merged
+}
+
+// StringToSliceByte convert string to []byte without copy.
+// notice: this function is not safe, if you want to write the []byte, you should copy it.
+func StringToSliceByte(s string) []byte {
+	return unsafe.Slice(unsafe.StringData(s), len(s))
+}
+
+// ByteSliceToString convert []byte to string without copy.
+// notice: this function is not safe, the bytes passed to String must not be modified afterward.
+func ByteSliceToString(b []byte) string {
+	return unsafe.String(unsafe.SliceData(b), len(b))
 }

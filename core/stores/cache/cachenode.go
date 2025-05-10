@@ -126,12 +126,12 @@ func (c cacheNode) SetWithExpire(key string, val any, expire time.Duration) erro
 // SetWithExpireCtx sets the cache with key and v, using given expire.
 func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, val any,
 	expire time.Duration) error {
-	data, err := jsonx.Marshal(val)
+	data, err := jsonx.MarshalToString(val)
 	if err != nil {
 		return err
 	}
 
-	return c.rds.SetexCtx(ctx, key, string(data), int(math.Ceil(expire.Seconds())))
+	return c.rds.SetexCtx(ctx, key, data, int(math.Ceil(expire.Seconds())))
 }
 
 // String returns a string that represents the cacheNode.
