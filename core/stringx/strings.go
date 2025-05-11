@@ -15,6 +15,12 @@ var (
 	ErrInvalidStopPosition = errors.New("stop position is invalid")
 )
 
+// Contains checks if str is in list.
+// Deprecated: use slices.Contains instead.
+func Contains(list []string, str string) bool {
+	return slices.Contains(list, str)
+}
+
 // Filter filters chars from s with given filter function.
 func Filter(s string, filter func(r rune) bool) string {
 	var n int
