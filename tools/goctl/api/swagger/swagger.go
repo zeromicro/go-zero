@@ -2,7 +2,6 @@ package swagger
 
 import (
 	"encoding/json"
-	"net"
 	"strings"
 	"time"
 
@@ -10,8 +9,6 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
-
-var defaultHost = getLocalIPv4()
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 	ctx := contextFromApi(api.Info)
@@ -30,7 +27,7 @@ func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 			Schemes:             getListFromInfoOrDefault(api.Info.Properties, propertyKeySchemes, []string{schemeHttps}),
 			Swagger:             swaggerVersion,
 			Info:                info,
-			Host:                getStringFromKVOrDefault(api.Info.Properties, propertyKeyHost, defaultHost),
+			Host:                getStringFromKVOrDefault(api.Info.Properties, propertyKeyHost, ""),
 			BasePath:            getStringFromKVOrDefault(api.Info.Properties, propertyKeyBasePath, defaultBasePath),
 			Paths:               spec2Paths(ctx, api.Service),
 			SecurityDefinitions: securityDefinitions,
@@ -322,21 +319,4 @@ func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {
 		info.License = license
 	}
 	return ext, info
-}
-
-func getLocalIPv4() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-
-	for _, address := range addrs {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-
-	return ""
 }
