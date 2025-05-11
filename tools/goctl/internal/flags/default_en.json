@@ -39,7 +39,7 @@
         "branch": "{{.global.branch}}",
         "style": "{{.global.style}}",
         "test": "Generate test files",
-        "types-group": "Generate types group files"
+        "type-group": "Generate type group files"
       },
       "new": {
         "short": "Fast create api service",

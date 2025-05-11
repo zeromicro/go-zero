@@ -79,8 +79,8 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 			}
 			if len(requestTypeName) > 0 {
 				requestTypeFileSet.AddStr(group)
+				typesBelongToFiles[requestTypeName] = requestTypeFileSet
 			}
-			typesBelongToFiles[requestTypeName] = requestTypeFileSet
 
 			responseTypeFileSet, ok := typesBelongToFiles[responseTypeName]
 			if !ok {
@@ -88,8 +88,8 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 			}
 			if len(responseTypeName) > 0 {
 				responseTypeFileSet.AddStr(group)
+				typesBelongToFiles[responseTypeName] = responseTypeFileSet
 			}
-			typesBelongToFiles[responseTypeName] = responseTypeFileSet
 		}
 	}
 
@@ -205,7 +205,7 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 }
 
 func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	if VarBoolTypesGroup {
+	if VarBoolTypeGroup {
 		return genTypesWithGroup(dir, cfg, api)
 	}
 	return writeTypes(dir, typesFile, cfg, api.Types)
