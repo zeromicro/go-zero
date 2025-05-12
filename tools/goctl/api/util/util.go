@@ -15,8 +15,9 @@ import (
 
 // MaybeCreateFile creates file if not exists
 func MaybeCreateFile(dir, subdir, file string) (fp *os.File, created bool, err error) {
-	logx.Must(pathx.MkdirIfNotExist(path.Join(dir, subdir)))
 	fpath := path.Join(dir, subdir, file)
+	fpathDir := path.Dir(fpath)
+	logx.Must(pathx.MkdirIfNotExist(fpathDir))
 	if pathx.FileExists(fpath) {
 		fmt.Printf("%s exists, ignored generation\n", fpath)
 		return nil, false, nil
