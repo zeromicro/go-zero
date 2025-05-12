@@ -121,7 +121,7 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 		return err
 	}
 
-	// 将类型文件名中的斜杠替换为下划线
+	// replace all slashes with underscores
 	typeFilename = strings.ReplaceAll(typeFilename, "/", "_")
 	typeFilename = typeFilename + ".go"
 	filename := path.Join(dir, typesDir, typeFilename)
