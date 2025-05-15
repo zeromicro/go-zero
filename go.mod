@@ -14,7 +14,6 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/jhump/protoreflect v1.17.0
-	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/prometheus/client_golang v1.21.1
 	github.com/redis/go-redis/v9 v9.8.0
