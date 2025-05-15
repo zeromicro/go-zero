@@ -61,7 +61,7 @@ func TestConsumesFromTypeOrDef(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := consumesFromTypeOrDef(tt.method, tt.tp)
+			result := consumesFromTypeOrDef(testingContext(t), tt.method, tt.tp)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

@@ -7,15 +7,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func hasKey(properties map[string]string, key string) bool {
-	if len(properties) == 0 {
-		return false
-	}
-	md := metadata.New(properties)
-	_, ok := md[key]
-	return ok
-}
-
 func getBoolFromKVOrDefault(properties map[string]string, key string, def bool) bool {
 	if len(properties) == 0 {
 		return def
