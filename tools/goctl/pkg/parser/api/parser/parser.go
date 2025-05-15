@@ -466,6 +466,20 @@ func (p *Parser) parsePathItem() []token.Token {
 				return nil
 			}
 			list = append(list, p.curTok)
+		} else if p.peekTokenIs(token.DOT) {
+			// Allow dot (.) in path segments for file extensions like .php, .html, etc.
+			if !p.nextToken() {
+				return nil
+			}
+
+			list = append(list, p.curTok)
+
+			// After a dot, we expect an identifier (e.g., .php, .html)
+			if !p.advanceIfPeekTokenIs(token.IDENT) {
+				return nil
+			}
+
+			list = append(list, p.curTok)
 		} else {
 			if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
 				return list
@@ -1342,7 +1356,7 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 	expr.Colon = p.curTokenNode()
 
 	// token STRING
-	if !p.advanceIfPeekTokenIs(token.STRING) {
+	if !p.advanceIfPeekTokenIs(token.STRING, token.RAW_STRING, token.IDENT) {
 		return nil
 	}
 

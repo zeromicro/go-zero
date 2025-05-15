@@ -40,6 +40,8 @@ var (
 	// VarStringStyle describes the style of output files.
 	VarStringStyle  string
 	VarBoolWithTest bool
+	// VarBoolTypeGroup describes whether to group types.
+	VarBoolTypeGroup bool
 )
 
 // GoCommand gen go project files from command line

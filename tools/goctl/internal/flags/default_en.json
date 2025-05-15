@@ -28,7 +28,7 @@
         "dir": "{{.goctl.api.dir}}",
         "iu": "Ignore update",
         "stdin": "Use stdin to input api doc content, press \"ctrl + d\" to send EOF",
-        "declare": "Use to skip check api types already declare"
+        "declare": "Use to skip check api types already declare, deprecated if goctl version >= 1.8.3"
       },
       "go": {
         "short": "Generate go files for provided api in api file",
@@ -38,7 +38,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "style": "{{.global.style}}",
-        "test": "Generate test files"
+        "test": "Generate test files",
+        "type-group": "Generate type group files"
       },
       "new": {
         "short": "Fast create api service",
@@ -71,6 +72,13 @@
         "api": "{{.goctl.api.api}}",
         "caller": "The web api caller",
         "unwrap": "Unwrap the webapi caller for import"
+      },
+      "swagger": {
+        "short": "Generate swagger file from api",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "filename": "The generated swagger file name without the extension",
+        "yaml": "Generate swagger yaml file, default to json"
       }
     },
     "bug": {
@@ -178,6 +186,7 @@
       },
       "pg": {
         "short": "Generate postgresql model",
+        "prefix": "The cache prefix, effective when --cache is true",
         "datasource": {
           "short": "Generate model from datasource",
           "url": "The data source of database,like \"postgres://root:password@127.0.0.1:5432/database?sslmode=disable\"",
