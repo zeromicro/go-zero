@@ -239,3 +239,63 @@ service Swagger {
 	post /json/complex (ComplexJsonReq) returns (ComplexJsonResp)
 }
 
+// @doc annotation examples
+
+
+@server(
+	tags: "doc"
+	summary: "doc API set"
+)
+service Swagger {
+	@doc (
+		description: "simple doc request body API"
+	)
+	@handler docSimple
+	post /doc/simple (DocSimpleReq) returns (DocSimpleResp)
+
+	@doc (
+		description: "replace operation id API"
+		operationId: "replace-operation-id"
+	)
+	@handler docReplaceOperationId
+	post /doc/replace-operation-id (DocReplaceOperationIdReq) returns (DocReplaceOperationIdResp)
+}
+
+type (
+	DocSimpleReq {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+	DocSimpleResp {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+	DocReplaceOperationIdReq {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+	DocReplaceOperationIdResp {
+		Id   int    `json:"id,example=10"`
+		Name string `json:"name,example=keson.an"`
+	}
+)
+
+@server(
+	tags: "doc"
+	summary: "doc API set"
+	group: "doc"
+)
+service Swagger {
+	@doc (
+		description: "simple doc request body API"
+	)
+	@handler docSimpleWithGroup
+	post /doc/simple/group (DocSimpleReq) returns (DocSimpleResp)
+
+	@doc (
+		description: "replace operation id API"
+		operationId: "replace-operation-id-group"
+	)
+	@handler docReplaceOperationIdWithGroup
+	post /doc/replace-operation-id/group (DocReplaceOperationIdReq) returns (DocReplaceOperationIdResp)
+}

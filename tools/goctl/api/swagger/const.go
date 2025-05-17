@@ -56,6 +56,8 @@ const (
 	propertyKeyBasePath                = "basePath"
 	propertyKeyWrapCodeMsg             = "wrapCodeMsg"
 	propertyKeyBizCodeEnumDescription  = "bizCodeEnumDescription"
+	propertyKeyOperationId             = "operationId"
+	propertyKeyGroup                   = "group"
 )
 
 const (
