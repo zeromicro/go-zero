@@ -116,13 +116,8 @@ type FileContent struct {
 
 // EmbeddedResource represents a resource embedded in a message
 type EmbeddedResource struct {
-	Type     string `json:"type"` // Always "resource"
-	Resource struct {
-		URI      string `json:"uri"`            // Resource URI
-		MimeType string `json:"mimeType"`       // MIME type of the resource
-		Text     string `json:"text,omitempty"` // Text content (if available)
-		Blob     string `json:"blob,omitempty"` // Base64 encoded blob data (if available)
-	} `json:"resource"` // The resource data
+	Type     string          `json:"type"`     // Always "resource"
+	Resource ResourceContent `json:"resource"` // The resource data
 }
 
 // Annotations provides additional metadata for content
