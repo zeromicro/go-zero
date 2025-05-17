@@ -208,6 +208,8 @@
         "cache": "Generate code with cache [optional]",
         "easy": "Generate code with auto generated CollectionName for easy declare [optional]",
         "dir": "{{.goctl.model.dir}}",
+        "auto-package": "Whether to automatically use the name of the directory where the build file is located as the package name [optional,default=false]\nIt is mainly used to be compatible with previous versions,If this parameter is set to false, the package name is set to model by default",
+        "package": "Manually specify the package name, which takes precedence over VarBoolPkgAuto [optional]",
         "style": "{{.global.style}}",
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
