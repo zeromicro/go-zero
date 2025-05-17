@@ -809,7 +809,7 @@ func (s *sseMcpServer) processResourcesRead(ctx context.Context, client *mcpClie
 	}
 
 	// Ensure MimeType is set if available from the resource definition
-	if len(content.MimeType) == 0 && resource.MimeType != "" {
+	if len(content.MimeType) == 0 && len(resource.MimeType) > 0 {
 		content.MimeType = resource.MimeType
 	}
 
