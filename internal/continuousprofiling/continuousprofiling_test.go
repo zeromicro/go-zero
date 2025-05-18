@@ -83,6 +83,13 @@ func TestGenPyroScopeConf(t *testing.T) {
 	resetFraction(c)
 }
 
+func TestNewPyProfiler(t *testing.T) {
+	p := newPyProfiler(Config{})
+
+	assert.Error(t, p.Start())
+	assert.NoError(t, p.Stop())
+}
+
 type mockProfiler struct {
 	mutex   sync.Mutex
 	started bool
