@@ -1,4 +1,4 @@
-package continueprofiling
+package continuousprofiling
 
 import (
 	"runtime"
@@ -181,7 +181,8 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileGoroutines)
 	}
 	if c.ProfileType.Memory {
-		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileAllocObjects, pyroscope.ProfileAllocSpace, pyroscope.ProfileInuseObjects, pyroscope.ProfileInuseSpace)
+		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileAllocObjects, pyroscope.ProfileAllocSpace,
+			pyroscope.ProfileInuseObjects, pyroscope.ProfileInuseSpace)
 	}
 	if c.ProfileType.Mutex {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileMutexCount, pyroscope.ProfileMutexDuration)
