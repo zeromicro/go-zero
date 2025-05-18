@@ -40,7 +40,7 @@ type (
 		DevServer  DevServerConfig   `json:",optional"`
 		Shutdown   proc.ShutdownConf `json:",optional"`
 		// ProfilingConfig is the configuration for profiling.
-		ContinueProfilingConfig continueprofiling.Config `json:",optional"`
+		ContinueProfiling continueprofiling.Config `json:",optional"`
 	}
 )
 
@@ -75,7 +75,7 @@ func (sc ServiceConf) SetUp() error {
 	}
 	devserver.StartAgent(sc.DevServer)
 
-	continueprofiling.Start(sc.ContinueProfilingConfig)
+	continueprofiling.Start(sc.ContinueProfiling)
 
 	return nil
 }
