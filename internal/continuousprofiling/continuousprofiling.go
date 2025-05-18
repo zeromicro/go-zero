@@ -93,6 +93,7 @@ func Start(c Config) {
 
 	once.Do(func() {
 		logx.Info("continuous profiling started")
+
 		var done = make(chan struct{})
 		proc.AddShutdownListener(func() {
 			done <- struct{}{}
@@ -190,6 +191,7 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 	if c.ProfileType.Block {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileBlockCount, pyroscope.ProfileBlockDuration)
 	}
+
 	logx.Infof("applicationName: %s", pConf.ApplicationName)
 
 	return pConf
