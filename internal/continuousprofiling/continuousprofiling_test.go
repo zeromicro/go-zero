@@ -10,26 +10,41 @@ import (
 )
 
 func TestStart(t *testing.T) {
-	var mockProfiler = &mockProfiler{}
-	newProfiler = func(c Config) profiler {
-		return mockProfiler
-	}
+	t.Run("invalid config", func(t *testing.T) {
+		var mockProfiler = &mockProfiler{}
+		newProfiler = func(c Config) profiler {
+			return mockProfiler
+		}
 
-	c := Config{
-		Name:              "test",
-		ServerAddress:     "localhost:4040",
-		IntervalDuration:  time.Millisecond,
-		ProfilingDuration: time.Millisecond * 10,
-		CpuThreshold:      0,
-	}
-	var done = make(chan struct{})
-	go startPyroScope(c, done)
+		Start(Config{})
 
-	time.Sleep(time.Second * 1)
-	done <- struct{}{}
+		Start(Config{
+			ServerAddress: "localhost:4040",
+		})
+	})
 
-	assert.True(t, mockProfiler.started)
-	assert.True(t, mockProfiler.stopped)
+	t.Run("test start profiler", func(t *testing.T) {
+		var mockProfiler = &mockProfiler{}
+		newProfiler = func(c Config) profiler {
+			return mockProfiler
+		}
+
+		c := Config{
+			Name:              "test",
+			ServerAddress:     "localhost:4040",
+			IntervalDuration:  time.Millisecond,
+			ProfilingDuration: time.Millisecond * 10,
+			CpuThreshold:      0,
+		}
+		var done = make(chan struct{})
+		go startPyroScope(c, done)
+
+		time.Sleep(time.Second * 1)
+		done <- struct{}{}
+
+		assert.True(t, mockProfiler.started)
+		assert.True(t, mockProfiler.stopped)
+	})
 }
 
 func TestGenPyroScopeConf(t *testing.T) {
@@ -63,6 +78,9 @@ func TestGenPyroScopeConf(t *testing.T) {
 	assert.Contains(t, conf.ProfileTypes, pyroscope.ProfileMutexDuration)
 	assert.Contains(t, conf.ProfileTypes, pyroscope.ProfileBlockCount)
 	assert.Contains(t, conf.ProfileTypes, pyroscope.ProfileBlockDuration)
+
+	setFraction(c)
+	resetFraction(c)
 }
 
 type mockProfiler struct {
