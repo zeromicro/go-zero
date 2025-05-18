@@ -106,6 +106,8 @@ func TestGenPyroScopeConf(t *testing.T) {
 
 	setFraction(c)
 	resetFraction(c)
+
+	newPyProfiler(c)
 }
 
 func TestNewPyProfiler(t *testing.T) {
