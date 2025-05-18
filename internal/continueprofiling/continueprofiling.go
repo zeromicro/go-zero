@@ -109,7 +109,7 @@ func startPyroScope(c Config) {
 
 				// record the latest profiling time
 				latestProfilingTime = time.Now()
-				logx.Infof("PyroScope profiler started.")
+				logx.Infof("pyroScope profiler started.")
 			}
 		case <-profilingTicker.C:
 			// check if the profiling duration has passed
@@ -122,7 +122,7 @@ func startPyroScope(c Config) {
 				if err = profiler.Stop(); err != nil {
 					logx.Errorf("failed to stop profiler: %v", err)
 				}
-				logx.Infof("PyroScope profiler stopped.")
+				logx.Infof("pyroScope profiler stopped.")
 				profiler = nil
 			}
 		}
