@@ -24,8 +24,8 @@ type (
 		AuthPassword string `json:",optional"`
 		// UploadDuration is the duration for which profiling data is uploaded.
 		UploadDuration time.Duration `json:",default=15s"`
-		// IntervalTicker is the interval for which profiling data is collected.
-		IntervalTicker time.Duration `json:",default=10s"`
+		// IntervalDuration is the interval for which profiling data is collected.
+		IntervalDuration time.Duration `json:",default=10s"`
 		// ProfilingDuration is the duration for which profiling data is collected.
 		ProfilingDuration time.Duration `json:",default=2m"`
 		// CpuThreshold the collection is allowed only when the current service cpu < CpuThreshold
@@ -51,9 +51,25 @@ type (
 		// Block is a flag to disable block profiling.
 		Block bool `json:",default=false"`
 	}
+
+	profiler interface {
+		Start() error
+		Stop() error
+	}
+
+	pyProfiler struct {
+		c        Config
+		profiler *pyroscope.Profiler
+	}
 )
 
-var once sync.Once
+var (
+	once sync.Once
+
+	newProfiler = func(c Config) profiler {
+		return newPyProfiler(c)
+	}
+)
 
 // Start initializes the pyroscope profiler with the given configuration.
 func Start(c Config) {
@@ -68,8 +84,8 @@ func Start(c Config) {
 	}
 
 	// set default values for the configuration
-	if c.IntervalTicker <= 0 {
-		c.IntervalTicker = time.Second * 10
+	if c.IntervalDuration <= 0 {
+		c.IntervalDuration = time.Second * 10
 	}
 
 	if c.UploadDuration <= 0 {
@@ -87,11 +103,11 @@ func Start(c Config) {
 // startPyroScope starts the pyroscope profiler with the given configuration.
 func startPyroScope(c Config) {
 	var (
-		intervalTicker  = time.NewTicker(c.IntervalTicker)
+		intervalTicker  = time.NewTicker(c.IntervalDuration)
 		profilingTicker = time.NewTicker(c.ProfilingDuration)
 
-		profiler *pyroscope.Profiler
-		err      error
+		pr  profiler
+		err error
 
 		latestProfilingTime time.Time
 	)
@@ -100,13 +116,9 @@ func startPyroScope(c Config) {
 		select {
 		case <-intervalTicker.C:
 			// Check if the machine is overloaded and if the profiler is not running
-			if profiler == nil && checkMachinePerformance(c) {
-				pConf := genPyroScopeConf(c)
-				// set mutex and block profile rate
-				setFraction(c)
-				profiler, err = pyroscope.Start(pConf)
-				if err != nil {
-					resetFraction(c)
+			if pr == nil && checkMachinePerformance(c) {
+				pr = newProfiler(c)
+				if err := pr.Start(); err != nil {
 					logx.Errorf("failed to start profiler: %v", err)
 					continue
 				}
@@ -122,13 +134,12 @@ func startPyroScope(c Config) {
 			}
 
 			// check if the profiler is already running, if so, skip
-			if profiler != nil {
-				if err = profiler.Stop(); err != nil {
+			if pr != nil {
+				if err = pr.Stop(); err != nil {
 					logx.Errorf("failed to stop profiler: %v", err)
 				}
 				logx.Infof("pyroScope profiler stopped.")
-				resetFraction(c)
-				profiler = nil
+				pr = nil
 			}
 		}
 	}
@@ -143,9 +154,7 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 		BasicAuthPassword: c.AuthPassword, // http basic auth password
 		// replace this with the address of pyroscope server
 		ServerAddress: c.ServerAddress,
-
-		// you can disable logging by setting this to nil
-		Logger: logx.WithCallerSkip(0),
+		Logger:        nil,
 
 		HTTPHeaders: map[string]string{},
 
@@ -153,6 +162,10 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 		Tags: map[string]string{
 			"name": c.Name,
 		},
+	}
+
+	if c.ProfileType.Logger {
+		pConf.Logger = logx.WithCallerSkip(0)
 	}
 
 	if !c.ProfileType.GCRuns {
@@ -189,6 +202,41 @@ func checkMachinePerformance(c Config) bool {
 	}
 
 	return false
+}
+
+func newPyProfiler(c Config) profiler {
+	return &pyProfiler{
+		c: c,
+	}
+}
+
+func (p *pyProfiler) Start() error {
+	pConf := genPyroScopeConf(p.c)
+	// set mutex and block profile rate
+	setFraction(p.c)
+	profiler, err := pyroscope.Start(pConf)
+	if err != nil {
+		resetFraction(p.c)
+		return err
+	}
+
+	p.profiler = profiler
+	return nil
+}
+
+func (p *pyProfiler) Stop() error {
+	if p.profiler == nil {
+		return nil
+	}
+
+	err := p.profiler.Stop()
+	if err != nil {
+		return err
+	}
+	resetFraction(p.c)
+	p.profiler = nil
+
+	return nil
 }
 
 func setFraction(c Config) {
