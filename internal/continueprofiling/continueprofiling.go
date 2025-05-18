@@ -194,10 +194,10 @@ func checkMachinePerformance(c Config) bool {
 func setFraction(c Config) {
 	// These 2 lines are only required if you're using mutex or block profiling
 	if c.ProfileType.Mutex {
-		runtime.SetMutexProfileFraction(10) // 每10个采一次
+		runtime.SetMutexProfileFraction(10) // 10/seconds
 	}
 	if c.ProfileType.Block {
-		runtime.SetBlockProfileRate(1000 * 1000) //  每1毫秒采一次
+		runtime.SetBlockProfileRate(1000 * 1000) //  1/millisecond
 	}
 }
 
