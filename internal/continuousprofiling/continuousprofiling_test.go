@@ -39,11 +39,36 @@ func TestStart(t *testing.T) {
 		var done = make(chan struct{})
 		go startPyroScope(c, done)
 
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 50)
 		done <- struct{}{}
 
 		assert.True(t, mockProfiler.started)
 		assert.True(t, mockProfiler.stopped)
+	})
+
+	t.Run("start/stop err", func(t *testing.T) {
+		var mockProfiler = &mockProfiler{
+			err: assert.AnError,
+		}
+		newProfiler = func(c Config) profiler {
+			return mockProfiler
+		}
+
+		c := Config{
+			Name:              "test",
+			ServerAddress:     "localhost:4040",
+			IntervalDuration:  time.Millisecond,
+			ProfilingDuration: time.Millisecond * 10,
+			CpuThreshold:      0,
+		}
+		var done = make(chan struct{})
+		go startPyroScope(c, done)
+
+		time.Sleep(time.Millisecond * 50)
+		done <- struct{}{}
+
+		assert.False(t, mockProfiler.started)
+		assert.False(t, mockProfiler.stopped)
 	})
 }
 
@@ -99,14 +124,18 @@ type mockProfiler struct {
 
 func (m *mockProfiler) Start() error {
 	m.mutex.Lock()
-	m.started = true
+	if m.err == nil {
+		m.started = true
+	}
 	m.mutex.Unlock()
 	return m.err
 }
 
 func (m *mockProfiler) Stop() error {
 	m.mutex.Lock()
-	m.stopped = true
+	if m.err == nil {
+		m.stopped = true
+	}
 	m.mutex.Unlock()
 	return m.err
 }
