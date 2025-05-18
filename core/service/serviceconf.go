@@ -7,6 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/internal/continueprofiling"
 	"github.com/zeromicro/go-zero/internal/devserver"
 )
 
@@ -38,6 +39,8 @@ type (
 		Telemetry  trace.Config      `json:",optional"`
 		DevServer  DevServerConfig   `json:",optional"`
 		Shutdown   proc.ShutdownConf `json:",optional"`
+		// ProfilingConfig is the configuration for profiling.
+		ContinueProfilingConfig continueprofiling.Config `json:",optional"`
 	}
 )
 
@@ -71,6 +74,8 @@ func (sc ServiceConf) SetUp() error {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
 	}
 	devserver.StartAgent(sc.DevServer)
+
+	continueprofiling.Start(sc.ContinueProfilingConfig)
 
 	return nil
 }
