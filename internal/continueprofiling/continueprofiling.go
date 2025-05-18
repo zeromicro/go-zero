@@ -1,6 +1,7 @@
 package continueprofiling
 
 import (
+	"runtime"
 	"sync"
 	"time"
 
@@ -35,20 +36,20 @@ type (
 	}
 
 	ProfileType struct {
-		// LoggerOpen is a flag to enable or disable logger profiling.
-		LoggerOpen bool `json:",default=false"`
-		// DisableGCRunsOff is a flag to disable garbage collection runs.
-		DisableGCRunsOff bool `json:",default=false"`
-		// CPUOff is a flag to disable CPU profiling.
-		CPUOff bool `json:",default=false"`
-		// GoroutinesOff is a flag to disable goroutine profiling.
-		GoroutinesOff bool `json:",default=false"`
-		// MemoryOff is a flag to disable memory profiling.
-		MemoryOff bool `json:",default=false"`
-		// MutexOff is a flag to disable mutex profiling.
-		MutexOff bool `json:",default=true"`
-		// BlockOff is a flag to disable block profiling.
-		BlockOff bool `json:",default=true"`
+		// Logger is a flag to enable or disable logging.
+		Logger bool `json:",default=false"`
+		// GCRuns is a flag to disable GC runs profiling.
+		GCRuns bool `json:",default=false"`
+		// CPU is a flag to disable CPU profiling.
+		CPU bool `json:",default=true"`
+		// Goroutines is a flag to disable goroutine profiling.
+		Goroutines bool `json:",default=true"`
+		// Memory is a flag to disable memory profiling.
+		Memory bool `json:",default=true"`
+		// Mutex is a flag to disable mutex profiling.
+		Mutex bool `json:",default=false"`
+		// Block is a flag to disable block profiling.
+		Block bool `json:",default=false"`
 	}
 )
 
@@ -101,8 +102,11 @@ func startPyroScope(c Config) {
 			// Check if the machine is overloaded and if the profiler is not running
 			if profiler == nil && checkMachinePerformance(c) {
 				pConf := genPyroScopeConf(c)
+				// set mutex and block profile rate
+				setFraction(c)
 				profiler, err = pyroscope.Start(pConf)
 				if err != nil {
+					resetFraction(c)
 					logx.Errorf("failed to start profiler: %v", err)
 					continue
 				}
@@ -123,6 +127,7 @@ func startPyroScope(c Config) {
 					logx.Errorf("failed to stop profiler: %v", err)
 				}
 				logx.Infof("pyroScope profiler stopped.")
+				resetFraction(c)
 				profiler = nil
 			}
 		}
@@ -133,7 +138,6 @@ func startPyroScope(c Config) {
 func genPyroScopeConf(c Config) pyroscope.Config {
 	pConf := pyroscope.Config{
 		UploadRate:        c.UploadDuration,
-		DisableGCRuns:     !c.ProfileType.DisableGCRunsOff, // disable GC runs
 		ApplicationName:   c.Name,
 		BasicAuthUser:     c.AuthUser,     // http basic auth user
 		BasicAuthPassword: c.AuthPassword, // http basic auth password
@@ -151,19 +155,23 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 		},
 	}
 
-	if !c.ProfileType.CPUOff {
+	if !c.ProfileType.GCRuns {
+		pConf.DisableGCRuns = true // disable GC runs
+	}
+
+	if c.ProfileType.CPU {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileCPU)
 	}
-	if !c.ProfileType.GoroutinesOff {
+	if c.ProfileType.Goroutines {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileGoroutines)
 	}
-	if !c.ProfileType.MemoryOff {
+	if c.ProfileType.Memory {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileAllocObjects, pyroscope.ProfileAllocSpace, pyroscope.ProfileInuseObjects, pyroscope.ProfileInuseSpace)
 	}
-	if !c.ProfileType.MutexOff {
+	if c.ProfileType.Mutex {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileMutexCount, pyroscope.ProfileMutexDuration)
 	}
-	if !c.ProfileType.BlockOff {
+	if c.ProfileType.Block {
 		pConf.ProfileTypes = append(pConf.ProfileTypes, pyroscope.ProfileBlockCount, pyroscope.ProfileBlockDuration)
 	}
 	logx.Infof("applicationName: %s", pConf.ApplicationName)
@@ -181,4 +189,24 @@ func checkMachinePerformance(c Config) bool {
 	}
 
 	return false
+}
+
+func setFraction(c Config) {
+	// These 2 lines are only required if you're using mutex or block profiling
+	if c.ProfileType.Mutex {
+		runtime.SetMutexProfileFraction(10) // 每10个采一次
+	}
+	if c.ProfileType.Block {
+		runtime.SetBlockProfileRate(1000 * 1000) //  每1毫秒采一次
+	}
+}
+
+func resetFraction(c Config) {
+	// These 2 lines are only required if you're using mutex or block profiling
+	if c.ProfileType.Mutex {
+		runtime.SetMutexProfileFraction(0)
+	}
+	if c.ProfileType.Block {
+		runtime.SetBlockProfileRate(0)
+	}
 }
