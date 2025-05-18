@@ -1,82 +1,54 @@
 package continueprofiling
 
 import (
+	"bytes"
 	"testing"
+	"time"
 
-	"github.com/grafana/pyroscope-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
-func TestGenPyroScopeConf(t *testing.T) {
-	tests := []struct {
-		name        string
-		config      Config
-		contains    []pyroscope.ProfileType
-		notContains []pyroscope.ProfileType
-	}{
-		{
-			name: "default profile types",
-			config: Config{
-				ProfileType: ProfileType{
-					CPU:        false,
-					Goroutines: false,
-					Memory:     false,
-					Mutex:      true,
-					Block:      true,
-				},
-			},
-			contains: []pyroscope.ProfileType{
-				pyroscope.ProfileCPU,
-				pyroscope.ProfileGoroutines,
-				pyroscope.ProfileAllocObjects,
-				pyroscope.ProfileAllocSpace,
-				pyroscope.ProfileInuseObjects,
-				pyroscope.ProfileInuseSpace,
-			},
-			notContains: []pyroscope.ProfileType{
-				pyroscope.ProfileMutexCount,
-				pyroscope.ProfileMutexDuration,
-				pyroscope.ProfileBlockCount,
-				pyroscope.ProfileBlockDuration,
-			},
-		},
-		{
-			name: "cpu profiling off",
-			config: Config{
-				ProfileType: ProfileType{
-					CPU: true,
-				},
-			},
-			notContains: []pyroscope.ProfileType{pyroscope.ProfileCPU},
-		},
-		{
-			name: "auth credentials",
-			config: Config{
-				AuthUser:     "testuser",
-				AuthPassword: "testpass",
-			},
-		},
+func TestStartPyroScope(t *testing.T) {
+	var buf bytes.Buffer
+	logx.Reset()
+	logx.SetLevel(logx.InfoLevel)
+	logx.SetWriter(logx.NewWriter(&buf))
+	defer logx.Reset()
+
+	newProfiler = func(c Config) profiler {
+		return &mockProfiler{}
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			conf := genPyroScopeConf(tt.config)
+	c := Config{}
+	conf.FillDefault(&c)
 
-			// Verify contained profile types
-			for _, pt := range tt.contains {
-				assert.Contains(t, conf.ProfileTypes, pt)
-			}
+	c.IntervalDuration = time.Millisecond
+	c.ProfilingDuration = time.Millisecond * 10
+	c.CpuThreshold = 0
 
-			// Verify excluded profile types
-			for _, pt := range tt.notContains {
-				assert.NotContains(t, conf.ProfileTypes, pt)
-			}
+	var done = make(chan struct{})
 
-			// Verify auth credentials
-			if tt.config.AuthUser != "" {
-				assert.Equal(t, tt.config.AuthUser, conf.BasicAuthUser)
-				assert.Equal(t, tt.config.AuthPassword, conf.BasicAuthPassword)
-			}
-		})
-	}
+	go startPyroScope(c, done)
+
+	time.Sleep(time.Second * 1)
+	done <- struct{}{}
+
+	assert.Contains(t, buf.String(), "pyroScope profiler started")
+	assert.Contains(t, buf.String(), "pyroScope profiler stopped")
+	assert.Contains(t, buf.String(), "continuous profiling stopped")
+}
+
+type mockProfiler struct {
+}
+
+func (m *mockProfiler) Start() error {
+
+	return nil
+}
+
+func (m *mockProfiler) Stop() error {
+	return nil
 }

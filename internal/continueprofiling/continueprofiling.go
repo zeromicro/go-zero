@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/pyroscope-go"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/threading"
 )
@@ -38,8 +39,6 @@ type (
 	ProfileType struct {
 		// Logger is a flag to enable or disable logging.
 		Logger bool `json:",default=false"`
-		// GCRuns is a flag to disable GC runs profiling.
-		GCRuns bool `json:",default=false"`
 		// CPU is a flag to disable CPU profiling.
 		CPU bool `json:",default=true"`
 		// Goroutines is a flag to disable goroutine profiling.
@@ -94,14 +93,19 @@ func Start(c Config) {
 
 	once.Do(func() {
 		logx.Info("continuous profiling started")
+		var done = make(chan struct{})
+		proc.AddShutdownListener(func() {
+			done <- struct{}{}
+		})
+
 		threading.GoSafe(func() {
-			startPyroScope(c)
+			startPyroScope(c, done)
 		})
 	})
 }
 
 // startPyroScope starts the pyroscope profiler with the given configuration.
-func startPyroScope(c Config) {
+func startPyroScope(c Config, done <-chan struct{}) {
 	var (
 		intervalTicker  = time.NewTicker(c.IntervalDuration)
 		profilingTicker = time.NewTicker(c.ProfilingDuration)
@@ -141,6 +145,9 @@ func startPyroScope(c Config) {
 				logx.Infof("pyroScope profiler stopped.")
 				pr = nil
 			}
+		case <-done:
+			logx.Infof("continuous profiling stopped.")
+			return
 		}
 	}
 }
@@ -152,9 +159,8 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 		ApplicationName:   c.Name,
 		BasicAuthUser:     c.AuthUser,     // http basic auth user
 		BasicAuthPassword: c.AuthPassword, // http basic auth password
-		// replace this with the address of pyroscope server
-		ServerAddress: c.ServerAddress,
-		Logger:        nil,
+		ServerAddress:     c.ServerAddress,
+		Logger:            nil,
 
 		HTTPHeaders: map[string]string{},
 
@@ -166,10 +172,6 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 
 	if c.ProfileType.Logger {
 		pConf.Logger = logx.WithCallerSkip(0)
-	}
-
-	if !c.ProfileType.GCRuns {
-		pConf.DisableGCRuns = true // disable GC runs
 	}
 
 	if c.ProfileType.CPU {
