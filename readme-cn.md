@@ -117,6 +117,9 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     
     # For Mac
     brew install goctl
+   
+    # For nix user
+    nix profile install 'github:zeromicro/go-zero'
     
     # docker for all platforms
     docker pull kevinwan/goctl
