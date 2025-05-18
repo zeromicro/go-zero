@@ -7,7 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/trace"
-	"github.com/zeromicro/go-zero/internal/continueprofiling"
+	"github.com/zeromicro/go-zero/internal/continuousprofiling"
 	"github.com/zeromicro/go-zero/internal/devserver"
 )
 
@@ -40,7 +40,7 @@ type (
 		DevServer  DevServerConfig   `json:",optional"`
 		Shutdown   proc.ShutdownConf `json:",optional"`
 		// ProfilingConfig is the configuration for profiling.
-		ContinueProfiling continueprofiling.Config `json:",optional"`
+		ContinuousProfiling continuousprofiling.Config `json:",optional"`
 	}
 )
 
@@ -75,7 +75,7 @@ func (sc ServiceConf) SetUp() error {
 	}
 	devserver.StartAgent(sc.DevServer)
 
-	continueprofiling.Start(sc.ContinueProfiling)
+	continuousprofiling.Start(sc.ContinuousProfiling)
 
 	return nil
 }
