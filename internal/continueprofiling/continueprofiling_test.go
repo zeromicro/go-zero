@@ -18,11 +18,11 @@ func TestGenPyroScopeConf(t *testing.T) {
 			name: "default profile types",
 			config: Config{
 				ProfileType: ProfileType{
-					CPUOff:        false,
-					GoroutinesOff: false,
-					MemoryOff:     false,
-					MutexOff:      true,
-					BlockOff:      true,
+					CPU:        false,
+					Goroutines: false,
+					Memory:     false,
+					Mutex:      true,
+					Block:      true,
 				},
 			},
 			contains: []pyroscope.ProfileType{
@@ -44,7 +44,7 @@ func TestGenPyroScopeConf(t *testing.T) {
 			name: "cpu profiling off",
 			config: Config{
 				ProfileType: ProfileType{
-					CPUOff: true,
+					CPU: true,
 				},
 			},
 			notContains: []pyroscope.ProfileType{pyroscope.ProfileCPU},
