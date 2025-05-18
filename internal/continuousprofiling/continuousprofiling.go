@@ -148,6 +148,8 @@ func startPyroScope(c Config, done <-chan struct{}) {
 			}
 		case <-done:
 			logx.Infof("continuous profiling stopped.")
+			intervalTicker.Stop()
+			profilingTicker.Stop()
 			return
 		}
 	}
@@ -200,7 +202,6 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 // checkMachinePerformance checks the machine performance based on the given configuration.
 func checkMachinePerformance(c Config) bool {
 	currentValue := stat.CpuUsage()
-	// overload >= 700, 70%
 	if currentValue >= c.CpuThreshold {
 		logx.Infof("continuous profiling cpu overload, cpu:%d", currentValue)
 		return true
