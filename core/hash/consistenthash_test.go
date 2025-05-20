@@ -93,17 +93,6 @@ func TestConsistentHashTransferOnFailure(t *testing.T) {
 	assert.True(t, ratio < 2.5/keySize, fmt.Sprintf("%d: %f", index, ratio))
 }
 
-func getTransferRatioOnFailure(t *testing.T, index int) float32 {
-	keys, newKeys := getKeysBeforeAndAfterFailure(t, "localhost:", index)
-	var transferred int
-	for k, v := range newKeys {
-		if v != keys[k] {
-			transferred++
-		}
-	}
-	return float32(transferred) / float32(requestSize)
-}
-
 func TestConsistentHashLeastTransferOnFailure(t *testing.T) {
 	prefix := "localhost:"
 	index := 13
@@ -168,6 +157,17 @@ func getKeysBeforeAndAfterFailure(t *testing.T, prefix string, index int) (map[i
 	}
 
 	return keys, newKeys
+}
+
+func getTransferRatioOnFailure(t *testing.T, index int) float32 {
+	keys, newKeys := getKeysBeforeAndAfterFailure(t, "localhost:", index)
+	var transferred int
+	for k, v := range newKeys {
+		if v != keys[k] {
+			transferred++
+		}
+	}
+	return float32(transferred) / float32(requestSize)
 }
 
 type mockNode struct {
