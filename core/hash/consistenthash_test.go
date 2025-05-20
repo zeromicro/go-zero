@@ -86,6 +86,14 @@ func TestConsistentHashIncrementalTransfer(t *testing.T) {
 
 func TestConsistentHashTransferOnFailure(t *testing.T) {
 	index := 41
+	ratioNotExists := getTransferRatioOnFailure(t, index)
+	assert.True(t, ratioNotExists == 0, fmt.Sprintf("%d: %f", index, ratioNotExists))
+	index = 13
+	ratio := getTransferRatioOnFailure(t, index)
+	assert.True(t, ratio < 2.5/keySize, fmt.Sprintf("%d: %f", index, ratio))
+}
+
+func getTransferRatioOnFailure(t *testing.T, index int) float32 {
 	keys, newKeys := getKeysBeforeAndAfterFailure(t, "localhost:", index)
 	var transferred int
 	for k, v := range newKeys {
@@ -93,14 +101,12 @@ func TestConsistentHashTransferOnFailure(t *testing.T) {
 			transferred++
 		}
 	}
-
-	ratio := float32(transferred) / float32(requestSize)
-	assert.True(t, ratio < 2.5/float32(keySize), fmt.Sprintf("%d: %f", index, ratio))
+	return float32(transferred) / float32(requestSize)
 }
 
 func TestConsistentHashLeastTransferOnFailure(t *testing.T) {
 	prefix := "localhost:"
-	index := 41
+	index := 13
 	keys, newKeys := getKeysBeforeAndAfterFailure(t, prefix, index)
 	for k, v := range keys {
 		newV := newKeys[k]
