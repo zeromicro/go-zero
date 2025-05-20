@@ -16,7 +16,6 @@ import (
 
 const (
 	numHistoryReasons = 5
-	timeFormat        = "15:04:05"
 )
 
 // ErrServiceUnavailable is returned when the Breaker state is open.
@@ -262,7 +261,7 @@ type errorWindow struct {
 
 func (ew *errorWindow) add(reason string) {
 	ew.lock.Lock()
-	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(timeFormat), reason)
+	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(time.TimeOnly), reason)
 	ew.index = (ew.index + 1) % numHistoryReasons
 	ew.count = mathx.MinInt(ew.count+1, numHistoryReasons)
 	ew.lock.Unlock()
