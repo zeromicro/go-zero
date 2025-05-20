@@ -2,7 +2,6 @@ package stringx
 
 import (
 	"bytes"
-	"slices"
 	"strings"
 	"unicode"
 
@@ -125,9 +124,17 @@ func ContainsAny(s string, runes ...rune) bool {
 	if len(runes) == 0 {
 		return true
 	}
-	return slices.ContainsFunc(runes, func(r rune) bool {
-		return strings.ContainsRune(s, r)
-	})
+	tmp := make(map[rune]struct{}, len(runes))
+	for _, r := range runes {
+		tmp[r] = struct{}{}
+	}
+
+	for _, r := range s {
+		if _, ok := tmp[r]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func ContainsWhiteSpace(s string) bool {
