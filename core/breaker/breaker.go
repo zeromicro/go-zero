@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -264,7 +263,7 @@ func (ew *errorWindow) add(reason string) {
 	ew.lock.Lock()
 	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(timeFormat), reason)
 	ew.index = (ew.index + 1) % numHistoryReasons
-	ew.count = mathx.MinInt(ew.count+1, numHistoryReasons)
+	ew.count = min(ew.count+1, numHistoryReasons)
 	ew.lock.Unlock()
 }
 
