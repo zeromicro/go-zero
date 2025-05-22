@@ -294,7 +294,7 @@ func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {
 	ext := spec.Extensions{}
 	ext.Add("x-goctl-version", version.BuildVersion)
 	ext.Add("x-description", "This is a goctl generated swagger file.")
-	ext.Add("x-date", time.Now().Format("2006-01-02 15:04:05"))
+	ext.Add("x-date", time.Now().Format(time.DateTime))
 	ext.Add("x-github", "https://github.com/zeromicro/go-zero")
 	ext.Add("x-go-zero-doc", "https://go-zero.dev/")
 
