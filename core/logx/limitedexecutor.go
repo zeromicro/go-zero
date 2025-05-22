@@ -10,7 +10,7 @@ import (
 
 type limitedExecutor struct {
 	threshold time.Duration
-	lastTime  syncx.AtomicDuration
+	lastTime  *syncx.AtomicDuration
 	discarded uint32
 }
 

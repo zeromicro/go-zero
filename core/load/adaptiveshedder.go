@@ -74,7 +74,7 @@ type (
 		flying          int64
 		avgFlying       float64
 		avgFlyingLock   syncx.SpinLock
-		overloadTime    syncx.AtomicDuration
+		overloadTime    *syncx.AtomicDuration
 		droppedRecently atomic.Bool
 		passCounter     *collection.RollingWindow[int64, *collection.Bucket[int64]]
 		rtCounter       *collection.RollingWindow[int64, *collection.Bucket[int64]]
