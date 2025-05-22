@@ -63,7 +63,7 @@ func TestAdaptiveShedderMaxPass(t *testing.T) {
 	}
 	shedder := &adaptiveShedder{
 		passCounter:     passCounter,
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 	}
 	assert.Equal(t, int64(1000), shedder.maxPass())
 
@@ -71,7 +71,7 @@ func TestAdaptiveShedderMaxPass(t *testing.T) {
 	passCounter = newRollingWindow()
 	shedder = &adaptiveShedder{
 		passCounter:     passCounter,
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 	}
 	assert.Equal(t, int64(1), shedder.maxPass())
 }
@@ -95,7 +95,7 @@ func TestAdaptiveShedderMinRt(t *testing.T) {
 	rtCounter = newRollingWindow()
 	shedder = &adaptiveShedder{
 		rtCounter:       rtCounter,
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 	}
 	assert.Equal(t, defaultMinRt, shedder.minRt())
 }
@@ -116,7 +116,7 @@ func TestAdaptiveShedderMaxFlight(t *testing.T) {
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
 		windowScale:     windowFactor,
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 	}
 	assert.Equal(t, float64(54), shedder.maxFlight())
 }
@@ -139,7 +139,7 @@ func TestAdaptiveShedderShouldDrop(t *testing.T) {
 		rtCounter:       rtCounter,
 		windowScale:     windowFactor,
 		overloadTime:    syncx.NewAtomicDuration(),
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 	}
 	// cpu >=  800, inflight < maxPass
 	systemOverloadChecker = func(int64) bool {
@@ -194,12 +194,13 @@ func TestAdaptiveShedderStillHot(t *testing.T) {
 		rtCounter:       rtCounter,
 		windowScale:     windowFactor,
 		overloadTime:    syncx.NewAtomicDuration(),
-		droppedRecently: syncx.ForAtomicBool(true),
+		droppedRecently: atomic.Bool{},
 	}
+	shedder.droppedRecently.Store(false)
 	assert.False(t, shedder.stillHot())
 	shedder.overloadTime.Set(-coolOffDuration * 2)
 	assert.False(t, shedder.stillHot())
-	shedder.droppedRecently.Set(true)
+	shedder.droppedRecently.Store(true)
 	shedder.overloadTime.Set(timex.Now())
 	assert.True(t, shedder.stillHot())
 }
@@ -257,7 +258,7 @@ func BenchmarkMaxFlight(b *testing.B) {
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
 		windowScale:     windowFactor,
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 	}
 
 	for i := 0; i < b.N; i++ {

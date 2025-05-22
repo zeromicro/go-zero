@@ -75,7 +75,7 @@ type (
 		avgFlying       float64
 		avgFlyingLock   syncx.SpinLock
 		overloadTime    *syncx.AtomicDuration
-		droppedRecently *syncx.AtomicBool
+		droppedRecently atomic.Bool
 		passCounter     *collection.RollingWindow[int64, *collection.Bucket[int64]]
 		rtCounter       *collection.RollingWindow[int64, *collection.Bucket[int64]]
 	}
@@ -114,7 +114,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 		cpuThreshold:    options.cpuThreshold,
 		windowScale:     float64(time.Second) / float64(bucketDuration) / millisecondsPerSecond,
 		overloadTime:    syncx.NewAtomicDuration(),
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 		passCounter:     collection.NewRollingWindow[int64, *collection.Bucket[int64]](newBucket, options.buckets, bucketDuration, collection.IgnoreCurrentBucket[int64, *collection.Bucket[int64]]()),
 		rtCounter:       collection.NewRollingWindow[int64, *collection.Bucket[int64]](newBucket, options.buckets, bucketDuration, collection.IgnoreCurrentBucket[int64, *collection.Bucket[int64]]()),
 	}
@@ -123,7 +123,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 // Allow implements Shedder.Allow.
 func (as *adaptiveShedder) Allow() (Promise, error) {
 	if as.shouldDrop() {
-		as.droppedRecently.Set(true)
+		as.droppedRecently.Store(true)
 
 		return nil, ErrServiceOverloaded
 	}
@@ -225,7 +225,7 @@ func (as *adaptiveShedder) shouldDrop() bool {
 }
 
 func (as *adaptiveShedder) stillHot() bool {
-	if !as.droppedRecently.True() {
+	if !as.droppedRecently.Load() {
 		return false
 	}
 
@@ -238,7 +238,7 @@ func (as *adaptiveShedder) stillHot() bool {
 		return true
 	}
 
-	as.droppedRecently.Set(false)
+	as.droppedRecently.Store(false)
 	return false
 }
 

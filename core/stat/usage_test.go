@@ -3,6 +3,7 @@ package stat
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
@@ -56,4 +57,8 @@ func TestPrintUsage(t *testing.T) {
 	assert.Len(t, lines, 2)
 	fields := strings.Split(lines[0], ", ")
 	assert.Len(t, fields, 5)
+}
+
+func TestInit(t *testing.T) {
+	time.Sleep(cpuRefreshInterval * 2)
 }
