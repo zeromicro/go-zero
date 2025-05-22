@@ -14,7 +14,7 @@ func NewAtomicBool() (b *AtomicBool) {
 }
 
 // ForAtomicBool returns an AtomicBool with given val.
-// Deprecated: use atomic.Bool instead.
+// Deprecated: use AtomicBoolFromVal instead.
 func ForAtomicBool(val bool) *AtomicBool {
 	b := NewAtomicBool()
 	b.Set(val)
