@@ -11,7 +11,7 @@ type AtomicDuration atomic.Int64
 // NewAtomicDuration returns an AtomicDuration.
 func NewAtomicDuration() (i AtomicDuration) {
 	i.Set(0)
-	return ForAtomicDuration(0)
+	return
 }
 
 // ForAtomicDuration returns an AtomicDuration with given value.
