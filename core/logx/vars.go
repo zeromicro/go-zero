@@ -69,7 +69,7 @@ var (
 	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 	// ExitOnFatal defines whether to exit on fatal errors, defined here to make it easier to test.
-	ExitOnFatal = syncx.ForAtomicBool(true)
+	ExitOnFatal = syncx.AtomicBoolFromVal(true)
 
 	truncatedField = Field(truncatedKey, true)
 )

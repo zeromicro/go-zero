@@ -16,8 +16,8 @@ const defaultSlowThreshold = time.Millisecond * 500
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logSql        = syncx.ForAtomicBool(true)
-	logSlowSql    = syncx.ForAtomicBool(true)
+	logSql        = syncx.AtomicBoolFromVal(true)
+	logSlowSql    = syncx.AtomicBoolFromVal(true)
 )
 
 type (

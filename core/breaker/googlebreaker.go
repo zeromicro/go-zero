@@ -26,7 +26,7 @@ type (
 		k        float64
 		stat     *collection.RollingWindow[int64, *bucket]
 		proba    *mathx.Proba
-		lastPass *syncx.AtomicDuration
+		lastPass syncx.AtomicDuration
 	}
 
 	windowResult struct {

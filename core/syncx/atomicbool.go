@@ -9,13 +9,14 @@ type AtomicBool atomic.Bool
 
 // NewAtomicBool returns an AtomicBool.
 // Deprecated: use atomic.Bool instead.
-func NewAtomicBool() AtomicBool {
-	return AtomicBool(ForAtomicBool(false))
+func NewAtomicBool() (d AtomicBool) {
+	return
 }
 
 // ForAtomicBool returns an atomic.Bool with given val.
-func ForAtomicBool(val bool) (b atomic.Bool) {
-	b.Store(val)
+// Deprecated: use atomic.Bool instead.
+func ForAtomicBool(val bool) (b AtomicBool) {
+	b.Set(val)
 	return
 }
 
@@ -32,4 +33,10 @@ func (b *AtomicBool) Set(v bool) {
 // True returns true if current value is true.
 func (b *AtomicBool) True() bool {
 	return (*atomic.Bool)(b).Load()
+}
+
+// AtomicBoolFromVal returns an atomic.Bool with given val.
+func AtomicBoolFromVal(val bool) (b atomic.Bool) {
+	b.Store(val)
+	return
 }

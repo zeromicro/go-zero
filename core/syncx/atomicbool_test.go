@@ -7,7 +7,7 @@ import (
 )
 
 func TestAtomicBool(t *testing.T) {
-	val := AtomicBool(ForAtomicBool(true))
+	val := ForAtomicBool(true)
 	assert.True(t, val.True())
 	val.Set(false)
 	assert.False(t, val.True())

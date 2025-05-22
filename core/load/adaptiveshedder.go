@@ -34,9 +34,9 @@ var (
 	ErrServiceOverloaded = errors.New("service overloaded")
 
 	// default to be enabled
-	enabled = syncx.ForAtomicBool(true)
+	enabled = syncx.AtomicBoolFromVal(true)
 	// default to be enabled
-	logEnabled = syncx.ForAtomicBool(true)
+	logEnabled = syncx.AtomicBoolFromVal(true)
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
@@ -74,7 +74,7 @@ type (
 		flying          int64
 		avgFlying       float64
 		avgFlyingLock   syncx.SpinLock
-		overloadTime    *syncx.AtomicDuration
+		overloadTime    syncx.AtomicDuration
 		droppedRecently atomic.Bool
 		passCounter     *collection.RollingWindow[int64, *collection.Bucket[int64]]
 		rtCounter       *collection.RollingWindow[int64, *collection.Bucket[int64]]

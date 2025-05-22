@@ -103,7 +103,7 @@ func newContainer(exclusive bool) *container {
 		exclusive: exclusive,
 		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
-		dirty:     syncx.ForAtomicBool(true),
+		dirty:     syncx.AtomicBoolFromVal(true),
 	}
 }
 

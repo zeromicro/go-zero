@@ -14,8 +14,8 @@ const defaultTimeout = time.Second * 3
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logMon        = syncx.ForAtomicBool(true)
-	logSlowMon    = syncx.ForAtomicBool(true)
+	logMon        = syncx.AtomicBoolFromVal(true)
+	logSlowMon    = syncx.AtomicBoolFromVal(true)
 )
 
 type (

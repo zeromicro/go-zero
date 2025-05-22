@@ -75,7 +75,7 @@ func newBuilder() balancer.Builder {
 type p2cPicker struct {
 	conns []*subConn
 	r     *rand.Rand
-	stamp *syncx.AtomicDuration
+	stamp syncx.AtomicDuration
 	lock  sync.Mutex
 }
 

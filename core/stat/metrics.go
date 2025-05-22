@@ -14,7 +14,7 @@ var (
 	logInterval  = time.Minute
 	writerLock   sync.Mutex
 	reportWriter Writer = nil
-	logEnabled          = syncx.ForAtomicBool(true)
+	logEnabled          = syncx.AtomicBoolFromVal(true)
 )
 
 type (
