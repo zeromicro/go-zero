@@ -9,15 +9,15 @@ import (
 type AtomicDuration atomic.Int64
 
 // NewAtomicDuration returns an AtomicDuration.
-func NewAtomicDuration() (i AtomicDuration) {
-	i.Set(0)
-	return
+func NewAtomicDuration() *AtomicDuration {
+	return (*AtomicDuration)(&atomic.Int64{})
 }
 
 // ForAtomicDuration returns an AtomicDuration with given value.
-func ForAtomicDuration(val time.Duration) (i AtomicDuration) {
-	i.Set(val)
-	return
+func ForAtomicDuration(val time.Duration) *AtomicDuration {
+	d := NewAtomicDuration()
+	d.Set(val)
+	return d
 }
 
 // CompareAndSwap compares current value with old, if equals, set the value to val.

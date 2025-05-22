@@ -9,15 +9,16 @@ type AtomicBool atomic.Bool
 
 // NewAtomicBool returns an AtomicBool.
 // Deprecated: use atomic.Bool instead.
-func NewAtomicBool() (b AtomicBool) {
+func NewAtomicBool() (b *AtomicBool) {
 	return
 }
 
 // ForAtomicBool returns an AtomicBool with given val.
 // Deprecated: use atomic.Bool instead.
-func ForAtomicBool(val bool) (b AtomicBool) {
+func ForAtomicBool(val bool) *AtomicBool {
+	b := NewAtomicBool()
 	b.Set(val)
-	return
+	return b
 }
 
 // CompareAndSwap compares current value with given old, if equals, set to given val.
