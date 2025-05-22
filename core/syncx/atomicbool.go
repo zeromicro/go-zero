@@ -13,7 +13,7 @@ func NewAtomicBool() (d AtomicBool) {
 	return
 }
 
-// ForAtomicBool returns an atomic.Bool with given val.
+// ForAtomicBool returns an AtomicBool with given val.
 // Deprecated: use atomic.Bool instead.
 func ForAtomicBool(val bool) (b AtomicBool) {
 	b.Set(val)
