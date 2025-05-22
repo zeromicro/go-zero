@@ -194,9 +194,8 @@ func TestAdaptiveShedderStillHot(t *testing.T) {
 		rtCounter:       rtCounter,
 		windowScale:     windowFactor,
 		overloadTime:    syncx.NewAtomicDuration(),
-		droppedRecently: atomic.Bool{},
+		droppedRecently: syncx.AtomicBoolFromVal(true),
 	}
-	shedder.droppedRecently.Store(false)
 	assert.False(t, shedder.stillHot())
 	shedder.overloadTime.Set(-coolOffDuration * 2)
 	assert.False(t, shedder.stillHot())
