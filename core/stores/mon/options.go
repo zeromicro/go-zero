@@ -2,6 +2,7 @@ package mon
 
 import (
 	"reflect"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -14,8 +15,8 @@ const defaultTimeout = time.Second * 3
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logMon        = syncx.ForAtomicBool(true)
-	logSlowMon    = syncx.ForAtomicBool(true)
+	logMon        = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	logSlowMon    = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
 )
 
 type (
@@ -34,13 +35,13 @@ type (
 
 // DisableLog disables logging of mongo commands, includes info and slow logs.
 func DisableLog() {
-	logMon.Set(false)
-	logSlowMon.Set(false)
+	logMon.Store(false)
+	logSlowMon.Store(false)
 }
 
 // DisableInfoLog disables info logging of mongo commands, but keeps slow logs.
 func DisableInfoLog() {
-	logMon.Set(false)
+	logMon.Store(false)
 }
 
 // SetSlowThreshold sets the slow threshold.

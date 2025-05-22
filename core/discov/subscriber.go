@@ -93,7 +93,7 @@ type container struct {
 	values    map[string][]string
 	mapping   map[string]string
 	snapshot  atomic.Value
-	dirty     *syncx.AtomicBool
+	dirty     atomic.Bool
 	listeners []func()
 	lock      sync.Mutex
 }
@@ -103,7 +103,7 @@ func newContainer(exclusive bool) *container {
 		exclusive: exclusive,
 		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
-		dirty:     syncx.ForAtomicBool(true),
+		dirty:     syncFromAtomicBool(true),
 	}
 }
 

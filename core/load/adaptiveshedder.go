@@ -34,9 +34,9 @@ var (
 	ErrServiceOverloaded = errors.New("service overloaded")
 
 	// default to be enabled
-	enabled = syncx.ForAtomicBool(true)
+	enabled = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
 	// default to be enabled
-	logEnabled = syncx.ForAtomicBool(true)
+	logEnabled = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
@@ -83,18 +83,18 @@ type (
 
 // Disable lets callers disable load shedding.
 func Disable() {
-	enabled.Set(false)
+	enabled.Store(false)
 }
 
 // DisableLog disables the stat logs for load shedding.
 func DisableLog() {
-	logEnabled.Set(false)
+	logEnabled.Store(false)
 }
 
 // NewAdaptiveShedder returns an adaptive shedder.
 // opts can be used to customize the Shedder.
 func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
-	if !enabled.True() {
+	if !enabled.Load() {
 		return newNopShedder()
 	}
 

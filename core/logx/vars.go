@@ -2,8 +2,7 @@ package logx
 
 import (
 	"errors"
-
-	"github.com/zeromicro/go-zero/core/syncx"
+	"sync/atomic"
 )
 
 const (
@@ -69,7 +68,7 @@ var (
 	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 	// ExitOnFatal defines whether to exit on fatal errors, defined here to make it easier to test.
-	ExitOnFatal = syncx.ForAtomicBool(true)
+	ExitOnFatal = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
 
 	truncatedField = Field(truncatedKey, true)
 )

@@ -29,7 +29,7 @@ func TestLoopTrue(t *testing.T) {
 	ch <- time.Now()
 	close(ch)
 	st := new(SheddingStat)
-	logEnabled.Set(true)
+	logEnabled.Store(true)
 	st.loop(ch)
 }
 
@@ -39,7 +39,7 @@ func TestLoopTrueAndDrop(t *testing.T) {
 	close(ch)
 	st := new(SheddingStat)
 	st.IncrementDrop()
-	logEnabled.Set(true)
+	logEnabled.Store(true)
 	st.loop(ch)
 }
 
@@ -49,6 +49,6 @@ func TestLoopFalseAndDrop(t *testing.T) {
 	close(ch)
 	st := new(SheddingStat)
 	st.IncrementDrop()
-	logEnabled.Set(false)
+	logEnabled.Store(false)
 	st.loop(ch)
 }

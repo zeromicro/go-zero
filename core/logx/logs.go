@@ -269,7 +269,7 @@ func Must(err error) {
 	log.Print(msg)
 	getWriter().Severe(msg)
 
-	if ExitOnFatal.True() {
+	if ExitOnFatal.Load() {
 		os.Exit(1)
 	} else {
 		panic(msg)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -16,8 +17,8 @@ const defaultSlowThreshold = time.Millisecond * 500
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logSql        = syncx.ForAtomicBool(true)
-	logSlowSql    = syncx.ForAtomicBool(true)
+	logSql        = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	logSlowSql    = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
 )
 
 type (
@@ -161,13 +162,13 @@ func (s statement) queryRows(ctx context.Context, scanFn func(any, rowsScanner) 
 
 // DisableLog disables logging of sql statements, includes info and slow logs.
 func DisableLog() {
-	logSql.Set(false)
-	logSlowSql.Set(false)
+	logSql.Store(false)
+	logSlowSql.Store(false)
 }
 
 // DisableStmtLog disables info logging of sql statements, but keeps slow logs.
 func DisableStmtLog() {
-	logSql.Set(false)
+	logSql.Store(false)
 }
 
 // SetSlowThreshold sets the slow threshold.
@@ -249,7 +250,7 @@ type (
 )
 
 func newGuard(command string) sqlGuard {
-	if logSql.True() || logSlowSql.True() {
+	if logSql.Load() || logSlowSql.Load() {
 		return &realSqlGuard{
 			command: command,
 		}
@@ -270,7 +271,7 @@ func (e *realSqlGuard) finish(ctx context.Context, err error) {
 	if duration > slowThreshold.Load() {
 		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] %s: slowcall - %s", e.command, e.stmt)
 		metricSlowCount.Inc(e.command)
-	} else if logSql.True() {
+	} else if logSql.Load() {
 		logx.WithContext(ctx).WithDuration(duration).Infof("sql %s: %s", e.command, e.stmt)
 	}
 
