@@ -13,7 +13,7 @@ func NewAtomicBool() AtomicBool {
 	return AtomicBool(ForAtomicBool(false))
 }
 
-// ForAtomicBool returns an atomic.Bool pointer with given val.
+// ForAtomicBool returns an atomic.Bool with given val.
 func ForAtomicBool(val bool) (b atomic.Bool) {
 	b.Store(val)
 	return
