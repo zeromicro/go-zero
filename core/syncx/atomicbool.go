@@ -9,7 +9,7 @@ type AtomicBool atomic.Bool
 
 // NewAtomicBool returns an AtomicBool.
 // Deprecated: use atomic.Bool instead.
-func NewAtomicBool() (d AtomicBool) {
+func NewAtomicBool() (b AtomicBool) {
 	return
 }
 
