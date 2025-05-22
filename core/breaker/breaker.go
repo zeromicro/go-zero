@@ -13,9 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
-const (
-	numHistoryReasons = 5
-)
+const numHistoryReasons = 5
 
 // ErrServiceUnavailable is returned when the Breaker state is open.
 var ErrServiceUnavailable = errors.New("circuit breaker is open")
