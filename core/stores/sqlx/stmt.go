@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -17,8 +16,8 @@ const defaultSlowThreshold = time.Millisecond * 500
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logSql        = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
-	logSlowSql    = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	logSql        = syncx.ForAtomicBool(true)
+	logSlowSql    = syncx.ForAtomicBool(true)
 )
 
 type (

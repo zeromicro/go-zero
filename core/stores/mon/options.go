@@ -2,7 +2,6 @@ package mon
 
 import (
 	"reflect"
-	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -15,8 +14,8 @@ const defaultTimeout = time.Second * 3
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logMon        = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
-	logSlowMon    = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	logMon        = syncx.ForAtomicBool(true)
+	logSlowMon    = syncx.ForAtomicBool(true)
 )
 
 type (

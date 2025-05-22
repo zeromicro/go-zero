@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 type (
@@ -102,7 +103,7 @@ func newContainer(exclusive bool) *container {
 		exclusive: exclusive,
 		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
-		dirty:     *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }(),
+		dirty:     syncx.ForAtomicBool(true),
 	}
 }
 

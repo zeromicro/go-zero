@@ -3,18 +3,18 @@ package stat
 import (
 	"os"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/executors"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 var (
 	logInterval  = time.Minute
 	writerLock   sync.Mutex
 	reportWriter Writer = nil
-	logEnabled          = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	logEnabled          = syncx.ForAtomicBool(true)
 )
 
 type (

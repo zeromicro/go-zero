@@ -34,9 +34,9 @@ var (
 	ErrServiceOverloaded = errors.New("service overloaded")
 
 	// default to be enabled
-	enabled = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	enabled = syncx.ForAtomicBool(true)
 	// default to be enabled
-	logEnabled = *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }()
+	logEnabled = syncx.ForAtomicBool(true)
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
