@@ -183,37 +183,37 @@ func TestSetSlowThreshold(t *testing.T) {
 }
 
 func TestDisableLog(t *testing.T) {
-	assert.True(t, logSql.True())
-	assert.True(t, logSlowSql.True())
+	assert.True(t, logSql.Load())
+	assert.True(t, logSlowSql.Load())
 	defer func() {
-		logSql.Set(true)
-		logSlowSql.Set(true)
+		logSql.Store(true)
+		logSlowSql.Store(true)
 	}()
 
 	DisableLog()
-	assert.False(t, logSql.True())
-	assert.False(t, logSlowSql.True())
+	assert.False(t, logSql.Load())
+	assert.False(t, logSlowSql.Load())
 }
 
 func TestDisableStmtLog(t *testing.T) {
-	assert.True(t, logSql.True())
-	assert.True(t, logSlowSql.True())
+	assert.True(t, logSql.Load())
+	assert.True(t, logSlowSql.Load())
 	defer func() {
-		logSql.Set(true)
-		logSlowSql.Set(true)
+		logSql.Store(true)
+		logSlowSql.Store(true)
 	}()
 
 	DisableStmtLog()
-	assert.False(t, logSql.True())
-	assert.True(t, logSlowSql.True())
+	assert.False(t, logSql.Load())
+	assert.True(t, logSlowSql.Load())
 }
 
 func TestNilGuard(t *testing.T) {
-	assert.True(t, logSql.True())
-	assert.True(t, logSlowSql.True())
+	assert.True(t, logSql.Load())
+	assert.True(t, logSlowSql.Load())
 	defer func() {
-		logSql.Set(true)
-		logSlowSql.Set(true)
+		logSql.Store(true)
+		logSlowSql.Store(true)
 	}()
 
 	DisableLog()

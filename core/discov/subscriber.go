@@ -6,7 +6,6 @@ import (
 
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 type (
@@ -103,7 +102,7 @@ func newContainer(exclusive bool) *container {
 		exclusive: exclusive,
 		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
-		dirty:     syncFromAtomicBool(true),
+		dirty:     *func() *atomic.Bool { x := &atomic.Bool{}; x.Store(true); return x }(),
 	}
 }
 
@@ -122,7 +121,7 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	c.dirty.Set(true)
+	c.dirty.Store(true)
 	keys := c.values[value]
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
@@ -171,7 +170,7 @@ func (c *container) doRemoveKey(key string) {
 }
 
 func (c *container) getValues() []string {
-	if !c.dirty.True() {
+	if !c.dirty.Load() {
 		return c.snapshot.Load().([]string)
 	}
 
@@ -183,7 +182,7 @@ func (c *container) getValues() []string {
 		vals = append(vals, each)
 	}
 	c.snapshot.Store(vals)
-	c.dirty.Set(false)
+	c.dirty.Store(false)
 
 	return vals
 }
@@ -203,6 +202,6 @@ func (c *container) removeKey(key string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	c.dirty.Set(true)
+	c.dirty.Store(true)
 	c.doRemoveKey(key)
 }
