@@ -10,7 +10,7 @@ type AtomicBool atomic.Bool
 // NewAtomicBool returns an AtomicBool.
 // Deprecated: use atomic.Bool instead.
 func NewAtomicBool() (b *AtomicBool) {
-	return
+	return (*AtomicBool)(new(atomic.Bool))
 }
 
 // ForAtomicBool returns an AtomicBool with given val.
