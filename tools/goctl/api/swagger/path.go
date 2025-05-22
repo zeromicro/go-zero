@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-openapi/spec"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 func spec2Paths(ctx Context, srv apiSpec.Service) *spec.Paths {
@@ -70,6 +71,11 @@ func spec2Path(ctx Context, group apiSpec.Group, route apiSpec.Route) spec.PathI
 			},
 		}
 	}
+	groupName := getStringFromKVOrDefault(group.Annotation.Properties, propertyKeyGroup, "")
+	operationId := route.Handler
+	if len(groupName) > 0 {
+		operationId = stringx.From(groupName + "_" + route.Handler).ToCamel()
+	}
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
 			Description: getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyDescription, ""),
@@ -78,10 +84,10 @@ func spec2Path(ctx Context, group apiSpec.Group, route apiSpec.Route) spec.PathI
 			Schemes:     getListFromInfoOrDefault(route.AtDoc.Properties, propertyKeySchemes, []string{schemeHttps}),
 			Tags:        getListFromInfoOrDefault(group.Annotation.Properties, propertyKeyTags, getListFromInfoOrDefault(group.Annotation.Properties, propertyKeySummary, []string{})),
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeySummary, getFirstUsableString(route.AtDoc.Text, route.Handler)),
-			ID:          getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyOperationId, getFirstUsableString(route.AtDoc.Text, route.Handler)),
+			ID:          stringx.From(operationId).Untitle(),
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, propertyKeyDeprecated, false),
-			Security:    security,
 			Parameters:  parametersFromType(ctx, route.Method, route.RequestType),
+			Security:    security,
 			Responses:   jsonResponseFromType(ctx, route.AtDoc, route.ResponseType),
 		},
 	}
