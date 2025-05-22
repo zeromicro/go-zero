@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"cmp"
 	"strconv"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -39,7 +39,7 @@ func compare(v1, v2 string) int {
 	fields1, fields2 := strings.Split(v1, "."), strings.Split(v2, ".")
 	ver1, ver2 := strsToInts(fields1), strsToInts(fields2)
 	ver1len, ver2len := len(ver1), len(ver2)
-	shorter := mathx.MinInt(ver1len, ver2len)
+	shorter := min(ver1len, ver2len)
 
 	for i := 0; i < shorter; i++ {
 		if ver1[i] == ver2[i] {
@@ -50,14 +50,7 @@ func compare(v1, v2 string) int {
 			return 1
 		}
 	}
-
-	if ver1len < ver2len {
-		return -1
-	} else if ver1len == ver2len {
-		return 0
-	} else {
-		return 1
-	}
+	return cmp.Compare(ver1len, ver2len)
 }
 
 func strsToInts(strs []string) []int64 {
