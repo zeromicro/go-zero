@@ -10,7 +10,7 @@ import (
 // A LessExecutor is an executor to limit execution once within given time interval.
 type LessExecutor struct {
 	threshold time.Duration
-	lastTime  syncx.AtomicDuration
+	lastTime  *syncx.AtomicDuration
 }
 
 // NewLessExecutor returns a LessExecutor with given threshold as time interval.

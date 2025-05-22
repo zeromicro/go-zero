@@ -20,7 +20,7 @@ type (
 		err             error
 		lock            sync.RWMutex
 		refreshInterval time.Duration
-		lastTime        AtomicDuration
+		lastTime        *AtomicDuration
 	}
 )
 
