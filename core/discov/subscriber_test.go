@@ -192,9 +192,9 @@ func TestContainer(t *testing.T) {
 				}
 
 				assert.True(t, changed)
-				assert.True(t, c.dirty.True())
+				assert.True(t, c.dirty.Load())
 				assert.ElementsMatch(t, test.expect, c.getValues())
-				assert.False(t, c.dirty.True())
+				assert.False(t, c.dirty.Load())
 				assert.ElementsMatch(t, test.expect, c.getValues())
 			})
 		}

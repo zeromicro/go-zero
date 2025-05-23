@@ -93,7 +93,7 @@ type container struct {
 	values    map[string][]string
 	mapping   map[string]string
 	snapshot  atomic.Value
-	dirty     *syncx.AtomicBool
+	dirty     atomic.Bool
 	listeners []func()
 	lock      sync.Mutex
 }
@@ -103,7 +103,7 @@ func newContainer(exclusive bool) *container {
 		exclusive: exclusive,
 		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
-		dirty:     syncx.ForAtomicBool(true),
+		dirty:     syncx.AtomicBoolFromVal(true),
 	}
 }
 
@@ -122,7 +122,7 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	c.dirty.Set(true)
+	c.dirty.Store(true)
 	keys := c.values[value]
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
@@ -171,7 +171,7 @@ func (c *container) doRemoveKey(key string) {
 }
 
 func (c *container) getValues() []string {
-	if !c.dirty.True() {
+	if !c.dirty.Load() {
 		return c.snapshot.Load().([]string)
 	}
 
@@ -183,7 +183,7 @@ func (c *container) getValues() []string {
 		vals = append(vals, each)
 	}
 	c.snapshot.Store(vals)
-	c.dirty.Set(false)
+	c.dirty.Store(false)
 
 	return vals
 }
@@ -203,6 +203,6 @@ func (c *container) removeKey(key string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	c.dirty.Set(true)
+	c.dirty.Store(true)
 	c.doRemoveKey(key)
 }
