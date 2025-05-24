@@ -2,7 +2,7 @@ package hash
 
 import (
 	"crypto/md5"
-	"fmt"
+	"encoding/hex"
 
 	"github.com/spaolacci/murmur3"
 )
@@ -20,6 +20,7 @@ func Md5(data []byte) []byte {
 }
 
 // Md5Hex returns the md5 hex string of data.
+// This function is optimized for better performance than fmt.Sprintf.
 func Md5Hex(data []byte) string {
-	return fmt.Sprintf("%x", Md5(data))
+	return hex.EncodeToString(Md5(data))
 }
