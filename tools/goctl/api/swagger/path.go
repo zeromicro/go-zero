@@ -1,6 +1,7 @@
 package swagger
 
 import (
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -78,11 +79,16 @@ func spec2Path(ctx Context, group apiSpec.Group, route apiSpec.Route) spec.PathI
 			Schemes:     getListFromInfoOrDefault(route.AtDoc.Properties, propertyKeySchemes, []string{schemeHttps}),
 			Tags:        getListFromInfoOrDefault(group.Annotation.Properties, propertyKeyTags, getListFromInfoOrDefault(group.Annotation.Properties, propertyKeySummary, []string{})),
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeySummary, getFirstUsableString(route.AtDoc.Text, route.Handler)),
-			ID:          getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyOperationId, getFirstUsableString(route.AtDoc.Text, route.Handler)),
-			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, propertyKeyDeprecated, false),
-			Security:    security,
-			Parameters:  parametersFromType(ctx, route.Method, route.RequestType),
-			Responses:   jsonResponseFromType(ctx, route.AtDoc, route.ResponseType),
+			ID: getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyOperationId, getFirstUsableString(func() string {
+				if group.GetAnnotation("group") != "" {
+					return fmt.Sprintf("%s.%s", group.GetAnnotation("group"), route.Handler)
+				}
+				return route.Handler
+			}())),
+			Deprecated: getBoolFromKVOrDefault(route.AtDoc.Properties, propertyKeyDeprecated, false),
+			Security:   security,
+			Parameters: parametersFromType(ctx, route.Method, route.RequestType),
+			Responses:  jsonResponseFromType(ctx, route.AtDoc, route.ResponseType),
 		},
 	}
 	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyExternalDocsDescription, "")
