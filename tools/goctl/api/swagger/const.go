@@ -49,6 +49,7 @@ const (
 	propertyKeySchemes                 = "schemes"
 	propertyKeyTags                    = "tags"
 	propertyKeySummary                 = "summary"
+	propertyKeyGroup                   = "group"
 	propertyKeyOperationId             = "operationId"
 	propertyKeyDeprecated              = "deprecated"
 	propertyKeyPrefix                  = "prefix"

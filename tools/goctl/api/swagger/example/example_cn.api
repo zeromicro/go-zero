@@ -49,6 +49,7 @@ type (
 	summary: "query 类型接口集合" // 对应 swagger 的 summary
 	prefix: v1
 	authType: apiKey // 指定该路由使用的鉴权类型，值为 securityDefinitionsFromJson 中定义的名称
+	group:"demo"
 )
 service Swagger {
 	@doc (

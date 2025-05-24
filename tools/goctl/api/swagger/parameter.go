@@ -34,23 +34,6 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	if !ok {
 		return []spec.Parameter{}
 	}
-	structName, ok := isPostJson(ctx, method, tp)
-	if ok {
-		return []spec.Parameter{
-			{
-				ParamProps: spec.ParamProps{
-					In:       paramsInBody,
-					Name:     paramsInBody,
-					Required: true,
-					Schema: &spec.Schema{
-						SchemaProps: spec.SchemaProps{
-							Ref: spec.MustCreateRef(getRefName(structName)),
-						},
-					},
-				},
-			},
-		}
-	}
 
 	var (
 		resp           []spec.Parameter
@@ -197,20 +180,38 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		}
 	})
 	if len(properties) > 0 {
-		resp = append(resp, spec.Parameter{
-			ParamProps: spec.ParamProps{
-				In:       paramsInBody,
-				Name:     paramsInBody,
-				Required: true,
-				Schema: &spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Type:       typeFromGoType(ctx, structType),
-						Properties: properties,
-						Required:   requiredFields,
+		if ctx.UseDefinitions {
+			structName, ok := isPostJson(ctx, method, tp)
+			if ok {
+				resp = append(resp, spec.Parameter{
+					ParamProps: spec.ParamProps{
+						In:       paramsInBody,
+						Name:     paramsInBody,
+						Required: true,
+						Schema: &spec.Schema{
+							SchemaProps: spec.SchemaProps{
+								Ref: spec.MustCreateRef(getRefName(structName)),
+							},
+						},
+					},
+				})
+			}
+		} else {
+			resp = append(resp, spec.Parameter{
+				ParamProps: spec.ParamProps{
+					In:       paramsInBody,
+					Name:     paramsInBody,
+					Required: true,
+					Schema: &spec.Schema{
+						SchemaProps: spec.SchemaProps{
+							Type:       typeFromGoType(ctx, structType),
+							Properties: properties,
+							Required:   requiredFields,
+						},
 					},
 				},
-			},
-		})
+			})
+		}
 	}
 	return resp
 }
