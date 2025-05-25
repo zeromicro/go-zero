@@ -819,6 +819,6 @@ func TestServerEmbedFileSystem(t *testing.T) {
 //	serve(server, w, r)
 //	// verify the response
 func serve(s *Server, w http.ResponseWriter, r *http.Request) {
-	s.ngin.bindRoutes(s.router)
-	s.router.ServeHTTP(w, r)
+	_ = s.ngin.bindRoutes(s.router)
+	s.Serve(w, r)
 }
