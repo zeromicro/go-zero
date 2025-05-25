@@ -24,6 +24,19 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 				example, defaultValue              any
 				enum                               []any
 			)
+			pathTag, _ := tag.Get(tagPath)
+			if pathTag != nil {
+				return
+			}
+			formTag, _ := tag.Get(tagForm)
+			if formTag != nil {
+				return
+			}
+			headerTag, _ := tag.Get(tagHeader)
+			if headerTag != nil {
+				return
+			}
+
 			jsonTag, _ := tag.Get(tagJson)
 			if jsonTag != nil {
 				jsonTagString = jsonTag.Name
