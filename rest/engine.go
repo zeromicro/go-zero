@@ -228,6 +228,10 @@ func (ng *engine) getShedder(priority bool) load.Shedder {
 	return ng.shedder
 }
 
+func (ng *engine) hasTimeout() bool {
+	return ng.conf.Middlewares.Timeout && ng.timeout > 0
+}
+
 // notFoundHandler returns a middleware that handles 404 not found requests.
 func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -354,16 +358,17 @@ func (ng *engine) use(middleware Middleware) {
 
 func (ng *engine) withTimeout() internal.StartOption {
 	return func(svr *http.Server) {
-		timeout := ng.timeout
-		if timeout > 0 {
-			// factor 0.8, to avoid clients send longer content-length than the actual content,
-			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
-			// which triggers the circuit breaker.
-			svr.ReadTimeout = 4 * timeout / 5
-			// factor 1.1, to avoid servers don't have enough time to write responses.
-			// setting the factor less than 1.0 may lead clients not receiving the responses.
-			svr.WriteTimeout = 11 * timeout / 10
+		if !ng.hasTimeout() {
+			return
 		}
+
+		// factor 0.8, to avoid clients send longer content-length than the actual content,
+		// without this timeout setting, the server will time out and respond 503 Service Unavailable,
+		// which triggers the circuit breaker.
+		svr.ReadTimeout = 4 * ng.timeout / 5
+		// factor 1.1, to avoid servers don't have enough time to write responses.
+		// setting the factor less than 1.0 may lead clients not receiving the responses.
+		svr.WriteTimeout = 11 * ng.timeout / 10
 	}
 }
 
