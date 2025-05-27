@@ -11,14 +11,16 @@ func consumesFromTypeOrDef(ctx Context, method string, tp spec.Type) []string {
 	if strings.EqualFold(method, http.MethodGet) {
 		return []string{}
 	}
+
 	if tp == nil {
 		return []string{}
 	}
-	structType, ok := tp.(spec.DefineStruct)
-	if !ok {
+
+	if _, ok := tp.(spec.DefineStruct); !ok {
 		return []string{}
 	}
-	if typeContainsTag(ctx, structType, tagJson) {
+
+	if typeContainsTag(ctx, tp, tagJson) {
 		return []string{applicationJson}
 	}
 	return []string{applicationForm}
