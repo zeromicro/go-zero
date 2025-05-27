@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/spec"
+
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
@@ -172,13 +173,12 @@ func sampleTypeFromGoType(ctx Context, tp apiSpec.Type) string {
 	}
 }
 
-func typeContainsTag(_ Context, structType apiSpec.DefineStruct, tag string) bool {
-	for _, field := range structType.Members {
-		tags, _ := apiSpec.Parse(field.Tag)
-		for _, t := range tags.Tags() {
-			if t.Key == tag {
-				return true
-			}
+func typeContainsTag(ctx Context, structType apiSpec.DefineStruct, tag string) bool {
+	members := expandMembers(ctx, structType)
+	for _, member := range members {
+		tags, _ := apiSpec.Parse(member.Tag)
+		if _, err := tags.Get(tag); err == nil {
+			return true
 		}
 	}
 	return false
