@@ -1,6 +1,6 @@
 module github.com/zeromicro/go-zero
 
-go 1.21
+go 1.22
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -22,6 +22,7 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.15
 	go.etcd.io/etcd/client/v3 v3.5.15
 	go.mongodb.org/mongo-driver v1.17.3
+	go.mongodb.org/mongo-driver/v2 v2.1.0
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
@@ -32,6 +33,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/goleak v1.3.0
+	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.35.0
 	golang.org/x/sys v0.30.0
 	golang.org/x/time v0.10.0
