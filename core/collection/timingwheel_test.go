@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
@@ -60,7 +59,7 @@ func TestTimingWheel_Drain(t *testing.T) {
 }
 
 func TestTimingWheel_SetTimerSoon(t *testing.T) {
-	run := syncx.NewAtomicBool()
+	run := atomic.Bool{}
 	ticker := timex.NewFakeTicker()
 	tw, _ := NewTimingWheelWithTicker(testStep, 10, func(k, v any) {
 		assert.True(t, run.CompareAndSwap(false, true))
@@ -72,11 +71,11 @@ func TestTimingWheel_SetTimerSoon(t *testing.T) {
 	tw.SetTimer("any", 3, testStep>>1)
 	ticker.Tick()
 	assert.Nil(t, ticker.Wait(waitTime))
-	assert.True(t, run.True())
+	assert.True(t, run.Load())
 }
 
 func TestTimingWheel_SetTimerTwice(t *testing.T) {
-	run := syncx.NewAtomicBool()
+	run := atomic.Bool{}
 	ticker := timex.NewFakeTicker()
 	tw, _ := NewTimingWheelWithTicker(testStep, 10, func(k, v any) {
 		assert.True(t, run.CompareAndSwap(false, true))
@@ -91,7 +90,7 @@ func TestTimingWheel_SetTimerTwice(t *testing.T) {
 		ticker.Tick()
 	}
 	assert.Nil(t, ticker.Wait(waitTime))
-	assert.True(t, run.True())
+	assert.True(t, run.Load())
 }
 
 func TestTimingWheel_SetTimerWrongDelay(t *testing.T) {
@@ -111,7 +110,7 @@ func TestTimingWheel_SetTimerAfterClose(t *testing.T) {
 }
 
 func TestTimingWheel_MoveTimer(t *testing.T) {
-	run := syncx.NewAtomicBool()
+	run := atomic.Bool{}
 	ticker := timex.NewFakeTicker()
 	tw, _ := NewTimingWheelWithTicker(testStep, 3, func(k, v any) {
 		assert.True(t, run.CompareAndSwap(false, true))
@@ -126,18 +125,18 @@ func TestTimingWheel_MoveTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		ticker.Tick()
 	}
-	assert.False(t, run.True())
+	assert.False(t, run.Load())
 	for i := 0; i < 3; i++ {
 		ticker.Tick()
 	}
 	assert.Nil(t, ticker.Wait(waitTime))
-	assert.True(t, run.True())
+	assert.True(t, run.Load())
 	tw.Stop()
 	assert.Equal(t, ErrClosed, tw.MoveTimer("any", time.Millisecond))
 }
 
 func TestTimingWheel_MoveTimerSoon(t *testing.T) {
-	run := syncx.NewAtomicBool()
+	run := atomic.Bool{}
 	ticker := timex.NewFakeTicker()
 	tw, _ := NewTimingWheelWithTicker(testStep, 3, func(k, v any) {
 		assert.True(t, run.CompareAndSwap(false, true))
@@ -149,11 +148,11 @@ func TestTimingWheel_MoveTimerSoon(t *testing.T) {
 	tw.SetTimer("any", 3, testStep*4)
 	tw.MoveTimer("any", testStep>>1)
 	assert.Nil(t, ticker.Wait(waitTime))
-	assert.True(t, run.True())
+	assert.True(t, run.Load())
 }
 
 func TestTimingWheel_MoveTimerEarlier(t *testing.T) {
-	run := syncx.NewAtomicBool()
+	run := atomic.Bool{}
 	ticker := timex.NewFakeTicker()
 	tw, _ := NewTimingWheelWithTicker(testStep, 10, func(k, v any) {
 		assert.True(t, run.CompareAndSwap(false, true))
@@ -168,7 +167,7 @@ func TestTimingWheel_MoveTimerEarlier(t *testing.T) {
 		ticker.Tick()
 	}
 	assert.Nil(t, ticker.Wait(waitTime))
-	assert.True(t, run.True())
+	assert.True(t, run.Load())
 }
 
 func TestTimingWheel_RemoveTimer(t *testing.T) {
