@@ -95,7 +95,7 @@ func (s *Server) Routes() []Route {
 	return routes
 }
 
-// AsHttpHandler returns the http.Handler that can be used to handle HTTP requests.
+// BuildHttpHandler returns the http.Handler that can be used to handle HTTP requests.
 // It is used for serverless platforms.
 // ```go
 //
@@ -103,7 +103,7 @@ func (s *Server) Routes() []Route {
 //
 //	func init() {
 //		server := rest.MustNewServer()
-//		handler, _ = server.AsHttpHandler() // handle error as needed
+//		handler, _ = server.BuildHttpHandler() // handle error as needed
 //	}
 //
 //	func ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -112,9 +112,9 @@ func (s *Server) Routes() []Route {
 //
 // ```
 // Notes:
-// 1. Call AsHttpHandler() only once to avoid memory leak.
+// 1. Call BuildHttpHandler() only once to avoid memory leak.
 // 2. Prefer using [Start] or [StartWithOpts] in most cases.
-func (s *Server) AsHttpHandler() (http.Handler, error) {
+func (s *Server) BuildHttpHandler() (http.Handler, error) {
 	err := s.ngin.bindRoutes(s.router)
 	if err != nil {
 		return nil, err
