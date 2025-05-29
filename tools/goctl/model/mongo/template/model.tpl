@@ -13,7 +13,7 @@ import (
     "go.mongodb.org/mongo-driver/mongo"
 )
 
-{{if .Cache}}var prefix{{.Type}}CacheKey = "cache:{{.lowerType}}:"{{end}}
+{{if .Cache}}var prefix{{.Type}}CacheKey = "{{if .Prefix}}{{.Prefix}}:{{end}}cache:{{.lowerType}}:"{{end}}
 
 type {{.lowerType}}Model interface{
     Insert(ctx context.Context,data *{{.Type}}) error

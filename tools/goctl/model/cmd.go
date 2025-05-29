@@ -62,6 +62,7 @@ func init() {
 
 	mongoCmdFlags.StringSliceVarP(&mongo.VarStringSliceType, "type", "t")
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c")
+	mongoCmdFlags.StringVarP(&mongo.VarStringPrefix, "prefix", "p")
 	mongoCmdFlags.BoolVarP(&mongo.VarBoolEasy, "easy", "e")
 	mongoCmdFlags.StringVarP(&mongo.VarStringDir, "dir", "d")
 	mongoCmdFlags.StringVar(&mongo.VarStringStyle, "style")
