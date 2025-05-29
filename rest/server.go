@@ -95,6 +95,33 @@ func (s *Server) Routes() []Route {
 	return routes
 }
 
+// AsHttpHandler returns the http.Handler that can be used to handle HTTP requests.
+// It is used for serverless platforms.
+// ```go
+//
+//	var handler http.Handler
+//
+//	func init() {
+//		server := rest.MustNewServer()
+//		handler, _ = server.AsHttpHandler() // handle error as needed
+//	}
+//
+//	func ServeHTTP(w http.ResponseWriter, r *http.Request) {
+//		handler.ServeHTTP(w, r)
+//	}
+//
+// ```
+// Notes:
+// 1. Call AsHttpHandler() only once to avoid memory leak.
+// 2. Prefer using [Start] or [StartWithOpts] in most cases.
+func (s *Server) AsHttpHandler() (http.Handler, error) {
+	err := s.ngin.bindRoutes(s.router)
+	if err != nil {
+		return nil, err
+	}
+	return s.router, nil
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
