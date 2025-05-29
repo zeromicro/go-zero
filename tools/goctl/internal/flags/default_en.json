@@ -206,6 +206,7 @@
         "short": "Generate mongo model",
         "type": "Specified model type name",
         "cache": "Generate code with cache [optional]",
+        "prefix": "Generate code with cache prefix [optional]",
         "easy": "Generate code with auto generated CollectionName for easy declare [optional]",
         "dir": "{{.goctl.model.dir}}",
         "style": "{{.global.style}}",
