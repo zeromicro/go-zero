@@ -2178,10 +2178,15 @@ func TestRedisTxPipeline(t *testing.T) {
 
 func TestRedisXGroupCreate(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		// ctx := context.Background()
+		_, err := newRedis(client.Addr, badType()).XGroupCreate("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
 		redisCli := newRedis(client.Addr)
 
-		_, err := redisCli.XGroupCreate("aa", "bb", "0")
+		_, err = redisCli.XGroupCreate("aa", "bb", "0")
+		assert.NotNil(t, err)
+
+		_, err = newRedis(client.Addr, badType()).XGroupCreateMkStream("Source", "Destination", "0")
 		assert.NotNil(t, err)
 
 		_, err = redisCli.XGroupCreateMkStream("aa", "bb", "0")
@@ -2194,13 +2199,21 @@ func TestRedisXGroupCreate(t *testing.T) {
 
 func TestRedisXInfo(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		// ctx := context.Background()
+		_, err := newRedis(client.Addr, badType()).XInfoStream("Source")
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XInfoGroups("Source")
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XReadGroup("aa", "consumer", 1, 2000, false, "ss", ">")
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XInfoConsumers("aa", "bb")
+		assert.NotNil(t, err)
+
 		redisCli := newRedis(client.Addr)
 
 		stream := "aa"
 		group := "bb"
 
-		_, err := redisCli.XGroupCreateMkStream(stream, group, "$")
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "$")
 		assert.Nil(t, err)
 
 		_, err = redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
@@ -2228,13 +2241,17 @@ func TestRedisXInfo(t *testing.T) {
 
 func TestRedisXReadGroup(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		// ctx := context.Background()
+		_, err := newRedis(client.Addr, badType()).XAdd("bb", true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XAck("bb", "aa", "123")
+		assert.NotNil(t, err)
+
 		redisCli := newRedis(client.Addr)
 
 		stream := "aa"
 		group := "bb"
 
-		_, err := redisCli.XGroupCreateMkStream(stream, group, "$")
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "$")
 		assert.Nil(t, err)
 
 		_, err = redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
