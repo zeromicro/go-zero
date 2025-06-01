@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -176,7 +177,10 @@ func (s *sseMcpServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 
 	// For notification methods (no ID), we don't send a response
-	isNotification := req.ID == 0
+	var isNotification bool
+	if req.ID != nil && reflect.ValueOf(req.ID).IsZero() {
+		isNotification = true
+	}
 
 	// Special handling for initialization sequence
 	// Always allow initialize and notifications/initialized regardless of client state
@@ -880,10 +884,10 @@ func (s *sseMcpServer) processPing(ctx context.Context, client *mcpClient, req R
 
 // sendErrorResponse sends an error response via the SSE channel
 func (s *sseMcpServer) sendErrorResponse(ctx context.Context, client *mcpClient,
-	id int64, message string, code int) {
+	id any, message string, code int) {
 	errorResponse := struct {
 		JsonRpc string       `json:"jsonrpc"`
-		ID      int64        `json:"id"`
+		ID      any          `json:"id"`
 		Error   errorMessage `json:"error"`
 	}{
 		JsonRpc: jsonRpcVersion,
@@ -910,7 +914,7 @@ func (s *sseMcpServer) sendErrorResponse(ctx context.Context, client *mcpClient,
 }
 
 // sendResponse sends a success response via the SSE channel
-func (s *sseMcpServer) sendResponse(ctx context.Context, client *mcpClient, id int64, result any) {
+func (s *sseMcpServer) sendResponse(ctx context.Context, client *mcpClient, id any, result any) {
 	response := Response{
 		JsonRpc: jsonRpcVersion,
 		ID:      id,

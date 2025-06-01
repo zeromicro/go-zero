@@ -15,7 +15,7 @@ type Cursor string
 type Request struct {
 	SessionId string          `form:"session_id"` // Session identifier for client tracking
 	JsonRpc   string          `json:"jsonrpc"`    // Must be "2.0" per JSON-RPC spec
-	ID        int64           `json:"id"`         // Request identifier for matching responses
+	ID        any             `json:"id"`         // Request identifier for matching responses
 	Method    string          `json:"method"`     // Method name to invoke
 	Params    json.RawMessage `json:"params"`     // Parameters for the method
 }
@@ -244,7 +244,7 @@ type errorObj struct {
 // Response represents a JSON-RPC response
 type Response struct {
 	JsonRpc string    `json:"jsonrpc"`         // Always "2.0"
-	ID      int64     `json:"id"`              // Same as request ID
+	ID      any       `json:"id"`              // Same as request ID
 	Result  any       `json:"result"`          // Result object (null if error)
 	Error   *errorObj `json:"error,omitempty"` // Error object (null if success)
 }
