@@ -213,7 +213,7 @@ func TestRequest_isNotification(t *testing.T) {
 		want    bool
 		wantErr error
 	}{
-		// 整数类型测试
+		// integer test cases
 		{name: "int zero", id: 0, want: true, wantErr: nil},
 		{name: "int non-zero", id: 1, want: false, wantErr: nil},
 		{name: "int8 zero", id: int8(0), want: true, wantErr: nil},
@@ -225,7 +225,7 @@ func TestRequest_isNotification(t *testing.T) {
 		{name: "int64 zero", id: int64(0), want: true, wantErr: nil},
 		{name: "int64 max", id: int64(9223372036854775807), want: false, wantErr: nil},
 
-		// 无符号整数类型测试
+		// unsigned integer test cases
 		{name: "uint zero", id: uint(0), want: true, wantErr: nil},
 		{name: "uint non-zero", id: uint(1), want: false, wantErr: nil},
 		{name: "uint8 zero", id: uint8(0), want: true, wantErr: nil},
@@ -237,7 +237,7 @@ func TestRequest_isNotification(t *testing.T) {
 		{name: "uint64 zero", id: uint64(0), want: true, wantErr: nil},
 		{name: "uint64 max", id: uint64(18446744073709551615), want: false, wantErr: nil},
 
-		// 浮点数类型测试
+		// floating point number test cases
 		{name: "float32 zero", id: float32(0.0), want: true, wantErr: nil},
 		{name: "float32 positive", id: float32(0.1), want: false, wantErr: nil},
 		{name: "float32 negative", id: float32(-0.1), want: false, wantErr: nil},
@@ -246,14 +246,16 @@ func TestRequest_isNotification(t *testing.T) {
 		{name: "float64 negative", id: float64(-0.000001), want: false, wantErr: nil},
 		{name: "float64 epsilon", id: float64(1e-300), want: false, wantErr: nil},
 
-		// 字符串类型测试
+		// string test cases
 		{name: "empty string", id: "", want: true, wantErr: nil},
 		{name: "non-empty string", id: "abc", want: false, wantErr: nil},
 		{name: "space string", id: " ", want: false, wantErr: nil},
 		{name: "unicode string", id: "こんにちは", want: false, wantErr: nil},
 
-		// 非法类型测试
-		{name: "nil ID", id: nil, want: false, wantErr: errors.New("invalid type <nil>")},
+		// special cases
+		{name: "nil", id: nil, want: true, wantErr: nil},
+
+		// logical type test cases
 		{name: "bool true", id: true, want: false, wantErr: errors.New("invalid type bool")},
 		{name: "bool false", id: false, want: false, wantErr: errors.New("invalid type bool")},
 		{name: "struct type", id: struct{}{}, want: false, wantErr: errors.New("invalid type struct {}")},

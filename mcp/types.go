@@ -50,6 +50,8 @@ func (r Request) isNotification() (bool, error) {
 		isNotification = val == 0.0
 	case string:
 		isNotification = len(val) == 0
+	case nil:
+		isNotification = true
 	default:
 		return false, fmt.Errorf("invalid type %T", val)
 	}
