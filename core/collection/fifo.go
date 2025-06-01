@@ -23,10 +23,9 @@ func NewQueue(size int) *Queue {
 // Empty checks if q is empty.
 func (q *Queue) Empty() bool {
 	q.lock.Lock()
-	empty := q.count == 0
-	q.lock.Unlock()
+	defer q.lock.Unlock()
 
-	return empty
+	return q.count == 0
 }
 
 // Put puts element into q at the last position.
@@ -58,6 +57,7 @@ func (q *Queue) Take() (any, bool) {
 	}
 
 	element := q.elements[q.head]
+	q.elements[q.head] = nil
 	q.head = (q.head + 1) % len(q.elements)
 	q.count--
 
