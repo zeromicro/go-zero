@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -169,9 +168,8 @@ func (s *sseMcpServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body, _ = io.ReadAll(r.Body)
 	var req Request
-	if err := json.Unmarshal(body, &req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
