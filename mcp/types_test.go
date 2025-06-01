@@ -55,7 +55,7 @@ func TestRequestUnmarshaling(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "2.0", req.JsonRpc)
-	assert.Equal(t, int64(789), req.ID)
+	assert.Equal(t, float64(789), req.ID)
 	assert.Equal(t, "test_method", req.Method)
 
 	// Check params unmarshaled correctly
