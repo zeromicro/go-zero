@@ -1,4 +1,4 @@
-package continuousprofiling
+package profiling
 
 import (
 	"sync"

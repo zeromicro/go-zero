@@ -1,4 +1,4 @@
-package continuousprofiling
+package profiling
 
 import (
 	"runtime"
@@ -97,6 +97,7 @@ func Start(c Config) {
 		var done = make(chan struct{})
 		proc.AddShutdownListener(func() {
 			done <- struct{}{}
+			close(done)
 		})
 
 		threading.GoSafe(func() {
