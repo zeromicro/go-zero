@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -18,6 +19,42 @@ type Request struct {
 	ID        any             `json:"id"`         // Request identifier for matching responses
 	Method    string          `json:"method"`     // Method name to invoke
 	Params    json.RawMessage `json:"params"`     // Parameters for the method
+}
+
+func (r Request) isNotification() (bool, error) {
+	var isNotification bool
+	switch val := r.ID.(type) {
+	case int:
+		isNotification = val == 0
+	case int8:
+		isNotification = int(val) == 0
+	case int16:
+		isNotification = int(val) == 0
+	case int32:
+		isNotification = int(val) == 0
+	case int64:
+		isNotification = int(val) == 0
+	case uint:
+		isNotification = int(val) == 0
+	case uint8:
+		isNotification = int(val) == 0
+	case uint16:
+		isNotification = int(val) == 0
+	case uint32:
+		isNotification = int(val) == 0
+	case uint64:
+		isNotification = int(val) == 0
+	case float32:
+		isNotification = float64(val) == 0.0
+	case float64:
+		isNotification = val == 0.0
+	case string:
+		isNotification = len(val) == 0
+	default:
+		return false, fmt.Errorf("invalid type %T", val)
+	}
+
+	return isNotification, nil
 }
 
 type PaginatedParams struct {

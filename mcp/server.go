@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -174,13 +173,13 @@ func (s *sseMcpServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
-
 	// For notification methods (no ID), we don't send a response
-	var isNotification bool
-	if req.ID == nil || reflect.ValueOf(req.ID).IsZero() {
-		isNotification = true
+	isNotification, err := req.isNotification()
+	if err != nil {
+		http.Error(w, "Invalid request.ID", http.StatusBadRequest)
 	}
+
+	w.WriteHeader(http.StatusAccepted)
 
 	// Special handling for initialization sequence
 	// Always allow initialize and notifications/initialized regardless of client state
