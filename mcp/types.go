@@ -28,6 +28,8 @@ func (r Request) isNotification() (bool, error) {
 		isNotification = val == 0
 	case int64:
 		isNotification = val == 0
+	case float64:
+		isNotification = val == 0.0
 	case string:
 		isNotification = len(val) == 0
 	case nil:
