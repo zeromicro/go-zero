@@ -216,36 +216,9 @@ func TestRequest_isNotification(t *testing.T) {
 		// integer test cases
 		{name: "int zero", id: 0, want: true, wantErr: nil},
 		{name: "int non-zero", id: 1, want: false, wantErr: nil},
-		{name: "int8 zero", id: int8(0), want: true, wantErr: nil},
-		{name: "int8 non-zero", id: int8(1), want: false, wantErr: nil},
-		{name: "int16 zero", id: int16(0), want: true, wantErr: nil},
-		{name: "int16 non-zero", id: int16(1), want: false, wantErr: nil},
-		{name: "int32 zero", id: int32(0), want: true, wantErr: nil},
-		{name: "int32 non-zero", id: int32(1), want: false, wantErr: nil},
 		{name: "int64 zero", id: int64(0), want: true, wantErr: nil},
 		{name: "int64 max", id: int64(9223372036854775807), want: false, wantErr: nil},
-
-		// unsigned integer test cases
-		{name: "uint zero", id: uint(0), want: true, wantErr: nil},
-		{name: "uint non-zero", id: uint(1), want: false, wantErr: nil},
-		{name: "uint8 zero", id: uint8(0), want: true, wantErr: nil},
-		{name: "uint8 max", id: uint8(255), want: false, wantErr: nil},
-		{name: "uint16 zero", id: uint16(0), want: true, wantErr: nil},
-		{name: "uint16 non-zero", id: uint16(1), want: false, wantErr: nil},
-		{name: "uint32 zero", id: uint32(0), want: true, wantErr: nil},
-		{name: "uint32 non-zero", id: uint32(1), want: false, wantErr: nil},
-		{name: "uint64 zero", id: uint64(0), want: true, wantErr: nil},
-		{name: "uint64 max", id: uint64(18446744073709551615), want: false, wantErr: nil},
-
-		// floating point number test cases
-		{name: "float32 zero", id: float32(0.0), want: true, wantErr: nil},
-		{name: "float32 positive", id: float32(0.1), want: false, wantErr: nil},
-		{name: "float32 negative", id: float32(-0.1), want: false, wantErr: nil},
-		{name: "float64 zero", id: float64(0.0), want: true, wantErr: nil},
-		{name: "float64 positive", id: float64(0.000001), want: false, wantErr: nil},
-		{name: "float64 negative", id: float64(-0.000001), want: false, wantErr: nil},
-		{name: "float64 epsilon", id: float64(1e-300), want: false, wantErr: nil},
-
+		
 		// string test cases
 		{name: "empty string", id: "", want: true, wantErr: nil},
 		{name: "non-empty string", id: "abc", want: false, wantErr: nil},

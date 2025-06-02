@@ -26,28 +26,8 @@ func (r Request) isNotification() (bool, error) {
 	switch val := r.ID.(type) {
 	case int:
 		isNotification = val == 0
-	case int8:
-		isNotification = val == 0
-	case int16:
-		isNotification = val == 0
-	case int32:
-		isNotification = val == 0
 	case int64:
 		isNotification = val == 0
-	case uint:
-		isNotification = val == 0
-	case uint8:
-		isNotification = val == 0
-	case uint16:
-		isNotification = val == 0
-	case uint32:
-		isNotification = val == 0
-	case uint64:
-		isNotification = val == 0
-	case float32:
-		isNotification = val == 0.0
-	case float64:
-		isNotification = val == 0.0
 	case string:
 		isNotification = len(val) == 0
 	case nil:
