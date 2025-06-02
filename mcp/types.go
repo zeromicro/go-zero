@@ -27,25 +27,25 @@ func (r Request) isNotification() (bool, error) {
 	case int:
 		isNotification = val == 0
 	case int8:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case int16:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case int32:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case int64:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case uint:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case uint8:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case uint16:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case uint32:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case uint64:
-		isNotification = int(val) == 0
+		isNotification = val == 0
 	case float32:
-		isNotification = float64(val) == 0.0
+		isNotification = val == 0.0
 	case float64:
 		isNotification = val == 0.0
 	case string:

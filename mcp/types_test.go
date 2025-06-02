@@ -277,7 +277,6 @@ func TestRequest_isNotification(t *testing.T) {
 
 			got, err := req.isNotification()
 
-			// 错误检查
 			if (err != nil) != (tt.wantErr != nil) {
 				t.Fatalf("error presence mismatch: got error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -285,7 +284,6 @@ func TestRequest_isNotification(t *testing.T) {
 				t.Fatalf("error message mismatch:\ngot  %q\nwant %q", err.Error(), tt.wantErr.Error())
 			}
 
-			// 结果检查
 			if got != tt.want {
 				t.Errorf("isNotification() = %v, want %v for ID %v (%T)", got, tt.want, tt.id, tt.id)
 			}
