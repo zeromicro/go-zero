@@ -218,7 +218,13 @@ func TestRequest_isNotification(t *testing.T) {
 		{name: "int non-zero", id: 1, want: false, wantErr: nil},
 		{name: "int64 zero", id: int64(0), want: true, wantErr: nil},
 		{name: "int64 max", id: int64(9223372036854775807), want: false, wantErr: nil},
-		
+
+		// floating point number test cases
+		{name: "float64 zero", id: float64(0.0), want: true, wantErr: nil},
+		{name: "float64 positive", id: float64(0.000001), want: false, wantErr: nil},
+		{name: "float64 negative", id: float64(-0.000001), want: false, wantErr: nil},
+		{name: "float64 epsilon", id: float64(1e-300), want: false, wantErr: nil},
+
 		// string test cases
 		{name: "empty string", id: "", want: true, wantErr: nil},
 		{name: "non-empty string", id: "abc", want: false, wantErr: nil},
