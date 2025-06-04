@@ -151,7 +151,7 @@ func (tw *timeoutWriter) Flush() {
 	flusher.Flush()
 }
 
-// Header returns the underline temporary http.Header.
+// Header returns the underlying temporary http.Header.
 func (tw *timeoutWriter) Header() http.Header {
 	return tw.h
 }
