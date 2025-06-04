@@ -107,7 +107,7 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		tw.mu.Lock()
 		defer tw.mu.Unlock()
 		// there isn't any user-defined middleware before TimoutHandler,
-		// so we can guarantee that cancelation in biz related code won't come here.
+		// so we can guarantee that cancellation in biz related code won't come here.
 		httpx.ErrorCtx(r.Context(), w, ctx.Err(), func(w http.ResponseWriter, err error) {
 			if errors.Is(err, context.Canceled) {
 				w.WriteHeader(statusClientClosedRequest)
