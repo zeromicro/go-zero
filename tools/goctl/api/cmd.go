@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
@@ -15,7 +16,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
@@ -77,6 +77,7 @@ func init() {
 	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote")
 	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch")
 	goCmdFlags.BoolVar(&gogen.VarBoolWithTest, "test")
+	goCmdFlags.BoolVar(&gogen.VarBoolTypeGroup, "type-group")
 	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
 
 	javaCmdFlags.StringVar(&javagen.VarStringDir, "dir")
@@ -103,13 +104,11 @@ func init() {
 
 	swaggerCmdFlags.StringVar(&swagger.VarStringAPI, "api")
 	swaggerCmdFlags.StringVar(&swagger.VarStringDir, "dir")
+	swaggerCmdFlags.StringVar(&swagger.VarStringFilename, "filename")
 	swaggerCmdFlags.BoolVar(&swagger.VarBoolYaml, "yaml")
 
 	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd)
-	if env.UseExperimental() {
-		Cmd.AddCommand(swaggerCmd)
-	}
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd, swaggerCmd)
 }

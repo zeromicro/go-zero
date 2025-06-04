@@ -4,4 +4,6 @@ info(
     author: "type author here"
     email: "type email here"
     version: "type version here"
+    enable: true
+    disable: false
 )

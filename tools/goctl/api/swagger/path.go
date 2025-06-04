@@ -7,20 +7,21 @@ import (
 
 	"github.com/go-openapi/spec"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-func spec2Paths(info apiSpec.Info, srv apiSpec.Service) *spec.Paths {
+func spec2Paths(ctx Context, srv apiSpec.Service) *spec.Paths {
 	paths := &spec.Paths{
 		Paths: make(map[string]spec.PathItem),
 	}
 	for _, group := range srv.Groups {
-		prefix := path.Clean(strings.TrimPrefix(group.GetAnnotation("prefix"), "/"))
+		prefix := path.Clean(strings.TrimPrefix(group.GetAnnotation(propertyKeyPrefix), "/"))
 		for _, route := range group.Routes {
-			routPath := pathVariable2SwaggerVariable(route.Path)
+			routPath := pathVariable2SwaggerVariable(ctx, route.Path)
 			if len(prefix) > 0 && prefix != "." {
 				routPath = "/" + path.Clean(prefix) + routPath
 			}
-			pathItem := spec2Path(info, group, route)
+			pathItem := spec2Path(ctx, group, route)
 			existPathItem, ok := paths.Paths[routPath]
 			if !ok {
 				paths.Paths[routPath] = pathItem
@@ -60,22 +61,39 @@ func mergePathItem(old, new spec.PathItem) spec.PathItem {
 	return old
 }
 
-func spec2Path(info apiSpec.Info, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+func spec2Path(ctx Context, group apiSpec.Group, route apiSpec.Route) spec.PathItem {
+	authType := getStringFromKVOrDefault(group.Annotation.Properties, propertyKeyAuthType, "")
+	var security []map[string][]string
+	if len(authType) > 0 {
+		security = []map[string][]string{
+			{
+				authType: []string{},
+			},
+		}
+	}
+	groupName := getStringFromKVOrDefault(group.Annotation.Properties, propertyKeyGroup, "")
+	operationId := route.Handler
+	if len(groupName) > 0 {
+		operationId = stringx.From(groupName + "_" + route.Handler).ToCamel()
+	}
+	operationId = stringx.From(operationId).Untitle()
 	op := &spec.Operation{
 		OperationProps: spec.OperationProps{
-			Description: getStringFromKVOrDefault(route.AtDoc.Properties, "description", ""),
-			Consumes:    consumesFromTypeOrDef(route.Method, route.RequestType),
-			Produces:    getListFromInfoOrDefault(route.AtDoc.Properties, "produces", []string{applicationJson}),
-			Schemes:     getListFromInfoOrDefault(route.AtDoc.Properties, "schemes", []string{schemeHttps}),
-			Tags:        getListFromInfoOrDefault(group.Annotation.Properties, "tags", []string{""}),
-			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, "summary", ""),
-			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, "deprecated", false),
-			Parameters:  parametersFromType(route.Method, route.RequestType),
-			Responses:   jsonResponseFromType(info, route.ResponseType),
+			Description: getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyDescription, ""),
+			Consumes:    consumesFromTypeOrDef(ctx, route.Method, route.RequestType),
+			Produces:    getListFromInfoOrDefault(route.AtDoc.Properties, propertyKeyProduces, []string{applicationJson}),
+			Schemes:     getListFromInfoOrDefault(route.AtDoc.Properties, propertyKeySchemes, []string{schemeHttps}),
+			Tags:        getListFromInfoOrDefault(group.Annotation.Properties, propertyKeyTags, getListFromInfoOrDefault(group.Annotation.Properties, propertyKeySummary, []string{})),
+			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeySummary, getFirstUsableString(route.AtDoc.Text, route.Handler)),
+			ID:          operationId,
+			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, propertyKeyDeprecated, false),
+			Parameters:  parametersFromType(ctx, route.Method, route.RequestType),
+			Security:    security,
+			Responses:   jsonResponseFromType(ctx, route.AtDoc, route.ResponseType),
 		},
 	}
-	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsDescription", "")
-	externalDocsURL := getStringFromKVOrDefault(route.AtDoc.Properties, "externalDocsURL", "")
+	externalDocsDescription := getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyExternalDocsDescription, "")
+	externalDocsURL := getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeyExternalDocsURL, "")
 	if len(externalDocsDescription) > 0 || len(externalDocsURL) > 0 {
 		op.ExternalDocs = &spec.ExternalDocumentation{
 			Description: externalDocsDescription,
