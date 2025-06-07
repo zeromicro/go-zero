@@ -173,17 +173,20 @@ func (s *sseMcpServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
-
 	// For notification methods (no ID), we don't send a response
-	isNotification := req.ID == 0
+	isNotification, err := req.isNotification()
+	if err != nil {
+		http.Error(w, "Invalid request.ID", http.StatusBadRequest)
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 
 	// Special handling for initialization sequence
 	// Always allow initialize and notifications/initialized regardless of client state
 	if req.Method == methodInitialize {
-		logx.Infof("Processing initialize request with ID: %d", req.ID)
+		logx.Infof("Processing initialize request with ID: %v", req.ID)
 		s.processInitialize(r.Context(), client, req)
-		logx.Infof("Sent initialize response for ID: %d, waiting for notifications/initialized", req.ID)
+		logx.Infof("Sent initialize response for ID: %v, waiting for notifications/initialized", req.ID)
 		return
 	} else if req.Method == methodNotificationsInitialized {
 		// Handle initialized notification
@@ -206,41 +209,41 @@ func (s *sseMcpServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Process normal requests only after initialization
 	switch req.Method {
 	case methodToolsCall:
-		logx.Infof("Received tools call request with ID: %d", req.ID)
+		logx.Infof("Received tools call request with ID: %v", req.ID)
 		s.processToolCall(r.Context(), client, req)
-		logx.Infof("Sent tools call response for ID: %d", req.ID)
+		logx.Infof("Sent tools call response for ID: %v", req.ID)
 	case methodToolsList:
-		logx.Infof("Processing tools/list request with ID: %d", req.ID)
+		logx.Infof("Processing tools/list request with ID: %v", req.ID)
 		s.processListTools(r.Context(), client, req)
-		logx.Infof("Sent tools/list response for ID: %d", req.ID)
+		logx.Infof("Sent tools/list response for ID: %v", req.ID)
 	case methodPromptsList:
-		logx.Infof("Processing prompts/list request with ID: %d", req.ID)
+		logx.Infof("Processing prompts/list request with ID: %v", req.ID)
 		s.processListPrompts(r.Context(), client, req)
-		logx.Infof("Sent prompts/list response for ID: %d", req.ID)
+		logx.Infof("Sent prompts/list response for ID: %v", req.ID)
 	case methodPromptsGet:
-		logx.Infof("Processing prompts/get request with ID: %d", req.ID)
+		logx.Infof("Processing prompts/get request with ID: %v", req.ID)
 		s.processGetPrompt(r.Context(), client, req)
-		logx.Infof("Sent prompts/get response for ID: %d", req.ID)
+		logx.Infof("Sent prompts/get response for ID: %v", req.ID)
 	case methodResourcesList:
-		logx.Infof("Processing resources/list request with ID: %d", req.ID)
+		logx.Infof("Processing resources/list request with ID: %v", req.ID)
 		s.processListResources(r.Context(), client, req)
-		logx.Infof("Sent resources/list response for ID: %d", req.ID)
+		logx.Infof("Sent resources/list response for ID: %v", req.ID)
 	case methodResourcesRead:
-		logx.Infof("Processing resources/read request with ID: %d", req.ID)
+		logx.Infof("Processing resources/read request with ID: %v", req.ID)
 		s.processResourcesRead(r.Context(), client, req)
-		logx.Infof("Sent resources/read response for ID: %d", req.ID)
+		logx.Infof("Sent resources/read response for ID: %v", req.ID)
 	case methodResourcesSubscribe:
-		logx.Infof("Processing resources/subscribe request with ID: %d", req.ID)
+		logx.Infof("Processing resources/subscribe request with ID: %v", req.ID)
 		s.processResourceSubscribe(r.Context(), client, req)
-		logx.Infof("Sent resources/subscribe response for ID: %d", req.ID)
+		logx.Infof("Sent resources/subscribe response for ID: %v", req.ID)
 	case methodPing:
-		logx.Infof("Processing ping request with ID: %d", req.ID)
+		logx.Infof("Processing ping request with ID: %v", req.ID)
 		s.processPing(r.Context(), client, req)
 	case methodNotificationsCancelled:
-		logx.Infof("Received notifications/cancelled notification: %d", req.ID)
+		logx.Infof("Received notifications/cancelled notification: %v", req.ID)
 		s.processNotificationCancelled(r.Context(), client, req)
 	default:
-		logx.Infof("Unknown method: %s from client: %d", req.Method, req.ID)
+		logx.Infof("Unknown method: %s from client: %v", req.Method, req.ID)
 		s.sendErrorResponse(r.Context(), client, req.ID, "Method not found", errCodeMethodNotFound)
 	}
 }
@@ -880,10 +883,10 @@ func (s *sseMcpServer) processPing(ctx context.Context, client *mcpClient, req R
 
 // sendErrorResponse sends an error response via the SSE channel
 func (s *sseMcpServer) sendErrorResponse(ctx context.Context, client *mcpClient,
-	id int64, message string, code int) {
+	id any, message string, code int) {
 	errorResponse := struct {
 		JsonRpc string       `json:"jsonrpc"`
-		ID      int64        `json:"id"`
+		ID      any          `json:"id"`
 		Error   errorMessage `json:"error"`
 	}{
 		JsonRpc: jsonRpcVersion,
@@ -898,7 +901,7 @@ func (s *sseMcpServer) sendErrorResponse(ctx context.Context, client *mcpClient,
 	jsonData, _ := json.Marshal(errorResponse)
 	// Use CRLF line endings as requested
 	sseMessage := fmt.Sprintf("event: %s\r\ndata: %s\r\n\r\n", eventMessage, string(jsonData))
-	logx.Infof("Sending error for ID %d: %s", id, sseMessage)
+	logx.Infof("Sending error for ID %v: %s", id, sseMessage)
 
 	// cannot receive from ctx.Done() because we're sending to the channel for SSE messages
 	select {
@@ -910,7 +913,7 @@ func (s *sseMcpServer) sendErrorResponse(ctx context.Context, client *mcpClient,
 }
 
 // sendResponse sends a success response via the SSE channel
-func (s *sseMcpServer) sendResponse(ctx context.Context, client *mcpClient, id int64, result any) {
+func (s *sseMcpServer) sendResponse(ctx context.Context, client *mcpClient, id any, result any) {
 	response := Response{
 		JsonRpc: jsonRpcVersion,
 		ID:      id,
@@ -925,13 +928,13 @@ func (s *sseMcpServer) sendResponse(ctx context.Context, client *mcpClient, id i
 
 	// Use CRLF line endings as requested
 	sseMessage := fmt.Sprintf("event: %s\r\ndata: %s\r\n\r\n", eventMessage, string(jsonData))
-	logx.Infof("Sending response for ID %d: %s", id, sseMessage)
+	logx.Infof("Sending response for ID %v: %s", id, sseMessage)
 
 	// cannot receive from ctx.Done() because we're sending to the channel for SSE messages
 	select {
 	case client.channel <- sseMessage:
 	default:
 		// Channel buffer is full, log warning and continue
-		logx.Infof("Client %s channel is full while sending response with ID %d", client.id, id)
+		logx.Infof("Client %s channel is full while sending response with ID %v", client.id, id)
 	}
 }
