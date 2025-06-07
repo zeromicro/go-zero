@@ -2435,7 +2435,7 @@ func (s *Redis) XInfoConsumersCtx(ctx context.Context, stream string, group stri
 	if err != nil {
 		return nil, err
 	}
-	return conn.XInfoConsumers(context.Background(), stream, group).Result()
+	return conn.XInfoConsumers(ctx, stream, group).Result()
 }
 
 func (s *Redis) XInfoGroups(stream string) ([]red.XInfoGroup, error) {
