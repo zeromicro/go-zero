@@ -3,6 +3,7 @@ package rest
 import (
 	"crypto/tls"
 	"errors"
+	"net"
 	"net/http"
 	"path"
 	"time"
@@ -312,6 +313,13 @@ func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 	return func(svr *Server) {
 		svr.ngin.setUnsignedCallback(callback)
+	}
+}
+
+// WithUnsignedCallback returns a RunOption that with given unsigned callback set.
+func WithExternalListener(listner net.Listener) RunOption {
+	return func(svr *Server) {
+		svr.ngin.setExternalListener(listner)
 	}
 }
 
