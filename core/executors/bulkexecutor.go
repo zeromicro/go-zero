@@ -11,9 +11,9 @@ type (
 	// A BulkExecutor is an executor that can execute tasks on either requirement meets:
 	// 1. up to given size of tasks
 	// 2. flush interval time elapsed
-	BulkExecutor struct {
-		executor  *PeriodicalExecutor
-		container *bulkContainer
+	BulkExecutor[T any] struct {
+		executor  *PeriodicalExecutor[T]
+		container *bulkContainer[T]
 	}
 
 	bulkOptions struct {
@@ -23,18 +23,18 @@ type (
 )
 
 // NewBulkExecutor returns a BulkExecutor.
-func NewBulkExecutor(execute Execute, opts ...BulkOption) *BulkExecutor {
+func NewBulkExecutor[T any](execute Execute[T], opts ...BulkOption) *BulkExecutor[T] {
 	options := newBulkOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}
 
-	container := &bulkContainer{
+	container := &bulkContainer[T]{
 		execute:  execute,
 		maxTasks: options.cachedTasks,
 	}
-	executor := &BulkExecutor{
-		executor:  NewPeriodicalExecutor(options.flushInterval, container),
+	executor := &BulkExecutor[T]{
+		executor:  NewPeriodicalExecutor[T](options.flushInterval, container),
 		container: container,
 	}
 
@@ -42,18 +42,18 @@ func NewBulkExecutor(execute Execute, opts ...BulkOption) *BulkExecutor {
 }
 
 // Add adds task into be.
-func (be *BulkExecutor) Add(task any) error {
+func (be *BulkExecutor[T]) Add(task T) error {
 	be.executor.Add(task)
 	return nil
 }
 
 // Flush forces be to flush and execute tasks.
-func (be *BulkExecutor) Flush() {
+func (be *BulkExecutor[T]) Flush() {
 	be.executor.Flush()
 }
 
 // Wait waits be to done with the task execution.
-func (be *BulkExecutor) Wait() {
+func (be *BulkExecutor[T]) Wait() {
 	be.executor.Wait()
 }
 
@@ -78,23 +78,22 @@ func newBulkOptions() bulkOptions {
 	}
 }
 
-type bulkContainer struct {
-	tasks    []any
-	execute  Execute
+type bulkContainer[T any] struct {
+	tasks    []T
+	execute  Execute[T]
 	maxTasks int
 }
 
-func (bc *bulkContainer) AddTask(task any) bool {
+func (bc *bulkContainer[T]) AddTask(task T) bool {
 	bc.tasks = append(bc.tasks, task)
 	return len(bc.tasks) >= bc.maxTasks
 }
 
-func (bc *bulkContainer) Execute(tasks any) {
-	vals := tasks.([]any)
-	bc.execute(vals)
+func (bc *bulkContainer[T]) Execute(tasks []T) {
+	bc.execute(tasks)
 }
 
-func (bc *bulkContainer) RemoveAll() any {
+func (bc *bulkContainer[T]) RemoveAll() []T {
 	tasks := bc.tasks
 	bc.tasks = nil
 	return tasks
