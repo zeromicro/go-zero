@@ -30,6 +30,8 @@ type ZRpcContext struct {
 	Multiple bool
 	// Whether to generate rpc client
 	IsGenClient bool
+	// Whether to generate pb file
+	IsSkipPb bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -72,9 +74,11 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenPb(dirCtx, zctx)
-	if err != nil {
-		return err
+	if !zctx.IsSkipPb {
+		err = g.GenPb(dirCtx, zctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = g.GenConfig(dirCtx, proto, g.cfg)
