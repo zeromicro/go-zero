@@ -7,77 +7,110 @@ import (
 
 	"github.com/grafana/pyroscope-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/conf"
 )
 
 func TestStart(t *testing.T) {
+	t.Run("profiling", func(t *testing.T) {
+		var c Config
+		assert.NoError(t, conf.FillDefault(&c))
+		c.Name = "test"
+		p := newProfiler(c)
+		assert.NotNil(t, p)
+		assert.NoError(t, p.Start())
+		assert.NoError(t, p.Stop())
+	})
+
 	t.Run("invalid config", func(t *testing.T) {
-		var mockProfiler = &mockProfiler{}
+		mp := &mockProfiler{}
 		newProfiler = func(c Config) profiler {
-			return mockProfiler
+			return mp
 		}
 
 		Start(Config{})
 
 		Start(Config{
-			ServerAddress: "localhost:4040",
+			ServerAddr: "localhost:4040",
 		})
 	})
 
 	t.Run("test start profiler", func(t *testing.T) {
-		var mockProfiler = &mockProfiler{}
+		mp := &mockProfiler{}
 		newProfiler = func(c Config) profiler {
-			return mockProfiler
+			return mp
 		}
 
 		c := Config{
 			Name:              "test",
-			ServerAddress:     "localhost:4040",
-			IntervalDuration:  time.Millisecond,
+			ServerAddr:        "localhost:4040",
+			CheckInterval:     time.Millisecond,
 			ProfilingDuration: time.Millisecond * 10,
 			CpuThreshold:      0,
 		}
 		var done = make(chan struct{})
-		go startPyroScope(c, done)
+		go startPyroscope(c, done)
 
 		time.Sleep(time.Millisecond * 50)
-		done <- struct{}{}
+		close(done)
 
-		assert.True(t, mockProfiler.started)
-		assert.True(t, mockProfiler.stopped)
+		assert.True(t, mp.started)
+		assert.True(t, mp.stopped)
+	})
+
+	t.Run("test start profiler with cpu overloaded", func(t *testing.T) {
+		mp := &mockProfiler{}
+		newProfiler = func(c Config) profiler {
+			return mp
+		}
+
+		c := Config{
+			Name:              "test",
+			ServerAddr:        "localhost:4040",
+			CheckInterval:     time.Millisecond,
+			ProfilingDuration: time.Millisecond * 10,
+			CpuThreshold:      900,
+		}
+		var done = make(chan struct{})
+		go startPyroscope(c, done)
+
+		time.Sleep(time.Millisecond * 50)
+		close(done)
+
+		assert.False(t, mp.started)
 	})
 
 	t.Run("start/stop err", func(t *testing.T) {
-		var mockProfiler = &mockProfiler{
+		mp := &mockProfiler{
 			err: assert.AnError,
 		}
 		newProfiler = func(c Config) profiler {
-			return mockProfiler
+			return mp
 		}
 
 		c := Config{
 			Name:              "test",
-			ServerAddress:     "localhost:4040",
-			IntervalDuration:  time.Millisecond,
+			ServerAddr:        "localhost:4040",
+			CheckInterval:     time.Millisecond,
 			ProfilingDuration: time.Millisecond * 10,
 			CpuThreshold:      0,
 		}
 		var done = make(chan struct{})
-		go startPyroScope(c, done)
+		go startPyroscope(c, done)
 
 		time.Sleep(time.Millisecond * 50)
-		done <- struct{}{}
+		close(done)
 
-		assert.False(t, mockProfiler.started)
-		assert.False(t, mockProfiler.stopped)
+		assert.False(t, mp.started)
+		assert.False(t, mp.stopped)
 	})
 }
 
-func TestGenPyroScopeConf(t *testing.T) {
+func TestGenPyroscopeConf(t *testing.T) {
 	c := Config{
-		Name:          "",
-		ServerAddress: "localhost:4040",
-		AuthUser:      "user",
-		AuthPassword:  "password",
+		Name:         "",
+		ServerAddr:   "localhost:4040",
+		AuthUser:     "user",
+		AuthPassword: "password",
 		ProfileType: ProfileType{
 			Logger:     true,
 			CPU:        true,
@@ -88,8 +121,8 @@ func TestGenPyroScopeConf(t *testing.T) {
 		},
 	}
 
-	conf := genPyroScopeConf(c)
-	assert.Equal(t, c.ServerAddress, conf.ServerAddress)
+	conf := genPyroscopeConf(c)
+	assert.Equal(t, c.ServerAddr, conf.ServerAddress)
 	assert.Equal(t, c.AuthUser, conf.BasicAuthUser)
 	assert.Equal(t, c.AuthPassword, conf.BasicAuthPassword)
 	assert.Equal(t, c.Name, conf.ApplicationName)
@@ -107,11 +140,11 @@ func TestGenPyroScopeConf(t *testing.T) {
 	setFraction(c)
 	resetFraction(c)
 
-	newPyProfiler(c)
+	newPyroscopeProfiler(c)
 }
 
-func TestNewPyProfiler(t *testing.T) {
-	p := newPyProfiler(Config{})
+func TestNewPyroscopeProfiler(t *testing.T) {
+	p := newPyroscopeProfiler(Config{})
 
 	assert.Error(t, p.Start())
 	assert.NoError(t, p.Stop())

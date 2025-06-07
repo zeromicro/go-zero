@@ -6,27 +6,32 @@ import (
 	"time"
 
 	"github.com/grafana/pyroscope-go"
-
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/threading"
 )
 
+const (
+	defaultCheckInterval     = time.Second * 10
+	defaultProfilingDuration = time.Minute * 2
+	defaultUploadRate        = time.Second * 15
+)
+
 type (
 	Config struct {
 		// Name is the name of the application.
 		Name string `json:",optional,inherit"`
-		// ServerAddress is the address of the profiling server.
-		ServerAddress string
+		// ServerAddr is the address of the profiling server.
+		ServerAddr string
 		// AuthUser is the username for basic authentication.
 		AuthUser string `json:",optional"`
 		// AuthPassword is the password for basic authentication.
 		AuthPassword string `json:",optional"`
-		// UploadDuration is the duration for which profiling data is uploaded.
-		UploadDuration time.Duration `json:",default=15s"`
-		// IntervalDuration is the interval for which profiling data is collected.
-		IntervalDuration time.Duration `json:",default=10s"`
+		// UploadRate is the duration for which profiling data is uploaded.
+		UploadRate time.Duration `json:",default=15s"`
+		// CheckInterval is the interval to check if profiling should start.
+		CheckInterval time.Duration `json:",default=10s"`
 		// ProfilingDuration is the duration for which profiling data is collected.
 		ProfilingDuration time.Duration `json:",default=2m"`
 		// CpuThreshold the collection is allowed only when the current service cpu < CpuThreshold
@@ -56,7 +61,7 @@ type (
 		Stop() error
 	}
 
-	pyProfiler struct {
+	pyroscopeProfiler struct {
 		c        Config
 		profiler *pyroscope.Profiler
 	}
@@ -66,63 +71,58 @@ var (
 	once sync.Once
 
 	newProfiler = func(c Config) profiler {
-		return newPyProfiler(c)
+		return newPyroscopeProfiler(c)
 	}
 )
 
 // Start initializes the pyroscope profiler with the given configuration.
 func Start(c Config) {
 	// check if the profiling is enabled
-	if c.ServerAddress == "" {
+	if len(c.ServerAddr) == 0 {
 		return
 	}
 
 	// set default values for the configuration
 	if c.ProfilingDuration <= 0 {
-		c.ProfilingDuration = time.Minute * 2
+		c.ProfilingDuration = defaultProfilingDuration
 	}
 
 	// set default values for the configuration
-	if c.IntervalDuration <= 0 {
-		c.IntervalDuration = time.Second * 10
+	if c.CheckInterval <= 0 {
+		c.CheckInterval = defaultCheckInterval
 	}
 
-	if c.UploadDuration <= 0 {
-		c.UploadDuration = time.Second * 15
+	if c.UploadRate <= 0 {
+		c.UploadRate = defaultUploadRate
 	}
 
 	once.Do(func() {
 		logx.Info("continuous profiling started")
 
-		var done = make(chan struct{})
-		proc.AddShutdownListener(func() {
-			done <- struct{}{}
-			close(done)
-		})
-
 		threading.GoSafe(func() {
-			startPyroScope(c, done)
+			startPyroscope(c, proc.Done())
 		})
 	})
 }
 
-// startPyroScope starts the pyroscope profiler with the given configuration.
-func startPyroScope(c Config, done <-chan struct{}) {
+// startPyroscope starts the pyroscope profiler with the given configuration.
+func startPyroscope(c Config, done <-chan struct{}) {
 	var (
-		intervalTicker  = time.NewTicker(c.IntervalDuration)
-		profilingTicker = time.NewTicker(c.ProfilingDuration)
-
-		pr  profiler
-		err error
-
+		pr                  profiler
+		err                 error
 		latestProfilingTime time.Time
+		intervalTicker      = time.NewTicker(c.CheckInterval)
+		profilingTicker     = time.NewTicker(c.ProfilingDuration)
 	)
+
+	defer profilingTicker.Stop()
+	defer intervalTicker.Stop()
 
 	for {
 		select {
 		case <-intervalTicker.C:
 			// Check if the machine is overloaded and if the profiler is not running
-			if pr == nil && checkMachinePerformance(c) {
+			if pr == nil && isCpuOverloaded(c) {
 				pr = newProfiler(c)
 				if err := pr.Start(); err != nil {
 					logx.Errorf("failed to start profiler: %v", err)
@@ -131,7 +131,7 @@ func startPyroScope(c Config, done <-chan struct{}) {
 
 				// record the latest profiling time
 				latestProfilingTime = time.Now()
-				logx.Infof("pyroScope profiler started.")
+				logx.Infof("pyroscope profiler started.")
 			}
 		case <-profilingTicker.C:
 			// check if the profiling duration has passed
@@ -144,30 +144,26 @@ func startPyroScope(c Config, done <-chan struct{}) {
 				if err = pr.Stop(); err != nil {
 					logx.Errorf("failed to stop profiler: %v", err)
 				}
-				logx.Infof("pyroScope profiler stopped.")
+				logx.Infof("pyroscope profiler stopped.")
 				pr = nil
 			}
 		case <-done:
 			logx.Infof("continuous profiling stopped.")
-			intervalTicker.Stop()
-			profilingTicker.Stop()
 			return
 		}
 	}
 }
 
-// genPyroScopeConf generates the pyroscope configuration based on the given config.
-func genPyroScopeConf(c Config) pyroscope.Config {
+// genPyroscopeConf generates the pyroscope configuration based on the given config.
+func genPyroscopeConf(c Config) pyroscope.Config {
 	pConf := pyroscope.Config{
-		UploadRate:        c.UploadDuration,
+		UploadRate:        c.UploadRate,
 		ApplicationName:   c.Name,
 		BasicAuthUser:     c.AuthUser,     // http basic auth user
 		BasicAuthPassword: c.AuthPassword, // http basic auth password
-		ServerAddress:     c.ServerAddress,
+		ServerAddress:     c.ServerAddr,
 		Logger:            nil,
-
-		HTTPHeaders: map[string]string{},
-
+		HTTPHeaders:       map[string]string{},
 		// you can provide static tags via a map:
 		Tags: map[string]string{
 			"name": c.Name,
@@ -200,46 +196,46 @@ func genPyroScopeConf(c Config) pyroscope.Config {
 	return pConf
 }
 
-// checkMachinePerformance checks the machine performance based on the given configuration.
-func checkMachinePerformance(c Config) bool {
+// isCpuOverloaded checks the machine performance based on the given configuration.
+func isCpuOverloaded(c Config) bool {
 	currentValue := stat.CpuUsage()
 	if currentValue >= c.CpuThreshold {
-		logx.Infof("continuous profiling cpu overload, cpu:%d", currentValue)
+		logx.Infof("continuous profiling cpu overload, cpu: %d", currentValue)
 		return true
 	}
 
 	return false
 }
 
-func newPyProfiler(c Config) profiler {
-	return &pyProfiler{
+func newPyroscopeProfiler(c Config) profiler {
+	return &pyroscopeProfiler{
 		c: c,
 	}
 }
 
-func (p *pyProfiler) Start() error {
-	pConf := genPyroScopeConf(p.c)
+func (p *pyroscopeProfiler) Start() error {
+	pConf := genPyroscopeConf(p.c)
 	// set mutex and block profile rate
 	setFraction(p.c)
-	profiler, err := pyroscope.Start(pConf)
+	prof, err := pyroscope.Start(pConf)
 	if err != nil {
 		resetFraction(p.c)
 		return err
 	}
 
-	p.profiler = profiler
+	p.profiler = prof
 	return nil
 }
 
-func (p *pyProfiler) Stop() error {
+func (p *pyroscopeProfiler) Stop() error {
 	if p.profiler == nil {
 		return nil
 	}
 
-	err := p.profiler.Stop()
-	if err != nil {
+	if err := p.profiler.Stop(); err != nil {
 		return err
 	}
+
 	resetFraction(p.c)
 	p.profiler = nil
 
