@@ -22,23 +22,20 @@ type Request struct {
 }
 
 func (r Request) isNotification() (bool, error) {
-	var isNotification bool
 	switch val := r.ID.(type) {
 	case int:
-		isNotification = val == 0
+		return val == 0, nil
 	case int64:
-		isNotification = val == 0
+		return val == 0, nil
 	case float64:
-		isNotification = val == 0.0
+		return val == 0.0, nil
 	case string:
-		isNotification = len(val) == 0
+		return len(val) == 0, nil
 	case nil:
-		isNotification = true
+		return true, nil
 	default:
 		return false, fmt.Errorf("invalid type %T", val)
 	}
-
-	return isNotification, nil
 }
 
 type PaginatedParams struct {
