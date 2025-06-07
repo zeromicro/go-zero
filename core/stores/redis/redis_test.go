@@ -2272,6 +2272,7 @@ func TestRedisXReadGroup(t *testing.T) {
 
 		streamRes2, err := redisCli.XReadGroup(group, "consumer", 1, 2000, false, stream, "0")
 		assert.Nil(t, err)
+		assert.Greater(t, len(streamRes2), 0, "streamRes2 is empty")
 		assert.Equal(t, 0, len(streamRes2[0].Messages))
 	})
 }
