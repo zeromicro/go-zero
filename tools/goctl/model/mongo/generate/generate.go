@@ -17,6 +17,7 @@ import (
 type Context struct {
 	Types  []string
 	Cache  bool
+	Prefix string
 	Easy   bool
 	Output string
 	Cfg    *config.Config
@@ -60,6 +61,7 @@ func generateModel(ctx *Context) error {
 			"Type":      stringx.From(t).Title(),
 			"lowerType": stringx.From(t).Untitle(),
 			"Cache":     ctx.Cache,
+			"Prefix":    ctx.Prefix,
 			"version":   version.BuildVersion,
 		}, output, true); err != nil {
 			return err
