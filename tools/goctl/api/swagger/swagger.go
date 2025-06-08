@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/go-openapi/spec"
-
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
