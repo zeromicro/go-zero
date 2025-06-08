@@ -64,6 +64,9 @@ Verbose: true
 `,
 	}
 
+	minuteDuration := time.Minute
+	secondDuration := time.Second
+
 	routes := []featuredRoutes{
 		{
 			jwt:       jwtSetting{},
@@ -73,7 +76,7 @@ Verbose: true
 				Path:    "/",
 				Handler: func(w http.ResponseWriter, r *http.Request) {},
 			}},
-			timeout: time.Minute,
+			timeout: &minuteDuration,
 		},
 		{
 			priority:  true,
@@ -84,7 +87,7 @@ Verbose: true
 				Path:    "/",
 				Handler: func(w http.ResponseWriter, r *http.Request) {},
 			}},
-			timeout: time.Second,
+			timeout: &secondDuration,
 		},
 		{
 			priority: true,
@@ -227,8 +230,8 @@ Verbose: true
 				}))
 
 				timeout := time.Second * 3
-				if route.timeout > timeout {
-					timeout = route.timeout
+				if route.timeout != nil {
+					timeout = *route.timeout
 				}
 				assert.Equal(t, timeout, ng.timeout)
 			})
@@ -236,10 +239,14 @@ Verbose: true
 	}
 }
 
+func getPtrTimeDuration(dur time.Duration) *time.Duration {
+	return &dur
+}
+
 func TestEngine_checkedTimeout(t *testing.T) {
 	tests := []struct {
 		name    string
-		timeout time.Duration
+		timeout *time.Duration
 		expect  time.Duration
 	}{
 		{
@@ -248,18 +255,23 @@ func TestEngine_checkedTimeout(t *testing.T) {
 		},
 		{
 			name:    "less",
-			timeout: time.Millisecond * 500,
+			timeout: getPtrTimeDuration(time.Millisecond * 500),
 			expect:  time.Millisecond * 500,
 		},
 		{
 			name:    "equal",
-			timeout: time.Second,
+			timeout: getPtrTimeDuration(time.Second),
 			expect:  time.Second,
 		},
 		{
 			name:    "more",
-			timeout: time.Millisecond * 1500,
+			timeout: getPtrTimeDuration(time.Millisecond * 1500),
 			expect:  time.Millisecond * 1500,
+		},
+		{
+			name:    "set zero",
+			timeout: getPtrTimeDuration(0),
+			expect:  0,
 		},
 	}
 
