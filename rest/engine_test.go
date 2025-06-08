@@ -73,7 +73,17 @@ Verbose: true
 				Path:    "/",
 				Handler: func(w http.ResponseWriter, r *http.Request) {},
 			}},
-			timeout: time.Minute,
+			timeout: ptrOfDuration(time.Minute),
+		},
+		{
+			jwt:       jwtSetting{},
+			signature: signatureSetting{},
+			routes: []Route{{
+				Method:  http.MethodGet,
+				Path:    "/",
+				Handler: func(w http.ResponseWriter, r *http.Request) {},
+			}},
+			timeout: ptrOfDuration(0),
 		},
 		{
 			priority:  true,
@@ -84,7 +94,7 @@ Verbose: true
 				Path:    "/",
 				Handler: func(w http.ResponseWriter, r *http.Request) {},
 			}},
-			timeout: time.Second,
+			timeout: ptrOfDuration(time.Second),
 		},
 		{
 			priority: true,
@@ -227,8 +237,12 @@ Verbose: true
 				}))
 
 				timeout := time.Second * 3
-				if route.timeout > timeout {
-					timeout = route.timeout
+				if route.timeout != nil {
+					if *route.timeout == 0 {
+						timeout = 0
+					} else if *route.timeout > timeout {
+						timeout = *route.timeout
+					}
 				}
 				assert.Equal(t, timeout, ng.timeout)
 			})
@@ -236,10 +250,69 @@ Verbose: true
 	}
 }
 
+func TestNewEngine_unsignedCallback(t *testing.T) {
+	priKeyfile, err := fs.TempFilenameWithText(priKey)
+	assert.Nil(t, err)
+	defer os.Remove(priKeyfile)
+
+	yaml := `Name: foo
+Host: localhost
+Port: 0
+Middlewares:
+  Log: false
+`
+	route := featuredRoutes{
+		priority: true,
+		jwt: jwtSetting{
+			enabled: true,
+		},
+		signature: signatureSetting{
+			enabled: true,
+			SignatureConf: SignatureConf{
+				Strict: true,
+				PrivateKeys: []PrivateKeyConf{
+					{
+						Fingerprint: "a",
+						KeyFile:     priKeyfile,
+					},
+				},
+			},
+		},
+		routes: []Route{{
+			Method:  http.MethodGet,
+			Path:    "/",
+			Handler: func(w http.ResponseWriter, r *http.Request) {},
+		}},
+	}
+
+	var index int32
+	t.Run(fmt.Sprintf("%s-%v", yaml, route.routes), func(t *testing.T) {
+		var cnf RestConf
+		assert.Nil(t, conf.LoadFromYamlBytes([]byte(yaml), &cnf))
+		ng := newEngine(cnf)
+		if atomic.AddInt32(&index, 1)%2 == 0 {
+			ng.setUnsignedCallback(func(w http.ResponseWriter, r *http.Request,
+				next http.Handler, strict bool, code int) {
+			})
+		}
+		ng.addRoutes(route)
+		ng.use(func(next http.HandlerFunc) http.HandlerFunc {
+			return func(w http.ResponseWriter, r *http.Request) {
+				next.ServeHTTP(w, r)
+			}
+		})
+
+		assert.NotNil(t, ng.start(mockedRouter{}, func(svr *http.Server) {
+		}))
+
+		assert.Equal(t, time.Duration(time.Second*3), ng.timeout)
+	})
+}
+
 func TestEngine_checkedTimeout(t *testing.T) {
 	tests := []struct {
 		name    string
-		timeout time.Duration
+		timeout *time.Duration
 		expect  time.Duration
 	}{
 		{
@@ -248,17 +321,17 @@ func TestEngine_checkedTimeout(t *testing.T) {
 		},
 		{
 			name:    "less",
-			timeout: time.Millisecond * 500,
+			timeout: ptrOfDuration(time.Millisecond * 500),
 			expect:  time.Millisecond * 500,
 		},
 		{
 			name:    "equal",
-			timeout: time.Second,
+			timeout: ptrOfDuration(time.Second),
 			expect:  time.Second,
 		},
 		{
 			name:    "more",
-			timeout: time.Millisecond * 1500,
+			timeout: ptrOfDuration(time.Millisecond * 1500),
 			expect:  time.Millisecond * 1500,
 		},
 	}
@@ -401,7 +474,7 @@ func TestEngine_withTimeout(t *testing.T) {
 				},
 			})
 			svr := &http.Server{}
-			ng.withTimeout()(svr)
+			ng.withNetworkTimeout()(svr)
 
 			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*4/5, svr.ReadTimeout)
 			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
@@ -451,7 +524,7 @@ func TestEngine_ReadWriteTimeout(t *testing.T) {
 				},
 			})
 			svr := &http.Server{}
-			ng.withTimeout()(svr)
+			ng.withNetworkTimeout()(svr)
 
 			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
 			assert.Equal(t, time.Duration(0), svr.IdleTimeout)

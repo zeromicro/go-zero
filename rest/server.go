@@ -283,14 +283,14 @@ func WithSignature(signature SignatureConf) RouteOption {
 func WithSSE() RouteOption {
 	return func(r *featuredRoutes) {
 		r.sse = true
-		r.timeout = 0
+		r.timeout = ptrOfDuration(0)
 	}
 }
 
 // WithTimeout returns a RouteOption to set timeout with given value.
 func WithTimeout(timeout time.Duration) RouteOption {
 	return func(r *featuredRoutes) {
-		r.timeout = timeout
+		r.timeout = &timeout
 	}
 }
 
@@ -323,6 +323,10 @@ func handleError(err error) {
 
 	logx.Error(err)
 	panic(err)
+}
+
+func ptrOfDuration(d time.Duration) *time.Duration {
+	return &d
 }
 
 func validateSecret(secret string) {
