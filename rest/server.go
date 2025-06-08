@@ -283,14 +283,14 @@ func WithSignature(signature SignatureConf) RouteOption {
 func WithSSE() RouteOption {
 	return func(r *featuredRoutes) {
 		r.sse = true
-		r.timeout = nil
+		r.timeout = 0
 	}
 }
 
 // WithTimeout returns a RouteOption to set timeout with given value.
 func WithTimeout(timeout time.Duration) RouteOption {
 	return func(r *featuredRoutes) {
-		r.timeout = &timeout
+		r.timeout = timeout
 	}
 }
 
