@@ -60,10 +60,22 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 	}
 	ng.routes = append(ng.routes, r)
 
+	// if global timeout is set to 0, it means no need to set read/write timeout
+	// if route timeout is nil, no need to update ng.timeout
+	if ng.timeout == 0 || r.timeout == nil {
+		return
+	}
+
+	// if route timeout is 0 (means no timeout), cannot set read/write timeout
+	if *r.timeout == 0 {
+		ng.timeout = 0
+		return
+	}
+
 	// need to guarantee the timeout is the max of all routes
 	// otherwise impossible to set http.Server.ReadTimeout & WriteTimeout
-	if r.timeout > ng.timeout {
-		ng.timeout = r.timeout
+	if *r.timeout > ng.timeout {
+		ng.timeout = *r.timeout
 	}
 }
 
@@ -192,9 +204,9 @@ func (ng *engine) checkedMaxBytes(bytes int64) int64 {
 	return ng.conf.MaxBytes
 }
 
-func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {
-	if timeout > 0 {
-		return timeout
+func (ng *engine) checkedTimeout(timeout *time.Duration) time.Duration {
+	if timeout != nil {
+		return *timeout
 	}
 
 	return time.Duration(ng.conf.Timeout) * time.Millisecond
