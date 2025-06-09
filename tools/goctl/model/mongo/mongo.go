@@ -74,6 +74,11 @@ func Action(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	baseDir := filepath.Base(a)
+	if baseDir == "" || baseDir == "." {
+		baseDir = "model" // as default
+	}
+
 	return generate.Do(&generate.Context{
 		Types:  tp,
 		Cache:  c,
@@ -81,5 +86,6 @@ func Action(_ *cobra.Command, _ []string) error {
 		Easy:   easy,
 		Output: a,
 		Cfg:    cfg,
+		PackageName: baseDir,
 	})
 }
