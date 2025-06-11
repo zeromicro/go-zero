@@ -423,7 +423,7 @@ func TestRegistry_Monitor(t *testing.T) {
 	GetRegistry().clusters = map[string]*cluster{
 		getClusterKey(endpoints): {
 			watchers: map[watchKey]*watchValue{
-				watchKey{
+				{
 					key:        "foo",
 					exactMatch: true,
 				}: {
@@ -449,7 +449,7 @@ func TestRegistry_Unmonitor(t *testing.T) {
 	GetRegistry().clusters = map[string]*cluster{
 		getClusterKey(endpoints): {
 			watchers: map[watchKey]*watchValue{
-				watchKey{
+				{
 					key:        "foo",
 					exactMatch: true,
 				}: {
