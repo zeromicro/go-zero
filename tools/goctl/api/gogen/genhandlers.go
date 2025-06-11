@@ -22,7 +22,7 @@ var (
 	sseHandlerTemplate string
 )
 
-func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	handlerPath := getHandlerFolderPath(group, route)
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
@@ -63,15 +63,15 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 			"HasRequest":     len(route.RequestTypeName()) > 0,
 			"HasDoc":         len(route.JoinedDoc()) > 0,
 			"Doc":            getDoc(route.JoinedDoc()),
-			"rootPkg":        rootPkg,
+			"projectPkg":     projectPkg,
 		},
 	})
 }
 
-func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genHandlers(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
+			if err := genHandler(dir, rootPkg, projectPkg, cfg, group, route); err != nil {
 				return err
 			}
 		}
