@@ -53,6 +53,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
 			"middlewareAssignment": middlewareAssignment,
+			"rootPkg":              rootPkg,
 		},
 	})
 }

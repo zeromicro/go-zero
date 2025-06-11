@@ -73,6 +73,7 @@ func genLogicTestByRoute(dir, rootPkg string, cfg *config.Config, group spec.Gro
 			"requestType":  requestType,
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
+			"rootPkg":      rootPkg,
 		},
 	})
 }

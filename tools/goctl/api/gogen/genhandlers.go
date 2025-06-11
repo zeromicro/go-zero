@@ -63,6 +63,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 			"HasRequest":     len(route.RequestTypeName()) > 0,
 			"HasDoc":         len(route.JoinedDoc()) > 0,
 			"Doc":            getDoc(route.JoinedDoc()),
+			"rootPkg":        rootPkg,
 		},
 	})
 }

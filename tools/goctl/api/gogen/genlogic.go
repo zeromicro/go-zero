@@ -91,6 +91,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"request":      requestString,
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
+			"rootPkg":      rootPkg,
 		},
 	})
 }
