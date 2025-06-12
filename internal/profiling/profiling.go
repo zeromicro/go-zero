@@ -34,7 +34,7 @@ type (
 		CheckInterval time.Duration `json:",default=10s"`
 		// ProfilingDuration is the duration for which profiling data is collected.
 		ProfilingDuration time.Duration `json:",default=2m"`
-		// CpuThreshold the collection is allowed only when the current service cpu < CpuThreshold
+		// CpuThreshold the collection is allowed only when the current service cpu > CpuThreshold
 		CpuThreshold int64 `json:",default=700,range=[0:1000)"`
 
 		// ProfileType is the type of profiling to be performed.
