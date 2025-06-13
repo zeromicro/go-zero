@@ -13,7 +13,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -215,7 +214,7 @@ func TestUnmarshalDurationUnexpectedError(t *testing.T) {
 	var in inner
 	err = UnmarshalKey(m, &in)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unexpected type")
+	assert.Contains(t, err.Error(), "expect string")
 }
 
 func TestUnmarshalDurationDefault(t *testing.T) {
@@ -6009,6 +6008,16 @@ func TestUnmarshal_Unmarshaler(t *testing.T) {
 			"name": "hello",
 		}, &v))
 		assert.Nil(t, v.Foo)
+	})
+
+	t.Run("json.Number", func(t *testing.T) {
+		v := struct {
+			Foo *mockUnmarshaler `json:"name"`
+		}{}
+		m := map[string]any{
+			"name": json.Number("123"),
+		}
+		assert.Error(t, UnmarshalJsonMap(m, &v))
 	})
 }
 
