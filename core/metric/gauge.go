@@ -36,10 +36,11 @@ func NewGaugeVec(cfg *GaugeVecOpts) GaugeVec {
 	}
 
 	vec := prom.NewGaugeVec(prom.GaugeOpts{
-		Namespace: cfg.Namespace,
-		Subsystem: cfg.Subsystem,
-		Name:      cfg.Name,
-		Help:      cfg.Help,
+		Namespace:   cfg.Namespace,
+		Subsystem:   cfg.Subsystem,
+		Name:        cfg.Name,
+		Help:        cfg.Help,
+		ConstLabels: cfg.ConstLabels,
 	}, cfg.Labels)
 	prom.MustRegister(vec)
 	gv := &promGaugeVec{

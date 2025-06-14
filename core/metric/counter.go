@@ -30,10 +30,11 @@ func NewCounterVec(cfg *CounterVecOpts) CounterVec {
 	}
 
 	vec := prom.NewCounterVec(prom.CounterOpts{
-		Namespace: cfg.Namespace,
-		Subsystem: cfg.Subsystem,
-		Name:      cfg.Name,
-		Help:      cfg.Help,
+		Namespace:   cfg.Namespace,
+		Subsystem:   cfg.Subsystem,
+		Name:        cfg.Name,
+		Help:        cfg.Help,
+		ConstLabels: cfg.ConstLabels,
 	}, cfg.Labels)
 	prom.MustRegister(vec)
 	cv := &promCounterVec{

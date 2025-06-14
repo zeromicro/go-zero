@@ -3,9 +3,12 @@ package threading
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/rescue"
 )
 
@@ -43,4 +46,16 @@ func RunSafeCtx(ctx context.Context, fn func()) {
 	defer rescue.RecoverCtx(ctx)
 
 	fn()
+}
+
+// RunSafeWrap wrapper func () error with Recover
+func RunSafeWrap(fn func() error) (err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			logx.ErrorStack(p)
+			err = fmt.Errorf("panic: %v\n\n%s", p, debug.Stack())
+		}
+	}()
+
+	return fn()
 }

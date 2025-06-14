@@ -3,6 +3,7 @@ package threading
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"log"
 	"testing"
@@ -84,4 +85,36 @@ func TestGoSafeCtx(t *testing.T) {
 
 	<-ch
 	i++
+}
+
+func TestRunSafeWrap(t *testing.T) {
+	logx.Disable()
+
+	t.Run("normal error", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			err := errors.New("test err")
+			err2 := RunSafeWrap(func() error {
+				return err
+			})
+			assert.Equal(t, err, err2)
+		})
+	})
+
+	t.Run("no error", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			err2 := RunSafeWrap(func() error {
+				return nil
+			})
+			assert.Nil(t, err2)
+		})
+	})
+
+	t.Run("panic", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			err2 := RunSafeWrap(func() error {
+				panic("test")
+			})
+			assert.Contains(t, err2.Error(), "panic: test")
+		})
+	})
 }

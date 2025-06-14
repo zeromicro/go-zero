@@ -32,11 +32,12 @@ func NewSummaryVec(cfg *SummaryVecOpts) SummaryVec {
 
 	vec := prom.NewSummaryVec(
 		prom.SummaryOpts{
-			Namespace:  cfg.VecOpt.Namespace,
-			Subsystem:  cfg.VecOpt.Subsystem,
-			Name:       cfg.VecOpt.Name,
-			Help:       cfg.VecOpt.Help,
-			Objectives: cfg.Objectives,
+			Namespace:   cfg.VecOpt.Namespace,
+			Subsystem:   cfg.VecOpt.Subsystem,
+			Name:        cfg.VecOpt.Name,
+			Help:        cfg.VecOpt.Help,
+			Objectives:  cfg.Objectives,
+			ConstLabels: cfg.VecOpt.ConstLabels,
 		},
 		cfg.VecOpt.Labels,
 	)
