@@ -65,4 +65,4 @@ func TestTags_Tags(t *testing.T) {
 	var nilTags *Tags
 	nilResult := nilTags.Tags()
 	assert.Empty(t, nilResult)
-}git
+}
