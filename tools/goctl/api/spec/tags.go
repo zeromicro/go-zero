@@ -63,10 +63,10 @@ func (t *Tags) Get(key string) (*Tag, error) {
 
 // Keys returns all keys in Tags
 func (t *Tags) Keys() []string {
-	var keys []string
 	if t == nil {
-		return keys
+		return []string{}
 	}
+	var keys []string
 	for _, tag := range t.tags {
 		keys = append(keys, tag.Key)
 	}
