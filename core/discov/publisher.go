@@ -125,6 +125,8 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 	}
 
 	threading.GoSafe(func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
 		for {
 			select {
 			case _, ok := <-ch:
@@ -134,6 +136,16 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
 					}
 					return
+				}
+			case <-ticker.C:
+				resp, err := cli.Get(cli.Ctx(), p.fullKey)
+				if err == nil && (resp.Count == 0) {
+					_, err := cli.Put(cli.Ctx(), p.fullKey, p.value, clientv3.WithLease(p.lease))
+					if err != nil {
+						logc.Errorf(cli.Ctx(), "etcd publisher re-put key: %s", err.Error())
+					} else {
+						logc.Infof(cli.Ctx(), "etcd publisher re-put key: %s, value: %s", p.fullKey, p.value)
+					}
 				}
 			case <-p.pauseChan:
 				logc.Infof(cli.Ctx(), "paused etcd renew, key: %s, value: %s", p.key, p.value)
