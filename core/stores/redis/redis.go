@@ -10,6 +10,7 @@ import (
 	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -33,6 +34,9 @@ var (
 	// ErrNilNode is an error that indicates a nil redis node.
 	ErrNilNode    = errors.New("nil redis node")
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+	ignoreCmds    = map[string]lang.PlaceholderType{
+		"blpop": {},
+	}
 )
 
 type (
@@ -2429,6 +2433,12 @@ func Cluster() Option {
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
+}
+
+func SetIgnoreCmds(cmds ...string) {
+	for _, cmd := range cmds {
+		ignoreCmds[cmd] = lang.Placeholder
+	}
 }
 
 // WithHook customizes the given Redis with given durationHook.

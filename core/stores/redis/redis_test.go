@@ -2024,6 +2024,15 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
+func TestSetIgnoreCmds(t *testing.T) {
+	SetIgnoreCmds("hello")
+	_, ok := ignoreCmds["hello"]
+	assert.True(t, ok)
+
+	_, ok = ignoreCmds["client"]
+	assert.False(t, ok)
+}
+
 func TestRedis_WithUserPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := newRedis(client.Addr, WithUser("any"), WithPass("any")).Ping()
