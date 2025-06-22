@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/alicebob/miniredis/v2 v2.34.0
+	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpcurl v1.9.3
 	github.com/go-sql-driver/mysql v1.9.0
@@ -12,16 +12,17 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
+	github.com/grafana/pyroscope-go v1.2.2
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/jhump/protoreflect v1.17.0
 	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/prometheus/client_golang v1.21.1
-	github.com/redis/go-redis/v9 v9.8.0
+	github.com/redis/go-redis/v9 v9.10.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.10.0
 	go.etcd.io/etcd/api/v3 v3.5.15
 	go.etcd.io/etcd/client/v3 v3.5.15
-	go.mongodb.org/mongo-driver v1.17.3
+	go.mongodb.org/mongo-driver v1.17.4
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
@@ -49,7 +50,6 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bufbuild/protocompile v0.14.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -72,6 +72,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.8 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

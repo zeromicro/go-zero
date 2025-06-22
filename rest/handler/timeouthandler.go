@@ -106,8 +106,8 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case <-ctx.Done():
 		tw.mu.Lock()
 		defer tw.mu.Unlock()
-		// there isn't any user-defined middleware before TimoutHandler,
-		// so we can guarantee that cancelation in biz related code won't come here.
+		// there isn't any user-defined middleware before TimeoutHandler,
+		// so we can guarantee that cancellation in biz related code won't come here.
 		httpx.ErrorCtx(r.Context(), w, ctx.Err(), func(w http.ResponseWriter, err error) {
 			if errors.Is(err, context.Canceled) {
 				w.WriteHeader(statusClientClosedRequest)
@@ -151,7 +151,7 @@ func (tw *timeoutWriter) Flush() {
 	flusher.Flush()
 }
 
-// Header returns the underline temporary http.Header.
+// Header returns the underlying temporary http.Header.
 func (tw *timeoutWriter) Header() http.Header {
 	return tw.h
 }

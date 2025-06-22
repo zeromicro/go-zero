@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -55,7 +56,7 @@ func TestRequestUnmarshaling(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "2.0", req.JsonRpc)
-	assert.Equal(t, int64(789), req.ID)
+	assert.Equal(t, float64(789), req.ID)
 	assert.Equal(t, "test_method", req.Method)
 
 	// Check params unmarshaled correctly
@@ -203,4 +204,68 @@ func TestCallToolResult(t *testing.T) {
 	assert.Contains(t, string(data), `"_meta":{"progressToken":"token123"}`)
 	assert.Contains(t, string(data), `"content":[{"text":"Sample result"}]`)
 	assert.NotContains(t, string(data), `"isError":`)
+}
+
+func TestRequest_isNotification(t *testing.T) {
+	tests := []struct {
+		name    string
+		id      any
+		want    bool
+		wantErr error
+	}{
+		// integer test cases
+		{name: "int zero", id: 0, want: true, wantErr: nil},
+		{name: "int non-zero", id: 1, want: false, wantErr: nil},
+		{name: "int64 zero", id: int64(0), want: true, wantErr: nil},
+		{name: "int64 max", id: int64(9223372036854775807), want: false, wantErr: nil},
+
+		// floating point number test cases
+		{name: "float64 zero", id: float64(0.0), want: true, wantErr: nil},
+		{name: "float64 positive", id: float64(0.000001), want: false, wantErr: nil},
+		{name: "float64 negative", id: float64(-0.000001), want: false, wantErr: nil},
+		{name: "float64 epsilon", id: float64(1e-300), want: false, wantErr: nil},
+
+		// string test cases
+		{name: "empty string", id: "", want: true, wantErr: nil},
+		{name: "non-empty string", id: "abc", want: false, wantErr: nil},
+		{name: "space string", id: " ", want: false, wantErr: nil},
+		{name: "unicode string", id: "こんにちは", want: false, wantErr: nil},
+
+		// special cases
+		{name: "nil", id: nil, want: true, wantErr: nil},
+
+		// logical type test cases
+		{name: "bool true", id: true, want: false, wantErr: errors.New("invalid type bool")},
+		{name: "bool false", id: false, want: false, wantErr: errors.New("invalid type bool")},
+		{name: "struct type", id: struct{}{}, want: false, wantErr: errors.New("invalid type struct {}")},
+		{name: "slice type", id: []int{1, 2, 3}, want: false, wantErr: errors.New("invalid type []int")},
+		{name: "map type", id: map[string]int{"a": 1}, want: false, wantErr: errors.New("invalid type map[string]int")},
+		{name: "pointer type", id: new(int), want: false, wantErr: errors.New("invalid type *int")},
+		{name: "func type", id: func() {}, want: false, wantErr: errors.New("invalid type func()")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := Request{
+				SessionId: "test-session",
+				JsonRpc:   "2.0",
+				ID:        tt.id,
+				Method:    "testMethod",
+				Params:    json.RawMessage(`{}`),
+			}
+
+			got, err := req.isNotification()
+
+			if (err != nil) != (tt.wantErr != nil) {
+				t.Fatalf("error presence mismatch: got error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && tt.wantErr != nil && err.Error() != tt.wantErr.Error() {
+				t.Fatalf("error message mismatch:\ngot  %q\nwant %q", err.Error(), tt.wantErr.Error())
+			}
+
+			if got != tt.want {
+				t.Errorf("isNotification() = %v, want %v for ID %v (%T)", got, tt.want, tt.id, tt.id)
+			}
+		})
+	}
 }

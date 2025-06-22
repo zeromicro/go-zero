@@ -394,7 +394,12 @@ func TestEngine_withTimeout(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			ng := newEngine(RestConf{Timeout: test.timeout})
+			ng := newEngine(RestConf{
+				Timeout: test.timeout,
+				Middlewares: MiddlewaresConf{
+					Timeout: true,
+				},
+			})
 			svr := &http.Server{}
 			ng.withTimeout()(svr)
 
@@ -402,6 +407,62 @@ func TestEngine_withTimeout(t *testing.T) {
 			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
 			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*11/10, svr.WriteTimeout)
 			assert.Equal(t, time.Duration(0), svr.IdleTimeout)
+		})
+	}
+}
+
+func TestEngine_ReadWriteTimeout(t *testing.T) {
+	logx.Disable()
+
+	tests := []struct {
+		name       string
+		timeout    int64
+		middleware bool
+	}{
+		{
+			name:       "0/false",
+			timeout:    0,
+			middleware: false,
+		},
+		{
+			name:       "0/true",
+			timeout:    0,
+			middleware: true,
+		},
+		{
+			name:       "set/false",
+			timeout:    1000,
+			middleware: false,
+		},
+		{
+			name:       "both set",
+			timeout:    1000,
+			middleware: true,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			ng := newEngine(RestConf{
+				Timeout: test.timeout,
+				Middlewares: MiddlewaresConf{
+					Timeout: test.middleware,
+				},
+			})
+			svr := &http.Server{}
+			ng.withTimeout()(svr)
+
+			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
+			assert.Equal(t, time.Duration(0), svr.IdleTimeout)
+
+			if test.timeout > 0 && test.middleware {
+				assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*4/5, svr.ReadTimeout)
+				assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*11/10, svr.WriteTimeout)
+			} else {
+				assert.Equal(t, time.Duration(0), svr.ReadTimeout)
+				assert.Equal(t, time.Duration(0), svr.WriteTimeout)
+			}
 		})
 	}
 }

@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/emicklei/proto v1.14.1
+	github.com/emicklei/proto v1.14.2
 	github.com/fatih/structtag v1.2.0
 	github.com/go-openapi/spec v0.21.1-0.20250328170532-a3928469592e
 	github.com/go-sql-driver/mysql v1.9.0
@@ -16,7 +16,7 @@ require (
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v1.0.5
-	github.com/zeromicro/go-zero v1.8.3
+	github.com/zeromicro/go-zero v1.8.4
 	golang.org/x/text v0.22.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.36.5
@@ -25,8 +25,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
-	github.com/alicebob/miniredis/v2 v2.34.0 // indirect
+	github.com/alicebob/miniredis/v2 v2.35.0 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20210521184019-c5ad59b459ec // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -49,6 +48,8 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/grafana/pyroscope-go v1.2.2 // indirect
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.8 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -72,7 +73,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/redis/go-redis/v9 v9.8.0 // indirect
+	github.com/redis/go-redis/v9 v9.10.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect

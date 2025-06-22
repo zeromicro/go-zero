@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -15,9 +16,26 @@ type Cursor string
 type Request struct {
 	SessionId string          `form:"session_id"` // Session identifier for client tracking
 	JsonRpc   string          `json:"jsonrpc"`    // Must be "2.0" per JSON-RPC spec
-	ID        int64           `json:"id"`         // Request identifier for matching responses
+	ID        any             `json:"id"`         // Request identifier for matching responses
 	Method    string          `json:"method"`     // Method name to invoke
 	Params    json.RawMessage `json:"params"`     // Parameters for the method
+}
+
+func (r Request) isNotification() (bool, error) {
+	switch val := r.ID.(type) {
+	case int:
+		return val == 0, nil
+	case int64:
+		return val == 0, nil
+	case float64:
+		return val == 0.0, nil
+	case string:
+		return len(val) == 0, nil
+	case nil:
+		return true, nil
+	default:
+		return false, fmt.Errorf("invalid type %T", val)
+	}
 }
 
 type PaginatedParams struct {
@@ -244,7 +262,7 @@ type errorObj struct {
 // Response represents a JSON-RPC response
 type Response struct {
 	JsonRpc string    `json:"jsonrpc"`         // Always "2.0"
-	ID      int64     `json:"id"`              // Same as request ID
+	ID      any       `json:"id"`              // Same as request ID
 	Result  any       `json:"result"`          // Result object (null if error)
 	Error   *errorObj `json:"error,omitempty"` // Error object (null if success)
 }

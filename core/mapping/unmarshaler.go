@@ -622,9 +622,19 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 
 		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
 	case valueKind == reflect.String && derefedFieldType == durationType:
-		return fillDurationValue(fieldType, value, mapValue.(string))
+		v, err := convertToString(mapValue, fullName)
+		if err != nil {
+			return err
+		}
+
+		return fillDurationValue(fieldType, value, v)
 	case valueKind == reflect.String && typeKind == reflect.Struct && u.implementsUnmarshaler(fieldType):
-		return u.fillUnmarshalerStruct(fieldType, value, mapValue.(string))
+		v, err := convertToString(mapValue, fullName)
+		if err != nil {
+			return err
+		}
+
+		return u.fillUnmarshalerStruct(fieldType, value, v)
 	default:
 		return u.processFieldPrimitive(fieldType, value, mapValue, opts, fullName)
 	}
