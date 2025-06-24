@@ -22,8 +22,8 @@ const (
 	bufferSize      = 100
 	defaultDirMode  = 0o755
 	defaultFileMode = 0o600
-	gzipExt         = ".gz"
-	megaBytes       = 1 << 20
+	// gzipExt         = ".gz"
+	megaBytes = 1 << 20
 )
 
 var (
@@ -31,6 +31,8 @@ var (
 	ErrLogFileClosed = errors.New("error: log file closed")
 
 	fileTimeFormat = time.RFC3339
+
+	gzipExt = ".gz"
 )
 
 type (

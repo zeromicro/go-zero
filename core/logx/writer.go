@@ -190,6 +190,7 @@ func newFileWriter(c LogConf) (Writer, error) {
 
 	opts = append(opts, WithCooldownMillis(c.StackCooldownMillis))
 	if c.Compress {
+		gzipExt = c.CompressType
 		opts = append(opts, WithGzip())
 	}
 	if c.KeepDays > 0 {
