@@ -1,9 +1,12 @@
 package logx
 
 import (
+	"archive/tar"
+	"archive/zip"
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -458,12 +461,19 @@ func gzipFile(file string, fsys fileSystem) (err error) {
 			err = e
 		}
 	}()
-
-	w := gzip.NewWriter(out)
-	if _, err = fsys.Copy(w, in); err != nil {
+	var w interface{}
+	switch gzipExt {
+	case ".tar":
+		w = tar.NewWriter(out)
+	case ".zip":
+		w = zip.NewWriter(out)
+	default:
+		w = gzip.NewWriter(out)
+	}
+	if _, err = fsys.Copy(w.(io.Writer), in); err != nil {
 		// failed to copy, no need to close w
 		return err
 	}
 
-	return fsys.Close(w)
+	return fsys.Close(w.(io.Closer))
 }

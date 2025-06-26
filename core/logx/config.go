@@ -24,7 +24,7 @@ type LogConf struct {
 	// Compress represents whether to compress the log file, default is `false`.
 	Compress bool `json:",optional"`
 	// CompressType represents whitch type to compress the log file, default is `.gz`.
-	CompressType string `json:",optional"`
+	CompressType string `json:",default=gz,options=[zip,tar]"`
 	// Stat represents whether to log statistics, default is `true`.
 	Stat bool `json:",default=true"`
 	// KeepDays represents how many days the log files will be kept. Default to keep all files.

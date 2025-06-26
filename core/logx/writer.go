@@ -174,6 +174,13 @@ func newConsoleWriter() Writer {
 	}
 }
 
+var (
+	compress_type = map[string]bool{
+		"tar": true,
+		"zip": true,
+	}
+)
+
 func newFileWriter(c LogConf) (Writer, error) {
 	var err error
 	var opts []LogOption
@@ -190,7 +197,9 @@ func newFileWriter(c LogConf) (Writer, error) {
 
 	opts = append(opts, WithCooldownMillis(c.StackCooldownMillis))
 	if c.Compress {
-		gzipExt = c.CompressType
+		if compress_type[c.CompressType] {
+			gzipExt = fmt.Sprintf("%s%s", ".", c.CompressType)
+		}
 		opts = append(opts, WithGzip())
 	}
 	if c.KeepDays > 0 {
