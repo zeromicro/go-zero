@@ -66,6 +66,9 @@ type (
 	RedisNode interface {
 		red.Cmdable
 		red.BitMapCmdable
+
+		Subscribe(ctx context.Context, channels ...string) *red.PubSub
+		PSubscribe(ctx context.Context, patterns ...string) *red.PubSub
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -1223,16 +1226,68 @@ func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) erro
 	return err
 }
 
+// Publish publishes a message to a specific channel.
+// Returns the number of subscribers that received the message or an error if it fails.
 func (s *Redis) Publish(channel string, message interface{}) (int64, error) {
 	return s.PublishCtx(context.Background(), channel, message)
 }
 
+// PublishCtx publishes a message to a channel with context control.
+// Returns the number of subscribers that received the message or an error if it fails.
 func (s *Redis) PublishCtx(ctx context.Context, channel string, message interface{}) (int64, error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return 0, err
 	}
 	return conn.Publish(ctx, channel, message).Result()
+}
+
+// SPublish publishes a message to a specific shard channel.
+// Returns the number of subscribers that received the message or an error if it fails.
+func (s *Redis) SPublish(channel string, message interface{}) (int64, error) {
+	return s.SPublishCtx(context.Background(), channel, message)
+}
+
+// SPublishCtx publishes a message to a shard channel with context control.
+// Returns the number of subscribers that received the message or an error if it fails.
+func (s *Redis) SPublishCtx(ctx context.Context, channel string, message interface{}) (int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+	return conn.SPublish(ctx, channel, message).Result()
+}
+
+// Subscribe subscribes to one or more specific channels.
+// Returns a PubSub object to receive messages, or an error if it fails.
+func (s *Redis) Subscribe(channels ...string) (*red.PubSub, error) {
+	return s.SubscribeCtx(context.Background(), channels...)
+}
+
+// SubscribeCtx subscribes to one or more specific channels with context control.
+// Returns a PubSub object to receive messages, or an error if it fails.
+func (s *Redis) SubscribeCtx(ctx context.Context, channels ...string) (*red.PubSub, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.Subscribe(ctx, channels...), nil
+}
+
+// PSubscribe subscribes to one or more channel patterns (e.g., "channel.*").
+// Returns a PubSub object to receive messages matching the patterns, or an error if it fails.
+func (s *Redis) PSubscribe(channels ...string) (*red.PubSub, error) {
+	return s.PSubscribeCtx(context.Background(), channels...)
+}
+
+// PSubscribeCtx subscribes to one or more channel patterns with context control.
+// Returns a PubSub object to receive messages matching the patterns, or an error if it fails.
+func (s *Redis) PSubscribeCtx(ctx context.Context, channels ...string) (*red.PubSub, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+	return conn.PSubscribe(ctx, channels...), nil
 }
 
 // Rpop is the implementation of redis rpop command.
