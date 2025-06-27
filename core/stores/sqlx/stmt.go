@@ -37,10 +37,12 @@ type (
 	}
 
 	statement struct {
-		query  string
-		stmt   *sql.Stmt
-		brk    breaker.Breaker
-		accept breaker.Acceptable
+		query                string
+		stmt                 *sql.Stmt
+		brk                  breaker.Breaker
+		accept               breaker.Acceptable
+		unmarshalRowHandler  UnmarshalRowHandler
+		unmarshalRowsHandler UnmarshalRowsHandler
 	}
 
 	stmtConn interface {
@@ -89,6 +91,9 @@ func (s statement) QueryRowCtx(ctx context.Context, v any, args ...any) (err err
 	}()
 
 	return s.queryRows(ctx, func(v any, scanner rowsScanner) error {
+		if s.unmarshalRowHandler != nil {
+			return s.unmarshalRowHandler(v, scanner, true)
+		}
 		return unmarshalRow(v, scanner, true)
 	}, v, args...)
 }
@@ -104,7 +109,10 @@ func (s statement) QueryRowPartialCtx(ctx context.Context, v any, args ...any) (
 	}()
 
 	return s.queryRows(ctx, func(v any, scanner rowsScanner) error {
-		return unmarshalRow(v, scanner, false)
+		if s.unmarshalRowsHandler != nil {
+			return s.unmarshalRowHandler(v, scanner, false)
+		}
+		return unmarshalRows(v, scanner, false)
 	}, v, args...)
 }
 
@@ -119,7 +127,7 @@ func (s statement) QueryRowsCtx(ctx context.Context, v any, args ...any) (err er
 	}()
 
 	return s.queryRows(ctx, func(v any, scanner rowsScanner) error {
-		return unmarshalRows(v, scanner, true)
+		return s.unmarshalRowsHandler(v, scanner, true)
 	}, v, args...)
 }
 
@@ -134,7 +142,7 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 	}()
 
 	return s.queryRows(ctx, func(v any, scanner rowsScanner) error {
-		return unmarshalRows(v, scanner, false)
+		return s.unmarshalRowsHandler(v, scanner, false)
 	}, v, args...)
 }
 

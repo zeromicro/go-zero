@@ -312,3 +312,19 @@ func buildConn() (mock sqlmock.Sqlmock, err error) {
 	})
 	return
 }
+
+func TestWithMysqlUnmarshalRowHandler(t *testing.T) {
+	var handler UnmarshalRowHandler = func(v any, scanner rowsScanner, _ bool) error {
+		return nil
+	}
+	conn := NewMysql(mockedDatasource, WithMysqlUnmarshalRowHandler(handler))
+	assert.NotNil(t, conn.(*commonSqlConn).unmarshalRowHandler)
+}
+
+func TestWithMysqlUnmarshalRowsHandler(t *testing.T) {
+	var handler UnmarshalRowsHandler = func(v any, scanner rowsScanner, _ bool) error {
+		return nil
+	}
+	conn := NewMysql(mockedDatasource, WithMysqlUnmarshalRowsHandler(handler))
+	assert.NotNil(t, conn.(*commonSqlConn).unmarshalRowsHandler)
+}

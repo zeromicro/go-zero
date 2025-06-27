@@ -29,6 +29,16 @@ type rowsScanner interface {
 	Scan(v ...any) error
 }
 
+// RowsScanner alias of rowsScanner
+type RowsScanner = rowsScanner
+
+// UnmarshalRowHandler defines the method to unmarshal row.
+type UnmarshalRowHandler func(v any, rows RowsScanner, strict bool) error
+
+// UnmarshalRowsHandler defines the method to unmarshal rows.
+// alias of UnmarshalRowHandler
+type UnmarshalRowsHandler = UnmarshalRowHandler
+
 func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 	rt := mapping.Deref(v.Type())
 	size := rt.NumField()

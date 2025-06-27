@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	beginnable func(*sql.DB) (trans, error)
+	beginnable func(*sql.DB, ...TxOption) (trans, error)
 
 	trans interface {
 		Session
@@ -23,7 +23,11 @@ type (
 
 	txSession struct {
 		*sql.Tx
+		unmarshalRowHandler  UnmarshalRowHandler
+		unmarshalRowsHandler UnmarshalRowsHandler
 	}
+
+	TxOption func(*txSession)
 )
 
 func (s txConn) RawDB() (*sql.DB, error) {
@@ -38,10 +42,30 @@ func (s txConn) TransactCtx(_ context.Context, _ func(context.Context, Session) 
 	return errCantNestTx
 }
 
+// WithTxUnmarshalRowHandler sets the UnmarshalRowHandler for the txSession.
+// It's used to customize the unmarshal behavior for QueryRow and QueryRowPartial.
+func WithTxUnmarshalRowHandler(handler UnmarshalRowHandler) TxOption {
+	return func(ts *txSession) {
+		ts.unmarshalRowHandler = handler
+	}
+}
+
+// WithTxUnmarshalRowsHandler sets the UnmarshalRowsHandler for the txSession.
+// It's used to customize the unmarshal behavior for QueryRows and QueryRowsPartial.
+func WithTxUnmarshalRowsHandler(handler UnmarshalRowsHandler) TxOption {
+	return func(ts *txSession) {
+		ts.unmarshalRowsHandler = handler
+	}
+}
+
 // NewSessionFromTx returns a Session with the given sql.Tx.
 // Use it with caution, it's provided for other ORM to interact with.
-func NewSessionFromTx(tx *sql.Tx) Session {
-	return txSession{Tx: tx}
+func NewSessionFromTx(tx *sql.Tx, opts ...TxOption) Session {
+	ts := txSession{Tx: tx}
+	for _, opt := range opts {
+		opt(&ts)
+	}
+	return ts
 }
 
 func (t txSession) Exec(q string, args ...any) (sql.Result, error) {
@@ -75,9 +99,11 @@ func (t txSession) PrepareCtx(ctx context.Context, q string) (stmtSession StmtSe
 	}
 
 	return statement{
-		query: q,
-		stmt:  stmt,
-		brk:   breaker.NopBreaker(),
+		query:                q,
+		stmt:                 stmt,
+		brk:                  breaker.NopBreaker(),
+		unmarshalRowHandler:  t.unmarshalRowHandler,
+		unmarshalRowsHandler: t.unmarshalRowsHandler,
 	}, nil
 }
 
@@ -92,6 +118,9 @@ func (t txSession) QueryRowCtx(ctx context.Context, v any, q string, args ...any
 	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+		if t.unmarshalRowHandler != nil {
+			return t.unmarshalRowHandler(v, rows, true)
+		}
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
 }
@@ -108,6 +137,9 @@ func (t txSession) QueryRowPartialCtx(ctx context.Context, v any, q string,
 	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+		if t.unmarshalRowHandler != nil {
+			return t.unmarshalRowHandler(v, rows, false)
+		}
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
 }
@@ -123,6 +155,9 @@ func (t txSession) QueryRowsCtx(ctx context.Context, v any, q string, args ...an
 	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+		if t.unmarshalRowsHandler != nil {
+			return t.unmarshalRowsHandler(v, rows, true)
+		}
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
 }
@@ -139,19 +174,28 @@ func (t txSession) QueryRowsPartialCtx(ctx context.Context, v any, q string,
 	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
+		if t.unmarshalRowsHandler != nil {
+			return t.unmarshalRowsHandler(v, rows, false)
+		}
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
 }
 
-func begin(db *sql.DB) (trans, error) {
+func begin(db *sql.DB, opts ...TxOption) (trans, error) {
 	tx, err := db.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	return txSession{
+	ts := txSession{
 		Tx: tx,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt(&ts)
+	}
+
+	return ts, nil
 }
 
 func transact(ctx context.Context, db *commonSqlConn, b beginnable,
@@ -162,7 +206,12 @@ func transact(ctx context.Context, db *commonSqlConn, b beginnable,
 		return err
 	}
 
-	return transactOnConn(ctx, conn, b, fn)
+	return transactOnConn(ctx, conn, func(d *sql.DB, _ ...TxOption) (trans, error) {
+		return b(d,
+			WithTxUnmarshalRowHandler(db.unmarshalRowHandler),
+			WithTxUnmarshalRowsHandler(db.unmarshalRowsHandler),
+		)
+	}, fn)
 }
 
 func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
