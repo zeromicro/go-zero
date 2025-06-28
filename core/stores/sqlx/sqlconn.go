@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"math/rand"
+	"sync/atomic"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
@@ -52,9 +55,12 @@ type (
 		beginTx  beginnable
 		brk      breaker.Breaker
 		accept   breaker.Acceptable
+		replicas []string
+		policy   string
+		index    uint32
 	}
 
-	connProvider func() (*sql.DB, error)
+	connProvider func(ctx context.Context) (*sql.DB, error)
 
 	sessionConn interface {
 		Exec(query string, args ...any) (sql.Result, error)
@@ -67,9 +73,6 @@ type (
 // NewSqlConn returns a SqlConn with given driver name and datasource.
 func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		connProv: func() (*sql.DB, error) {
-			return getSqlConn(driverName, datasource)
-		},
 		onError: func(ctx context.Context, err error) {
 			logInstanceError(ctx, datasource, err)
 		},
@@ -79,6 +82,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	for _, opt := range opts {
 		opt(conn)
 	}
+	conn.connProv = getConnProvider(conn, driverName, datasource)
 
 	return conn
 }
@@ -87,7 +91,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 // Use it with caution; it's provided for other ORM to interact with.
 func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		connProv: func() (*sql.DB, error) {
+		connProv: func(ctx context.Context) (*sql.DB, error) {
 			return db, nil
 		},
 		onError: func(ctx context.Context, err error) {
@@ -123,7 +127,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 
 	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
 		var conn *sql.DB
-		conn, err = db.connProv()
+		conn, err = db.connProv(ctx)
 		if err != nil {
 			db.onError(ctx, err)
 			return err
@@ -151,7 +155,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 
 	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
 		var conn *sql.DB
-		conn, err = db.connProv()
+		conn, err = db.connProv(ctx)
 		if err != nil {
 			db.onError(ctx, err)
 			return err
@@ -242,7 +246,7 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v any,
 }
 
 func (db *commonSqlConn) RawDB() (*sql.DB, error) {
-	return db.connProv()
+	return db.connProv(context.Background())
 }
 
 func (db *commonSqlConn) Transact(fn func(Session) error) error {
@@ -288,7 +292,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	q string, args ...any) (err error) {
 	var scanFailed bool
 	err = db.brk.DoWithAcceptableCtx(ctx, func() error {
-		conn, err := db.connProv()
+		conn, err := db.connProv(ctx)
 		if err != nil {
 			db.onError(ctx, err)
 			return err
@@ -311,6 +315,41 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	return
 }
 
+// getConnProvider returns a connProvider function that provides a sql.DB connection.
+func getConnProvider(sc *commonSqlConn, driverName, datasource string) connProvider {
+	return func(ctx context.Context) (*sql.DB, error) {
+		replicaCount := len(sc.replicas)
+		isReadOnly := isReadonly(ctx)
+
+		if replicaCount == 0 || !isReadOnly {
+			return getSqlConn(driverName, datasource)
+		}
+
+		var dsn string
+
+		if replicaCount == 1 {
+			dsn = sc.replicas[0]
+		} else {
+			policy := sc.policy
+			if len(policy) == 0 {
+				policy = PolicyRoundRobin
+			}
+
+			switch policy {
+			case PolicyRandom:
+				dsn = sc.replicas[rand.Intn(replicaCount)]
+			case PolicyRoundRobin:
+				index := atomic.AddUint32(&sc.index, 1) - 1
+				dsn = sc.replicas[index%uint32(replicaCount)]
+			default:
+				return nil, fmt.Errorf("unknown policy: %s", policy)
+			}
+		}
+
+		return getSqlConn(driverName, dsn)
+	}
+}
+
 // WithAcceptable returns a SqlOption that setting the acceptable function.
 // acceptable is the func to check if the error can be accepted.
 func WithAcceptable(acceptable func(err error) bool) SqlOption {
@@ -323,5 +362,21 @@ func WithAcceptable(acceptable func(err error) bool) SqlOption {
 				return pre(err) || acceptable(err)
 			}
 		}
+	}
+}
+
+// WithPolicy returns a SqlOption that sets the policy for selecting replicas.
+// The policy can be "round_robin" or "random".
+// default is "round-robin".
+func WithPolicy(policy string) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.policy = policy
+	}
+}
+
+// WithReplicas returns a SqlOption that sets the replicas for the SqlConn.
+func WithReplicas(replicas ...string) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.replicas = replicas
 	}
 }
