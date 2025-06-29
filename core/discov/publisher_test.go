@@ -211,6 +211,9 @@ func TestPublisher_keepAliveAsyncQuit(t *testing.T) {
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()
 	cli.EXPECT().KeepAlive(gomock.Any(), id)
+	// Add Watch expectation for the new watch mechanism
+	watchChan := make(<-chan clientv3.WatchResponse)
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(watchChan)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ any) {
@@ -232,6 +235,9 @@ func TestPublisher_keepAliveAsyncPause(t *testing.T) {
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()
 	cli.EXPECT().KeepAlive(gomock.Any(), id)
+	// Add Watch expectation for the new watch mechanism
+	watchChan := make(<-chan clientv3.WatchResponse)
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(watchChan)
 	pub := NewPublisher(nil, "thekey", "thevalue")
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -273,6 +279,9 @@ func TestPublisher_keepAliveAsync(t *testing.T) {
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()
 	cli.EXPECT().KeepAlive(gomock.Any(), id)
+	// Add Watch expectation for the new watch mechanism
+	watchChan := make(<-chan clientv3.WatchResponse)
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(watchChan)
 	cli.EXPECT().Grant(gomock.Any(), timeToLive).Return(&clientv3.LeaseGrantResponse{
 		ID: 1,
 	}, nil)
