@@ -4679,6 +4679,23 @@ func TestUnmarshal_EnvInt(t *testing.T) {
 	}
 }
 
+func TestUnmarshal_EnvInt64(t *testing.T) {
+	type Value struct {
+		Age int64 `key:"age,env=TEST_NAME_INT64"`
+	}
+
+	const (
+		envName = "TEST_NAME_INT64"
+		envVal  = "88"
+	)
+	t.Setenv(envName, envVal)
+
+	var v Value
+	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
+		assert.Equal(t, int64(88), v.Age)
+	}
+}
+
 func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
 	type Value struct {
 		Age int `key:"age,env=TEST_NAME_INT"`
