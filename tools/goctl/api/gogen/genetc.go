@@ -39,7 +39,7 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename := baseName + "." + etcTypes[0]
 	for _, etcType := range etcTypes {
 		currentFilename := fmt.Sprintf("%s.%s", baseName, etcType)
-		fpath := path.Join(dir, etcDir, currentFilename)
+		fpath := filepath.Join(dir, etcDir, currentFilename)
 		if pathx.FileExists(fpath) {
 			filename = currentFilename
 			break
