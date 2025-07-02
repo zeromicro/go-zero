@@ -14,7 +14,7 @@ var (
 	logInterval  = time.Minute
 	writerLock   sync.Mutex
 	reportWriter Writer = nil
-	logEnabled          = syncx.ForAtomicBool(true)
+	logEnabled          = syncx.AtomicBoolFromVal(true)
 )
 
 type (
@@ -46,7 +46,7 @@ type (
 
 // DisableLog disables logs of stats.
 func DisableLog() {
-	logEnabled.Set(false)
+	logEnabled.Store(false)
 }
 
 // SetReportWriter sets the report writer.
@@ -206,7 +206,7 @@ func getTopDuration(tasks []Task) float32 {
 
 func log(report *StatReport) {
 	writeReport(report)
-	if logEnabled.True() {
+	if logEnabled.Load() {
 		logx.Statf("(%s) - qps: %.1f/s, drops: %d, avg time: %.1fms, med: %.1fms, "+
 			"90th: %.1fms, 99th: %.1fms, 99.9th: %.1fms",
 			report.Name, report.ReqsPerSecond, report.Drops, report.Average, report.Median,
