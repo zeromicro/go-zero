@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"io"
@@ -98,7 +99,7 @@ func TestSqlConn_RawDB(t *testing.T) {
 func TestSqlConn_Errors(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		conn := NewSqlConnFromDB(db)
-		conn.(*commonSqlConn).connProv = func() (*sql.DB, error) {
+		conn.(*commonSqlConn).connProv = func(ctx context.Context) (*sql.DB, error) {
 			return nil, errors.New("error")
 		}
 		_, err := conn.Prepare("any")
@@ -301,6 +302,107 @@ func TestWithAcceptable(t *testing.T) {
 	assert.True(t, conn.accept(acceptableErr))
 	assert.True(t, conn.accept(acceptableErr2))
 	assert.True(t, conn.accept(acceptableErr3))
+}
+
+func TestProvider(t *testing.T) {
+	defer func() {
+		_ = connManager.Close()
+	}()
+
+	mainDSN := "main:password@tcp(127.0.0.1:3306)/main_db"
+	replicasDSN := []string{
+		"replica_one:pwd@tcp(localhost:3306)/replica_one",
+		"replica_two:pwd@tcp(localhost:3306)/replica_two",
+		"replica_three:pwd@tcp(localhost:3306)/replica_three",
+	}
+
+	mainDB, err := connManager.GetResource(mainDSN, func() (io.Closer, error) { return sql.Open(mysqlDriverName, mainDSN) })
+	assert.Nil(t, err)
+	assert.NotNil(t, mainDB)
+	replicaOneDB, err := connManager.GetResource(replicasDSN[0], func() (io.Closer, error) { return sql.Open(mysqlDriverName, replicasDSN[0]) })
+	assert.Nil(t, err)
+	assert.NotNil(t, replicaOneDB)
+	replicaTwoDB, err := connManager.GetResource(replicasDSN[1], func() (io.Closer, error) { return sql.Open(mysqlDriverName, replicasDSN[1]) })
+	assert.Nil(t, err)
+	assert.NotNil(t, replicaTwoDB)
+	replicaThreeDB, err := connManager.GetResource(replicasDSN[2], func() (io.Closer, error) { return sql.Open(mysqlDriverName, replicasDSN[2]) })
+	assert.Nil(t, err)
+	assert.NotNil(t, replicaThreeDB)
+
+	sc := &commonSqlConn{
+		policy: PolicyRoundRobin,
+		index:  0,
+	}
+	sc.connProv = getConnProvider(sc, mysqlDriverName, mainDSN)
+
+	ctx := context.Background()
+	db, err := sc.connProv(ctx)
+	assert.Nil(t, err)
+	assert.Equal(t, mainDB, db)
+
+	ctx = WithWriteMode(ctx)
+	db, err = sc.connProv(ctx)
+	assert.Nil(t, err)
+	assert.Equal(t, mainDB, db)
+
+	ctx = WithReadMode(ctx)
+	sc.replicas = []string{replicasDSN[0]}
+	db, err = sc.connProv(ctx)
+	assert.Nil(t, err)
+	assert.Equal(t, replicaOneDB, db)
+
+	// default policy is round-robin
+	sc.replicas = replicasDSN
+	replicas := []io.Closer{replicaOneDB, replicaTwoDB, replicaThreeDB}
+	for i := 0; i < len(sc.replicas); i++ {
+		db, err = sc.connProv(ctx)
+		assert.Nil(t, err)
+		assert.Equal(t, replicas[i], db)
+	}
+
+	// random policy
+	sc.policy = PolicyRandom
+	for i := 0; i < len(sc.replicas); i++ {
+		db, err = sc.connProv(ctx)
+		assert.Nil(t, err)
+		assert.Contains(t, replicas, db)
+	}
+
+	// unknown policy
+	sc.policy = "unknown"
+	_, err = sc.connProv(ctx)
+	assert.NotNil(t, err)
+
+	// empty policy transforms to round-robin
+	sc.policy = ""
+	for i := 0; i < len(sc.replicas); i++ {
+		db, err = sc.connProv(ctx)
+		assert.Nil(t, err)
+		assert.Equal(t, replicas[i], db)
+	}
+}
+
+func TestWithPolicy(t *testing.T) {
+	replicas := []string{"replica1", "replica2", "replica3"}
+	opts := []SqlOption{
+		WithReplicas(replicas...),
+	}
+	conn := &commonSqlConn{}
+	for _, opt := range opts {
+		opt(conn)
+	}
+	assert.Equal(t, conn.replicas, replicas)
+}
+
+func TestWithReplicas(t *testing.T) {
+	opts := []SqlOption{
+		WithPolicy(PolicyRandom),
+	}
+	conn := &commonSqlConn{}
+	for _, opt := range opts {
+		opt(conn)
+	}
+	assert.Equal(t, PolicyRandom, conn.policy)
 }
 
 func buildConn() (mock sqlmock.Sqlmock, err error) {
