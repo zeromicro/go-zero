@@ -27,7 +27,7 @@ func getCachedSqlConn(driverName, server string) (*sql.DB, error) {
 			return nil, err
 		}
 
-		if driverName != mysqlDriverName {
+		if driverName == mysqlDriverName {
 			if cfg, e := mysql.ParseDSN(server); e != nil {
 				// if cannot parse, don't collect the metrics
 				logx.Error(e)
