@@ -39,9 +39,6 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 
 	var changed bool
 	for _, point := range endpoints.Endpoints {
-		if len(point.Addresses) == 0 {
-			continue
-		}
 		for _, address := range point.Addresses {
 			if _, ok := h.endpoints[address]; !ok {
 				h.endpoints[address] = lang.Placeholder
@@ -68,9 +65,6 @@ func (h *EventHandler) OnDelete(obj any) {
 
 	var changed bool
 	for _, point := range endpoints.Endpoints {
-		if len(point.Addresses) == 0 {
-			continue
-		}
 		for _, address := range point.Addresses {
 			if _, ok := h.endpoints[address]; ok {
 				delete(h.endpoints, address)
@@ -86,23 +80,23 @@ func (h *EventHandler) OnDelete(obj any) {
 
 // OnUpdate handles the endpoints update events.
 func (h *EventHandler) OnUpdate(oldObj, newObj any) {
-	oldEndpoints, ok := oldObj.(*discoveryv1.EndpointSlice)
+	oldEndpointSlices, ok := oldObj.(*discoveryv1.EndpointSlice)
 	if !ok {
 		logx.Errorf("%v is not an object with type *discoveryv1.EndpointSlice", oldObj)
 		return
 	}
 
-	newEndpoints, ok := newObj.(*discoveryv1.EndpointSlice)
+	newEndpointSlices, ok := newObj.(*discoveryv1.EndpointSlice)
 	if !ok {
 		logx.Errorf("%v is not an object with type *discoveryv1.EndpointSlice", newObj)
 		return
 	}
 
-	if oldEndpoints.ResourceVersion == newEndpoints.ResourceVersion {
+	if oldEndpointSlices.ResourceVersion == newEndpointSlices.ResourceVersion {
 		return
 	}
 
-	h.Update(newEndpoints)
+	h.Update(newEndpointSlices)
 }
 
 // Update updates the endpoints.
@@ -113,9 +107,6 @@ func (h *EventHandler) Update(endpoints *discoveryv1.EndpointSlice) {
 	old := h.endpoints
 	h.endpoints = make(map[string]lang.PlaceholderType)
 	for _, point := range endpoints.Endpoints {
-		if len(point.Addresses) == 0 {
-			continue
-		}
 		for _, address := range point.Addresses {
 			h.endpoints[address] = lang.Placeholder
 		}
