@@ -149,7 +149,7 @@ func TestConfigSqlConn(t *testing.T) {
 	mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"foo"}))
 
 	conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-	conn := NewConn(conf, withMysqlAcceptable())
+	conn := MustNewConn(conf, withMysqlAcceptable())
 
 	_, err = conn.Exec("any", "value")
 	assert.NotNil(t, err)
@@ -177,7 +177,7 @@ func TestConfigSqlConnStatement(t *testing.T) {
 	mock.ExpectQuery("any").WillReturnRows(row)
 
 	conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-	conn := NewConn(conf, withMysqlAcceptable())
+	conn := MustNewConn(conf, withMysqlAcceptable())
 	stmt, err := conn.Prepare("any")
 	assert.NoError(t, err)
 
@@ -220,7 +220,7 @@ func TestConfigSqlConnQuery(t *testing.T) {
 	t.Run("QueryRow", func(t *testing.T) {
 		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow("bar"))
 		conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-		conn := NewConn(conf)
+		conn := MustNewConn(conf)
 		var val string
 		assert.NoError(t, conn.QueryRow(&val, "any"))
 		assert.Equal(t, "bar", val)
@@ -229,7 +229,7 @@ func TestConfigSqlConnQuery(t *testing.T) {
 	t.Run("QueryRowPartial", func(t *testing.T) {
 		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow("bar"))
 		conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-		conn := NewConn(conf)
+		conn := MustNewConn(conf)
 		var val string
 		assert.NoError(t, conn.QueryRowPartial(&val, "any"))
 		assert.Equal(t, "bar", val)
@@ -238,7 +238,7 @@ func TestConfigSqlConnQuery(t *testing.T) {
 	t.Run("QueryRows", func(t *testing.T) {
 		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"any"}).AddRow("foo").AddRow("bar"))
 		conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-		conn := NewConn(conf)
+		conn := MustNewConn(conf)
 		var vals []string
 		assert.NoError(t, conn.QueryRows(&vals, "any"))
 		assert.ElementsMatch(t, []string{"foo", "bar"}, vals)
@@ -247,7 +247,7 @@ func TestConfigSqlConnQuery(t *testing.T) {
 	t.Run("QueryRowsPartial", func(t *testing.T) {
 		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"any"}).AddRow("foo").AddRow("bar"))
 		conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-		conn := NewConn(conf)
+		conn := MustNewConn(conf)
 		var vals []string
 		assert.NoError(t, conn.QueryRowsPartial(&vals, "any"))
 		assert.ElementsMatch(t, []string{"foo", "bar"}, vals)
@@ -261,7 +261,7 @@ func TestConfigSqlConnErr(t *testing.T) {
 		defer logx.ExitOnFatal.Set(original)
 
 		assert.Panics(t, func() {
-			NewConn(SqlConf{})
+			MustNewConn(SqlConf{})
 		})
 	})
 	t.Run("on error", func(t *testing.T) {
@@ -272,7 +272,7 @@ func TestConfigSqlConnErr(t *testing.T) {
 		connManager.Inject(mockedDatasource, db)
 
 		conf := SqlConf{DataSource: mockedDatasource, DriverName: mysqlDriverName}
-		conn := NewConn(conf)
+		conn := MustNewConn(conf)
 		conn.(*commonSqlConn).connProv = func(ctx context.Context) (*sql.DB, error) {
 			return nil, errors.New("error")
 		}
@@ -479,12 +479,12 @@ func TestProvider(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, primaryDB, db)
 
-	ctx = WithWriteMode(ctx)
+	ctx = WithWrite(ctx)
 	db, err = sc.connProv(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, primaryDB, db)
 
-	ctx = WithReadPrimaryMode(ctx)
+	ctx = WithReadPrimary(ctx)
 	db, err = sc.connProv(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, primaryDB, db)
@@ -496,7 +496,7 @@ func TestProvider(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, primaryDB, db)
 
-	ctx = WithReadReplicaMode(ctx)
+	ctx = WithReadReplica(ctx)
 	sc.connProv = getConnProvider(sc, mysqlDriverName, primaryDSN, policyRoundRobin, []string{replicasDSN[0]})
 	db, err = sc.connProv(ctx)
 	assert.Nil(t, err)
