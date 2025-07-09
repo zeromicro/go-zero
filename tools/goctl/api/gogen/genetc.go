@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"path"
+	"path/filepath"
 	"strconv"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
