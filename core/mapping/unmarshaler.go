@@ -30,7 +30,9 @@ var (
 	errValueNotSettable = errors.New("value is not settable")
 	errValueNotStruct   = errors.New("value type is not struct")
 	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
+	boolType            = reflect.TypeOf(false)
 	durationType        = reflect.TypeOf(time.Duration(0))
+	stringType          = reflect.TypeOf("")
 	cacheKeys           = make(map[string][]string)
 	cacheKeysLock       sync.Mutex
 	defaultCache        = make(map[string]any)
@@ -765,24 +767,24 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 		return err
 	}
 
-	fieldKind := fieldType.Kind()
-	switch true {
-	case fieldKind == reflect.Bool:
+	derefType := Deref(fieldType)
+	switch derefType {
+	case boolType:
 		val, err := strconv.ParseBool(envVal)
 		if err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
-		value.SetBool(val)
+		SetValue(fieldType, value, reflect.ValueOf(val))
 		return nil
-	case fieldType == durationType:
+	case durationType:
 		if err := fillDurationValue(fieldType, value, envVal); err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
 		return nil
-	case fieldKind == reflect.String:
-		value.SetString(envVal)
+	case stringType:
+		SetValue(fieldType, value, reflect.ValueOf(envVal))
 		return nil
 	default:
 		return u.processFieldPrimitiveWithJSONNumber(fieldType, value, json.Number(envVal), opts, fullName)
