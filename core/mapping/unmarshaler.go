@@ -766,8 +766,8 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 	}
 
 	fieldKind := fieldType.Kind()
-	switch fieldKind {
-	case reflect.Bool:
+	switch true {
+	case fieldKind == reflect.Bool:
 		val, err := strconv.ParseBool(envVal)
 		if err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
@@ -775,13 +775,13 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 
 		value.SetBool(val)
 		return nil
-	case durationType.Kind():
+	case fieldType == durationType:
 		if err := fillDurationValue(fieldType, value, envVal); err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
 		return nil
-	case reflect.String:
+	case fieldKind == reflect.String:
 		value.SetString(envVal)
 		return nil
 	default:
