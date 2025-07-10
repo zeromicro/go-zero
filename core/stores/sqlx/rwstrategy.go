@@ -27,9 +27,24 @@ const (
 	notSpecifiedMode readWriteMode = ""
 )
 
-type readWriteMode string
-
 var readWriteModeKey struct{}
+
+// WithReadPrimary sets the context to read-primary mode.
+func WithReadPrimary(ctx context.Context) context.Context {
+	return context.WithValue(ctx, readWriteModeKey, readPrimaryMode)
+}
+
+// WithReadReplica sets the context to read-replica mode.
+func WithReadReplica(ctx context.Context) context.Context {
+	return context.WithValue(ctx, readWriteModeKey, readReplicaMode)
+}
+
+// WithWrite sets the context to write mode, indicating that the operation is a write operation.
+func WithWrite(ctx context.Context) context.Context {
+	return context.WithValue(ctx, readWriteModeKey, writeMode)
+}
+
+type readWriteMode string
 
 func (m readWriteMode) isValid() bool {
 	return m == readPrimaryMode || m == readReplicaMode || m == writeMode
@@ -45,21 +60,6 @@ func getReadWriteMode(ctx context.Context) readWriteMode {
 	return notSpecifiedMode
 }
 
-func useReplica(ctx context.Context) bool {
-	return getReadWriteMode(ctx) == readReplicaMode
-}
-
-// WithReadPrimaryMode sets the context to read-primary mode.
-func WithReadPrimaryMode(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readWriteModeKey, readPrimaryMode)
-}
-
-// WithReadReplicaMode sets the context to read-replica mode.
-func WithReadReplicaMode(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readWriteModeKey, readReplicaMode)
-}
-
-// WithWriteMode sets the context to write mode, indicating that the operation is a write operation.
-func WithWriteMode(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readWriteModeKey, writeMode)
+func usePrimary(ctx context.Context) bool {
+	return getReadWriteMode(ctx) != readReplicaMode
 }
