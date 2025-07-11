@@ -57,11 +57,11 @@ func TestWithReadMode(t *testing.T) {
 	ctx := context.Background()
 	readPrimaryCtx := WithReadPrimary(ctx)
 
-	val := readPrimaryCtx.Value(readWriteModeKey)
+	val := readPrimaryCtx.Value(readWriteModeKey{})
 	assert.Equal(t, readPrimaryMode, val)
 
 	readReplicaCtx := WithReadReplica(ctx)
-	val = readReplicaCtx.Value(readWriteModeKey)
+	val = readReplicaCtx.Value(readWriteModeKey{})
 	assert.Equal(t, readReplicaMode, val)
 }
 
@@ -69,33 +69,33 @@ func TestWithWriteMode(t *testing.T) {
 	ctx := context.Background()
 	writeCtx := WithWrite(ctx)
 
-	val := writeCtx.Value(readWriteModeKey)
+	val := writeCtx.Value(readWriteModeKey{})
 	assert.Equal(t, writeMode, val)
 }
 
 func TestGetReadWriteMode(t *testing.T) {
 	t.Run("valid read-primary mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, readPrimaryMode)
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, readPrimaryMode)
 		assert.Equal(t, readPrimaryMode, getReadWriteMode(ctx))
 	})
 
 	t.Run("valid read-replica mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, readReplicaMode)
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, readReplicaMode)
 		assert.Equal(t, readReplicaMode, getReadWriteMode(ctx))
 	})
 
 	t.Run("valid write mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, writeMode)
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, writeMode)
 		assert.Equal(t, writeMode, getReadWriteMode(ctx))
 	})
 
 	t.Run("invalid mode value (wrong type)", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, "not-a-mode")
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, "not-a-mode")
 		assert.Equal(t, notSpecifiedMode, getReadWriteMode(ctx))
 	})
 
 	t.Run("invalid mode value (wrong value)", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, readWriteMode("delete"))
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, readWriteMode("delete"))
 		assert.Equal(t, notSpecifiedMode, getReadWriteMode(ctx))
 	})
 
@@ -107,22 +107,22 @@ func TestGetReadWriteMode(t *testing.T) {
 
 func TestUsePrimary(t *testing.T) {
 	t.Run("context with read-replica mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, readReplicaMode)
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, readReplicaMode)
 		assert.False(t, usePrimary(ctx))
 	})
 
 	t.Run("context with read-primary mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, readPrimaryMode)
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, readPrimaryMode)
 		assert.True(t, usePrimary(ctx))
 	})
 
 	t.Run("context with write mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, writeMode)
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, writeMode)
 		assert.True(t, usePrimary(ctx))
 	})
 
 	t.Run("context with invalid mode", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), readWriteModeKey, readWriteMode("invalid"))
+		ctx := context.WithValue(context.Background(), readWriteModeKey{}, readWriteMode("invalid"))
 		assert.True(t, usePrimary(ctx))
 	})
 
@@ -137,6 +137,6 @@ func TestWithModeTwice(t *testing.T) {
 	ctx = WithReadPrimary(ctx)
 	writeCtx := WithWrite(ctx)
 
-	val := writeCtx.Value(readWriteModeKey)
+	val := writeCtx.Value(readWriteModeKey{})
 	assert.Equal(t, writeMode, val)
 }
