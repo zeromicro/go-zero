@@ -259,12 +259,24 @@ func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.At
 	if !ctx.WrapCodeMsg {
 		return properties
 	}
+
+	type WrapCodeMsgMapping struct {
+		Code string `json:"code"`
+		Data string `json:"data"`
+		Msg  string `json:"msg"`
+	}
+
+	var wrapCodeMsgMapping WrapCodeMsgMapping
+	if err := json.Unmarshal([]byte(ctx.WrapCodeMsgMapping), &wrapCodeMsgMapping); err != nil {
+		return properties
+	}
+
 	globalCodeDesc := ctx.BizCodeEnumDescription
 	methodCodeDesc := getStringFromKVOrDefault(atDoc.Properties, propertyKeyBizCodeEnumDescription, globalCodeDesc)
 	return spec.SchemaProps{
 		Type: []string{swaggerTypeObject},
 		Properties: spec.SchemaProperties{
-			"code": {
+			wrapCodeMsgMapping.Code: {
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
 					Example: 0,
 				},
@@ -273,7 +285,7 @@ func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.At
 					Description: methodCodeDesc,
 				},
 			},
-			"msg": {
+			wrapCodeMsgMapping.Msg: {
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
 					Example: "ok",
 				},
@@ -282,7 +294,7 @@ func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.At
 					Description: "business message",
 				},
 			},
-			"data": {
+			wrapCodeMsgMapping.Data: {
 				SchemaProps: properties,
 			},
 		},

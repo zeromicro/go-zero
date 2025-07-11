@@ -9,6 +9,7 @@ import (
 type Context struct {
 	UseDefinitions         bool
 	WrapCodeMsg            bool
+	WrapCodeMsgMapping     string
 	BizCodeEnumDescription string
 }
 
@@ -23,6 +24,7 @@ func contextFromApi(info spec.Info) Context {
 	return Context{
 		UseDefinitions:         getBoolFromKVOrDefault(info.Properties, propertyKeyUseDefinitions, defaultValueOfPropertyUseDefinition),
 		WrapCodeMsg:            getBoolFromKVOrDefault(info.Properties, propertyKeyWrapCodeMsg, false),
+		WrapCodeMsgMapping:     getStringFromKVOrDefault(info.Properties, propertyKeyWrapCodeMsgMapping, defaultValueOfPropertyWrapCodeMsgMapping),
 		BizCodeEnumDescription: getStringFromKVOrDefault(info.Properties, propertyKeyBizCodeEnumDescription, "business code"),
 	}
 }
