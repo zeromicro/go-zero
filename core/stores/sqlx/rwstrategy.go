@@ -27,21 +27,21 @@ const (
 	notSpecifiedMode readWriteMode = ""
 )
 
-var readWriteModeKey struct{}
+type readWriteModeKey struct{}
 
 // WithReadPrimary sets the context to read-primary mode.
 func WithReadPrimary(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readWriteModeKey, readPrimaryMode)
+	return context.WithValue(ctx, readWriteModeKey{}, readPrimaryMode)
 }
 
 // WithReadReplica sets the context to read-replica mode.
 func WithReadReplica(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readWriteModeKey, readReplicaMode)
+	return context.WithValue(ctx, readWriteModeKey{}, readReplicaMode)
 }
 
 // WithWrite sets the context to write mode, indicating that the operation is a write operation.
 func WithWrite(ctx context.Context) context.Context {
-	return context.WithValue(ctx, readWriteModeKey, writeMode)
+	return context.WithValue(ctx, readWriteModeKey{}, writeMode)
 }
 
 type readWriteMode string
@@ -51,7 +51,7 @@ func (m readWriteMode) isValid() bool {
 }
 
 func getReadWriteMode(ctx context.Context) readWriteMode {
-	if mode := ctx.Value(readWriteModeKey); mode != nil {
+	if mode := ctx.Value(readWriteModeKey{}); mode != nil {
 		if v, ok := mode.(readWriteMode); ok && v.isValid() {
 			return v
 		}
