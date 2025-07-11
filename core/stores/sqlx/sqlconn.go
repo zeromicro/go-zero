@@ -68,10 +68,20 @@ type (
 	}
 )
 
-// NewConn returns a SqlConn with the given SqlConf.
-func NewConn(c SqlConf, opts ...SqlOption) SqlConn {
-	if err := c.Validate(); err != nil {
+// MustNewConn returns a SqlConn with the given SqlConf.
+func MustNewConn(c SqlConf, opts ...SqlOption) SqlConn {
+	conn, err := NewConn(c, opts...)
+	if err != nil {
 		logx.Must(err)
+	}
+
+	return conn
+}
+
+// NewConn returns a SqlConn with the given SqlConf.
+func NewConn(c SqlConf, opts ...SqlOption) (SqlConn, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
 	}
 
 	conn := &commonSqlConn{
@@ -86,7 +96,7 @@ func NewConn(c SqlConf, opts ...SqlOption) SqlConn {
 	}
 	conn.connProv = getConnProvider(conn, c.DriverName, c.DataSource, c.Policy, c.Replicas)
 
-	return conn
+	return conn, nil
 }
 
 // NewSqlConn returns a SqlConn with given driver name and datasource.
@@ -340,7 +350,7 @@ func getConnProvider(sc *commonSqlConn, driverName, datasource, policy string, r
 	return func(ctx context.Context) (*sql.DB, error) {
 		replicaCount := len(replicas)
 
-		if replicaCount == 0 || !useReplica(ctx) {
+		if replicaCount == 0 || usePrimary(ctx) {
 			return getSqlConn(driverName, datasource)
 		}
 

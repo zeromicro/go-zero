@@ -55,19 +55,19 @@ func TestIsValid(t *testing.T) {
 
 func TestWithReadMode(t *testing.T) {
 	ctx := context.Background()
-	readPrimaryCtx := WithReadPrimaryMode(ctx)
+	readPrimaryCtx := WithReadPrimary(ctx)
 
 	val := readPrimaryCtx.Value(readWriteModeKey)
 	assert.Equal(t, readPrimaryMode, val)
 
-	readReplicaCtx := WithReadReplicaMode(ctx)
+	readReplicaCtx := WithReadReplica(ctx)
 	val = readReplicaCtx.Value(readWriteModeKey)
 	assert.Equal(t, readReplicaMode, val)
 }
 
 func TestWithWriteMode(t *testing.T) {
 	ctx := context.Background()
-	writeCtx := WithWriteMode(ctx)
+	writeCtx := WithWrite(ctx)
 
 	val := writeCtx.Value(readWriteModeKey)
 	assert.Equal(t, writeMode, val)
@@ -105,29 +105,38 @@ func TestGetReadWriteMode(t *testing.T) {
 	})
 }
 
-func TestUuseReplica(t *testing.T) {
+func TestUsePrimary(t *testing.T) {
 	t.Run("context with read-replica mode", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), readWriteModeKey, readReplicaMode)
-		assert.True(t, useReplica(ctx))
+		assert.False(t, usePrimary(ctx))
 	})
 
 	t.Run("context with read-primary mode", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), readWriteModeKey, readPrimaryMode)
-		assert.False(t, useReplica(ctx))
+		assert.True(t, usePrimary(ctx))
 	})
 
 	t.Run("context with write mode", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), readWriteModeKey, writeMode)
-		assert.False(t, useReplica(ctx))
+		assert.True(t, usePrimary(ctx))
 	})
 
 	t.Run("context with invalid mode", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), readWriteModeKey, readWriteMode("invalid"))
-		assert.False(t, useReplica(ctx))
+		assert.True(t, usePrimary(ctx))
 	})
 
 	t.Run("context with no mode set", func(t *testing.T) {
 		ctx := context.Background()
-		assert.False(t, useReplica(ctx))
+		assert.True(t, usePrimary(ctx))
 	})
+}
+
+func TestWithModeTwice(t *testing.T) {
+	ctx := context.Background()
+	ctx = WithReadPrimary(ctx)
+	writeCtx := WithWrite(ctx)
+
+	val := writeCtx.Value(readWriteModeKey)
+	assert.Equal(t, writeMode, val)
 }
