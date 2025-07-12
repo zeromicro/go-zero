@@ -38,8 +38,8 @@ Port: 0
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	serverless.Serve(w, r)
-	assert.Equal(t, w.Code, http.StatusOK)
-	assert.Equal(t, w.Body.String(), "Hello World")
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "Hello World", w.Body.String())
 }
 
 func TestNewServerlessWithError(t *testing.T) {
