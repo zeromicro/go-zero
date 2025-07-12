@@ -4,12 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"log"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/zeromicro/go-zero/core/fs"
 )
 
 func TestNewWriter(t *testing.T) {
@@ -366,6 +372,45 @@ func TestComboWriter(t *testing.T) {
 	})
 }
 
+func TestNewAsyncWriter(t *testing.T) {
+	filename, err := fs.TempFilenameWithText("foo")
+	assert.Nil(t, err)
+
+	rule := new(DailyRotateRule)
+	rotateLogger, err := NewLogger(filename, rule, true)
+	assert.Nil(t, err)
+
+	if len(filename) > 0 {
+		defer func() {
+			os.Remove(rotateLogger.getBackupFilename())
+			os.Remove(filepath.Base(rotateLogger.getBackupFilename()) + ".gz")
+		}()
+	}
+
+	var buf = &byteCloseBuffer{}
+
+	/*
+		// If you use NewWriter, it will not pass the content comparison test.
+		asyncWriter := NewWriter(io.MultiWriter(buf, rotateLogger))
+	*/
+
+	asyncWriter := NewAsyncWriter(newMultiWriteCloser(buf, rotateLogger))
+	asyncWriter.Debug("debug message 1")
+	asyncWriter.Error("error message 1")
+	asyncWriter.Info("info message 1")
+	asyncWriter.Debug("debug message 2")
+	asyncWriter.Error("error message 2")
+	asyncWriter.Info("info message 2")
+	asyncWriter.Debug("debug message 3")
+	asyncWriter.Error("error message 3")
+	asyncWriter.Info("info message 3")
+	asyncWriter.Close()
+
+	content, err := os.ReadFile(filename)
+	assert.Nil(t, err)
+	assert.Contains(t, string(content), buf.String())
+}
+
 type mockedEntry struct {
 	Level     string `json:"level"`
 	Content   string `json:"content"`
@@ -437,4 +482,45 @@ func (w *tracedWriter) Stack(v any) {
 
 func (w *tracedWriter) Stat(v any, fields ...LogField) {
 	w.Called(v, fields)
+}
+
+// byteCloseBuffer is a wrapper around bytes.Buffer that implements io.WriteCloser.
+type byteCloseBuffer struct {
+	bytes.Buffer
+}
+
+func (b *byteCloseBuffer) Close() error {
+	return nil
+}
+
+type multiWriteCloser struct {
+	writers []io.WriteCloser
+}
+
+func (cw *multiWriteCloser) Write(p []byte) (n int, err error) {
+	for _, w := range cw.writers {
+		if n, err = w.Write(p); err != nil {
+			_, _ = fmt.Fprintln(os.Stdout, string(p))
+			_, _ = fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
+	}
+
+	return len(p), nil
+}
+
+func (cw *multiWriteCloser) Close() (err error) {
+	for _, w := range cw.writers {
+		if c, ok := w.(io.Closer); ok {
+			err = c.Close()
+		}
+	}
+
+	return
+}
+
+func newMultiWriteCloser(writers ...io.WriteCloser) *multiWriteCloser {
+	return &multiWriteCloser{
+		writers: writers,
+	}
 }
