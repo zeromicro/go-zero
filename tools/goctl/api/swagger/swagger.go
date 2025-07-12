@@ -73,6 +73,33 @@ func itemsFromGoType(ctx Context, tp apiSpec.Type) *spec.SchemaOrArray {
 	if !ok {
 		return nil
 	}
+
+	if ctx.UseDefinitions {
+		structName, containsStruct := containsStruct(array.Value)
+		if containsStruct {
+			if _, ok := array.Value.(apiSpec.DefineStruct); ok {
+				return &spec.SchemaOrArray{
+					Schema: &spec.Schema{
+						SchemaProps: spec.SchemaProps{
+							Ref: spec.MustCreateRef(getRefName(structName)),
+						},
+					},
+				}
+			}
+			if ptr, ok := array.Value.(apiSpec.PointerType); ok {
+				if _, ok := ptr.Type.(apiSpec.DefineStruct); ok {
+					return &spec.SchemaOrArray{
+						Schema: &spec.Schema{
+							SchemaProps: spec.SchemaProps{
+								Ref: spec.MustCreateRef(getRefName(structName)),
+							},
+						},
+					}
+				}
+			}
+		}
+	}
+
 	return itemFromGoType(ctx, array.Value)
 }
 

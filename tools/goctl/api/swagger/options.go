@@ -62,23 +62,23 @@ func rangeValueFromOptions(options []string) (minimum *float64, maximum *float64
 }
 
 func enumsValueFromOptions(options []string) []any {
-	if len(options) == 0 {
-		return []any{}
-	}
+	var enums []any
 	for _, option := range options {
-		if strings.HasPrefix(option, enumFlag) {
-			var resp = make([]any, 0)
-			val := option[8:]
-			fields := util.FieldsAndTrimSpace(val, func(r rune) bool {
-				return r == '|'
-			})
-			for _, field := range fields {
-				resp = append(resp, field)
+		if strings.HasPrefix(option, "options=") {
+			optionValue := strings.TrimPrefix(option, "options=")
+			for _, enum := range strings.Split(optionValue, "|") {
+				if enum == "true" {
+					enums = append(enums, true)
+				} else if enum == "false" {
+					enums = append(enums, false)
+				} else {
+					enums = append(enums, enum)
+				}
 			}
-			return resp
+			break
 		}
 	}
-	return []any{}
+	return enums
 }
 
 func defValueFromOptions(ctx Context, options []string, apiType spec.Type) any {
