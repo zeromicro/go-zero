@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/spec"
+
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
@@ -271,34 +272,47 @@ func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.At
 		return properties
 	}
 
+	if len(wrapCodeMsgMapping.Data) == 0 {
+		return properties
+	}
+
 	globalCodeDesc := ctx.BizCodeEnumDescription
 	methodCodeDesc := getStringFromKVOrDefault(atDoc.Properties, propertyKeyBizCodeEnumDescription, globalCodeDesc)
-	return spec.SchemaProps{
+
+	schemaProps := spec.SchemaProps{
 		Type: []string{swaggerTypeObject},
 		Properties: spec.SchemaProperties{
-			wrapCodeMsgMapping.Code: {
-				SwaggerSchemaProps: spec.SwaggerSchemaProps{
-					Example: 0,
-				},
-				SchemaProps: spec.SchemaProps{
-					Type:        []string{swaggerTypeInteger},
-					Description: methodCodeDesc,
-				},
-			},
-			wrapCodeMsgMapping.Msg: {
-				SwaggerSchemaProps: spec.SwaggerSchemaProps{
-					Example: "ok",
-				},
-				SchemaProps: spec.SchemaProps{
-					Type:        []string{swaggerTypeString},
-					Description: "business message",
-				},
-			},
 			wrapCodeMsgMapping.Data: {
 				SchemaProps: properties,
 			},
 		},
 	}
+
+	if len(wrapCodeMsgMapping.Code) > 0 {
+		schemaProps.Properties[wrapCodeMsgMapping.Code] = spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: methodCodeDesc,
+				Type:        []string{swaggerTypeInteger},
+			},
+			SwaggerSchemaProps: spec.SwaggerSchemaProps{
+				Example: 0,
+			},
+		}
+	}
+
+	if len(wrapCodeMsgMapping.Msg) > 0 {
+		schemaProps.Properties[wrapCodeMsgMapping.Msg] = spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "business message",
+				Type:        []string{swaggerTypeString},
+			},
+			SwaggerSchemaProps: spec.SwaggerSchemaProps{
+				Example: "ok",
+			},
+		}
+	}
+
+	return schemaProps
 }
 
 func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {

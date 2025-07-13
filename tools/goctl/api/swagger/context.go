@@ -21,10 +21,18 @@ func contextFromApi(info spec.Info) Context {
 	if len(info.Properties) == 0 {
 		return Context{}
 	}
-	return Context{
+
+	ctx := Context{
 		UseDefinitions:         getBoolFromKVOrDefault(info.Properties, propertyKeyUseDefinitions, defaultValueOfPropertyUseDefinition),
 		WrapCodeMsg:            getBoolFromKVOrDefault(info.Properties, propertyKeyWrapCodeMsg, false),
-		WrapCodeMsgMapping:     getStringFromKVOrDefault(info.Properties, propertyKeyWrapCodeMsgMapping, defaultValueOfPropertyWrapCodeMsgMapping),
 		BizCodeEnumDescription: getStringFromKVOrDefault(info.Properties, propertyKeyBizCodeEnumDescription, "business code"),
 	}
+
+	if !isExist(info.Properties, propertyKeyWrapCodeMsgMapping) {
+		ctx.WrapCodeMsgMapping = defaultValueOfPropertyWrapCodeMsgMapping
+	} else {
+		ctx.WrapCodeMsgMapping = getStringFromKVOrDefault(info.Properties, propertyKeyWrapCodeMsgMapping, "")
+	}
+
+	return ctx
 }

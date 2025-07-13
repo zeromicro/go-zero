@@ -3,8 +3,9 @@ package swagger
 import (
 	"strconv"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 func getBoolFromKVOrDefault(properties map[string]string, key string, def bool) bool {
@@ -38,6 +39,14 @@ func getStringFromKVOrDefault(properties map[string]string, key string, def stri
 		return def
 	}
 	return str
+}
+
+func isExist(properties map[string]string, key string) bool {
+	if len(properties) == 0 {
+		return false
+	}
+	_, ok := properties[key]
+	return ok
 }
 
 func getListFromInfoOrDefault(properties map[string]string, key string, def []string) []string {
