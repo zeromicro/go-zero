@@ -119,6 +119,16 @@ func (s *Server) Use(middleware Middleware) {
 	s.ngin.use(middleware)
 }
 
+// build builds the Server and binds the routes to the router.
+func (s *Server) build() error {
+	return s.ngin.bindRoutes(s.router)
+}
+
+// serve serves the HTTP requests using the Server's router.
+func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
+	s.router.ServeHTTP(w, r)
+}
+
 // ToMiddleware converts the given handler to a Middleware.
 func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
 	return func(handle http.HandlerFunc) http.HandlerFunc {
