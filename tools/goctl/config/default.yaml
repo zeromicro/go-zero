@@ -10,6 +10,9 @@ model:
     decimal:
       null_type: sql.NullFloat64
       type: float64
+    numeric:
+      null_type: sql.NullFloat64
+      type: float64
     double:
       null_type: sql.NullFloat64
       type: float64
