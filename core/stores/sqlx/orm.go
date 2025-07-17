@@ -279,6 +279,11 @@ func unwrapFields(v reflect.Value) []reflect.Value {
 		if child.Kind() == reflect.Struct && childType.Anonymous {
 			fields = append(fields, unwrapFields(child)...)
 		} else {
+			key := parseTagName(childType)
+			if key == "-" {
+				continue
+			}
+
 			fields = append(fields, child)
 		}
 	}
