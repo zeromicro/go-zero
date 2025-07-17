@@ -5,6 +5,7 @@ package model
 
 import (
     "context"
+    "errors"
     "time"
 
     {{if .Cache}}"github.com/zeromicro/go-zero/core/stores/monc"{{else}}"github.com/zeromicro/go-zero/core/stores/mon"{{end}}
@@ -52,10 +53,10 @@ func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Typ
     var data {{.Type}}
     {{if .Cache}}key := prefix{{.Type}}CacheKey + id{{end}}
     err = m.conn.FindOne(ctx, {{if .Cache}}key, {{end}}&data, bson.M{"_id": oid})
-    switch err {
-    case nil:
+    switch {
+    case err == nil:
         return &data, nil
-    case {{if .Cache}}monc{{else}}mon{{end}}.ErrNotFound:
+    case errors.Is(err, {{if .Cache}}monc{{else}}mon{{end}}.ErrNotFound):
         return nil, ErrNotFound
     default:
         return nil, err
