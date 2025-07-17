@@ -370,6 +370,39 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 	})
 }
 
+func TestUnmarshalRowStructWithTagsIgnoreFields(t *testing.T) {
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Age    int `db:"age"`
+			Name   string
+			Ignore bool
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.Equal(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Age    int `db:"age"`
+			Name   string
+			Ignore bool `db:"-"`
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"))
+		assert.Equal(t, 5, value.Age)
+	})
+}
+
 func TestUnmarshalRowStructWithTagsWrongColumns(t *testing.T) {
 	value := new(struct {
 		Age  *int   `db:"age"`
@@ -986,6 +1019,58 @@ func TestUnmarshalRowsStructWithTags(t *testing.T) {
 	}
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, rows, true)
+		}, "select name, age from users where user=?", "anyone"))
+
+		for i, each := range expect {
+			assert.Equal(t, each.Name, value[i].Name)
+			assert.Equal(t, each.Age, value[i].Age)
+		}
+	})
+}
+
+func TestUnmarshalRowsStructWithTagsIgnoreFields(t *testing.T) {
+	expect := []struct {
+		Name   string
+		Age    int64
+		Ignore bool
+	}{
+		{
+			Name:   "first",
+			Age:    2,
+			Ignore: false,
+		},
+		{
+			Name:   "second",
+			Age:    3,
+			Ignore: false,
+		},
+	}
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var value []struct {
+			Age    int64  `db:"age"`
+			Name   string `db:"name"`
+			Ignore bool
+		}
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		assert.Equal(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, rows, true)
+		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var value []struct {
+			Age    int64  `db:"age"`
+			Name   string `db:"name"`
+			Ignore bool   `db:"-"`
+		}
+
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
