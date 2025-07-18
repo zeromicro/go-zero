@@ -365,19 +365,22 @@ func mergeGlobalFields(fields []LogField) []LogField {
 }
 
 func output(writer io.Writer, level string, val any, fields ...LogField) {
-	// only truncate string content, don't know how to truncate the values of other types.
-	if v, ok := val.(string); ok {
+	switch v := val.(type) {
+	case string:
+		// only truncate string content, don't know how to truncate the values of other types.
 		maxLen := atomic.LoadUint32(&maxContentLength)
 		if maxLen > 0 && len(v) > int(maxLen) {
 			val = v[:maxLen]
 			fields = append(fields, truncatedField)
 		}
+	case Sensitive:
+		val = v.MaskSensitive()
 	}
 
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
 	for _, field := range fields {
-		entry[field.Key] = field.Value
+		entry[field.Key] = maskSensitive(field.Value)
 	}
 
 	switch atomic.LoadUint32(&encoding) {
