@@ -381,7 +381,7 @@ func TestUnmarshalRowStructWithTagsIgnoreFields(t *testing.T) {
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
-		assert.Equal(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
 	})
@@ -1059,7 +1059,7 @@ func TestUnmarshalRowsStructWithTagsIgnoreFields(t *testing.T) {
 
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
-		assert.Equal(t, query(context.Background(), db, func(rows *sql.Rows) error {
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
 	})
