@@ -110,14 +110,6 @@ func BenchmarkTypedStringSet(b *testing.B) {
 	}
 }
 
-func BenchmarkTypedSetInt(b *testing.B) {
-	s := NewIntSet()
-	for i := 0; i < b.N; i++ {
-		s.Add(i)
-		_ = s.Contains(i)
-	}
-}
-
 // Legacy tests remain unchanged for backward compatibility
 func BenchmarkRawSet(b *testing.B) {
 	m := make(map[any]struct{})
