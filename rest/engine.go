@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"sort"
 	"time"
@@ -40,6 +41,7 @@ type engine struct {
 	shedder              load.Shedder
 	priorityShedder      load.Shedder
 	tlsConfig            *tls.Config
+	extListner           net.Listener
 }
 
 func newEngine(c RestConf) *engine {
@@ -309,6 +311,10 @@ func (ng *engine) setUnsignedCallback(callback handler.UnsignedCallback) {
 	ng.unsignedCallback = callback
 }
 
+func (ng *engine) setExternalListener(l net.Listener) {
+	ng.extListner = l
+}
+
 func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chain) chain.Chain, error) {
 	if !signature.enabled {
 		return func(chn chain.Chain) chain.Chain {
@@ -354,6 +360,10 @@ func (ng *engine) start(router httpx.Router, opts ...StartOption) error {
 		return err
 	}
 
+	if ng.extListner != nil {
+		return internal.StartHttpWithListner(ng.extListner, router, ng.withTimeout())
+	}
+	
 	// make sure user defined options overwrite default options
 	opts = append([]StartOption{ng.withNetworkTimeout()}, opts...)
 
