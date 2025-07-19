@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -2115,6 +2116,87 @@ func TestRedisPublish(t *testing.T) {
 		assert.NotNil(t, err)
 		_, err = client.Publish("Test", "message")
 		assert.Nil(t, err)
+	})
+}
+
+func TestRedisSPublish(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).SPublish("Test", "message")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisSubscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Subscribe("Test")
+		assert.NotNil(t, err)
+
+		pubSub, err := client.Subscribe("Test")
+		defer pubSub.Close()
+		assert.Nil(t, err)
+
+		messages := []string{"message1", "message2", "message3"}
+		for _, msg := range messages {
+			_, err := client.Publish("Test", msg)
+			assert.Nil(t, err)
+		}
+
+		ch := pubSub.Channel()
+		receivedMessages := make([]string, 0, len(messages))
+		for i := 0; i < len(messages); i++ {
+			select {
+			case msg := <-ch:
+				receivedMessages = append(receivedMessages, msg.Payload)
+			case <-time.After(time.Second):
+				t.Error("Timeout waiting for message")
+			}
+		}
+		assert.Equal(t, messages, receivedMessages)
+	})
+}
+
+func TestRedisPSubscribe(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		pattern := "Test.*"
+		_, err := newRedis(client.Addr, badType()).PSubscribe(pattern)
+		assert.NotNil(t, err)
+
+		pubSubs := make([]*red.PubSub, 3)
+		receivedMessages := make([][]string, 3)
+		var mu sync.Mutex
+		for i := 0; i < 3; i++ {
+			pubSub, err := client.PSubscribe(pattern)
+			assert.Nil(t, err)
+			pubSubs[i] = pubSub
+			receivedMessages[i] = make([]string, 0)
+			go func(idx int) {
+				ch := pubSub.Channel()
+				for msg := range ch {
+					mu.Lock()
+					receivedMessages[idx] = append(receivedMessages[idx], msg.Payload)
+					mu.Unlock()
+				}
+			}(i)
+		}
+
+		// 確保在測試結束時關閉所有訂閱
+		defer func() {
+			for _, pubSub := range pubSubs {
+				pubSub.Close()
+			}
+		}()
+		messages := []string{"message1", "message2", "message3"}
+		channels := []string{"Test.1", "Test.2", "Test.3"}
+		for i, msg := range messages {
+			_, err := client.Publish(channels[i], msg)
+			assert.Nil(t, err)
+		}
+		time.Sleep(10 * time.Millisecond)
+		for i := 0; i < 3; i++ {
+			mu.Lock()
+			assert.ElementsMatch(t, messages, receivedMessages[i])
+			mu.Unlock()
+		}
 	})
 }
 
