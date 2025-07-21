@@ -14,6 +14,7 @@ var p2m = map[string]string{
 	"int2":        "smallint",
 	"int4":        "integer",
 	"timestamptz": "timestamp",
+	"uuid":        "varchar",
 }
 
 // PostgreSqlModel gets table information from information_schema、pg_catalog
