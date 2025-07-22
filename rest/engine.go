@@ -10,6 +10,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/codec"
 	"github.com/zeromicro/go-zero/core/load"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
@@ -70,6 +71,11 @@ func buildSSERoutes(routes []Route) []Route {
 	for i, route := range routes {
 		h := route.Handler
 		routes[i].Handler = func(w http.ResponseWriter, r *http.Request) {
+			rc := http.NewResponseController(w)
+			err := rc.SetWriteDeadline(time.Time{})
+			if err != nil {
+				logx.Errorf("set conn write deadline failed:%v", err)
+			}
 			w.Header().Set(header.ContentType, header.ContentTypeEventStream)
 			w.Header().Set(header.CacheControl, header.CacheControlNoCache)
 			w.Header().Set(header.Connection, header.ConnectionKeepAlive)

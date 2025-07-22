@@ -59,3 +59,8 @@ func (w *WithCodeResponseWriter) WriteHeader(code int) {
 	w.Writer.WriteHeader(code)
 	w.Code = code
 }
+
+// Unwrap return underly ResponseWriter.
+func (w *WithCodeResponseWriter) Unwrap() http.ResponseWriter {
+	return w.Writer
+}
