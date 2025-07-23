@@ -31,29 +31,29 @@ func TestWithTimeout(t *testing.T) {
 }
 
 func TestDisableLog(t *testing.T) {
-	assert.True(t, logMon.True())
-	assert.True(t, logSlowMon.True())
+	assert.True(t, logMon.Load())
+	assert.True(t, logSlowMon.Load())
 	defer func() {
-		logMon.Set(true)
-		logSlowMon.Set(true)
+		logMon.Store(true)
+		logSlowMon.Store(true)
 	}()
 
 	DisableLog()
-	assert.False(t, logMon.True())
-	assert.False(t, logSlowMon.True())
+	assert.False(t, logMon.Load())
+	assert.False(t, logSlowMon.Load())
 }
 
 func TestDisableInfoLog(t *testing.T) {
-	assert.True(t, logMon.True())
-	assert.True(t, logSlowMon.True())
+	assert.True(t, logMon.Load())
+	assert.True(t, logSlowMon.Load())
 	defer func() {
-		logMon.Set(true)
-		logSlowMon.Set(true)
+		logMon.Store(true)
+		logSlowMon.Store(true)
 	}()
 
 	DisableInfoLog()
-	assert.False(t, logMon.True())
-	assert.True(t, logSlowMon.True())
+	assert.False(t, logMon.Load())
+	assert.True(t, logSlowMon.Load())
 }
 
 func TestWithRegistryForTimestampRegisterType(t *testing.T) {
