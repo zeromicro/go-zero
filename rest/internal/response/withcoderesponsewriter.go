@@ -60,7 +60,7 @@ func (w *WithCodeResponseWriter) WriteHeader(code int) {
 	w.Code = code
 }
 
-// Unwrap return underly ResponseWriter.
+// Unwrap returns the underlying ResponseWriter.
 func (w *WithCodeResponseWriter) Unwrap() http.ResponseWriter {
 	return w.Writer
 }
