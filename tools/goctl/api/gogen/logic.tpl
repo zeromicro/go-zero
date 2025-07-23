@@ -21,6 +21,14 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} 
 
 func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 	// todo: add your logic here and delete this line
+	{{ range $k,$v:=.openFiles }}
+	{{$v}},{{$v}}Header, err := r.FormFile("{{$v}}")
+        if err != nil {
+		return 
+	}
+	defer {{$v}}.Close()
+	_ = {{$v}}Header
+	{{end}}
 
 	{{.returnString}}
 }

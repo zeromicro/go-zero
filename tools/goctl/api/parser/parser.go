@@ -147,7 +147,7 @@ func (p parser) fillTypes() error {
 			for _, member := range v.Members {
 				switch v := member.Type.(type) {
 				case spec.DefineStruct:
-					tp, err := p.findDefinedType(v.RawName)
+					tp, _, err := p.findDefinedType(v.RawName)
 					if err != nil {
 						return err
 					}
@@ -167,16 +167,22 @@ func (p parser) fillTypes() error {
 	return nil
 }
 
-func (p parser) findDefinedType(name string) (*spec.Type, error) {
+func (p parser) findDefinedType(name string) (*spec.Type, []string, error) {
 	for _, item := range p.spec.Types {
-		if _, ok := item.(spec.DefineStruct); ok {
+		if s, ok := item.(spec.DefineStruct); ok {
 			if item.Name() == name {
-				return &item, nil
+				var fileTagNames []string
+				for _, m := range s.Members {
+					if m.Tag == "file" {
+						fileTagNames = append(fileTagNames, m.Name)
+					}
+				}
+				return &item, fileTagNames, nil
 			}
 		}
 	}
 
-	return nil, fmt.Errorf("type %s not defined", name)
+	return nil, nil, fmt.Errorf("type %s not defined", name)
 }
 
 func (p parser) fieldToMember(field *ast.TypeField) spec.Member {
@@ -351,19 +357,20 @@ func (p parser) fillRouteType(route *spec.Route) error {
 	if route.RequestType != nil {
 		switch route.RequestType.(type) {
 		case spec.DefineStruct:
-			tp, err := p.findDefinedType(route.RequestType.Name())
+			tp, tagNames, err := p.findDefinedType(route.RequestType.Name())
 			if err != nil {
 				return err
 			}
 
 			route.RequestType = *tp
+			route.OpenFiles = tagNames
 		}
 	}
 
 	if route.ResponseType != nil {
 		switch route.ResponseType.(type) {
 		case spec.DefineStruct:
-			tp, err := p.findDefinedType(route.ResponseType.Name())
+			tp, _, err := p.findDefinedType(route.ResponseType.Name())
 			if err != nil {
 				return err
 			}
