@@ -178,7 +178,7 @@ func (c *container) getValues() []string {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	var vals []string
+	vals := make([]string, 0, len(c.values))
 	for each := range c.values {
 		vals = append(vals, each)
 	}
