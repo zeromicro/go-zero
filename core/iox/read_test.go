@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/fs"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -113,6 +114,23 @@ func TestDupReadCloser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, input, string(output))
 	}
+	verify(r1)
+	verify(r2)
+}
+
+
+
+func TestDupReadCloserForLargeFile(t *testing.T) {
+	input := "hello"
+	reader := io.NopCloser(bytes.NewBufferString(input))
+	r1, r2,err,close := DupReadCloserForLargeFile(reader)
+	assert.Nil(t, err)
+	verify := func(r io.Reader) {
+		output, err := io.ReadAll(r)
+		assert.Nil(t, err)
+		assert.Equal(t, input, string(output))
+	}
+	defer close()
 
 	verify(r1)
 	verify(r2)
