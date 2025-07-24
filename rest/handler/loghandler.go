@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"golang.org/x/net/context"
 	"io"
 	"net"
 	"net/http"
@@ -139,14 +140,11 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	}
 
 	body := logs.Flush()
-	if len(body) > 0 {
-		buf.WriteString(fmt.Sprintf("\n%s", body))
-	}
 
 	if ok {
-		logger.Info(buf.String())
+		logger.Infow(buf.String(), body...)
 	} else {
-		logger.Error(buf.String())
+		logger.Errorw(buf.String(), body...)
 	}
 }
 
@@ -164,9 +162,6 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	}
 
 	body := logs.Flush()
-	if len(body) > 0 {
-		buf.WriteString(fmt.Sprintf("%s\n", body))
-	}
 
 	respBuf := response.buf.Bytes()
 	if len(respBuf) > 0 {
@@ -174,9 +169,9 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	}
 
 	if isOkResponse(code) {
-		logger.Info(buf.String())
+		logger.Infow(buf.String(), body...)
 	} else {
-		logger.Error(buf.String())
+		logger.Errorw(buf.String(), body...)
 	}
 }
 
@@ -220,4 +215,9 @@ func wrapStatusCode(code int) string {
 	}
 
 	return logx.WithColorPadding(strconv.Itoa(code), colour)
+}
+
+func WithLogField(ctx context.Context, field logx.LogField) {
+	ctrl := internal.LogCollectorFromContext(ctx)
+	ctrl.Append(field)
 }
