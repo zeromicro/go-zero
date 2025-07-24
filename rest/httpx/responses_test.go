@@ -12,9 +12,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type message struct {
@@ -79,26 +80,28 @@ func TestError(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			w := tracedResponseWriter{
-				headers: make(map[string][]string),
-			}
-			if test.errorHandler != nil {
-				errorLock.RLock()
-				prev := errorHandler
-				errorLock.RUnlock()
-				SetErrorHandler(test.errorHandler)
-				defer func() {
-					errorLock.Lock()
-					errorHandler = prev
-					errorLock.Unlock()
-				}()
-			}
-			Error(&w, errors.New(test.input))
-			assert.Equal(t, test.expectCode, w.code)
-			assert.Equal(t, test.expectHasBody, w.hasBody)
-			assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
-		})
+		t.Run(
+			test.name, func(t *testing.T) {
+				w := tracedResponseWriter{
+					headers: make(map[string][]string),
+				}
+				if test.errorHandler != nil {
+					errorLock.RLock()
+					prev := errorHandler
+					errorLock.RUnlock()
+					SetErrorHandler(test.errorHandler)
+					defer func() {
+						errorLock.Lock()
+						errorHandler = prev
+						errorLock.Unlock()
+					}()
+				}
+				Error(&w, errors.New(test.input))
+				assert.Equal(t, test.expectCode, w.code)
+				assert.Equal(t, test.expectHasBody, w.hasBody)
+				assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
+			},
+		)
 	}
 }
 
@@ -116,9 +119,11 @@ func TestErrorWithHandler(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
 	}
-	Error(&w, errors.New("foo"), func(w http.ResponseWriter, err error) {
-		http.Error(w, err.Error(), 499)
-	})
+	Error(
+		&w, errors.New("foo"), func(w http.ResponseWriter, err error) {
+			http.Error(w, err.Error(), 499)
+		},
+	)
 	assert.Equal(t, 499, w.code)
 	assert.True(t, w.hasBody)
 	assert.Equal(t, "foo", strings.TrimSpace(w.builder.String()))
@@ -133,71 +138,87 @@ func TestOk(t *testing.T) {
 }
 
 func TestOkJson(t *testing.T) {
-	t.Run("no handler", func(t *testing.T) {
-		w := tracedResponseWriter{
-			headers: make(map[string][]string),
-		}
-		msg := message{Name: "anyone"}
-		OkJson(&w, msg)
-		assert.Equal(t, http.StatusOK, w.code)
-		assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
-	})
+	t.Run(
+		"no handler", func(t *testing.T) {
+			w := tracedResponseWriter{
+				headers: make(map[string][]string),
+			}
+			msg := message{Name: "anyone"}
+			OkJson(&w, msg)
+			assert.Equal(t, http.StatusOK, w.code)
+			assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+		},
+	)
 
-	t.Run("with handler", func(t *testing.T) {
-		okLock.RLock()
-		prev := okHandler
-		okLock.RUnlock()
-		t.Cleanup(func() {
-			okLock.Lock()
-			okHandler = prev
-			okLock.Unlock()
-		})
+	t.Run(
+		"with handler", func(t *testing.T) {
+			okLock.RLock()
+			prev := okHandler
+			okLock.RUnlock()
+			t.Cleanup(
+				func() {
+					okLock.Lock()
+					okHandler = prev
+					okLock.Unlock()
+				},
+			)
 
-		SetOkHandler(func(_ context.Context, v interface{}) any {
-			return fmt.Sprintf("hello %s", v.(message).Name)
-		})
-		w := tracedResponseWriter{
-			headers: make(map[string][]string),
-		}
-		msg := message{Name: "anyone"}
-		OkJson(&w, msg)
-		assert.Equal(t, http.StatusOK, w.code)
-		assert.Equal(t, `"hello anyone"`, w.builder.String())
-	})
+			SetOkHandler(
+				func(_ context.Context, v interface{}) any {
+					return fmt.Sprintf("hello %s", v.(message).Name)
+				},
+			)
+			w := tracedResponseWriter{
+				headers: make(map[string][]string),
+			}
+			msg := message{Name: "anyone"}
+			OkJson(&w, msg)
+			assert.Equal(t, http.StatusOK, w.code)
+			assert.Equal(t, `"hello anyone"`, w.builder.String())
+		},
+	)
 }
 
 func TestOkJsonCtx(t *testing.T) {
-	t.Run("no handler", func(t *testing.T) {
-		w := tracedResponseWriter{
-			headers: make(map[string][]string),
-		}
-		msg := message{Name: "anyone"}
-		OkJsonCtx(context.Background(), &w, msg)
-		assert.Equal(t, http.StatusOK, w.code)
-		assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
-	})
+	t.Run(
+		"no handler", func(t *testing.T) {
+			w := tracedResponseWriter{
+				headers: make(map[string][]string),
+			}
+			msg := message{Name: "anyone"}
+			OkJsonCtx(context.Background(), &w, msg)
+			assert.Equal(t, http.StatusOK, w.code)
+			assert.Equal(t, "{\"name\":\"anyone\"}", w.builder.String())
+		},
+	)
 
-	t.Run("with handler", func(t *testing.T) {
-		okLock.RLock()
-		prev := okHandler
-		okLock.RUnlock()
-		t.Cleanup(func() {
-			okLock.Lock()
-			okHandler = prev
-			okLock.Unlock()
-		})
+	t.Run(
+		"with handler", func(t *testing.T) {
+			okLock.RLock()
+			prev := okHandler
+			okLock.RUnlock()
+			t.Cleanup(
+				func() {
+					okLock.Lock()
+					okHandler = prev
+					okLock.Unlock()
+				},
+			)
 
-		SetOkHandler(func(_ context.Context, v interface{}) any {
-			return fmt.Sprintf("hello %s", v.(message).Name)
-		})
-		w := tracedResponseWriter{
-			headers: make(map[string][]string),
-		}
-		msg := message{Name: "anyone"}
-		OkJsonCtx(context.Background(), &w, msg)
-		assert.Equal(t, http.StatusOK, w.code)
-		assert.Equal(t, `"hello anyone"`, w.builder.String())
-	})
+			SetOkHandler(
+				func(_ context.Context, v interface{}) any {
+					return fmt.Sprintf("hello %s", v.(message).Name)
+				},
+			)
+			w := tracedResponseWriter{
+				headers: make(map[string][]string),
+			}
+			msg := message{Name: "anyone"}
+			OkJsonCtx(context.Background(), &w, msg)
+			assert.Equal(t, http.StatusOK, w.code)
+			assert.Equal(t, `"hello anyone"`, w.builder.String())
+		},
+	)
 }
 
 func TestWriteJsonTimeout(t *testing.T) {
@@ -236,64 +257,74 @@ func TestWriteJsonMarshalFailed(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
 	}
-	WriteJson(&w, http.StatusOK, map[string]any{
-		"Data": complex(0, 0),
-	})
+	WriteJson(
+		&w, http.StatusOK, map[string]any{
+			"Data": complex(0, 0),
+		},
+	)
 	assert.Equal(t, http.StatusInternalServerError, w.code)
 }
 
 func TestStream(t *testing.T) {
-	t.Run("regular case", func(t *testing.T) {
-		channel := make(chan string)
-		go func() {
-			defer close(channel)
-			for index := 0; index < 5; index++ {
-				channel <- fmt.Sprintf("%d", index)
-			}
-		}()
+	t.Run(
+		"regular case", func(t *testing.T) {
+			channel := make(chan string)
+			go func() {
+				defer close(channel)
+				for index := 0; index < 5; index++ {
+					channel <- fmt.Sprintf("%d", index)
+				}
+			}()
 
-		w := httptest.NewRecorder()
-		Stream(context.Background(), w, func(w io.Writer) bool {
-			output, ok := <-channel
-			if !ok {
-				return false
-			}
+			w := httptest.NewRecorder()
+			Stream(
+				context.Background(), w, func(w io.Writer) bool {
+					output, ok := <-channel
+					if !ok {
+						return false
+					}
 
-			outputBytes := bytes.NewBufferString(output)
-			_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
-			return err == nil
-		})
+					outputBytes := bytes.NewBufferString(output)
+					_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
+					return err == nil
+				},
+			)
 
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "0\n1\n2\n3\n4\n", w.Body.String())
-	})
+			assert.Equal(t, http.StatusOK, w.Code)
+			assert.Equal(t, "0\n1\n2\n3\n4\n", w.Body.String())
+		},
+	)
 
-	t.Run("context done", func(t *testing.T) {
-		channel := make(chan string)
-		go func() {
-			defer close(channel)
-			for index := 0; index < 5; index++ {
-				channel <- fmt.Sprintf("num: %d", index)
-			}
-		}()
+	t.Run(
+		"context done", func(t *testing.T) {
+			channel := make(chan string)
+			go func() {
+				defer close(channel)
+				for index := 0; index < 5; index++ {
+					channel <- fmt.Sprintf("num: %d", index)
+				}
+			}()
 
-		w := httptest.NewRecorder()
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-		Stream(ctx, w, func(w io.Writer) bool {
-			output, ok := <-channel
-			if !ok {
-				return false
-			}
+			w := httptest.NewRecorder()
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			Stream(
+				ctx, w, func(w io.Writer) bool {
+					output, ok := <-channel
+					if !ok {
+						return false
+					}
 
-			outputBytes := bytes.NewBufferString(output)
-			_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
-			return err == nil
-		})
+					outputBytes := bytes.NewBufferString(output)
+					_, err := w.Write(append(outputBytes.Bytes(), []byte("\n")...))
+					return err == nil
+				},
+			)
 
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "", w.Body.String())
-	})
+			assert.Equal(t, http.StatusOK, w.Code)
+			assert.Equal(t, "", w.Body.String())
+		},
+	)
 }
 
 type tracedResponseWriter struct {
@@ -386,26 +417,28 @@ func TestErrorCtx(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			w := tracedResponseWriter{
-				headers: make(map[string][]string),
-			}
-			if test.errorHandlerCtx != nil {
-				errorLock.RLock()
-				prev := errorHandler
-				errorLock.RUnlock()
-				SetErrorHandlerCtx(test.errorHandlerCtx)
-				defer func() {
-					errorLock.Lock()
-					test.errorHandlerCtx = prev
-					errorLock.Unlock()
-				}()
-			}
-			ErrorCtx(context.Background(), &w, errors.New(test.input))
-			assert.Equal(t, test.expectCode, w.code)
-			assert.Equal(t, test.expectHasBody, w.hasBody)
-			assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
-		})
+		t.Run(
+			test.name, func(t *testing.T) {
+				w := tracedResponseWriter{
+					headers: make(map[string][]string),
+				}
+				if test.errorHandlerCtx != nil {
+					errorLock.RLock()
+					prev := errorHandler
+					errorLock.RUnlock()
+					SetErrorHandlerCtx(test.errorHandlerCtx)
+					defer func() {
+						errorLock.Lock()
+						test.errorHandlerCtx = prev
+						errorLock.Unlock()
+					}()
+				}
+				ErrorCtx(context.Background(), &w, errors.New(test.input))
+				assert.Equal(t, test.expectCode, w.code)
+				assert.Equal(t, test.expectHasBody, w.hasBody)
+				assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
+			},
+		)
 	}
 
 	// The current handler is a global event,Set default values to avoid impacting subsequent unit tests
@@ -426,9 +459,11 @@ func TestErrorWithHandlerCtx(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
 	}
-	ErrorCtx(context.Background(), &w, errors.New("foo"), func(w http.ResponseWriter, err error) {
-		http.Error(w, err.Error(), 499)
-	})
+	ErrorCtx(
+		context.Background(), &w, errors.New("foo"), func(w http.ResponseWriter, err error) {
+			http.Error(w, err.Error(), 499)
+		},
+	)
 	assert.Equal(t, 499, w.code)
 	assert.True(t, w.hasBody)
 	assert.Equal(t, "foo", strings.TrimSpace(w.builder.String()))
@@ -438,8 +473,110 @@ func TestWriteJsonCtxMarshalFailed(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
 	}
-	WriteJsonCtx(context.Background(), &w, http.StatusOK, map[string]any{
-		"Data": complex(0, 0),
-	})
+	WriteJsonCtx(
+		context.Background(), &w, http.StatusOK, map[string]any{
+			"Data": complex(0, 0),
+		},
+	)
 	assert.Equal(t, http.StatusInternalServerError, w.code)
+}
+
+func Test_doMarshalJson(t *testing.T) {
+	type args struct {
+		v any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []byte
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name:    "nil",
+			args:    args{nil},
+			want:    []byte("null"),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "string",
+			args:    args{"hello"},
+			want:    []byte(`"hello"`),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "int",
+			args:    args{42},
+			want:    []byte("42"),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "bool",
+			args:    args{true},
+			want:    []byte("true"),
+			wantErr: assert.NoError,
+		},
+		{
+			name: "struct",
+			args: args{
+				struct {
+					Name string `json:"name"`
+				}{Name: "test"},
+			},
+			want:    []byte(`{"name":"test"}`),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "slice",
+			args:    args{[]int{1, 2, 3}},
+			want:    []byte("[1,2,3]"),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "map",
+			args:    args{map[string]int{"a": 1, "b": 2}},
+			want:    []byte(`{"a":1,"b":2}`),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "unmarshalable type",
+			args:    args{complex(1, 2)},
+			want:    nil,
+			wantErr: assert.Error,
+		},
+		{
+			name:    "channel type",
+			args:    args{make(chan int)},
+			want:    nil,
+			wantErr: assert.Error,
+		},
+		{
+			name:    "url with query params",
+			args:    args{"https://example.com/api?name=test&age=25"},
+			want:    []byte(`"https://example.com/api?name=test&age=25"`),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "url with encoded query params",
+			args:    args{"https://example.com/api?data=hello%20world&special=%26%3D"},
+			want:    []byte(`"https://example.com/api?data=hello%20world&special=%26%3D"`),
+			wantErr: assert.NoError,
+		},
+		{
+			name:    "url with multiple query params",
+			args:    args{"http://localhost:8080/users?page=1&limit=10&sort=name&order=asc"},
+			want:    []byte(`"http://localhost:8080/users?page=1&limit=10&sort=name&order=asc"`),
+			wantErr: assert.NoError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				got, err := doMarshalJson(tt.args.v)
+				if !tt.wantErr(t, err, fmt.Sprintf("doMarshalJson(%v)", tt.args.v)) {
+					return
+				}
+				assert.Equalf(t, string(tt.want), string(got), "doMarshalJson(%v)", tt.args.v)
+			},
+		)
+	}
 }

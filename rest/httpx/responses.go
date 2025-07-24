@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -28,8 +29,10 @@ func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, 
 }
 
 // ErrorCtx writes err into w.
-func ErrorCtx(ctx context.Context, w http.ResponseWriter, err error,
-	fns ...func(w http.ResponseWriter, err error)) {
+func ErrorCtx(
+	ctx context.Context, w http.ResponseWriter, err error,
+	fns ...func(w http.ResponseWriter, err error),
+) {
 	writeJson := func(w http.ResponseWriter, code int, v any) {
 		WriteJsonCtx(ctx, w, code, v)
 	}
@@ -139,9 +142,11 @@ func buildErrorHandler(ctx context.Context) func(error) (int, any) {
 	return handler
 }
 
-func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, any),
+func doHandleError(
+	w http.ResponseWriter, err error, handler func(error) (int, any),
 	writeJson func(w http.ResponseWriter, code int, v any),
-	fns ...func(w http.ResponseWriter, err error)) {
+	fns ...func(w http.ResponseWriter, err error),
+) {
 	if handler == nil {
 		if len(fns) > 0 {
 			for _, fn := range fns {
@@ -172,8 +177,28 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 	}
 }
 
+func doMarshalJson(v any) ([]byte, error) {
+	// why not use json.Marshal?  https://github.com/golang/go/issues/28453
+	// it change the behavior of json.Marshal, like & -> \u0026, < -> \u003c, > -> \u003e
+	// which is not what we want in logic response
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	bs := buf.Bytes()
+	// Remove trailing newline added by json.Encoder.Encode
+	if len(bs) > 0 && bs[len(bs)-1] == '\n' {
+		bs = bs[:len(bs)-1]
+	}
+
+	return bs, nil
+}
+
 func doWriteJson(w http.ResponseWriter, code int, v any) error {
-	bs, err := json.Marshal(v)
+	bs, err := doMarshalJson(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return fmt.Errorf("marshal json failed, error: %w", err)
