@@ -125,6 +125,7 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 	}
 
 	threading.GoSafe(func() {
+		watchChan := cli.Watch(cli.Ctx(), p.fullKey, clientv3.WithFilterPut())
 		for {
 			select {
 			case _, ok := <-ch:
@@ -134,6 +135,24 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
 					}
 					return
+				}
+
+			case c := <-watchChan:
+				if c.Err() != nil {
+					logc.Errorf(cli.Ctx(), "etcd publisher watch: %s", c.Err().Error())
+					if err := p.doKeepAlive(); err != nil {
+						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
+					}
+					return
+				}
+				if c.Events[0].Type == clientv3.EventTypeDelete {
+					logc.Infof(cli.Ctx(), "etcd publisher watch: %s, event: %v", c.Events[0].Kv.Key, c.Events[0].Type)
+					_, err := cli.Put(cli.Ctx(), p.fullKey, p.value, clientv3.WithLease(p.lease))
+					if err != nil {
+						logc.Errorf(cli.Ctx(), "etcd publisher re-put key: %s", err.Error())
+					} else {
+						logc.Infof(cli.Ctx(), "etcd publisher re-put key: %s, value: %s", p.fullKey, p.value)
+					}
 				}
 			case <-p.pauseChan:
 				logc.Infof(cli.Ctx(), "paused etcd renew, key: %s, value: %s", p.key, p.value)
