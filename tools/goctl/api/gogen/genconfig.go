@@ -36,13 +36,13 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	}
 
 	authNames := getAuths(api)
-	var auths []string
+	auths := make([]string, 0, len(authNames))
 	for _, item := range authNames {
 		auths = append(auths, fmt.Sprintf("%s %s", item, jwtTemplate))
 	}
 
 	jwtTransNames := getJwtTrans(api)
-	var jwtTransList []string
+	jwtTransList := make([]string, 0, len(jwtTransNames))
 	for _, item := range jwtTransNames {
 		jwtTransList = append(jwtTransList, fmt.Sprintf("%s %s", item, jwtTransTemplate))
 	}

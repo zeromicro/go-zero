@@ -126,7 +126,7 @@ func (v *ApiVisitor) VisitTypeLit(ctx *api.TypeLitContext) any {
 // VisitTypeBlock implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitTypeBlock(ctx *api.TypeBlockContext) any {
 	list := ctx.AllTypeBlockBody()
-	var types []TypeExpr
+	types := make([]TypeExpr, 0, len(list))
 	for _, each := range list {
 		types = append(types, each.Accept(v).(TypeExpr))
 	}

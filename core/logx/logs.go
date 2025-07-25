@@ -191,7 +191,7 @@ func Field(key string, value any) LogField {
 	case error:
 		return LogField{Key: key, Value: encodeError(val)}
 	case []error:
-		var errs []string
+		errs := make([]string, 0, len(val))
 		for _, err := range val {
 			errs = append(errs, encodeError(err))
 		}
@@ -199,13 +199,13 @@ func Field(key string, value any) LogField {
 	case time.Duration:
 		return LogField{Key: key, Value: fmt.Sprint(val)}
 	case []time.Duration:
-		var durs []string
+		durs := make([]string, 0, len(val))
 		for _, dur := range val {
 			durs = append(durs, fmt.Sprint(dur))
 		}
 		return LogField{Key: key, Value: durs}
 	case []time.Time:
-		var times []string
+		times := make([]string, 0, len(val))
 		for _, t := range val {
 			times = append(times, fmt.Sprint(t))
 		}
@@ -213,7 +213,7 @@ func Field(key string, value any) LogField {
 	case fmt.Stringer:
 		return LogField{Key: key, Value: encodeStringer(val)}
 	case []fmt.Stringer:
-		var strs []string
+		strs := make([]string, 0, len(val))
 		for _, str := range val {
 			strs = append(strs, encodeStringer(str))
 		}
