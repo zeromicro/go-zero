@@ -327,74 +327,48 @@ func (w *badResponseWriter) Write([]byte) (int, error) {
 }
 
 func TestWithMiddleware(t *testing.T) {
-	middlewareCalled := false
-	customMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+	var callOrder []string
+
+	firstMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			middlewareCalled = true
-			w.Header().Set("X-Custom-Header", "middleware-test")
+			callOrder = append(callOrder, "first-start")
+			w.Header().Set("X-First-Middleware", "called")
 			next(w, r)
+			callOrder = append(callOrder, "first-end")
+		}
+	}
+
+	secondMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			callOrder = append(callOrder, "second-start")
+			w.Header().Set("X-Second-Middleware", "called")
+			next(w, r)
+			callOrder = append(callOrder, "second-end")
 		}
 	}
 
 	var c GatewayConf
 	err := conf.FillDefault(&c)
 	assert.Nil(t, err)
-	c.RestConf.Port = 54323
-	c.Upstreams = []Upstream{
-		{
-			Name: "test",
-			Http: &HttpClientConf{
-				Target: "localhost:45678",
-			},
-			Mappings: []RouteMapping{
-				{
-					Method:  "get",
-					Path:    "/api/test",
-					RpcPath: "",
-				},
-			},
-		},
+	// Test multiple middlewares in one call
+	server1 := MustNewServer(c, WithMiddleware(firstMiddleware, secondMiddleware))
+	assert.Len(t, server1.middlewares, 2, "Should have 2 middlewares from one call")
+	// Test multiple middleware calls
+	server2 := MustNewServer(c, WithMiddleware(firstMiddleware), WithMiddleware(secondMiddleware))
+	assert.Len(t, server2.middlewares, 2, "Should have 2 middlewares from separate calls")
+	// Test execution order (onion model)
+	finalHandler := func(w http.ResponseWriter, r *http.Request) {
+		callOrder = append(callOrder, "handler")
+		w.WriteHeader(http.StatusOK)
 	}
 
-	server := MustNewServer(c, WithMiddleware(customMiddleware))
-	go server.Start()
-	defer server.Stop()
-	time.Sleep(100 * time.Millisecond)
-	resp, err := httpc.Do(context.Background(), http.MethodGet, "http://localhost:54323/api/test", nil)
+	testHandler := server1.buildChainHandler(finalHandler)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/test", nil)
+	testHandler(w, r)
 
-	if err != nil {
-		t.Logf("Request error (expected if no test server): %v", err)
-	} else {
-		defer resp.Body.Close()
-		assert.True(t, middlewareCalled, "Middleware should have been called")
-	}
-}
-
-func TestWithMiddleware_GrpcHandler(t *testing.T) {
-	customMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("X-Custom-Header", "grpc-middleware-test")
-			next(w, r)
-		}
-	}
-
-	var c GatewayConf
-	err := conf.FillDefault(&c)
-	assert.Nil(t, err)
-	c.RestConf.Port = 54324
-	c.Upstreams = []Upstream{
-		{
-			Name: "deposit",
-			Grpc: &zrpc.RpcClientConf{
-				Target: "127.0.0.1:8080",
-			},
-		},
-	}
-	server := MustNewServer(c, WithMiddleware(customMiddleware), withDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
-		return zrpc.MustNewClient(zrpc.RpcClientConf{
-			Target: "127.0.0.1:8080",
-			App:    "test",
-		}, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
-	}))
-	assert.NotNil(t, server.middleware, "Middleware should be set")
+	expectedOrder := []string{"first-start", "second-start", "handler", "second-end", "first-end"}
+	assert.Equal(t, expectedOrder, callOrder, "Middleware execution should follow onion model")
+	assert.Equal(t, "called", w.Header().Get("X-First-Middleware"))
+	assert.Equal(t, "called", w.Header().Get("X-Second-Middleware"))
 }
