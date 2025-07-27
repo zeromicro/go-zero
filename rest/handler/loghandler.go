@@ -94,7 +94,16 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 		lrw := newDetailLoggedResponseWriter(rw, &buf)
 
 		var dup io.ReadCloser
-		r.Body, dup = iox.DupReadCloser(r.Body)
+		var err error
+		var closeFunc func()error
+		r.Body, dup,err,closeFunc = iox.DupReadCloserForLargeFile(r.Body)
+		if err != nil {
+			logx.WithContext(r.Context()).Errorf("[http] read temp file error, %s - %s - %s - %s",
+				r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer closeFunc()
 		logs := new(internal.LogCollector)
 		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup
