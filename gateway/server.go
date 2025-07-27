@@ -27,12 +27,16 @@ import (
 const defaultHttpScheme = "http"
 
 type (
+	// MiddlewareFunc defines the function signature for middleware.
+	MiddlewareFunc func(next http.HandlerFunc) http.HandlerFunc
+
 	// Server is a gateway server.
 	Server struct {
 		*rest.Server
 		upstreams     []Upstream
 		conns         []zrpc.Client
 		processHeader func(http.Header) []string
+		middleware    MiddlewareFunc
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
 	}
 
@@ -105,7 +109,7 @@ func (s *Server) build() error {
 
 func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
 	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -124,6 +128,11 @@ func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver json
 			httpx.ErrorCtx(r.Context(), w, st.Err())
 		}
 	}
+
+	if s.middleware != nil {
+		return s.middleware(handler)
+	}
+	return handler
 }
 
 func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
@@ -177,7 +186,7 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 }
 
 func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		req, err := buildRequestWithNewTarget(r, target)
 		if err != nil {
@@ -213,6 +222,11 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			logc.Error(r.Context(), err)
 		}
 	}
+
+	if s.middleware != nil {
+		return s.middleware(handler)
+	}
+	return handler
 }
 
 func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route]) {
@@ -260,6 +274,14 @@ func (s *Server) prepareMetadata(header http.Header) []string {
 func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server) {
 	return func(s *Server) {
 		s.processHeader = processHeader
+	}
+}
+
+// WithMiddleware sets a middleware function to process HTTP requests.
+// The middleware function receives the next handler and returns a new handler.
+func WithMiddleware(middleware MiddlewareFunc) func(*Server) {
+	return func(s *Server) {
+		s.middleware = middleware
 	}
 }
 

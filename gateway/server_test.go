@@ -325,3 +325,76 @@ type badResponseWriter struct {
 func (w *badResponseWriter) Write([]byte) (int, error) {
 	return 0, errors.New("bad writer")
 }
+
+func TestWithMiddleware(t *testing.T) {
+	middlewareCalled := false
+	customMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			middlewareCalled = true
+			w.Header().Set("X-Custom-Header", "middleware-test")
+			next(w, r)
+		}
+	}
+
+	var c GatewayConf
+	err := conf.FillDefault(&c)
+	assert.Nil(t, err)
+	c.RestConf.Port = 54323
+	c.Upstreams = []Upstream{
+		{
+			Name: "test",
+			Http: &HttpClientConf{
+				Target: "localhost:45678",
+			},
+			Mappings: []RouteMapping{
+				{
+					Method:  "get",
+					Path:    "/api/test",
+					RpcPath: "",
+				},
+			},
+		},
+	}
+
+	server := MustNewServer(c, WithMiddleware(customMiddleware))
+	go server.Start()
+	defer server.Stop()
+	time.Sleep(100 * time.Millisecond)
+	resp, err := httpc.Do(context.Background(), http.MethodGet, "http://localhost:54323/api/test", nil)
+
+	if err != nil {
+		t.Logf("Request error (expected if no test server): %v", err)
+	} else {
+		defer resp.Body.Close()
+		assert.True(t, middlewareCalled, "Middleware should have been called")
+	}
+}
+
+func TestWithMiddleware_GrpcHandler(t *testing.T) {
+	customMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Custom-Header", "grpc-middleware-test")
+			next(w, r)
+		}
+	}
+
+	var c GatewayConf
+	err := conf.FillDefault(&c)
+	assert.Nil(t, err)
+	c.RestConf.Port = 54324
+	c.Upstreams = []Upstream{
+		{
+			Name: "deposit",
+			Grpc: &zrpc.RpcClientConf{
+				Target: "127.0.0.1:8080",
+			},
+		},
+	}
+	server := MustNewServer(c, WithMiddleware(customMiddleware), withDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
+		return zrpc.MustNewClient(zrpc.RpcClientConf{
+			Target: "127.0.0.1:8080",
+			App:    "test",
+		}, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
+	}))
+	assert.NotNil(t, server.middleware, "Middleware should be set")
+}
