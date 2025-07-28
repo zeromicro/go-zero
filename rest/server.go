@@ -293,7 +293,6 @@ func WithSignature(signature SignatureConf) RouteOption {
 func WithSSE() RouteOption {
 	return func(r *featuredRoutes) {
 		r.sse = true
-		r.timeout = ptrOfDuration(0)
 	}
 }
 
@@ -333,10 +332,6 @@ func handleError(err error) {
 
 	logx.Error(err)
 	panic(err)
-}
-
-func ptrOfDuration(d time.Duration) *time.Duration {
-	return &d
 }
 
 func validateSecret(secret string) {

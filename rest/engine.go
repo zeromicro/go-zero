@@ -10,7 +10,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/codec"
 	"github.com/zeromicro/go-zero/core/load"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
@@ -65,25 +65,6 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 	ng.routes = append(ng.routes, r)
 
 	ng.mightUpdateTimeout(r)
-}
-
-func buildSSERoutes(routes []Route) []Route {
-	for i, route := range routes {
-		h := route.Handler
-		routes[i].Handler = func(w http.ResponseWriter, r *http.Request) {
-			rc := http.NewResponseController(w)
-			err := rc.SetWriteDeadline(time.Time{})
-			if err != nil {
-				logx.Errorf("set conn write deadline failed:%v", err)
-			}
-			w.Header().Set(header.ContentType, header.ContentTypeEventStream)
-			w.Header().Set(header.CacheControl, header.CacheControlNoCache)
-			w.Header().Set(header.Connection, header.ConnectionKeepAlive)
-			h(w, r)
-		}
-	}
-
-	return routes
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
@@ -398,6 +379,27 @@ func (ng *engine) withNetworkTimeout() internal.StartOption {
 		// setting the factor less than 1.0 may lead clients not receiving the responses.
 		svr.WriteTimeout = 11 * ng.timeout / 10
 	}
+}
+
+func buildSSERoutes(routes []Route) []Route {
+	for i, route := range routes {
+		h := route.Handler
+		routes[i].Handler = func(w http.ResponseWriter, r *http.Request) {
+			// remove the default write deadline set by http.Server,
+			// because SSE requires the connection to be kept alive indefinitely.
+			rc := http.NewResponseController(w)
+			if err := rc.SetWriteDeadline(time.Time{}); err != nil {
+				logc.Errorf(r.Context(), "set conn write deadline failed: %v", err)
+			}
+
+			w.Header().Set(header.ContentType, header.ContentTypeEventStream)
+			w.Header().Set(header.CacheControl, header.CacheControlNoCache)
+			w.Header().Set(header.Connection, header.ConnectionKeepAlive)
+			h(w, r)
+		}
+	}
+
+	return routes
 }
 
 func convertMiddleware(ware Middleware) func(http.Handler) http.Handler {

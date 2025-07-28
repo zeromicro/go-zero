@@ -578,3 +578,7 @@ func (m mockedRouter) SetNotFoundHandler(_ http.Handler) {
 
 func (m mockedRouter) SetNotAllowedHandler(_ http.Handler) {
 }
+
+func ptrOfDuration(d time.Duration) *time.Duration {
+	return &d
+}
