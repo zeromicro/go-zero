@@ -24,7 +24,6 @@ import (
 )
 
 const (
-	limitBodyBytes       = 1024
 	defaultSlowThreshold = time.Millisecond * 500
 )
 
@@ -36,11 +35,7 @@ func LogHandler(next http.Handler) http.Handler {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
 		lrw := response.NewWithCodeResponseWriter(w)
-
-		var dup io.ReadCloser
-		r.Body, dup = iox.LimitDupReadCloser(r.Body, limitBodyBytes)
 		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
-		r.Body = dup
 		logBrief(r, lrw.Code, timer, logs)
 	})
 }

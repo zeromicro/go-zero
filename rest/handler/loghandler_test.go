@@ -44,7 +44,7 @@ func TestLogHandler(t *testing.T) {
 
 func TestLogHandlerVeryLong(t *testing.T) {
 	var buf bytes.Buffer
-	for i := 0; i < limitBodyBytes<<1; i++ {
+	for i := 0; i < 1<<24; i++ {
 		buf.WriteByte('a')
 	}
 
