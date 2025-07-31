@@ -27,17 +27,14 @@ import (
 const defaultHttpScheme = "http"
 
 type (
-	// MiddlewareFunc defines the function signature for middleware.
-	MiddlewareFunc func(next http.HandlerFunc) http.HandlerFunc
-
 	// Server is a gateway server.
 	Server struct {
 		*rest.Server
 		upstreams     []Upstream
 		conns         []zrpc.Client
 		processHeader func(http.Header) []string
-		middlewares   []MiddlewareFunc
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		middlewares   []rest.Middleware
 	}
 
 	// Option defines the method to customize Server.
@@ -105,6 +102,13 @@ func (s *Server) build() error {
 			s.Server.AddRoute(route)
 		}
 	})
+}
+
+func (s *Server) buildChainHandler(handler http.HandlerFunc) http.HandlerFunc {
+	for i := len(s.middlewares) - 1; i >= 0; i-- {
+		handler = s.middlewares[i](handler)
+	}
+	return handler
 }
 
 func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
@@ -273,17 +277,10 @@ func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server)
 
 // WithMiddleware adds one or more middleware functions to process HTTP requests.
 // Multiple middlewares will be executed in the order they were passed (like an onion model).
-func WithMiddleware(middlewares ...MiddlewareFunc) func(*Server) {
+func WithMiddleware(middlewares ...rest.Middleware) func(*Server) {
 	return func(s *Server) {
 		s.middlewares = append(s.middlewares, middlewares...)
 	}
-}
-
-func (s *Server) buildChainHandler(handler http.HandlerFunc) http.HandlerFunc {
-	for i := len(s.middlewares) - 1; i >= 0; i-- {
-		handler = s.middlewares[i](handler)
-	}
-	return handler
 }
 
 func buildRequestWithNewTarget(r *http.Request, target *HttpClientConf) (*http.Request, error) {
