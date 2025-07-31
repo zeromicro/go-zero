@@ -12,10 +12,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type message struct {
@@ -449,6 +448,7 @@ func Test_doMarshalJson(t *testing.T) {
 	type args struct {
 		v any
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -532,15 +532,16 @@ func Test_doMarshalJson(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 	}
+
 	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				got, err := doMarshalJson(tt.args.v)
-				if !tt.wantErr(t, err, fmt.Sprintf("doMarshalJson(%v)", tt.args.v)) {
-					return
-				}
-				assert.Equalf(t, string(tt.want), string(got), "doMarshalJson(%v)", tt.args.v)
-			},
-		)
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := doMarshalJson(tt.args.v)
+			if !tt.wantErr(t, err, fmt.Sprintf("doMarshalJson(%v)", tt.args.v)) {
+				return
+			}
+
+			assert.Equalf(t, string(tt.want), string(got), "doMarshalJson(%v)", tt.args.v)
+		})
 	}
 }
