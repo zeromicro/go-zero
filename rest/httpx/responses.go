@@ -177,8 +177,8 @@ func doMarshalJson(v any) ([]byte, error) {
 	// why not use json.Marshal?  https://github.com/golang/go/issues/28453
 	// it change the behavior of json.Marshal, like & -> \u0026, < -> \u003c, > -> \u003e
 	// which is not what we want in logic response
-	buf := &bytes.Buffer{}
-	enc := json.NewEncoder(buf)
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(v); err != nil {
 		return nil, err
