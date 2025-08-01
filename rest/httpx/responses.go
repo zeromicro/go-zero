@@ -1,15 +1,14 @@
 package httpx
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
 
+	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/internal/errcode"
@@ -173,28 +172,8 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 	}
 }
 
-func doMarshalJson(v any) ([]byte, error) {
-	// why not use json.Marshal?  https://github.com/golang/go/issues/28453
-	// it change the behavior of json.Marshal, like & -> \u0026, < -> \u003c, > -> \u003e
-	// which is not what we want in logic response
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	if err := enc.Encode(v); err != nil {
-		return nil, err
-	}
-
-	bs := buf.Bytes()
-	// Remove trailing newline added by json.Encoder.Encode
-	if len(bs) > 0 && bs[len(bs)-1] == '\n' {
-		bs = bs[:len(bs)-1]
-	}
-
-	return bs, nil
-}
-
 func doWriteJson(w http.ResponseWriter, code int, v any) error {
-	bs, err := doMarshalJson(v)
+	bs, err := jsonx.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return fmt.Errorf("marshal json failed, error: %w", err)
