@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -43,8 +42,6 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("rpc name:", zctx.RpcName)
 
 	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
