@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -26,6 +27,8 @@ type ZRpcContext struct {
 	GrpcOutput string
 	// Output is the output directory of the generated files.
 	Output string
+	// RpcName is the rpc service name
+	RpcName string
 	// Multiple is the flag to indicate whether the proto file is generated in multiple mode.
 	Multiple bool
 	// Whether to generate rpc client
@@ -40,6 +43,8 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("rpc name:", zctx.RpcName)
 
 	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
@@ -67,7 +72,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenEtc(dirCtx, proto, g.cfg)
+	err = g.GenEtc(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}

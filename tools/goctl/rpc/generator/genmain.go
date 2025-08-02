@@ -27,7 +27,11 @@ type MainServiceTemplateData struct {
 // GenMain generates the main file of the rpc service, which is an rpc service program call entry
 func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config,
 	c *ZRpcContext) error {
-	mainFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
+	serviceName := c.RpcName
+	if len(serviceName) == 0 {
+		serviceName = ctx.GetServiceName().Source()
+	}
+	mainFilename, err := format.FileNamingFormat(cfg.NamingFormat, serviceName)
 	if err != nil {
 		return err
 	}
@@ -71,7 +75,7 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 		return err
 	}
 
-	etcFileName, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
+	etcFileName, err := format.FileNamingFormat(cfg.NamingFormat, serviceName)
 	if err != nil {
 		return err
 	}
