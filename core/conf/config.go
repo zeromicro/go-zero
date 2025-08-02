@@ -316,7 +316,7 @@ func toLowerCaseInterface(v any, info *fieldInfo) any {
 	case map[string]any:
 		return toLowerCaseKeyMap(vv, info)
 	case []any:
-		var arr []any
+		arr := make([]any, 0, len(vv))
 		for _, vvv := range vv {
 			arr = append(arr, toLowerCaseInterface(vvv, info))
 		}

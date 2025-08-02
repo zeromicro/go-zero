@@ -1795,7 +1795,7 @@ func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (int64, er
 		return 0, err
 	}
 
-	var zs []red.Z
+	zs := make([]red.Z, 0, len(ps))
 	for _, p := range ps {
 		z := red.Z{Score: float64(p.Score), Member: p.Key}
 		zs = append(zs, z)

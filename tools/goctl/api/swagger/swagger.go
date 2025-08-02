@@ -244,7 +244,7 @@ func isOptional(_ Context, options []string) bool {
 
 func pathVariable2SwaggerVariable(_ Context, path string) string {
 	pathItems := strings.FieldsFunc(path, slashRune)
-	var resp []string
+	resp := make([]string, 0, len(pathItems))
 	for _, v := range pathItems {
 		if strings.HasPrefix(v, ":") {
 			resp = append(resp, "{"+v[1:]+"}")
