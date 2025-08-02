@@ -105,6 +105,7 @@ Flags:
       --style string      The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md] (default "gozero")
   -v, --verbose           Enable log output
       --zrpc_out string   The zrpc output directory
+      --rpc_name string   Rpc service name. Setting the rpc service name prevents it from defaulting to the proto file name. This enables the use of multiple proto files within the same service for code generation.
 ```
 
 ### 参数说明
@@ -115,6 +116,7 @@ Flags:
 * --style 指定文件输出格式
 * -v, --verbose 显示日志
 * --zrpc_out 指定zrpc输出目录
+* --rpc_name 指定rpc服务名，如果如果不设置就使用proto文件名作为rpc服务名称，同时也允许在同一个rpc服务中使用多个proto文件来生成代码
 
 > ## --multiple
 > 是否开启多个 rpc service 生成，如果开启，则满足一下新特性
@@ -200,4 +202,49 @@ hello
     └── hello
         ├── hello.pb.go
         └── hello_grpc.pb.go
+```
+
+### --rpc_name
+分别执行以下命令
+```shell
+goctl.exe rpc protoc app/pb/user.proto --go_out=./app/pb --go-grpc_out=./app/pb --zrpc_out=./app --style=go_zero -m --rpc_name app
+goctl.exe rpc protoc app/pb/role.proto --go_out=./app/pb --go-grpc_out=./app/pb --zrpc_out=./app --style=go_zero -m --rpc_name app
+```
+生成目录结构如下：
+```text
+app/
+├── app.go
+├── client/
+│   ├── roleservice/
+│   │   └── role_service.go
+│   └── userservice/
+│       └── user_service.go
+├── etc/
+│   └── app.yaml
+├── internal/
+│   ├── config/
+│   │   └── config.go
+│   ├── logic/
+│   │   ├── roleservice/
+│   │   │   ├── create_role_logic.go
+│   │   │   └── update_role_logic.go
+│   │   └── userservice/
+│   │       ├── create_user_logic.go
+│   │       └── user_detail_logic.go
+│   ├── server/
+│   │   ├── roleservice/
+│   │   │   └── role_service_server.go
+│   │   └── userservice/
+│   │       └── user_service_server.go
+│   └── svc/
+│       └── service_context.go
+└── pb/
+    ├── role/
+    │   ├── role.pb.go
+    │   └── role_grpc.pb.go
+    ├── user/
+    │     ├── user.pb.go
+    │     └── user_grpc.pb.go
+    ├── user.proto
+    └── role.proto
 ```
