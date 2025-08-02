@@ -1,17 +1,28 @@
 package token
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
-const claimHistoryResetDuration = time.Hour * 24
+const (
+	claimHistoryResetDuration = time.Hour * 24
+
+	jwtLookupHeader = "header"
+	jwtLookupQuery  = "query"
+	jwtLookupForm   = "form"
+	jwtLookupParam  = "param"
+	jwtLookupCookie = "cookie"
+)
 
 type (
 	// ParseOption defines the method to customize a TokenParser.
@@ -22,6 +33,7 @@ type (
 		resetTime     time.Duration
 		resetDuration time.Duration
 		history       sync.Map
+		extractor     request.MultiExtractor
 	}
 )
 
@@ -30,6 +42,7 @@ func NewTokenParser(opts ...ParseOption) *TokenParser {
 	parser := &TokenParser{
 		resetTime:     timex.Now(),
 		resetDuration: claimHistoryResetDuration,
+		extractor:     request.MultiExtractor{request.AuthorizationHeaderExtractor},
 	}
 
 	for _, opt := range opts {
@@ -79,10 +92,11 @@ func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*
 }
 
 func (tp *TokenParser) doParseToken(r *http.Request, secret string) (*jwt.Token, error) {
-	return request.ParseFromRequest(r, request.AuthorizationHeaderExtractor,
-		func(token *jwt.Token) (any, error) {
-			return []byte(secret), nil
-		}, request.WithParser(newParser()))
+	keyFunc := func(token *jwt.Token) (any, error) {
+		return []byte(secret), nil
+	}
+
+	return request.ParseFromRequest(r, tp.extractor, keyFunc, request.WithParser(newParser()))
 }
 
 func (tp *TokenParser) incrementCount(secret string) {
@@ -116,6 +130,38 @@ func (tp *TokenParser) loadCount(secret string) uint64 {
 func WithResetDuration(duration time.Duration) ParseOption {
 	return func(parser *TokenParser) {
 		parser.resetDuration = duration
+	}
+}
+
+// WithExtractor used to configure the token extraction method of the TokenParser.
+func WithExtractor(tokenLookups []string) ParseOption {
+	return func(parser *TokenParser) {
+		var extractors request.MultiExtractor
+		for _, lookup := range tokenLookups {
+			parts := strings.Split(strings.TrimSpace(lookup), ":")
+			if len(parts) < 2 {
+				logx.Must(fmt.Errorf("extractor source for lookup could not be split into needed parts: %v", lookup))
+			}
+
+			source := strings.TrimSpace(parts[0])
+			name := strings.TrimSpace(parts[1])
+
+			switch source {
+			case jwtLookupCookie:
+				extractors = append(extractors, CookieExtractor{name})
+			case jwtLookupParam:
+				extractors = append(extractors, ParamExtractor{name})
+			case jwtLookupHeader:
+				extractors = append(extractors, request.HeaderExtractor{name})
+			case jwtLookupQuery, jwtLookupForm:
+				extractors = append(extractors, request.ArgumentExtractor{name})
+			}
+		}
+
+		// the default value is bearer token from Authorization header
+		extractors = append(extractors, request.AuthorizationHeaderExtractor)
+
+		parser.extractor = extractors
 	}
 }
 
