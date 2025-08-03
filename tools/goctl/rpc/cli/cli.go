@@ -39,7 +39,7 @@ var (
 	VarStringStyle string
 	// VarStringZRPCOut describes the zRPC output.
 	VarStringZRPCOut string
-	// VarStringRpcName describe the rpc name
+	// VarStringRpcName describes the rpc name
 	VarStringRpcName string
 	// VarBoolIdea describes whether idea or not
 	VarBoolIdea bool
