@@ -43,6 +43,11 @@ func AddProbe(probe Probe) {
 	defaultHealthManager.addProbe(probe)
 }
 
+// IsReady return global comboHealthManager status.
+func IsReady() bool {
+	return defaultHealthManager.IsReady()
+}
+
 // CreateHttpHandler create health http handler base on given probe.
 func CreateHttpHandler(healthResponse string) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
