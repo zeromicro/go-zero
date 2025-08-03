@@ -916,6 +916,11 @@ func TestRedis_Ping(t *testing.T) {
 			ok := client.Ping()
 			assert.True(t, ok)
 		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			ok := client.Ping()
+			assert.False(t, ok)
+		})
 	})
 }
 
@@ -2030,7 +2035,7 @@ func TestRedis_WithUserPass(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	runOnRedisWithAccount(t, func(client *Redis) {
+	runOnRedisWithAccount(t, "foo", "bar", func(client *Redis) {
 		err := client.Set("key1", "value1")
 		assert.Nil(t, err)
 		_, err = newRedis(client.Addr, badType()).Keys("*")
@@ -2067,15 +2072,16 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	}))
 }
 
-func runOnRedisWithAccount(t *testing.T, fn func(client *Redis)) {
+func runOnRedisWithAccount(t *testing.T, user, pass string, fn func(client *Redis)) {
 	logx.Disable()
 
 	s := miniredis.RunT(t)
-	// only use pass, because minirediss doesn't support auth
+	s.RequireUserAuth(user, pass)
 	fn(MustNewRedis(RedisConf{
 		Host: s.Addr(),
 		Type: NodeType,
-		User: "user",
+		User: user,
+		Pass: pass,
 	}))
 }
 
@@ -2257,13 +2263,9 @@ func TestRedisXInfo(t *testing.T) {
 		infoConsumers, err := redisCli.XInfoConsumers(stream, group)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, len(infoConsumers))
-	})
 
-	t.Run("XInfoConsumers with error", func(t *testing.T) {
-		runOnRedisWithError(t, func(client *Redis) {
-			_, err := client.XInfoConsumers("hello", "world")
-			assert.Error(t, err)
-		})
+		_, err = newRedis(client.Addr, badType()).XInfoConsumers(stream, group)
+		assert.NotNil(t, err)
 	})
 }
 
