@@ -65,7 +65,6 @@ type (
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
 		red.Cmdable
-		red.BitMapCmdable
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -1285,10 +1284,12 @@ func (s *Redis) RpushCtx(ctx context.Context, key string, values ...any) (int, e
 	return int(v), nil
 }
 
+// RPopLPush atomically removes the last element from source list and prepends it to destination list.
 func (s *Redis) RPopLPush(source string, destination string) (string, error) {
 	return s.RPopLPushCtx(context.Background(), source, destination)
 }
 
+// RPopLPushCtx is the context-aware version of RPopLPush.
 func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) {
 	conn, err := getRedis(s)
 	if err != nil {
@@ -1695,14 +1696,17 @@ func (s *Redis) TtlCtx(ctx context.Context, key string) (int, error) {
 	return int(duration), nil
 }
 
+// TxPipeline returns a Redis transaction pipeline for executing multiple commands atomically.
 func (s *Redis) TxPipeline() (pipe Pipeliner, err error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return nil, err
 	}
+
 	return conn.TxPipeline(), nil
 }
 
+// Unlink is similar to Del but removes keys asynchronously in a separate thread.
 func (s *Redis) Unlink(keys ...string) (int64, error) {
 	return s.UnlinkCtx(context.Background(), keys...)
 }
@@ -1712,7 +1716,152 @@ func (s *Redis) UnlinkCtx(ctx context.Context, keys ...string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return conn.Unlink(ctx, keys...).Result()
+}
+
+// XAck acknowledges one or more messages in a Redis stream consumer group.
+// It marks the specified messages as successfully processed.
+func (s *Redis) XAck(stream string, group string, ids ...string) (int64, error) {
+	return s.XAckCtx(context.Background(), stream, group, ids...)
+}
+
+// XAckCtx is the context-aware version of XAck.
+func (s *Redis) XAckCtx(ctx context.Context, stream string, group string, ids ...string) (int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+
+	return conn.XAck(ctx, stream, group, ids...).Result()
+}
+
+// XAdd adds a new entry to a Redis stream with the specified ID and field-value pairs.
+// If noMkStream is true, the command will fail if the stream doesn't exist.
+func (s *Redis) XAdd(stream string, noMkStream bool, id string, values any) (string, error) {
+	return s.XAddCtx(context.Background(), stream, noMkStream, id, values)
+}
+
+// XAddCtx is the context-aware version of XAdd.
+func (s *Redis) XAddCtx(ctx context.Context, stream string, noMkStream bool, id string, values any) (
+	string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XAdd(ctx, &red.XAddArgs{
+		Stream:     stream,
+		ID:         id,
+		Values:     values,
+		NoMkStream: noMkStream,
+	}).Result()
+}
+
+// XGroupCreateMkStream creates a consumer group for a Redis stream.
+// If the stream doesn't exist, it will be created automatically.
+func (s *Redis) XGroupCreateMkStream(stream string, group string, start string) (string, error) {
+	return s.XGroupCreateMkStreamCtx(context.Background(), stream, group, start)
+}
+
+// XGroupCreateMkStreamCtx is the context-aware version of XGroupCreateMkStream.
+func (s *Redis) XGroupCreateMkStreamCtx(ctx context.Context, stream string, group string,
+	start string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XGroupCreateMkStream(ctx, stream, group, start).Result()
+}
+
+// XGroupCreate creates a consumer group for a Redis stream.
+// The stream must already exist, otherwise the command will fail.
+func (s *Redis) XGroupCreate(stream string, group string, start string) (string, error) {
+	return s.XGroupCreateCtx(context.Background(), stream, group, start)
+}
+
+// XGroupCreateCtx is the context-aware version of XGroupCreate.
+func (s *Redis) XGroupCreateCtx(ctx context.Context, stream string, group string, start string) (
+	string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XGroupCreate(ctx, stream, group, start).Result()
+}
+
+// XInfoConsumers returns information about consumers in a Redis stream consumer group.
+func (s *Redis) XInfoConsumers(stream string, group string) ([]red.XInfoConsumer, error) {
+	return s.XInfoConsumersCtx(context.Background(), stream, group)
+}
+
+// XInfoConsumersCtx is the context-aware version of XInfoConsumers.
+func (s *Redis) XInfoConsumersCtx(ctx context.Context, stream string, group string) (
+	[]red.XInfoConsumer, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.XInfoConsumers(ctx, stream, group).Result()
+}
+
+// XInfoGroups returns information about consumer groups for a Redis stream.
+func (s *Redis) XInfoGroups(stream string) ([]red.XInfoGroup, error) {
+	return s.XInfoGroupsCtx(context.Background(), stream)
+}
+
+// XInfoGroupsCtx is the context-aware version of XInfoGroups.
+func (s *Redis) XInfoGroupsCtx(ctx context.Context, stream string) ([]red.XInfoGroup, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.XInfoGroups(ctx, stream).Result()
+}
+
+// XInfoStream returns general information about a Redis stream.
+func (s *Redis) XInfoStream(stream string) (*red.XInfoStream, error) {
+	return s.XInfoStreamCtx(context.Background(), stream)
+}
+
+// XInfoStreamCtx is the context-aware version of XInfoStream.
+func (s *Redis) XInfoStreamCtx(ctx context.Context, stream string) (*red.XInfoStream, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.XInfoStream(ctx, stream).Result()
+}
+
+// XReadGroup reads messages from Redis streams as part of a consumer group.
+// It allows for distributed processing of stream messages with automatic message delivery semantics.
+// Doesn't benefit from pooling redis connections of blocking queries.
+func (s *Redis) XReadGroup(node RedisNode, group string, consumerId string, count int64,
+	block time.Duration, noAck bool, streams ...string) ([]red.XStream, error) {
+	return s.XReadGroupCtx(context.Background(), node, group, consumerId, count, block, noAck, streams...)
+}
+
+// XReadGroupCtx is the context-aware version of XReadGroup.
+// Doesn't benefit from pooling redis connections of blocking queries.
+func (s *Redis) XReadGroupCtx(ctx context.Context, node RedisNode, group string, consumerId string,
+	count int64, block time.Duration, noAck bool, streams ...string) ([]red.XStream, error) {
+	if node == nil {
+		return nil, ErrNilNode
+	}
+
+	return node.XReadGroup(ctx, &red.XReadGroupArgs{
+		Group:    group,
+		Consumer: consumerId,
+		Count:    count,
+		Block:    block,
+		NoAck:    noAck,
+		Streams:  streams,
+	}).Result()
 }
 
 // Zadd is the implementation of redis zadd command.
@@ -2400,117 +2549,6 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 	}
 
 	return conn.ZUnionStore(ctx, dest, store).Result()
-}
-
-func (s *Redis) XGroupCreateMkStream(stream string, group string, start string) (string, error) {
-	return s.XGroupCreateMkStreamCtx(context.Background(), stream, group, start)
-}
-
-func (s *Redis) XGroupCreateMkStreamCtx(ctx context.Context, stream string, group string, start string) (string, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return "", err
-	}
-	return conn.XGroupCreateMkStream(ctx, stream, group, start).Result()
-}
-
-func (s *Redis) XGroupCreate(stream string, group string, start string) (string, error) {
-	return s.XGroupCreateCtx(context.Background(), stream, group, start)
-}
-
-func (s *Redis) XGroupCreateCtx(ctx context.Context, stream string, group string, start string) (string, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return "", err
-	}
-	return conn.XGroupCreate(ctx, stream, group, start).Result()
-}
-
-func (s *Redis) XInfoConsumers(stream string, group string) ([]red.XInfoConsumer, error) {
-	return s.XInfoConsumersCtx(context.Background(), stream, group)
-}
-
-func (s *Redis) XInfoConsumersCtx(ctx context.Context, stream string, group string) ([]red.XInfoConsumer, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return nil, err
-	}
-	return conn.XInfoConsumers(ctx, stream, group).Result()
-}
-
-func (s *Redis) XInfoGroups(stream string) ([]red.XInfoGroup, error) {
-	return s.XInfoGroupsCtx(context.Background(), stream)
-}
-
-func (s *Redis) XInfoGroupsCtx(ctx context.Context, stream string) ([]red.XInfoGroup, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return nil, err
-	}
-	return conn.XInfoGroups(ctx, stream).Result()
-}
-
-func (s *Redis) XInfoStream(stream string) (*red.XInfoStream, error) {
-	return s.XInfoStreamCtx(context.Background(), stream)
-}
-
-func (s *Redis) XInfoStreamCtx(ctx context.Context, stream string) (*red.XInfoStream, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return nil, err
-	}
-	return conn.XInfoStream(ctx, stream).Result()
-}
-
-func (s *Redis) XAdd(stream string, noMkStream bool, id string, values interface{}) (string, error) {
-	return s.XAddCtx(context.Background(), stream, noMkStream, id, values)
-}
-
-func (s *Redis) XAddCtx(ctx context.Context, stream string, noMkStream bool, id string, values interface{}) (string, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return "", err
-	}
-	return conn.XAdd(ctx, &red.XAddArgs{
-		Stream:     stream,
-		ID:         id,
-		Values:     values,
-		NoMkStream: noMkStream,
-	}).Result()
-}
-
-func (s *Redis) XAck(stream string, group string, ids ...string) (int64, error) {
-	return s.XAckCtx(context.Background(), stream, group, ids...)
-}
-
-func (s *Redis) XAckCtx(ctx context.Context, stream string, group string, ids ...string) (int64, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return 0, err
-	}
-	return conn.XAck(ctx, stream, group, ids...).Result()
-}
-
-/**
- * streams: list of streams and ids, e.g. stream1 stream2 id1 id2
- */
-func (s *Redis) XReadGroup(group string, consumerId string, count int64, block time.Duration, noAck bool, streams ...string) ([]red.XStream, error) {
-	return s.XReadGroupCtx(context.Background(), group, consumerId, count, block, noAck, streams...)
-}
-
-func (s *Redis) XReadGroupCtx(ctx context.Context, group string, consumerId string, count int64, block time.Duration, noAck bool, streams ...string) ([]red.XStream, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return nil, err
-	}
-	return conn.XReadGroup(ctx, &red.XReadGroupArgs{
-		Group:    group,
-		Consumer: consumerId,
-		Count:    count,
-		Block:    block,
-		NoAck:    noAck,
-		Streams:  streams,
-	}).Result()
 }
 
 func (s *Redis) checkConnection(pingTimeout time.Duration) error {
