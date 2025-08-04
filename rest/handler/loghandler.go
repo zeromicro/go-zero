@@ -24,8 +24,9 @@ import (
 )
 
 const (
-	limitBodyBytes       = 1024
-	defaultSlowThreshold = time.Millisecond * 500
+	limitBodyBytes         = 1024
+	limitDetailedBodyBytes = 4096
+	defaultSlowThreshold   = time.Millisecond * 500
 )
 
 var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
@@ -94,7 +95,8 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 		lrw := newDetailLoggedResponseWriter(rw, &buf)
 
 		var dup io.ReadCloser
-		r.Body, dup = iox.DupReadCloser(r.Body)
+		// https://github.com/zeromicro/go-zero/issues/3564
+		r.Body, dup = iox.LimitDupReadCloser(r.Body, limitDetailedBodyBytes)
 		logs := new(internal.LogCollector)
 		next.ServeHTTP(lrw, r.WithContext(internal.WithLogCollector(r.Context(), logs)))
 		r.Body = dup

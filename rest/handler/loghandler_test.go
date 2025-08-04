@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
@@ -86,6 +87,26 @@ func TestLogHandlerSlow(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 	}
 }
+
+func TestDetailedLogHandler_LargeBody(t *testing.T) {
+	lbuf := logtest.NewCollector(t)
+
+	var buf bytes.Buffer
+	for i := 0; i < limitDetailedBodyBytes<<2; i++ {
+		buf.WriteByte('a')
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "http://localhost", &buf)
+	h := DetailedLogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(io.Discard, r.Body)
+	}))
+	resp := httptest.NewRecorder()
+	h.ServeHTTP(resp, req)
+
+	// extra 200 for the length of POST request headers
+	assert.True(t, len(lbuf.Content()) < limitDetailedBodyBytes+200)
+}
+
 func TestDetailedLogHandler_Hijack(t *testing.T) {
 	resp := httptest.NewRecorder()
 	writer := &detailLoggedResponseWriter{
@@ -111,6 +132,7 @@ func TestDetailedLogHandler_Hijack(t *testing.T) {
 		_, _, _ = writer.Hijack()
 	})
 }
+
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
 	SetSlowThreshold(time.Second)

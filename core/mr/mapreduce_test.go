@@ -39,6 +39,36 @@ func TestFinish(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestFinishWithPartialErrors(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	errDummy := errors.New("dummy")
+
+	t.Run("one error", func(t *testing.T) {
+		err := Finish(func() error {
+			return errDummy
+		}, func() error {
+			return nil
+		}, func() error {
+			return nil
+		})
+
+		assert.Equal(t, errDummy, err)
+	})
+
+	t.Run("two errors", func(t *testing.T) {
+		err := Finish(func() error {
+			return errDummy
+		}, func() error {
+			return errDummy
+		}, func() error {
+			return nil
+		})
+
+		assert.Equal(t, errDummy, err)
+	})
+}
+
 func TestFinishNone(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
