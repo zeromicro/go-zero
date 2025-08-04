@@ -1,7 +1,7 @@
 coverage:
   status:
     patch: true
-    project: false # disabled because project coverage is not stable
+    project: true
 comment:
   layout: "flags, files"
   behavior: once

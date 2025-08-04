@@ -29,8 +29,8 @@ func TraceHandler(serviceName, path string, opts ...TraceOption) func(http.Handl
 		opt(&options)
 	}
 
-	ignorePaths := collection.NewSet()
-	ignorePaths.AddStr(options.traceIgnorePaths...)
+	ignorePaths := collection.NewSet[string]()
+	ignorePaths.Add(options.traceIgnorePaths...)
 
 	return func(next http.Handler) http.Handler {
 		tracer := otel.Tracer(trace.TraceName)

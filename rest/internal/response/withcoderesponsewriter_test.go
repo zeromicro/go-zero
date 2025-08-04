@@ -46,3 +46,15 @@ func TestWithCodeResponseWriter_Hijack(t *testing.T) {
 		writer.Hijack()
 	})
 }
+
+func TestWithCodeResponseWriter_Unwrap(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := NewWithCodeResponseWriter(resp)
+	unwrapped := writer.Unwrap()
+	assert.Equal(t, resp, unwrapped)
+
+	// Test with a nested WithCodeResponseWriter
+	nestedWriter := NewWithCodeResponseWriter(writer)
+	unwrappedNested := nestedWriter.Unwrap()
+	assert.Equal(t, resp, unwrappedNested)
+}

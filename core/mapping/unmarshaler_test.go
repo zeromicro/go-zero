@@ -4679,6 +4679,23 @@ func TestUnmarshal_EnvInt(t *testing.T) {
 	}
 }
 
+func TestUnmarshal_EnvInt64(t *testing.T) {
+	type Value struct {
+		Age int64 `key:"age,env=TEST_NAME_INT64"`
+	}
+
+	const (
+		envName = "TEST_NAME_INT64"
+		envVal  = "88"
+	)
+	t.Setenv(envName, envVal)
+
+	var v Value
+	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
+		assert.Equal(t, int64(88), v.Age)
+	}
+}
+
 func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
 	type Value struct {
 		Age int `key:"age,env=TEST_NAME_INT"`
@@ -4784,20 +4801,33 @@ func TestUnmarshal_EnvBoolBad(t *testing.T) {
 }
 
 func TestUnmarshal_EnvDuration(t *testing.T) {
-	type Value struct {
-		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
-	}
-
 	const (
 		envName = "TEST_NAME_DURATION"
 		envVal  = "1s"
 	)
 	t.Setenv(envName, envVal)
 
-	var v Value
-	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
-		assert.Equal(t, time.Second, v.Duration)
-	}
+	t.Run("valid duration", func(t *testing.T) {
+		type Value struct {
+			Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
+		}
+
+		var v Value
+		if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
+			assert.Equal(t, time.Second, v.Duration)
+		}
+	})
+
+	t.Run("ptr of duration", func(t *testing.T) {
+		type Value struct {
+			Duration *time.Duration `key:"duration,env=TEST_NAME_DURATION"`
+		}
+
+		var v Value
+		if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
+			assert.Equal(t, time.Second, *v.Duration)
+		}
+	})
 }
 
 func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
@@ -6050,6 +6080,105 @@ func TestParseJsonStringValue(t *testing.T) {
 		assert.NotPanics(t, func() {
 			assert.Error(t, UnmarshalJsonMap(input, &v))
 		})
+	})
+}
+
+// issue #5033, string type
+func TestUnmarshalFromEnvString(t *testing.T) {
+	t.Setenv("STRING_ENV", "dev")
+
+	t.Run("by value", func(t *testing.T) {
+		type (
+			Env    string
+			Config struct {
+				Env Env `json:",env=STRING_ENV,default=prod"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env("dev"), c.Env)
+		}
+	})
+
+	t.Run("by ptr", func(t *testing.T) {
+		type (
+			Env    string
+			Config struct {
+				Env *Env `json:",env=STRING_ENV,default=prod"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env("dev"), *c.Env)
+		}
+	})
+}
+
+// issue #5033, bool type
+func TestUnmarshalFromEnvBool(t *testing.T) {
+	t.Setenv("BOOL_ENV", "true")
+
+	t.Run("by value", func(t *testing.T) {
+		type (
+			Env    bool
+			Config struct {
+				Env Env `json:",env=BOOL_ENV,default=false"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(true), c.Env)
+		}
+	})
+
+	t.Run("by ptr", func(t *testing.T) {
+		type (
+			Env    bool
+			Config struct {
+				Env *Env `json:",env=BOOL_ENV,default=false"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(true), *c.Env)
+		}
+	})
+}
+
+// issue #5033, customized int type
+func TestUnmarshalFromEnvInt(t *testing.T) {
+	t.Setenv("INT_ENV", "2")
+
+	t.Run("by value", func(t *testing.T) {
+		type (
+			Env    int
+			Config struct {
+				Env Env `json:",env=INT_ENV,default=0"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(2), c.Env)
+		}
+	})
+
+	t.Run("by ptr", func(t *testing.T) {
+		type (
+			Env    int
+			Config struct {
+				Env *Env `json:",env=INT_ENV,default=0"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(2), *c.Env)
+		}
 	})
 }
 

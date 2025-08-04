@@ -9,7 +9,7 @@ import (
 )
 
 func isPostJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
-	if strings.EqualFold(method, http.MethodPost) {
+	if !strings.EqualFold(method, http.MethodPost) {
 		return "", false
 	}
 	structType, ok := tp.(apiSpec.DefineStruct)

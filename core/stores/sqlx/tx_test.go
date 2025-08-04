@@ -117,7 +117,7 @@ func TestTxExceptions(t *testing.T) {
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		conn := &commonSqlConn{
-			connProv: func() (*sql.DB, error) {
+			connProv: func(ctx context.Context) (*sql.DB, error) {
 				return nil, errors.New("foo")
 			},
 			beginTx: begin,
