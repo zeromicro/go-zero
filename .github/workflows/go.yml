@@ -41,12 +41,6 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v5
-        with:
-          file: ./coverage.txt
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
 
   test-win:
     name: Windows

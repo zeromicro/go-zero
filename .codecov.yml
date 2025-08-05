@@ -1,0 +1,13 @@
+coverage:
+  status:
+    patch: true
+    project: true
+comment:
+  layout: "flags, files"
+  behavior: once
+  require_changes: true
+ignore:
+  - "tools"
+  - "**/mock"
+  - "**/*_mock.go"
+  - "**/*test"
