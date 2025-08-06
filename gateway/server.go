@@ -276,6 +276,14 @@ func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server)
 	}
 }
 
+// WithMiddleware adds one or more middleware functions to process HTTP requests.
+// Multiple middlewares will be executed in the order they were passed (like an onion model).
+func WithMiddleware(middlewares ...rest.Middleware) func(*Server) {
+	return func(s *Server) {
+		s.middlewares = append(s.middlewares, middlewares...)
+	}
+}
+
 func buildRequestWithNewTarget(r *http.Request, target *HttpClientConf) (*http.Request, error) {
 	u := *r.URL
 	u.Host = target.Target
