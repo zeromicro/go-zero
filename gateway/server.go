@@ -189,7 +189,7 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 }
 
 func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		req, err := buildRequestWithNewTarget(r, target)
 		if err != nil {
@@ -225,6 +225,7 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			logc.Error(r.Context(), err)
 		}
 	}
+	return s.buildChainHandler(handler)
 }
 
 func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route]) {
