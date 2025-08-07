@@ -18,7 +18,6 @@ import (
 )
 
 const (
-	dateFormat      = "2006-01-02"
 	hoursPerDay     = 24
 	bufferSize      = 100
 	defaultDirMode  = 0o755
@@ -116,7 +115,7 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 	}
 
 	var buf strings.Builder
-	boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(dateFormat)
+	boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(time.DateOnly)
 	buf.WriteString(r.filename)
 	buf.WriteString(r.delimiter)
 	buf.WriteString(boundary)
@@ -425,7 +424,7 @@ func compressLogFile(file string) {
 }
 
 func getNowDate() string {
-	return time.Now().Format(dateFormat)
+	return time.Now().Format(time.DateOnly)
 }
 
 func getNowDateInRFC3339Format() string {

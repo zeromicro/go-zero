@@ -1,7 +1,9 @@
 package mcp
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -14,9 +16,26 @@ type Cursor string
 type Request struct {
 	SessionId string          `form:"session_id"` // Session identifier for client tracking
 	JsonRpc   string          `json:"jsonrpc"`    // Must be "2.0" per JSON-RPC spec
-	ID        int64           `json:"id"`         // Request identifier for matching responses
+	ID        any             `json:"id"`         // Request identifier for matching responses
 	Method    string          `json:"method"`     // Method name to invoke
 	Params    json.RawMessage `json:"params"`     // Parameters for the method
+}
+
+func (r Request) isNotification() (bool, error) {
+	switch val := r.ID.(type) {
+	case int:
+		return val == 0, nil
+	case int64:
+		return val == 0, nil
+	case float64:
+		return val == 0.0, nil
+	case string:
+		return len(val) == 0, nil
+	case nil:
+		return true, nil
+	default:
+		return false, fmt.Errorf("invalid type %T", val)
+	}
 }
 
 type PaginatedParams struct {
@@ -45,19 +64,18 @@ type ListToolsResult struct {
 
 // Message Content Types
 
-// roleType represents the sender or recipient of messages in a conversation
-type roleType string
+// RoleType represents the sender or recipient of messages in a conversation
+type RoleType string
 
 // PromptArgument defines a single argument that can be passed to a prompt
 type PromptArgument struct {
 	Name        string `json:"name"`                  // Argument name
 	Description string `json:"description,omitempty"` // Human-readable description
 	Required    bool   `json:"required,omitempty"`    // Whether this argument is required
-	Default     string `json:"default,omitempty"`     // Default value if not provided
 }
 
 // PromptHandler is a function that dynamically generates prompt content
-type PromptHandler func(args map[string]string) ([]PromptMessage, error)
+type PromptHandler func(ctx context.Context, args map[string]string) ([]PromptMessage, error)
 
 // Prompt represents an MCP Prompt definition
 type Prompt struct {
@@ -70,29 +88,41 @@ type Prompt struct {
 
 // PromptMessage represents a message in a conversation
 type PromptMessage struct {
-	Role    roleType `json:"role"`    // Message sender role
+	Role    RoleType `json:"role"`    // Message sender role
 	Content any      `json:"content"` // Message content (TextContent, ImageContent, etc.)
 }
 
 // TextContent represents text content in a message
 type TextContent struct {
-	Type        string       `json:"type"`                  // Always "text"
 	Text        string       `json:"text"`                  // The text content
 	Annotations *Annotations `json:"annotations,omitempty"` // Optional annotations
 }
 
+type typedTextContent struct {
+	Type string `json:"type"`
+	TextContent
+}
+
 // ImageContent represents image data in a message
 type ImageContent struct {
-	Type     string `json:"type"`     // Always "image"
 	Data     string `json:"data"`     // Base64-encoded image data
 	MimeType string `json:"mimeType"` // MIME type (e.g., "image/png")
 }
 
+type typedImageContent struct {
+	Type string `json:"type"`
+	ImageContent
+}
+
 // AudioContent represents audio data in a message
 type AudioContent struct {
-	Type     string `json:"type"`     // Always "audio"
 	Data     string `json:"data"`     // Base64-encoded audio data
 	MimeType string `json:"mimeType"` // MIME type (e.g., "audio/mp3")
+}
+
+type typedAudioContent struct {
+	Type string `json:"type"`
+	AudioContent
 }
 
 // FileContent represents file content
@@ -104,27 +134,20 @@ type FileContent struct {
 
 // EmbeddedResource represents a resource embedded in a message
 type EmbeddedResource struct {
-	Type     string `json:"type"` // Always "resource"
-	Resource struct {
-		URI      string `json:"uri"`            // Resource URI
-		MimeType string `json:"mimeType"`       // MIME type of the resource
-		Text     string `json:"text,omitempty"` // Text content (if available)
-		Blob     string `json:"blob,omitempty"` // Base64 encoded blob data (if available)
-	} `json:"resource"` // The resource data
+	Type     string          `json:"type"`     // Always "resource"
+	Resource ResourceContent `json:"resource"` // The resource data
 }
 
 // Annotations provides additional metadata for content
 type Annotations struct {
-	Audience []roleType `json:"audience,omitempty"` // Who should see this content
+	Audience []RoleType `json:"audience,omitempty"` // Who should see this content
 	Priority *float64   `json:"priority,omitempty"` // Optional priority (0-1)
 }
 
 // Tool-related Types
 
-// Tool Definition Types
-
 // ToolHandler is a function that handles tool calls
-type ToolHandler func(params map[string]any) (any, error)
+type ToolHandler func(ctx context.Context, params map[string]any) (any, error)
 
 // Tool represents a Model Context Protocol Tool definition
 type Tool struct {
@@ -136,7 +159,7 @@ type Tool struct {
 
 // InputSchema represents tool's input schema in JSON Schema format
 type InputSchema struct {
-	Type       string         `json:"type"`               // Always "object" for tool inputs
+	Type       string         `json:"type"`
 	Properties map[string]any `json:"properties"`         // Property definitions
 	Required   []string       `json:"required,omitempty"` // List of required properties
 }
@@ -144,8 +167,8 @@ type InputSchema struct {
 // CallToolResult represents a tool call result that conforms to the MCP schema
 type CallToolResult struct {
 	Result
-	Content []interface{} `json:"content"`           // Content items (text, images, etc.)
-	IsError bool          `json:"isError,omitempty"` // True if tool execution failed
+	Content []any `json:"content"`           // Content items (text, images, etc.)
+	IsError bool  `json:"isError,omitempty"` // True if tool execution failed
 }
 
 // Resource represents a Model Context Protocol Resource definition
@@ -158,7 +181,7 @@ type Resource struct {
 }
 
 // ResourceHandler is a function that handles resource read requests
-type ResourceHandler func() (ResourceContent, error)
+type ResourceHandler func(ctx context.Context) (ResourceContent, error)
 
 // ResourceContent represents the content of a resource
 type ResourceContent struct {
@@ -239,7 +262,7 @@ type errorObj struct {
 // Response represents a JSON-RPC response
 type Response struct {
 	JsonRpc string    `json:"jsonrpc"`         // Always "2.0"
-	ID      int64     `json:"id"`              // Same as request ID
+	ID      any       `json:"id"`              // Same as request ID
 	Result  any       `json:"result"`          // Result object (null if error)
 	Error   *errorObj `json:"error,omitempty"` // Error object (null if success)
 }

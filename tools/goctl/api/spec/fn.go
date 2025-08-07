@@ -3,9 +3,9 @@ package spec
 import (
 	"errors"
 	"path"
+	"slices"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
@@ -64,7 +64,7 @@ func (m Member) IsOptional() bool {
 	tag := m.Tags()
 	for _, item := range tag {
 		if item.Key == bodyTagKey || item.Key == formTagKey {
-			if stringx.Contains(item.Options, "optional") {
+			if slices.Contains(item.Options, "optional") {
 				return true
 			}
 		}
@@ -81,7 +81,7 @@ func (m Member) IsOmitEmpty() bool {
 	tag := m.Tags()
 	for _, item := range tag {
 		if item.Key == bodyTagKey {
-			if stringx.Contains(item.Options, "omitempty") {
+			if slices.Contains(item.Options, "omitempty") {
 				return true
 			}
 		}
@@ -93,7 +93,7 @@ func (m Member) IsOmitEmpty() bool {
 func (m Member) GetPropertyName() (string, error) {
 	tags := m.Tags()
 	for _, tag := range tags {
-		if stringx.Contains(definedKeys, tag.Key) {
+		if slices.Contains(definedKeys, tag.Key) {
 			if tag.Name == "-" {
 				return util.Untitle(m.Name), nil
 			}

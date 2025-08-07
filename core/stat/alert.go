@@ -19,7 +19,6 @@ import (
 const (
 	clusterNameKey = "CLUSTER_NAME"
 	testEnv        = "test.v"
-	timeFormat     = "2006-01-02 15:04:05"
 )
 
 var (
@@ -45,7 +44,7 @@ func Report(msg string) {
 	if fn != nil {
 		reported := lessExecutor.DoOrDiscard(func() {
 			var builder strings.Builder
-			builder.WriteString(fmt.Sprintln(time.Now().Format(timeFormat)))
+			builder.WriteString(fmt.Sprintln(time.Now().Format(time.DateTime)))
 			if len(clusterName) > 0 {
 				builder.WriteString(fmt.Sprintf("cluster: %s\n", clusterName))
 			}

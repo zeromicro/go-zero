@@ -1,13 +1,12 @@
 package prof
 
 import (
-	"bytes"
-	"strconv"
+	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/threading"
 )
@@ -28,46 +27,15 @@ type (
 
 const flushInterval = 5 * time.Minute
 
-var (
-	pc = &profileCenter{
-		slots: make(map[string]*profileSlot),
-	}
-	once sync.Once
-)
-
-func report(name string, duration time.Duration) {
-	updated := func() bool {
-		pc.lock.RLock()
-		defer pc.lock.RUnlock()
-
-		slot, ok := pc.slots[name]
-		if ok {
-			atomic.AddInt64(&slot.lifecount, 1)
-			atomic.AddInt64(&slot.lastcount, 1)
-			atomic.AddInt64(&slot.lifecycle, int64(duration))
-			atomic.AddInt64(&slot.lastcycle, int64(duration))
-		}
-		return ok
-	}()
-
-	if !updated {
-		func() {
-			pc.lock.Lock()
-			defer pc.lock.Unlock()
-
-			pc.slots[name] = &profileSlot{
-				lifecount: 1,
-				lastcount: 1,
-				lifecycle: int64(duration),
-				lastcycle: int64(duration),
-			}
-		}()
-	}
-
-	once.Do(flushRepeatly)
+var pc = &profileCenter{
+	slots: make(map[string]*profileSlot),
 }
 
-func flushRepeatly() {
+func init() {
+	flushRepeatedly()
+}
+
+func flushRepeatedly() {
 	threading.GoSafe(func() {
 		for {
 			time.Sleep(flushInterval)
@@ -76,42 +44,64 @@ func flushRepeatly() {
 	})
 }
 
+func report(name string, duration time.Duration) {
+	slot := loadOrStoreSlot(name, duration)
+
+	atomic.AddInt64(&slot.lifecount, 1)
+	atomic.AddInt64(&slot.lastcount, 1)
+	atomic.AddInt64(&slot.lifecycle, int64(duration))
+	atomic.AddInt64(&slot.lastcycle, int64(duration))
+}
+
+func loadOrStoreSlot(name string, duration time.Duration) *profileSlot {
+	pc.lock.RLock()
+	slot, ok := pc.slots[name]
+	pc.lock.RUnlock()
+
+	if ok {
+		return slot
+	}
+
+	pc.lock.Lock()
+	defer pc.lock.Unlock()
+
+	// double-check
+	if slot, ok = pc.slots[name]; ok {
+		return slot
+	}
+
+	slot = &profileSlot{}
+	pc.slots[name] = slot
+	return slot
+}
+
 func generateReport() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("Profiling report\n")
-	var data [][]string
+	var builder strings.Builder
+	builder.WriteString("Profiling report\n")
+	builder.WriteString("QUEUE,LIFECOUNT,LIFECYCLE,LASTCOUNT,LASTCYCLE\n")
+
 	calcFn := func(total, count int64) string {
 		if count == 0 {
 			return "-"
 		}
-
 		return (time.Duration(total) / time.Duration(count)).String()
 	}
 
-	func() {
-		pc.lock.Lock()
-		defer pc.lock.Unlock()
+	pc.lock.Lock()
+	for key, slot := range pc.slots {
+		builder.WriteString(fmt.Sprintf("%s,%d,%s,%d,%s\n",
+			key,
+			slot.lifecount,
+			calcFn(slot.lifecycle, slot.lifecount),
+			slot.lastcount,
+			calcFn(slot.lastcycle, slot.lastcount),
+		))
 
-		for key, slot := range pc.slots {
-			data = append(data, []string{
-				key,
-				strconv.FormatInt(slot.lifecount, 10),
-				calcFn(slot.lifecycle, slot.lifecount),
-				strconv.FormatInt(slot.lastcount, 10),
-				calcFn(slot.lastcycle, slot.lastcount),
-			})
+		// reset last cycle stats
+		atomic.StoreInt64(&slot.lastcount, 0)
+		atomic.StoreInt64(&slot.lastcycle, 0)
+	}
+	pc.lock.Unlock()
 
-			// reset the data for last cycle
-			slot.lastcount = 0
-			slot.lastcycle = 0
-		}
-	}()
-
-	table := tablewriter.NewWriter(&buffer)
-	table.SetHeader([]string{"QUEUE", "LIFECOUNT", "LIFECYCLE", "LASTCOUNT", "LASTCYCLE"})
-	table.SetBorder(false)
-	table.AppendBulk(data)
-	table.Render()
-
-	return buffer.String()
+	return builder.String()
 }
