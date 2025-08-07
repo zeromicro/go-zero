@@ -82,7 +82,7 @@ func TestExtractValidTraceContext(t *testing.T) {
 			}),
 		},
 		{
-			name:        "invalid tracestate perserves traceparent",
+			name:        "invalid tracestate preserves traceparent",
 			traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00",
 			tracestate:  "invalid$@#=invalid",
 			sc: trace.NewSpanContext(trace.SpanContextConfig{

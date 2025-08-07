@@ -1741,7 +1741,7 @@ func TestHandleSSEPing(t *testing.T) {
 	mock.server.clientsLock.Unlock()
 
 	assert.Equal(t, 1, clientCount, "One client should be added during the test")
-	assert.Equal(t, 0, finalClientCount, "Client should be cleaned up after context cancelation")
+	assert.Equal(t, 0, finalClientCount, "Client should be cleaned up after context cancellation")
 }
 
 // TestHandleSSEPing tests the automatic ping functionality in the SSE handler
