@@ -57,13 +57,13 @@ func (m Member) Tags() []*Tag {
 
 // IsOptional returns true if tag is optional
 func (m Member) IsOptional() bool {
-	if !m.IsBodyMember() {
+	if !m.IsBodyMember() && !m.IsFormMember() {
 		return false
 	}
 
 	tag := m.Tags()
 	for _, item := range tag {
-		if item.Key == bodyTagKey {
+		if item.Key == bodyTagKey || item.Key == formTagKey {
 			if stringx.Contains(item.Options, "optional") {
 				return true
 			}

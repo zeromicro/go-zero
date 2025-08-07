@@ -34,6 +34,10 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 		return err
 	}
 
+	if strings.Contains(name, "-") {
+		name = fmt.Sprintf("'%s'", name)
+	}
+
 	comment := member.GetComment()
 	if len(comment) > 0 {
 		comment = strings.TrimPrefix(comment, "//")

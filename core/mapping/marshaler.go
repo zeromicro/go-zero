@@ -142,7 +142,7 @@ func validateOptional(field reflect.StructField, value reflect.Value) error {
 		if value.IsNil() {
 			return fmt.Errorf("field %q is nil", field.Name)
 		}
-	case reflect.Array, reflect.Slice, reflect.Map:
+	case reflect.Slice, reflect.Map:
 		if value.IsNil() || value.Len() == 0 {
 			return fmt.Errorf("field %q is empty", field.Name)
 		}
