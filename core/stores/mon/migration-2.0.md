@@ -13,4 +13,7 @@ After completing the mod upgrade, code changes are typically unnecessary in the 
 go.mongodb.org/mongo-driver/v2/bson/bsonrw    => go.mongodb.org/mongo-driver/v2/bson
 go.mongodb.org/mongo-driver/v2/bson/bsoncodec => go.mongodb.org/mongo-driver/v2/bson
 go.mongodb.org/mongo-driver/v2/bson/primitive => go.mongodb.org/mongo-driver/v2/bson
-```   
+```
+
+See the following resources to learn more about upgrading from version 1.x to 2.0.:
+https://raw.githubusercontent.com/mongodb/mongo-go-driver/refs/heads/master/docs/migration-2.0.md
