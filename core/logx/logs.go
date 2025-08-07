@@ -187,39 +187,60 @@ func Errorw(msg string, fields ...LogField) {
 
 // Field returns a LogField for the given key and value.
 func Field(key string, value any) LogField {
+	var fieldValue any
+
 	switch val := value.(type) {
 	case error:
-		return LogField{Key: key, Value: encodeError(val)}
+		fieldValue = func() any {
+			return encodeError(val)
+		}
 	case []error:
-		var errs []string
-		for _, err := range val {
-			errs = append(errs, encodeError(err))
+		fieldValue = func() any {
+			var errs []string
+			for _, err := range val {
+				errs = append(errs, encodeError(err))
+			}
+			return errs
 		}
-		return LogField{Key: key, Value: errs}
 	case time.Duration:
-		return LogField{Key: key, Value: fmt.Sprint(val)}
+		fieldValue = func() any {
+			return fmt.Sprint(val)
+		}
 	case []time.Duration:
-		var durs []string
-		for _, dur := range val {
-			durs = append(durs, fmt.Sprint(dur))
+		fieldValue = func() any {
+			var durs []string
+			for _, dur := range val {
+				durs = append(durs, fmt.Sprint(dur))
+			}
+			return durs
 		}
-		return LogField{Key: key, Value: durs}
 	case []time.Time:
-		var times []string
-		for _, t := range val {
-			times = append(times, fmt.Sprint(t))
+		fieldValue = func() any {
+			var times []string
+			for _, t := range val {
+				times = append(times, fmt.Sprint(t))
+			}
+			return times
 		}
-		return LogField{Key: key, Value: times}
 	case fmt.Stringer:
-		return LogField{Key: key, Value: encodeStringer(val)}
-	case []fmt.Stringer:
-		var strs []string
-		for _, str := range val {
-			strs = append(strs, encodeStringer(str))
+		fieldValue = func() any {
+			return encodeStringer(val)
 		}
-		return LogField{Key: key, Value: strs}
+	case []fmt.Stringer:
+		fieldValue = func() any {
+			var strs []string
+			for _, str := range val {
+				strs = append(strs, encodeStringer(str))
+			}
+			return strs
+		}
 	default:
-		return LogField{Key: key, Value: val}
+		fieldValue = val
+	}
+
+	return LogField{
+		Key:   key,
+		Value: fieldValue,
 	}
 }
 

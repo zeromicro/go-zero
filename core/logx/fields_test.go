@@ -33,38 +33,38 @@ func TestAddGlobalFields(t *testing.T) {
 }
 
 func TestContextWithFields(t *testing.T) {
-	ctx := ContextWithFields(context.Background(), Field("a", 1), Field("b", 2))
+	ctx := ContextWithFields(context.Background(), LogField{"a", 1}, LogField{"b", 2})
 	vals := ctx.Value(fieldsKey{})
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
 	assert.True(t, ok)
-	assert.EqualValues(t, []LogField{Field("a", 1), Field("b", 2)}, fields)
+	assert.EqualValues(t, []LogField{{"a", 1}, {"b", 2}}, fields)
 }
 
 func TestWithFields(t *testing.T) {
-	ctx := WithFields(context.Background(), Field("a", 1), Field("b", 2))
+	ctx := WithFields(context.Background(), LogField{"a", 1}, LogField{"b", 2})
 	vals := ctx.Value(fieldsKey{})
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
 	assert.True(t, ok)
-	assert.EqualValues(t, []LogField{Field("a", 1), Field("b", 2)}, fields)
+	assert.EqualValues(t, []LogField{{"a", 1}, {"b", 2}}, fields)
 }
 
 func TestWithFieldsAppend(t *testing.T) {
 	var dummyKey struct{}
 	ctx := context.WithValue(context.Background(), dummyKey, "dummy")
-	ctx = ContextWithFields(ctx, Field("a", 1), Field("b", 2))
-	ctx = ContextWithFields(ctx, Field("c", 3), Field("d", 4))
+	ctx = ContextWithFields(ctx, LogField{"a", 1}, LogField{"b", 2})
+	ctx = ContextWithFields(ctx, LogField{"c", 3}, LogField{"d", 4})
 	vals := ctx.Value(fieldsKey{})
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
 	assert.True(t, ok)
 	assert.Equal(t, "dummy", ctx.Value(dummyKey))
 	assert.EqualValues(t, []LogField{
-		Field("a", 1),
-		Field("b", 2),
-		Field("c", 3),
-		Field("d", 4),
+		{"a", 1},
+		{"b", 2},
+		{"c", 3},
+		{"d", 4},
 	}, fields)
 }
 
@@ -72,11 +72,11 @@ func TestWithFieldsAppendCopy(t *testing.T) {
 	const count = 10
 	ctx := context.Background()
 	for i := 0; i < count; i++ {
-		ctx = ContextWithFields(ctx, Field(strconv.Itoa(i), 1))
+		ctx = ContextWithFields(ctx, LogField{strconv.Itoa(i), 1})
 	}
 
-	af := Field("foo", 1)
-	bf := Field("bar", 2)
+	af := LogField{"foo", 1}
+	bf := LogField{"bar", 2}
 	ctxa := ContextWithFields(ctx, af)
 	ctxb := ContextWithFields(ctx, bf)
 
