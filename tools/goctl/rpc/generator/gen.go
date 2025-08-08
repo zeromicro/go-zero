@@ -26,6 +26,8 @@ type ZRpcContext struct {
 	GrpcOutput string
 	// Output is the output directory of the generated files.
 	Output string
+	// RpcName is the rpc service name
+	RpcName string
 	// Multiple is the flag to indicate whether the proto file is generated in multiple mode.
 	Multiple bool
 	// Whether to generate rpc client
@@ -67,7 +69,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenEtc(dirCtx, proto, g.cfg)
+	err = g.GenEtc(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
