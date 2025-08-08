@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/session"
 )
 
 const (
@@ -561,8 +562,11 @@ func (p keepablePromise) keep(err error) error {
 func acceptable(err error) bool {
 	return err == nil || isDupKeyError(err) ||
 		errorx.In(err, mongo.ErrNoDocuments, mongo.ErrNilValue,
-			mongo.ErrNilDocument, mongo.ErrNilCursor, mongo.ErrEmptySlice)
-	// session errors
+			mongo.ErrNilDocument, mongo.ErrNilCursor, mongo.ErrEmptySlice,
+			// session errors
+			session.ErrSessionEnded, session.ErrNoTransactStarted, session.ErrTransactInProgress,
+			session.ErrAbortAfterCommit, session.ErrAbortTwice, session.ErrCommitAfterAbort,
+			session.ErrUnackWCUnsupported, session.ErrSnapshotTransaction)
 }
 
 func isDupKeyError(err error) bool {
