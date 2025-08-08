@@ -71,6 +71,7 @@ func (s keepAliveServer) Start(fn RegisterFn) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.registerTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 
 l:
 	for {
