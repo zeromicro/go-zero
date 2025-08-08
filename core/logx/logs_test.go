@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -856,6 +857,95 @@ func TestWithKeepDays(t *testing.T) {
 	assert.Equal(t, 1, opt.keepDays)
 }
 
+func TestWithField_LogLevel(t *testing.T) {
+	tests := []struct {
+		name  string
+		level uint32
+		fn    func(string, ...LogField)
+		count int32
+	}{
+		{
+			name:  "debug/info",
+			level: DebugLevel,
+			fn:    Infow,
+			count: 1,
+		},
+		{
+			name:  "info/error",
+			level: InfoLevel,
+			fn:    Errorw,
+			count: 1,
+		},
+		{
+			name:  "info/info",
+			level: InfoLevel,
+			fn:    Infow,
+			count: 1,
+		},
+		{
+			name:  "info/severe",
+			level: InfoLevel,
+			fn:    Errorw,
+			count: 1,
+		},
+		{
+			name:  "error/info",
+			level: ErrorLevel,
+			fn:    Infow,
+			count: 0,
+		},
+		{
+			name:  "error/debug",
+			level: ErrorLevel,
+			fn:    Debugw,
+			count: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			olevel := atomic.LoadUint32(&logLevel)
+			SetLevel(tt.level)
+			defer SetLevel(olevel)
+
+			var val countingStringer
+			tt.fn("hello there", Field("foo", &val))
+			assert.Equal(t, tt.count, val.Count())
+		})
+	}
+}
+
+func TestWithField_LogLevelWithContext(t *testing.T) {
+	t.Run("context more than once with info/info", func(t *testing.T) {
+		olevel := atomic.LoadUint32(&logLevel)
+		SetLevel(InfoLevel)
+		defer SetLevel(olevel)
+
+		var val countingStringer
+		ctx := ContextWithFields(context.Background(), Field("foo", &val))
+		logger := WithContext(ctx)
+		logger.Info("hello there")
+		logger.Info("hello there")
+		logger.Info("hello there")
+		assert.True(t, val.Count() > 0)
+	})
+
+	t.Run("context more than once with error/info", func(t *testing.T) {
+		olevel := atomic.LoadUint32(&logLevel)
+		SetLevel(ErrorLevel)
+		defer SetLevel(olevel)
+
+		var val countingStringer
+		ctx := ContextWithFields(context.Background(), Field("foo", &val))
+		logger := WithContext(ctx)
+		logger.Info("hello there")
+		logger.Info("hello there")
+		logger.Info("hello there")
+		assert.Equal(t, int32(0), val.Count())
+	})
+}
+
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var buf []byte
@@ -1053,4 +1143,17 @@ type panicStringer struct {
 
 func (s panicStringer) String() string {
 	panic("panic")
+}
+
+type countingStringer struct {
+	count int32
+}
+
+func (s *countingStringer) Count() int32 {
+	return atomic.LoadInt32(&s.count)
+}
+
+func (s *countingStringer) String() string {
+	atomic.AddInt32(&s.count, 1)
+	return "countingStringer"
 }

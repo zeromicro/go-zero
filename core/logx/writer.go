@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	fatihcolor "github.com/fatih/color"
 	"github.com/zeromicro/go-zero/core/color"
@@ -380,7 +381,10 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
 	for _, field := range fields {
-		entry[field.Key] = maskSensitive(field.Value)
+		// mask sensitive data before processing types,
+		// in case field.Value is a sensitive type and also implemented fmt.Stringer.
+		mval := maskSensitive(field.Value)
+		entry[field.Key] = processFieldValue(mval)
 	}
 
 	switch atomic.LoadUint32(&encoding) {
@@ -392,6 +396,43 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 		entry[levelKey] = level
 		entry[contentKey] = val
 		writeJson(writer, entry)
+	}
+}
+
+func processFieldValue(value any) any {
+	switch val := value.(type) {
+	case error:
+		return encodeError(val)
+	case []error:
+		var errs []string
+		for _, err := range val {
+			errs = append(errs, encodeError(err))
+		}
+		return errs
+	case time.Duration:
+		return fmt.Sprint(val)
+	case []time.Duration:
+		var durs []string
+		for _, dur := range val {
+			durs = append(durs, fmt.Sprint(dur))
+		}
+		return durs
+	case []time.Time:
+		var times []string
+		for _, t := range val {
+			times = append(times, fmt.Sprint(t))
+		}
+		return times
+	case fmt.Stringer:
+		return encodeStringer(val)
+	case []fmt.Stringer:
+		var strs []string
+		for _, str := range val {
+			strs = append(strs, encodeStringer(str))
+		}
+		return strs
+	default:
+		return val
 	}
 }
 
