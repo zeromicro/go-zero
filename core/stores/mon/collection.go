@@ -11,7 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/session"
+	"go.mongodb.org/mongo-driver/v2/x/mongo/driver/session"
 )
 
 const (
