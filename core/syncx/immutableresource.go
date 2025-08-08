@@ -19,7 +19,6 @@ type (
 		resource        any
 		err             error
 		lock            sync.RWMutex
-		refreshLock     sync.Mutex // prevent concurrent refresh operations
 		refreshInterval time.Duration
 		lastTime        *AtomicDuration
 	}
