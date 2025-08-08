@@ -10,7 +10,6 @@ import (
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/sysx"
 )
@@ -187,39 +186,9 @@ func Errorw(msg string, fields ...LogField) {
 
 // Field returns a LogField for the given key and value.
 func Field(key string, value any) LogField {
-	switch val := value.(type) {
-	case error:
-		return LogField{Key: key, Value: encodeError(val)}
-	case []error:
-		errs := make([]string, 0, len(val))
-		for _, err := range val {
-			errs = append(errs, encodeError(err))
-		}
-		return LogField{Key: key, Value: errs}
-	case time.Duration:
-		return LogField{Key: key, Value: fmt.Sprint(val)}
-	case []time.Duration:
-		durs := make([]string, 0, len(val))
-		for _, dur := range val {
-			durs = append(durs, fmt.Sprint(dur))
-		}
-		return LogField{Key: key, Value: durs}
-	case []time.Time:
-		times := make([]string, 0, len(val))
-		for _, t := range val {
-			times = append(times, fmt.Sprint(t))
-		}
-		return LogField{Key: key, Value: times}
-	case fmt.Stringer:
-		return LogField{Key: key, Value: encodeStringer(val)}
-	case []fmt.Stringer:
-		strs := make([]string, 0, len(val))
-		for _, str := range val {
-			strs = append(strs, encodeStringer(str))
-		}
-		return LogField{Key: key, Value: strs}
-	default:
-		return LogField{Key: key, Value: val}
+	return LogField{
+		Key:   key,
+		Value: value,
 	}
 }
 
