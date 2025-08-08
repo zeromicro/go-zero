@@ -39,8 +39,9 @@ func NewRpcPubServer(etcd discov.EtcdConf, listenOn string,
 		return pubClient.KeepAlive()
 	}
 	server := keepAliveServer{
-		registerEtcd: registerEtcd,
-		Server:       NewRpcServer(listenOn, opts...),
+		registerEtcd:    registerEtcd,
+		Server:          NewRpcServer(listenOn, opts...),
+		registerTimeout: time.Duration(etcd.RegisterTimeout) * time.Second,
 	}
 
 	return server, nil
@@ -49,6 +50,7 @@ func NewRpcPubServer(etcd discov.EtcdConf, listenOn string,
 type keepAliveServer struct {
 	registerEtcd func() error
 	Server
+	registerTimeout time.Duration
 }
 
 func (s keepAliveServer) Start(fn RegisterFn) error {
@@ -66,7 +68,7 @@ func (s keepAliveServer) Start(fn RegisterFn) error {
 	}()
 
 	// Wait for the service to start successfully, otherwise the registration service will fail.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), s.registerTimeout)
 	defer cancel()
 	ticker := time.NewTicker(time.Second)
 
