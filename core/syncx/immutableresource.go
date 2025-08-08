@@ -70,9 +70,8 @@ func (ir *ImmutableResource) Get() (any, error) {
 }
 
 func (ir *ImmutableResource) shouldRefresh() bool {
-	now := timex.Now()
 	lastTime := ir.lastTime.Load()
-	return lastTime == 0 || lastTime+ir.refreshInterval < now
+	return lastTime == 0 || lastTime+ir.refreshInterval < timex.Now()
 }
 
 // WithRefreshIntervalOnFailure sets refresh interval on failure.
