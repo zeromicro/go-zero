@@ -172,7 +172,7 @@ func (p pattern) Match(s string) bool {
 }
 
 func (p pattern) list() []string {
-	var ret []string
+	ret := make([]string, 0, len(p))
 	for v := range p {
 		ret = append(ret, v)
 	}
