@@ -50,6 +50,14 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 				requiredFields = append(requiredFields, jsonTagString)
 			}
 
+			if ctx.UseDefinitions {
+				schema := buildSchemaWithDefinitions(ctx, member.Type, example, member.Comment, minimum, maximum, exclusiveMinimum, exclusiveMaximum, defaultValue, enum)
+				if schema != nil {
+					properties[jsonTagString] = *schema
+					return
+				}
+			}
+
 			schema := spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
 					Example: example,
@@ -75,18 +83,103 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 				schema.Properties = p
 				schema.Required = r
 			}
-			if ctx.UseDefinitions {
-				structName, containsStruct := containsStruct(member.Type)
-				if containsStruct {
-					schema.SchemaProps.Ref = spec.MustCreateRef(getRefName(structName))
-				}
-			}
 
 			properties[jsonTagString] = schema
 		})
 	}
 
 	return properties, requiredFields
+}
+
+// buildSchemaWithDefinitions Correctly handle $ref references for composite types
+func buildSchemaWithDefinitions(ctx Context, tp apiSpec.Type, example any, comment string, minimum, maximum *float64, exclusiveMinimum, exclusiveMaximum bool, defaultValue any, enum []any) *spec.Schema {
+	switch val := tp.(type) {
+	case apiSpec.DefineStruct:
+		return &spec.Schema{
+			SwaggerSchemaProps: spec.SwaggerSchemaProps{
+				Example: example,
+			},
+			SchemaProps: spec.SchemaProps{
+				Description: formatComment(comment),
+				Ref:         spec.MustCreateRef(getRefName(val.RawName)),
+			},
+		}
+	case apiSpec.PointerType:
+		return buildSchemaWithDefinitions(ctx, val.Type, example, comment, minimum, maximum, exclusiveMinimum, exclusiveMaximum, defaultValue, enum)
+	case apiSpec.ArrayType:
+		itemSchema := buildSchemaWithDefinitions(ctx, val.Value, nil, "", nil, nil, false, false, nil, nil)
+		if itemSchema != nil {
+			return &spec.Schema{
+				SwaggerSchemaProps: spec.SwaggerSchemaProps{
+					Example: example,
+				},
+				SchemaProps: spec.SchemaProps{
+					Description: formatComment(comment),
+					Type:        spec.StringOrArray{"array"},
+					Items: &spec.SchemaOrArray{
+						Schema: itemSchema,
+					},
+				},
+			}
+		}
+
+		structName, containsStruct := containsStruct(val.Value)
+		if containsStruct {
+			return &spec.Schema{
+				SwaggerSchemaProps: spec.SwaggerSchemaProps{
+					Example: example,
+				},
+				SchemaProps: spec.SchemaProps{
+					Description: formatComment(comment),
+					Type:        spec.StringOrArray{"array"},
+					Items: &spec.SchemaOrArray{
+						Schema: &spec.Schema{
+							SchemaProps: spec.SchemaProps{
+								Ref: spec.MustCreateRef(getRefName(structName)),
+							},
+						},
+					},
+				},
+			}
+		}
+	case apiSpec.MapType:
+		valueSchema := buildSchemaWithDefinitions(ctx, val.Value, nil, "", nil, nil, false, false, nil, nil)
+		if valueSchema != nil {
+			return &spec.Schema{
+				SwaggerSchemaProps: spec.SwaggerSchemaProps{
+					Example: example,
+				},
+				SchemaProps: spec.SchemaProps{
+					Description: formatComment(comment),
+					Type:        spec.StringOrArray{"object"},
+					AdditionalProperties: &spec.SchemaOrBool{
+						Schema: valueSchema,
+					},
+				},
+			}
+		}
+		structName, containsStruct := containsStruct(val.Value)
+		if containsStruct {
+			return &spec.Schema{
+				SwaggerSchemaProps: spec.SwaggerSchemaProps{
+					Example: example,
+				},
+				SchemaProps: spec.SchemaProps{
+					Description: formatComment(comment),
+					Type:        spec.StringOrArray{"object"},
+					AdditionalProperties: &spec.SchemaOrBool{
+						Schema: &spec.Schema{
+							SchemaProps: spec.SchemaProps{
+								Ref: spec.MustCreateRef(getRefName(structName)),
+							},
+						},
+					},
+				},
+			}
+		}
+	}
+
+	return nil
 }
 
 func containsStruct(tp apiSpec.Type) (string, bool) {
