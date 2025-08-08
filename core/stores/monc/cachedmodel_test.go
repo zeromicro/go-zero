@@ -8,6 +8,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -15,6 +16,37 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.uber.org/mock/gomock"
 )
+
+func TestMustNewModel(t *testing.T) {
+	s, err := miniredis.Run()
+	assert.Nil(t, err)
+	original := logx.ExitOnFatal.True()
+	logx.ExitOnFatal.Set(false)
+	defer logx.ExitOnFatal.Set(original)
+
+	assert.Panics(t, func() {
+		MustNewModel("foo", "db", "collectino", cache.CacheConf{
+			cache.NodeConf{
+				RedisConf: redis.RedisConf{
+					Host: s.Addr(),
+					Type: redis.NodeType,
+				},
+				Weight: 100,
+			}})
+	})
+}
+
+func TestMustNewNodeModel(t *testing.T) {
+	s, err := miniredis.Run()
+	assert.Nil(t, err)
+	original := logx.ExitOnFatal.True()
+	logx.ExitOnFatal.Set(false)
+	defer logx.ExitOnFatal.Set(original)
+
+	assert.Panics(t, func() {
+		MustNewNodeModel("foo", "db", "collectino", redis.New(s.Addr()))
+	})
+}
 
 func TestNewModel(t *testing.T) {
 	s, err := miniredis.Run()

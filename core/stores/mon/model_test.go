@@ -54,11 +54,23 @@ func TestModel_Aggregate(t *testing.T) {
 	defer ctrl.Finish()
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
-	mockMonCollection.EXPECT().Aggregate(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.Cursor{Current: make(bson.Raw, 0)}, errors.New("error"))
+	cursor, err := mongo.NewCursorFromDocuments([]any{
+		bson.M{
+			"name": "John",
+		},
+		bson.M{
+			"name": "Mary",
+		},
+	}, nil, nil)
+	assert.NoError(t, err)
+	mockMonCollection.EXPECT().Aggregate(gomock.Any(), gomock.Any(), gomock.Any()).Return(cursor, nil)
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
-	var result bson.D
-	err := m.Aggregate(context.Background(), &result, bson.D{})
-	assert.Equal(t, errors.New("error"), err)
+	var result []bson.M
+	err = m.Aggregate(context.Background(), &result, bson.D{})
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(result))
+	assert.Equal(t, "John", result[0]["name"])
+	assert.Equal(t, "Mary", result[1]["name"])
 	triggerBreaker(m)
 	assert.Equal(t, errDummy, m.Aggregate(context.Background(), &result, bson.D{}))
 }
@@ -96,11 +108,23 @@ func TestModel_Find(t *testing.T) {
 	defer ctrl.Finish()
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
-	mockMonCollection.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.Cursor{Current: make(bson.Raw, 0)}, errors.New("error"))
+	cursor, err := mongo.NewCursorFromDocuments([]any{
+		bson.M{
+			"name": "John",
+		},
+		bson.M{
+			"name": "Mary",
+		},
+	}, nil, nil)
+	assert.NoError(t, err)
+	mockMonCollection.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(cursor, nil)
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
-	var result bson.D
-	err := m.Find(context.Background(), &result, bson.D{})
-	assert.Equal(t, errors.New("error"), err)
+	var result []bson.M
+	err = m.Find(context.Background(), &result, bson.D{})
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(result))
+	assert.Equal(t, "John", result[0]["name"])
+	assert.Equal(t, "Mary", result[1]["name"])
 	triggerBreaker(m)
 	assert.Equal(t, errDummy, m.Find(context.Background(), &result, bson.D{}))
 }
@@ -110,11 +134,12 @@ func TestModel_FindOne(t *testing.T) {
 	defer ctrl.Finish()
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
-	mockMonCollection.EXPECT().FindOne(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	mockMonCollection.EXPECT().FindOne(gomock.Any(), gomock.Any(), gomock.Any()).Return(mongo.NewSingleResultFromDocument(bson.M{"name": "John"}, nil, nil))
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
-	var result bson.D
+	var result bson.M
 	err := m.FindOne(context.Background(), &result, bson.D{})
-	assert.Equal(t, mongo.ErrNoDocuments, err)
+	assert.Nil(t, err)
+	assert.Equal(t, "John", result["name"])
 	triggerBreaker(m)
 	assert.Equal(t, errDummy, m.FindOne(context.Background(), &result, bson.D{}))
 }
@@ -124,11 +149,12 @@ func TestModel_FindOneAndDelete(t *testing.T) {
 	defer ctrl.Finish()
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
-	mockMonCollection.EXPECT().FindOneAndDelete(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	mockMonCollection.EXPECT().FindOneAndDelete(gomock.Any(), gomock.Any(), gomock.Any()).Return(mongo.NewSingleResultFromDocument(bson.M{"name": "John"}, nil, nil))
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
-	var result bson.D
-	err := m.FindOneAndDelete(context.Background(), &result, bson.D{})
-	assert.Equal(t, mongo.ErrNoDocuments, err)
+	var result bson.M
+	err := m.FindOneAndDelete(context.Background(), &result, bson.M{})
+	assert.Nil(t, err)
+	assert.Equal(t, "John", result["name"])
 	triggerBreaker(m)
 	assert.Equal(t, errDummy, m.FindOneAndDelete(context.Background(), &result, bson.D{}))
 }
@@ -138,13 +164,14 @@ func TestModel_FindOneAndReplace(t *testing.T) {
 	defer ctrl.Finish()
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
-	mockMonCollection.EXPECT().FindOneAndReplace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	mockMonCollection.EXPECT().FindOneAndReplace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mongo.NewSingleResultFromDocument(bson.M{"name": "John"}, nil, nil))
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
-	var result bson.D
+	var result bson.M
 	err := m.FindOneAndReplace(context.Background(), &result, bson.D{}, bson.D{
 		{Key: "name", Value: "Mary"},
 	})
-	assert.Equal(t, mongo.ErrNoDocuments, err)
+	assert.Nil(t, err)
+	assert.Equal(t, "John", result["name"])
 	triggerBreaker(m)
 	assert.Equal(t, errDummy, m.FindOneAndReplace(context.Background(), &result, bson.D{}, bson.D{
 		{Key: "name", Value: "Mary"},
@@ -156,13 +183,14 @@ func TestModel_FindOneAndUpdate(t *testing.T) {
 	defer ctrl.Finish()
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
-	mockMonCollection.EXPECT().FindOneAndUpdate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
+	mockMonCollection.EXPECT().FindOneAndUpdate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mongo.NewSingleResultFromDocument(bson.M{"name": "John"}, nil, nil))
 	m := newTestModel("foo", mockedMonClient, mockMonCollection, breaker.GetBreaker("test"))
-	var result bson.D
+	var result bson.M
 	err := m.FindOneAndUpdate(context.Background(), &result, bson.D{}, bson.D{
 		{Key: "$set", Value: bson.D{{Key: "name", Value: "Mary"}}},
 	})
-	assert.Equal(t, mongo.ErrNoDocuments, err)
+	assert.Nil(t, err)
+	assert.Equal(t, "John", result["name"])
 	triggerBreaker(m)
 	assert.Equal(t, errDummy, m.FindOneAndUpdate(context.Background(), &result, bson.D{}, bson.D{
 		{Key: "$set", Value: bson.D{{Key: "name", Value: "Mary"}}},
