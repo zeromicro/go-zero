@@ -73,6 +73,13 @@ func TestNewModelWithCache(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func Test_newModel(t *testing.T) {
+	mon.Inject("mongodb://localhost:27018", &mongo.Client{})
+	model, err := newModel("mongodb://localhost:27018", "db", "collection", nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, model)
+}
+
 func TestModel_DelCache(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
