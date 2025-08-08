@@ -97,3 +97,24 @@ func TestImmutableResourceConcurrent(t *testing.T) {
 		assert.Equal(t, "hello", results[i])
 	}
 }
+
+func TestImmutableResourceErrorRefreshAlways(t *testing.T) {
+	var count int
+	r := NewImmutableResource(func() (any, error) {
+		count++
+		return nil, errors.New("any")
+	}, WithRefreshIntervalOnFailure(0))
+
+	res, err := r.Get()
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
+	assert.Equal(t, "any", err.Error())
+	assert.Equal(t, 1, count)
+
+	// again
+	res, err = r.Get()
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
+	assert.Equal(t, "any", err.Error())
+	assert.Equal(t, 2, count)
+}
