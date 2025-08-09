@@ -211,7 +211,7 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 		}
 	}
 
-	var result []string
+	result := make([]string, 0, len(outdated))
 	for k := range outdated {
 		result = append(result, k)
 	}

@@ -20,11 +20,11 @@ const (
 var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey, headerTagKey}
 
 func (s Service) JoinPrefix() Service {
-	var groups []Group
+	groups := make([]Group, 0, len(s.Groups))
 	for _, g := range s.Groups {
 		prefix := strings.TrimSpace(g.GetAnnotation(RoutePrefixKey))
 		prefix = strings.ReplaceAll(prefix, `"`, "")
-		var routes []Route
+		routes := make([]Route, 0, len(g.Routes))
 		for _, r := range g.Routes {
 			r.Path = path.Join("/", prefix, r.Path)
 			routes = append(routes, r)
