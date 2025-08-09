@@ -43,7 +43,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 }
 
 func genMainImports(parentPkg string) string {
-	imports := make([]string, 0, 5)
+	var imports []string
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, configDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, handlerDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, contextDir)))
