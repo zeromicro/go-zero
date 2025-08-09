@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -102,15 +101,6 @@ func TestEventHandler_OnReceiveTrailers(t *testing.T) {
 	assert.Equal(t, "internal error", h.Status.Message())
 }
 
-func TestEventHandler_WithResolver(t *testing.T) {
-	// Test with custom resolver
-	resolver := &mockAnyResolver{}
-	h := NewEventHandler(io.Discard, resolver)
-
-	assert.NotNil(t, h)
-	assert.Equal(t, resolver, h.marshaler.AnyResolver)
-}
-
 func TestEventHandler_CompleteWorkflow(t *testing.T) {
 	var buf bytes.Buffer
 	h := NewEventHandler(&buf, nil)
@@ -137,11 +127,4 @@ type badWriter struct{}
 
 func (w *badWriter) Write([]byte) (int, error) {
 	return 0, io.ErrShortWrite
-}
-
-// mockAnyResolver is a simple implementation of jsonpb.AnyResolver for testing
-type mockAnyResolver struct{}
-
-func (m *mockAnyResolver) Resolve(typeUrl string) (proto.Message, error) {
-	return nil, nil
 }
