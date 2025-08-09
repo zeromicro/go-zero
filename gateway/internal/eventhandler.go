@@ -20,7 +20,6 @@ type EventHandler struct {
 	writer       io.Writer
 	marshaler    jsonpb.Marshaler
 	ctx          context.Context
-	httpWriter   http.ResponseWriter
 	useOkHandler bool
 }
 
@@ -43,13 +42,12 @@ func NewEventHandlerWithContext(ctx context.Context, w http.ResponseWriter, reso
 			AnyResolver:  resolver,
 		},
 		ctx:          ctx,
-		httpWriter:   w,
 		useOkHandler: true,
 	}
 }
 
 func (h *EventHandler) OnReceiveResponse(message proto.Message) {
-	if h.useOkHandler && h.httpWriter != nil {
+	if h.useOkHandler {
 		// Use httpx.OkJsonCtx to trigger the OkHandler callback
 		var buf bytes.Buffer
 		if err := h.marshaler.Marshal(&buf, message); err != nil {
@@ -58,7 +56,7 @@ func (h *EventHandler) OnReceiveResponse(message proto.Message) {
 		}
 
 		result := buf.Bytes()
-		httpx.OkJsonCtx(h.ctx, h.httpWriter, result)
+		httpx.OkJsonCtx(h.ctx, h.writer.(http.ResponseWriter), result)
 	} else {
 		// Fallback to original behavior
 		if err := h.marshaler.Marshal(h.writer, message); err != nil {
