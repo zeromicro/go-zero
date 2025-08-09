@@ -125,7 +125,7 @@ func (p parser) fillTypes() error {
 	for _, item := range p.ast.Type {
 		switch v := (item).(type) {
 		case *ast.TypeStruct:
-			var members []spec.Member
+			members := make([]spec.Member, 0, len(v.Fields))
 			for _, item := range v.Fields {
 				members = append(members, p.fieldToMember(item))
 			}

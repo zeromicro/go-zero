@@ -90,7 +90,7 @@ func ToUpperCase(r rune) rune {
 
 // ToLower returns a copy string by converting it into lower
 func ToLower(s string) string {
-	var out []rune
+	out := make([]rune, 0, len(s))
 	for _, r := range s {
 		out = append(out, ToLowerCase(r))
 	}
@@ -99,7 +99,7 @@ func ToLower(s string) string {
 
 // ToUpper returns a copy string by converting it into upper
 func ToUpper(s string) string {
-	var out []rune
+	out := make([]rune, 0, len(s))
 	for _, r := range s {
 		out = append(out, ToUpperCase(r))
 	}
