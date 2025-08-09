@@ -8,9 +8,8 @@ import (
     "time"
 
     {{if .Cache}}"github.com/zeromicro/go-zero/core/stores/monc"{{else}}"github.com/zeromicro/go-zero/core/stores/mon"{{end}}
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/bson/primitive"
-    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/v2/bson"
+    "go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 {{if .Cache}}var prefix{{.Type}}CacheKey = "{{if .Prefix}}{{.Prefix}}:{{end}}cache:{{.lowerType}}:"{{end}}
@@ -33,7 +32,7 @@ func newDefault{{.Type}}Model(conn {{if .Cache}}*monc.Model{{else}}*mon.Model{{e
 
 func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) error {
     if data.ID.IsZero() {
-        data.ID = primitive.NewObjectID()
+        data.ID = bson.NewObjectID()
         data.CreateAt = time.Now()
         data.UpdateAt = time.Now()
     }
@@ -44,7 +43,7 @@ func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) err
 }
 
 func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Type}}, error) {
-    oid, err := primitive.ObjectIDFromHex(id)
+    oid, err := bson.ObjectIDFromHex(id)
     if err != nil {
         return nil, ErrInvalidObjectId
     }
@@ -70,7 +69,7 @@ func (m *default{{.Type}}Model) Update(ctx context.Context, data *{{.Type}}) (*m
 }
 
 func (m *default{{.Type}}Model) Delete(ctx context.Context, id string) (int64, error) {
-    oid, err := primitive.ObjectIDFromHex(id)
+    oid, err := bson.ObjectIDFromHex(id)
     if err != nil {
         return 0, ErrInvalidObjectId
     }
