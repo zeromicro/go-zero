@@ -30,12 +30,11 @@ type (
 	// Server is a gateway server.
 	Server struct {
 		*rest.Server
-		upstreams           []Upstream
-		conns               []zrpc.Client
-		processHeader       func(http.Header) []string
-		dialer              func(conf zrpc.RpcClientConf) zrpc.Client
-		middlewares         []rest.Middleware
-		ignoreUnknownFields bool
+		upstreams     []Upstream
+		conns         []zrpc.Client
+		processHeader func(http.Header) []string
+		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		middlewares   []rest.Middleware
 	}
 
 	// Option defines the method to customize Server.
@@ -45,9 +44,8 @@ type (
 // MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
-		upstreams:           c.Upstreams,
-		Server:              rest.MustNewServer(c.RestConf),
-		ignoreUnknownFields: c.IgnoreUnknownFields,
+		upstreams: c.Upstreams,
+		Server:    rest.MustNewServer(c.RestConf),
 	}
 	for _, opt := range opts {
 		opt(svr)
@@ -116,7 +114,7 @@ func (s *Server) buildChainHandler(handler http.HandlerFunc) http.HandlerFunc {
 func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
 	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		parser, err := internal.NewRequestParser(r, resolver, s.ignoreUnknownFields)
+		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
