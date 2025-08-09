@@ -223,7 +223,6 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			logc.Error(r.Context(), err)
 		}
 	}
-
 	return s.buildChainHandler(handler)
 }
 
