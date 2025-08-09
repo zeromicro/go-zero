@@ -30,7 +30,7 @@ type (
 		opts []Option
 	}
 
-	WrappedSession struct {
+	Session struct {
 		session monSession
 		name    string
 		brk     breaker.Breaker
@@ -62,25 +62,14 @@ func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Break
 	return &Model{
 		name:       name,
 		Collection: coll,
-		cli:        &mockMonClient{c: cli},
-		brk:        brk,
-		opts:       opts,
-	}
-}
-
-func newTestModel(name string, cli monClient, coll monCollection, brk breaker.Breaker,
-	opts ...Option) *Model {
-	return &Model{
-		name:       name,
-		Collection: newTestCollection(coll, breaker.GetBreaker("localhost")),
-		cli:        cli,
+		cli:        &wrappedMonClient{c: cli},
 		brk:        brk,
 		opts:       opts,
 	}
 }
 
 // StartSession starts a new session.
-func (m *Model) StartSession(opts ...options.Lister[options.SessionOptions]) (sess *WrappedSession, err error) {
+func (m *Model) StartSession(opts ...options.Lister[options.SessionOptions]) (sess *Session, err error) {
 	starTime := timex.Now()
 	defer func() {
 		logDuration(context.Background(), m.name, startSession, starTime, err)
@@ -91,7 +80,7 @@ func (m *Model) StartSession(opts ...options.Lister[options.SessionOptions]) (se
 		return nil, sessionErr
 	}
 
-	return &WrappedSession{
+	return &Session{
 		session: session,
 		name:    m.name,
 		brk:     m.brk,
@@ -99,7 +88,8 @@ func (m *Model) StartSession(opts ...options.Lister[options.SessionOptions]) (se
 }
 
 // Aggregate executes an aggregation pipeline.
-func (m *Model) Aggregate(ctx context.Context, v, pipeline any, opts ...options.Lister[options.AggregateOptions]) error {
+func (m *Model) Aggregate(ctx context.Context, v, pipeline any,
+	opts ...options.Lister[options.AggregateOptions]) error {
 	cur, err := m.Collection.Aggregate(ctx, pipeline, opts...)
 	if err != nil {
 		return err
@@ -110,7 +100,8 @@ func (m *Model) Aggregate(ctx context.Context, v, pipeline any, opts ...options.
 }
 
 // DeleteMany deletes documents that match the filter.
-func (m *Model) DeleteMany(ctx context.Context, filter any, opts ...options.Lister[options.DeleteManyOptions]) (int64, error) {
+func (m *Model) DeleteMany(ctx context.Context, filter any,
+	opts ...options.Lister[options.DeleteManyOptions]) (int64, error) {
 	res, err := m.Collection.DeleteMany(ctx, filter, opts...)
 	if err != nil {
 		return 0, err
@@ -120,7 +111,8 @@ func (m *Model) DeleteMany(ctx context.Context, filter any, opts ...options.List
 }
 
 // DeleteOne deletes the first document that matches the filter.
-func (m *Model) DeleteOne(ctx context.Context, filter any, opts ...options.Lister[options.DeleteOneOptions]) (int64, error) {
+func (m *Model) DeleteOne(ctx context.Context, filter any,
+	opts ...options.Lister[options.DeleteOneOptions]) (int64, error) {
 	res, err := m.Collection.DeleteOne(ctx, filter, opts...)
 	if err != nil {
 		return 0, err
@@ -130,7 +122,8 @@ func (m *Model) DeleteOne(ctx context.Context, filter any, opts ...options.Liste
 }
 
 // Find finds documents that match the filter.
-func (m *Model) Find(ctx context.Context, v, filter any, opts ...options.Lister[options.FindOptions]) error {
+func (m *Model) Find(ctx context.Context, v, filter any,
+	opts ...options.Lister[options.FindOptions]) error {
 	cur, err := m.Collection.Find(ctx, filter, opts...)
 	if err != nil {
 		return err
@@ -141,7 +134,8 @@ func (m *Model) Find(ctx context.Context, v, filter any, opts ...options.Lister[
 }
 
 // FindOne finds the first document that matches the filter.
-func (m *Model) FindOne(ctx context.Context, v, filter any, opts ...options.Lister[options.FindOneOptions]) error {
+func (m *Model) FindOne(ctx context.Context, v, filter any,
+	opts ...options.Lister[options.FindOneOptions]) error {
 	res, err := m.Collection.FindOne(ctx, filter, opts...)
 	if err != nil {
 		return err
@@ -184,7 +178,7 @@ func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter, update any,
 }
 
 // AbortTransaction implements the mongo.session interface.
-func (w *WrappedSession) AbortTransaction(ctx context.Context) (err error) {
+func (w *Session) AbortTransaction(ctx context.Context) (err error) {
 	ctx, span := startSpan(ctx, abortTransaction)
 	defer func() {
 		endSpan(span, err)
@@ -201,7 +195,7 @@ func (w *WrappedSession) AbortTransaction(ctx context.Context) (err error) {
 }
 
 // CommitTransaction implements the mongo.session interface.
-func (w *WrappedSession) CommitTransaction(ctx context.Context) (err error) {
+func (w *Session) CommitTransaction(ctx context.Context) (err error) {
 	ctx, span := startSpan(ctx, commitTransaction)
 	defer func() {
 		endSpan(span, err)
@@ -218,7 +212,7 @@ func (w *WrappedSession) CommitTransaction(ctx context.Context) (err error) {
 }
 
 // WithTransaction implements the mongo.session interface.
-func (w *WrappedSession) WithTransaction(
+func (w *Session) WithTransaction(
 	ctx context.Context,
 	fn func(sessCtx context.Context) (any, error),
 	opts ...options.Lister[options.TransactionOptions],
@@ -242,7 +236,7 @@ func (w *WrappedSession) WithTransaction(
 }
 
 // EndSession implements the mongo.session interface.
-func (w *WrappedSession) EndSession(ctx context.Context) {
+func (w *Session) EndSession(ctx context.Context) {
 	var err error
 	ctx, span := startSpan(ctx, endSession)
 	defer func() {
@@ -261,10 +255,11 @@ func (w *WrappedSession) EndSession(ctx context.Context) {
 }
 
 type (
-	//for unit test
+	// for unit test
 	monClient interface {
 		StartSession(opts ...options.Lister[options.SessionOptions]) (monSession, error)
 	}
+
 	monSession interface {
 		AbortTransaction(ctx context.Context) error
 		CommitTransaction(ctx context.Context) error
@@ -274,10 +269,14 @@ type (
 	}
 )
 
-type mockMonClient struct {
+type wrappedMonClient struct {
 	c *mongo.Client
 }
 
-func (m *mockMonClient) StartSession(opts ...options.Lister[options.SessionOptions]) (monSession, error) {
+// StartSession starts a new session using the underlying *mongo.Client.
+// It implements the monClient interface.
+// This is used to allow mocking in unit tests.
+func (m *wrappedMonClient) StartSession(opts ...options.Lister[options.SessionOptions]) (
+	monSession, error) {
 	return m.c.StartSession(opts...)
 }

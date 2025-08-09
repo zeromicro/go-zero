@@ -12,7 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	mopt "go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/mock/gomock"
 )
 
@@ -75,7 +75,7 @@ func TestCollection_Aggregate(t *testing.T) {
 	mockCollection := NewMockmonCollection(ctrl)
 	mockCollection.EXPECT().Aggregate(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.Cursor{}, nil)
 	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
-	_, err := c.Aggregate(context.Background(), []interface{}{}, mopt.Aggregate())
+	_, err := c.Aggregate(context.Background(), []interface{}{}, options.Aggregate())
 	assert.Nil(t, err)
 }
 
@@ -156,10 +156,10 @@ func TestCollection_Find(t *testing.T) {
 	mockCollection.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.Cursor{}, nil)
 	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{{Key: "x", Value: 1}}
-	_, err := c.Find(context.Background(), filter, mopt.Find())
+	_, err := c.Find(context.Background(), filter, options.Find())
 	assert.Nil(t, err)
 	c.brk = new(dropBreaker)
-	_, err = c.Find(context.Background(), filter, mopt.Find())
+	_, err = c.Find(context.Background(), filter, options.Find())
 	assert.Equal(t, errDummy, err)
 }
 
@@ -185,9 +185,9 @@ func TestCollection_FindOneAndDelete(t *testing.T) {
 	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{}
 	mockCollection.EXPECT().FindOneAndDelete(gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
-	_, err := c.FindOneAndDelete(context.Background(), filter, mopt.FindOneAndDelete())
+	_, err := c.FindOneAndDelete(context.Background(), filter, options.FindOneAndDelete())
 	assert.Equal(t, mongo.ErrNoDocuments, err)
-	_, err = c.FindOneAndDelete(context.Background(), filter, mopt.FindOneAndDelete())
+	_, err = c.FindOneAndDelete(context.Background(), filter, options.FindOneAndDelete())
 	assert.Equal(t, mongo.ErrNoDocuments, err)
 	c.brk = new(dropBreaker)
 	_, err = c.FindOneAndDelete(context.Background(), bson.D{{Key: "foo", Value: "bar"}})
@@ -202,7 +202,7 @@ func TestCollection_FindOneAndReplace(t *testing.T) {
 	c := newTestCollection(mockCollection, breaker.GetBreaker("localhost"))
 	filter := bson.D{{Key: "x", Value: 1}}
 	replacement := bson.D{{Key: "x", Value: 2}}
-	opts := mopt.FindOneAndReplace().SetUpsert(true)
+	opts := options.FindOneAndReplace().SetUpsert(true)
 	mockCollection.EXPECT().FindOneAndReplace(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
 	_, err := c.FindOneAndReplace(context.Background(), filter, replacement, opts)
 	assert.Equal(t, mongo.ErrNoDocuments, err)
@@ -222,7 +222,7 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 	filter := bson.D{{Key: "x", Value: 1}}
 	update := bson.D{{Key: "$x", Value: 2}}
 	mockCollection.EXPECT().FindOneAndUpdate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&mongo.SingleResult{})
-	opts := mopt.FindOneAndUpdate().SetUpsert(true)
+	opts := options.FindOneAndUpdate().SetUpsert(true)
 	_, err := c.FindOneAndUpdate(context.Background(), filter, update, opts)
 	assert.Equal(t, mongo.ErrNoDocuments, err)
 	_, err = c.FindOneAndUpdate(context.Background(), filter, update, opts)
@@ -484,6 +484,14 @@ func TestIsDupKeyError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, isDupKeyError(tt.err))
 		})
+	}
+}
+
+func newTestCollection(collection monCollection, brk breaker.Breaker) *decoratedCollection {
+	return &decoratedCollection{
+		Collection: collection,
+		name:       "test",
+		brk:        brk,
 	}
 }
 
