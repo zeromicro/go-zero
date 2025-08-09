@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/netx"
 )
@@ -16,7 +18,8 @@ func TestNewRpcPubServer(t *testing.T) {
 	}, "")
 	assert.NoError(t, err)
 	assert.NotPanics(t, func() {
-		s.Start(nil)
+		s.Start(func(server *grpc.Server) {
+		})
 	})
 }
 
