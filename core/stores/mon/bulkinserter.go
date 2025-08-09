@@ -1,4 +1,4 @@
-//go:generate mockgen -package mon -destination collection_inserter_mock.go -source bulkinserter.go collectionInserter
+//go:generate mockgen -package mon -destination collectioninserter_mock.go -source bulkinserter.go collectionInserter
 package mon
 
 import (

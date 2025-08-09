@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	mopt "go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func TestSetSlowThreshold(t *testing.T) {
@@ -18,13 +18,13 @@ func TestSetSlowThreshold(t *testing.T) {
 }
 
 func Test_defaultTimeoutOption(t *testing.T) {
-	opts := mopt.Client()
+	opts := options.Client()
 	defaultTimeoutOption()(opts)
 	assert.Equal(t, defaultTimeout, *opts.Timeout)
 }
 
 func TestWithTimeout(t *testing.T) {
-	opts := mopt.Client()
+	opts := options.Client()
 	WithTimeout(time.Second)(opts)
 	assert.Equal(t, time.Second, *opts.Timeout)
 }
@@ -56,10 +56,11 @@ func TestDisableInfoLog(t *testing.T) {
 }
 
 func TestWithRegistryForTimestampRegisterType(t *testing.T) {
-	opts := mopt.Client()
+	opts := options.Client()
 
 	// mongoDateTimeEncoder allow user convert time.Time to primitive.DateTime.
-	var mongoDateTimeEncoder bson.ValueEncoderFunc = func(ect bson.EncodeContext, w bson.ValueWriter, value reflect.Value) error {
+	var mongoDateTimeEncoder bson.ValueEncoderFunc = func(ect bson.EncodeContext,
+		w bson.ValueWriter, value reflect.Value) error {
 		// Use reflect, determine if it can be converted to time.Time.
 		dec, ok := value.Interface().(time.Time)
 		if !ok {
@@ -69,7 +70,8 @@ func TestWithRegistryForTimestampRegisterType(t *testing.T) {
 	}
 
 	// mongoDateTimeEncoder allow user convert primitive.DateTime to time.Time.
-	var mongoDateTimeDecoder bson.ValueDecoderFunc = func(ect bson.DecodeContext, r bson.ValueReader, value reflect.Value) error {
+	var mongoDateTimeDecoder bson.ValueDecoderFunc = func(ect bson.DecodeContext,
+		r bson.ValueReader, value reflect.Value) error {
 		primTime, err := r.ReadDateTime()
 		if err != nil {
 			return fmt.Errorf("error reading primitive.DateTime from ValueReader: %v", err)

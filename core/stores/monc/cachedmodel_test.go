@@ -532,6 +532,27 @@ func createModel(t *testing.T, coll mon.Collection) *Model {
 	}
 }
 
+// mustNewTestModel  returns a test Model with the given cache.
+func mustNewTestModel(collection mon.Collection, c cache.CacheConf, opts ...cache.Option) *Model {
+	return &Model{
+		Model: &mon.Model{
+			Collection: collection,
+		},
+		cache: cache.New(c, singleFlight, stats, mongo.ErrNoDocuments, opts...),
+	}
+}
+
+// NewNodeModel returns a test Model with a cache node.
+func mustNewTestNodeModel(collection mon.Collection, rds *redis.Redis, opts ...cache.Option) *Model {
+	c := cache.NewNode(rds, singleFlight, stats, mongo.ErrNoDocuments, opts...)
+	return &Model{
+		Model: &mon.Model{
+			Collection: collection,
+		},
+		cache: c,
+	}
+}
+
 var (
 	errMocked = errors.New("mocked error")
 	index     int32

@@ -71,27 +71,6 @@ func newModel(uri, db, collection string, c cache.Cache) (*Model, error) {
 	}, nil
 }
 
-// mustNewTestModel  returns a test Model with the given cache.
-func mustNewTestModel(collection mon.Collection, c cache.CacheConf, opts ...cache.Option) *Model {
-	return &Model{
-		Model: &mon.Model{
-			Collection: collection,
-		},
-		cache: cache.New(c, singleFlight, stats, mongo.ErrNoDocuments, opts...),
-	}
-}
-
-// NewNodeModel returns a test Model with a cache node.
-func mustNewTestNodeModel(collection mon.Collection, rds *redis.Redis, opts ...cache.Option) *Model {
-	c := cache.NewNode(rds, singleFlight, stats, mongo.ErrNoDocuments, opts...)
-	return &Model{
-		Model: &mon.Model{
-			Collection: collection,
-		},
-		cache: c,
-	}
-}
-
 // DelCache deletes the cache with given keys.
 func (mm *Model) DelCache(ctx context.Context, keys ...string) error {
 	return mm.cache.DelCtx(ctx, keys...)

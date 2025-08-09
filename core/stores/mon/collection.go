@@ -137,14 +137,6 @@ func newCollection(collection *mongo.Collection, brk breaker.Breaker) Collection
 	}
 }
 
-func newTestCollection(collection monCollection, brk breaker.Breaker) *decoratedCollection {
-	return &decoratedCollection{
-		Collection: collection,
-		name:       "test",
-		brk:        brk,
-	}
-}
-
 func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline any,
 	opts ...options.Lister[options.AggregateOptions]) (cur *mongo.Cursor, err error) {
 	ctx, span := startSpan(ctx, aggregate)
@@ -185,6 +177,10 @@ func (c *decoratedCollection) BulkWrite(ctx context.Context, models []mongo.Writ
 	return
 }
 
+func (c *decoratedCollection) Clone(opts ...options.Lister[options.CollectionOptions]) *mongo.Collection {
+	return c.Collection.Clone(opts...)
+}
+
 func (c *decoratedCollection) CountDocuments(ctx context.Context, filter any,
 	opts ...options.Lister[options.CountOptions]) (count int64, err error) {
 	ctx, span := startSpan(ctx, countDocuments)
@@ -203,6 +199,10 @@ func (c *decoratedCollection) CountDocuments(ctx context.Context, filter any,
 	}, acceptable)
 
 	return
+}
+
+func (c *decoratedCollection) Database() *mongo.Database {
+	return c.Collection.Database()
 }
 
 func (c *decoratedCollection) DeleteMany(ctx context.Context, filter any,
@@ -264,6 +264,10 @@ func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, fi
 	}, acceptable)
 
 	return
+}
+
+func (c *decoratedCollection) Drop(ctx context.Context, opts ...options.Lister[options.DropCollectionOptions]) error {
+	return c.Collection.Drop(ctx, opts...)
 }
 
 func (c *decoratedCollection) EstimatedDocumentCount(ctx context.Context,
@@ -391,6 +395,10 @@ func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter, upda
 	return
 }
 
+func (c *decoratedCollection) Indexes() mongo.IndexView {
+	return c.Collection.Indexes()
+}
+
 func (c *decoratedCollection) InsertMany(ctx context.Context, documents []any,
 	opts ...options.Lister[options.InsertManyOptions]) (res *mongo.InsertManyResult, err error) {
 	ctx, span := startSpan(ctx, insertMany)
@@ -511,22 +519,6 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update any,
 	return
 }
 
-func (c *decoratedCollection) Clone(opts ...options.Lister[options.CollectionOptions]) *mongo.Collection {
-	return c.Collection.Clone(opts...)
-}
-
-func (c *decoratedCollection) Database() *mongo.Database {
-	return c.Collection.Database()
-}
-
-func (c *decoratedCollection) Drop(ctx context.Context, opts ...options.Lister[options.DropCollectionOptions]) error {
-	return c.Collection.Drop(ctx, opts...)
-}
-
-func (c *decoratedCollection) Indexes() mongo.IndexView {
-	return c.Collection.Indexes()
-}
-
 func (c *decoratedCollection) Watch(ctx context.Context, pipeline any, opts ...options.Lister[options.ChangeStreamOptions]) (
 	*mongo.ChangeStream, error) {
 	return c.Collection.Watch(ctx, pipeline, opts...)
@@ -578,72 +570,70 @@ func isDupKeyError(err error) bool {
 	return e.HasErrorCode(duplicateKeyCode)
 }
 
-type (
-	// monCollection defines a MongoDB collection, used for unit test
-	monCollection interface {
-		// Aggregate executes an aggregation pipeline.
-		Aggregate(ctx context.Context, pipeline any, opts ...options.Lister[options.AggregateOptions]) (
-			*mongo.Cursor, error)
-		// BulkWrite performs a bulk write operation.
-		BulkWrite(ctx context.Context, models []mongo.WriteModel, opts ...options.Lister[options.BulkWriteOptions]) (
-			*mongo.BulkWriteResult, error)
-		// Clone creates a copy of this collection with the same settings.
-		Clone(opts ...options.Lister[options.CollectionOptions]) *mongo.Collection
-		// CountDocuments returns the number of documents in the collection that match the filter.
-		CountDocuments(ctx context.Context, filter any, opts ...options.Lister[options.CountOptions]) (int64, error)
-		// Database returns the database that this collection is a part of.
-		Database() *mongo.Database
-		// DeleteMany deletes documents from the collection that match the filter.
-		DeleteMany(ctx context.Context, filter any, opts ...options.Lister[options.DeleteManyOptions]) (
-			*mongo.DeleteResult, error)
-		// DeleteOne deletes at most one document from the collection that matches the filter.
-		DeleteOne(ctx context.Context, filter any, opts ...options.Lister[options.DeleteOneOptions]) (
-			*mongo.DeleteResult, error)
-		// Distinct returns a list of distinct values for the given key across the collection.
-		Distinct(ctx context.Context, fieldName string, filter any,
-			opts ...options.Lister[options.DistinctOptions]) *mongo.DistinctResult
-		// Drop drops this collection from database.
-		Drop(ctx context.Context, opts ...options.Lister[options.DropCollectionOptions]) error
-		// EstimatedDocumentCount returns an estimate of the count of documents in a collection
-		// using collection metadata.
-		EstimatedDocumentCount(ctx context.Context, opts ...options.Lister[options.EstimatedDocumentCountOptions]) (int64, error)
-		// Find finds the documents matching the provided filter.
-		Find(ctx context.Context, filter any, opts ...options.Lister[options.FindOptions]) (*mongo.Cursor, error)
-		// FindOne returns up to one document that matches the provided filter.
-		FindOne(ctx context.Context, filter any, opts ...options.Lister[options.FindOneOptions]) *mongo.SingleResult
-		// FindOneAndDelete returns at most one document that matches the filter. If the filter
-		// matches multiple documents, only the first document is deleted.
-		FindOneAndDelete(ctx context.Context, filter any, opts ...options.Lister[options.FindOneAndDeleteOptions]) *mongo.SingleResult
-		// FindOneAndReplace returns at most one document that matches the filter. If the filter
-		// matches multiple documents, FindOneAndReplace returns the first document in the
-		// collection that matches the filter.
-		FindOneAndReplace(ctx context.Context, filter, replacement any,
-			opts ...options.Lister[options.FindOneAndReplaceOptions]) *mongo.SingleResult
-		// FindOneAndUpdate returns at most one document that matches the filter. If the filter
-		// matches multiple documents, FindOneAndUpdate returns the first document in the
-		// collection that matches the filter.
-		FindOneAndUpdate(ctx context.Context, filter, update any,
-			opts ...options.Lister[options.FindOneAndUpdateOptions]) *mongo.SingleResult
-		// Indexes returns the index view for this collection.
-		Indexes() mongo.IndexView
-		// InsertMany inserts the provided documents.
-		InsertMany(ctx context.Context, documents interface{}, opts ...options.Lister[options.InsertManyOptions]) (*mongo.InsertManyResult, error)
-		// InsertOne inserts the provided document.
-		InsertOne(ctx context.Context, document any, opts ...options.Lister[options.InsertOneOptions]) (*mongo.InsertOneResult, error)
-		// ReplaceOne replaces at most one document that matches the filter.
-		ReplaceOne(ctx context.Context, filter, replacement any,
-			opts ...options.Lister[options.ReplaceOptions]) (*mongo.UpdateResult, error)
-		// UpdateByID updates a single document matching the provided filter.
-		UpdateByID(ctx context.Context, id, update any,
-			opts ...options.Lister[options.UpdateOneOptions]) (*mongo.UpdateResult, error)
-		// UpdateMany updates the provided documents.
-		UpdateMany(ctx context.Context, filter, update any,
-			opts ...options.Lister[options.UpdateManyOptions]) (*mongo.UpdateResult, error)
-		// UpdateOne updates a single document matching the provided filter.
-		UpdateOne(ctx context.Context, filter, update any,
-			opts ...options.Lister[options.UpdateOneOptions]) (*mongo.UpdateResult, error)
-		// Watch returns a change stream cursor used to receive notifications of changes to the collection.
-		Watch(ctx context.Context, pipeline any, opts ...options.Lister[options.ChangeStreamOptions]) (
-			*mongo.ChangeStream, error)
-	}
-)
+// monCollection defines a MongoDB collection, used for unit test
+type monCollection interface {
+	// Aggregate executes an aggregation pipeline.
+	Aggregate(ctx context.Context, pipeline any, opts ...options.Lister[options.AggregateOptions]) (
+		*mongo.Cursor, error)
+	// BulkWrite performs a bulk write operation.
+	BulkWrite(ctx context.Context, models []mongo.WriteModel, opts ...options.Lister[options.BulkWriteOptions]) (
+		*mongo.BulkWriteResult, error)
+	// Clone creates a copy of this collection with the same settings.
+	Clone(opts ...options.Lister[options.CollectionOptions]) *mongo.Collection
+	// CountDocuments returns the number of documents in the collection that match the filter.
+	CountDocuments(ctx context.Context, filter any, opts ...options.Lister[options.CountOptions]) (int64, error)
+	// Database returns the database that this collection is a part of.
+	Database() *mongo.Database
+	// DeleteMany deletes documents from the collection that match the filter.
+	DeleteMany(ctx context.Context, filter any, opts ...options.Lister[options.DeleteManyOptions]) (
+		*mongo.DeleteResult, error)
+	// DeleteOne deletes at most one document from the collection that matches the filter.
+	DeleteOne(ctx context.Context, filter any, opts ...options.Lister[options.DeleteOneOptions]) (
+		*mongo.DeleteResult, error)
+	// Distinct returns a list of distinct values for the given key across the collection.
+	Distinct(ctx context.Context, fieldName string, filter any,
+		opts ...options.Lister[options.DistinctOptions]) *mongo.DistinctResult
+	// Drop drops this collection from database.
+	Drop(ctx context.Context, opts ...options.Lister[options.DropCollectionOptions]) error
+	// EstimatedDocumentCount returns an estimate of the count of documents in a collection
+	// using collection metadata.
+	EstimatedDocumentCount(ctx context.Context, opts ...options.Lister[options.EstimatedDocumentCountOptions]) (int64, error)
+	// Find finds the documents matching the provided filter.
+	Find(ctx context.Context, filter any, opts ...options.Lister[options.FindOptions]) (*mongo.Cursor, error)
+	// FindOne returns up to one document that matches the provided filter.
+	FindOne(ctx context.Context, filter any, opts ...options.Lister[options.FindOneOptions]) *mongo.SingleResult
+	// FindOneAndDelete returns at most one document that matches the filter. If the filter
+	// matches multiple documents, only the first document is deleted.
+	FindOneAndDelete(ctx context.Context, filter any, opts ...options.Lister[options.FindOneAndDeleteOptions]) *mongo.SingleResult
+	// FindOneAndReplace returns at most one document that matches the filter. If the filter
+	// matches multiple documents, FindOneAndReplace returns the first document in the
+	// collection that matches the filter.
+	FindOneAndReplace(ctx context.Context, filter, replacement any,
+		opts ...options.Lister[options.FindOneAndReplaceOptions]) *mongo.SingleResult
+	// FindOneAndUpdate returns at most one document that matches the filter. If the filter
+	// matches multiple documents, FindOneAndUpdate returns the first document in the
+	// collection that matches the filter.
+	FindOneAndUpdate(ctx context.Context, filter, update any,
+		opts ...options.Lister[options.FindOneAndUpdateOptions]) *mongo.SingleResult
+	// Indexes returns the index view for this collection.
+	Indexes() mongo.IndexView
+	// InsertMany inserts the provided documents.
+	InsertMany(ctx context.Context, documents interface{}, opts ...options.Lister[options.InsertManyOptions]) (*mongo.InsertManyResult, error)
+	// InsertOne inserts the provided document.
+	InsertOne(ctx context.Context, document any, opts ...options.Lister[options.InsertOneOptions]) (*mongo.InsertOneResult, error)
+	// ReplaceOne replaces at most one document that matches the filter.
+	ReplaceOne(ctx context.Context, filter, replacement any,
+		opts ...options.Lister[options.ReplaceOptions]) (*mongo.UpdateResult, error)
+	// UpdateByID updates a single document matching the provided filter.
+	UpdateByID(ctx context.Context, id, update any,
+		opts ...options.Lister[options.UpdateOneOptions]) (*mongo.UpdateResult, error)
+	// UpdateMany updates the provided documents.
+	UpdateMany(ctx context.Context, filter, update any,
+		opts ...options.Lister[options.UpdateManyOptions]) (*mongo.UpdateResult, error)
+	// UpdateOne updates a single document matching the provided filter.
+	UpdateOne(ctx context.Context, filter, update any,
+		opts ...options.Lister[options.UpdateOneOptions]) (*mongo.UpdateResult, error)
+	// Watch returns a change stream cursor used to receive notifications of changes to the collection.
+	Watch(ctx context.Context, pipeline any, opts ...options.Lister[options.ChangeStreamOptions]) (
+		*mongo.ChangeStream, error)
+}

@@ -20,7 +20,7 @@ func TestModel_StartSession(t *testing.T) {
 	mockMonCollection := NewMockmonCollection(ctrl)
 	mockedMonClient := NewMockmonClient(ctrl)
 	mockMonSession := NewMockmonSession(ctrl)
-	warpSession := &WrappedSession{
+	warpSession := &Session{
 		session: mockMonSession,
 		name:    "",
 		brk:     breaker.GetBreaker("localhost"),
@@ -39,9 +39,9 @@ func TestModel_StartSession(t *testing.T) {
 	mockMonSession.EXPECT().AbortTransaction(gomock.Any()).Return(nil)
 	mockMonSession.EXPECT().EndSession(gomock.Any())
 	_, err = sess.WithTransaction(context.Background(), func(sessCtx context.Context) (any, error) {
-		//_ = sessCtx.StartTransaction()
-		//sessCtx.Client().Database("1")
-		//sessCtx.EndSession(context.Background())
+		// _ = sessCtx.StartTransaction()
+		// sessCtx.Client().Database("1")
+		// sessCtx.EndSession(context.Background())
 		return nil, nil
 	})
 	assert.Nil(t, err)
@@ -224,9 +224,20 @@ func Test_mockMonClient_StartSession(t *testing.T) {
 	opts.Deployment = md
 	client, err := mongo.Connect(opts)
 	assert.Nil(t, err)
-	m := mockMonClient{
+	m := wrappedMonClient{
 		c: client,
 	}
 	_, err = m.StartSession()
 	assert.Nil(t, err)
+}
+
+func newTestModel(name string, cli monClient, coll monCollection, brk breaker.Breaker,
+	opts ...Option) *Model {
+	return &Model{
+		name:       name,
+		Collection: newTestCollection(coll, breaker.GetBreaker("localhost")),
+		cli:        cli,
+		brk:        brk,
+		opts:       opts,
+	}
 }
