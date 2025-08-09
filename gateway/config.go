@@ -10,10 +10,6 @@ type (
 	GatewayConf struct {
 		rest.RestConf
 		Upstreams []Upstream
-		// IgnoreUnknownFields specifies whether to ignore unknown fields during proto unmarshaling.
-		// When set to true, extra query parameters or JSON fields that don't exist in the gRPC message
-		// will be ignored instead of causing an error.
-		IgnoreUnknownFields bool `json:",default=false"`
 	}
 
 	// HttpClientConf is the configuration for an HTTP client.

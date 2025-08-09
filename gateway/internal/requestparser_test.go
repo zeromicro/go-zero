@@ -14,7 +14,7 @@ import (
 
 func TestNewRequestParserNoVar(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", http.NoBody)
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
@@ -22,14 +22,14 @@ func TestNewRequestParserNoVar(t *testing.T) {
 func TestNewRequestParserWithVars(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", http.NoBody)
 	req = pathvar.WithVars(req, map[string]string{"a": "b"})
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
 
 func TestNewRequestParserNoVarWithBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", strings.NewReader(`{"a": "b"}`))
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
@@ -37,7 +37,7 @@ func TestNewRequestParserNoVarWithBody(t *testing.T) {
 func TestNewRequestParserWithNegativeContentLength(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", strings.NewReader(`{"a": "b"}`))
 	req.ContentLength = -1
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
@@ -45,7 +45,7 @@ func TestNewRequestParserWithNegativeContentLength(t *testing.T) {
 func TestNewRequestParserWithVarsWithBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", strings.NewReader(`{"a": "b"}`))
 	req = pathvar.WithVars(req, map[string]string{"c": "d"})
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
@@ -53,14 +53,14 @@ func TestNewRequestParserWithVarsWithBody(t *testing.T) {
 func TestNewRequestParserWithVarsWithWrongBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", strings.NewReader(`{"a": "b"`))
 	req = pathvar.WithVars(req, map[string]string{"c": "d"})
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.NotNil(t, err)
 	assert.Nil(t, parser)
 }
 
 func TestNewRequestParserWithForm(t *testing.T) {
 	req := httptest.NewRequest("GET", "/val?a=b", nil)
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
@@ -68,7 +68,7 @@ func TestNewRequestParserWithForm(t *testing.T) {
 func TestNewRequestParserWithNilBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/val?a=b", http.NoBody)
 	req.Body = nil
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
@@ -76,20 +76,20 @@ func TestNewRequestParserWithNilBody(t *testing.T) {
 func TestNewRequestParserWithBadBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/val?a=b", badBody{})
 	req.Body = badBody{}
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
 
 func TestNewRequestParserWithBadForm(t *testing.T) {
 	req := httptest.NewRequest("GET", "/val?a%1=b", http.NoBody)
-	parser, err := NewRequestParser(req, nil, false)
+	parser, err := NewRequestParser(req, nil)
 	assert.NotNil(t, err)
 	assert.Nil(t, parser)
 }
 
 func TestRequestParser_buildJsonRequestParserFromMap(t *testing.T) {
-	parser, err := buildJsonRequestParserFromMap(map[string]any{"a": make(chan int)}, nil, false)
+	parser, err := buildJsonRequestParserFromMap(map[string]any{"a": make(chan int)}, nil)
 	assert.NotNil(t, err)
 	assert.Nil(t, parser)
 }
@@ -107,23 +107,23 @@ func TestNewRequestParserWithIgnoreUnknownFields(t *testing.T) {
 
 	// Test case 1: No body, no vars - should work with both true and false
 	req1 := httptest.NewRequest("GET", "/", http.NoBody)
-	parser1, err1 := NewRequestParser(req1, resolver, true)
+	parser1, err1 := NewRequestParser(req1, resolver)
 	assert.Nil(t, err1)
 	assert.NotNil(t, parser1)
 
 	req2 := httptest.NewRequest("GET", "/", http.NoBody)
-	parser2, err2 := NewRequestParser(req2, resolver, false)
+	parser2, err2 := NewRequestParser(req2, resolver)
 	assert.Nil(t, err2)
 	assert.NotNil(t, parser2)
 
 	// Test case 2: With JSON body - tests the body parsing path
 	req3 := httptest.NewRequest("POST", "/", strings.NewReader(`{"field": "value"}`))
-	parser3, err3 := NewRequestParser(req3, resolver, true)
+	parser3, err3 := NewRequestParser(req3, resolver)
 	assert.Nil(t, err3)
 	assert.NotNil(t, parser3)
 
 	req4 := httptest.NewRequest("POST", "/", strings.NewReader(`{"field": "value"}`))
-	parser4, err4 := NewRequestParser(req4, resolver, false)
+	parser4, err4 := NewRequestParser(req4, resolver)
 	assert.Nil(t, err4)
 	assert.NotNil(t, parser4)
 }
@@ -134,14 +134,14 @@ func TestNewRequestParserWithVarsAndIgnoreUnknownFields(t *testing.T) {
 	// Test with path variables and ignoreUnknownFields = true
 	req := httptest.NewRequest("GET", "/", http.NoBody)
 	req = pathvar.WithVars(req, map[string]string{"a": "b"})
-	parser, err := NewRequestParser(req, resolver, true)
+	parser, err := NewRequestParser(req, resolver)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 
 	// Test with path variables and ignoreUnknownFields = false
 	req2 := httptest.NewRequest("GET", "/", http.NoBody)
 	req2 = pathvar.WithVars(req2, map[string]string{"c": "d"})
-	parser2, err2 := NewRequestParser(req2, resolver, false)
+	parser2, err2 := NewRequestParser(req2, resolver)
 	assert.Nil(t, err2)
 	assert.NotNil(t, parser2)
 }
@@ -151,13 +151,13 @@ func TestNewRequestParserWithBodyAndIgnoreUnknownFields(t *testing.T) {
 
 	// Test with body and ignoreUnknownFields = true
 	req := httptest.NewRequest("POST", "/", strings.NewReader(`{"a": "b"}`))
-	parser, err := NewRequestParser(req, resolver, true)
+	parser, err := NewRequestParser(req, resolver)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 
 	// Test with body and ignoreUnknownFields = false
 	req2 := httptest.NewRequest("POST", "/", strings.NewReader(`{"c": "d"}`))
-	parser2, err2 := NewRequestParser(req2, resolver, false)
+	parser2, err2 := NewRequestParser(req2, resolver)
 	assert.Nil(t, err2)
 	assert.NotNil(t, parser2)
 }
@@ -168,14 +168,14 @@ func TestNewRequestParserWithVarsBodyAndIgnoreUnknownFields(t *testing.T) {
 	// Test with both path variables and body, ignoreUnknownFields = true
 	req := httptest.NewRequest("POST", "/", strings.NewReader(`{"a": "b"}`))
 	req = pathvar.WithVars(req, map[string]string{"c": "d"})
-	parser, err := NewRequestParser(req, resolver, true)
+	parser, err := NewRequestParser(req, resolver)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 
 	// Test with both path variables and body, ignoreUnknownFields = false
 	req2 := httptest.NewRequest("POST", "/", strings.NewReader(`{"e": "f"}`))
 	req2 = pathvar.WithVars(req2, map[string]string{"g": "h"})
-	parser2, err2 := NewRequestParser(req2, resolver, false)
+	parser2, err2 := NewRequestParser(req2, resolver)
 	assert.Nil(t, err2)
 	assert.NotNil(t, parser2)
 }
@@ -185,12 +185,12 @@ func TestBuildJsonRequestParserFromMapWithIgnoreUnknownFields(t *testing.T) {
 
 	// Test buildJsonRequestParserFromMap with ignoreUnknownFields = true
 	data := map[string]any{"key": "value"}
-	parser, err := buildJsonRequestParserFromMap(data, resolver, true)
+	parser, err := buildJsonRequestParserFromMap(data, resolver)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 
 	// Test buildJsonRequestParserFromMap with ignoreUnknownFields = false
-	parser2, err2 := buildJsonRequestParserFromMap(data, resolver, false)
+	parser2, err2 := buildJsonRequestParserFromMap(data, resolver)
 	assert.Nil(t, err2)
 	assert.NotNil(t, parser2)
 }
@@ -200,7 +200,7 @@ func TestBuildJsonRequestParserWithUnknownFields(t *testing.T) {
 
 	// Test buildJsonRequestParserWithUnknownFields
 	data := strings.NewReader(`{"test": "value"}`)
-	parser, err := buildJsonRequestParserWithUnknownFields(data, resolver)
+	parser, err := buildJsonRequestParserFromReader(data, resolver)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
