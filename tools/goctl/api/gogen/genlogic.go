@@ -18,10 +18,10 @@ import (
 //go:embed logic.tpl
 var logicTemplate string
 
-func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
+			err := genLogicByRoute(dir, rootPkg, projectPkg, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -30,7 +30,7 @@ func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error 
 	return nil
 }
 
-func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
@@ -72,6 +72,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"request":      requestString,
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
+			"projectPkg":   projectPkg,
 		},
 	})
 }
