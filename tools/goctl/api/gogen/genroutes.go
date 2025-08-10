@@ -40,7 +40,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}{{.sse}}
 	)
 `
 	timeoutThreshold = time.Millisecond
@@ -69,6 +69,7 @@ type (
 		prefix           string
 		jwtTrans         string
 		maxBytes         string
+		sse              bool
 	}
 	route struct {
 		method  string
@@ -152,6 +153,10 @@ rest.WithPrefix("%s"),`, g.prefix)
 
 			maxBytes = fmt.Sprintf("\n rest.WithMaxBytes(%s),", g.maxBytes)
 		}
+		var sse string
+		if g.sse {
+			sse = "\n rest.WithSSE(),"
+		}
 
 		var routes string
 		if len(g.middlewares) > 0 {
@@ -175,6 +180,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"prefix":    prefix,
 			"timeout":   timeout,
 			"maxBytes":  maxBytes,
+			"sse":       sse,
 		}); err != nil {
 			return err
 		}
@@ -275,6 +281,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		jwtTrans := g.GetAnnotation(jwtTransKey)
 		if len(jwtTrans) > 0 {
 			groupedRoutes.jwtTrans = jwtTrans
+		}
+
+		sse := g.GetAnnotation("sse")
+		if sse == "true" {
+			groupedRoutes.sse = true
 		}
 
 		signature := g.GetAnnotation("signature")

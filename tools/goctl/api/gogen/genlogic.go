@@ -15,8 +15,13 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-//go:embed logic.tpl
-var logicTemplate string
+var (
+	//go:embed logic.tpl
+	logicTemplate string
+
+	//go:embed sse_logic.tpl
+	sseLogicTemplate string
+)
 
 func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
@@ -54,6 +59,20 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 
 	subDir := getLogicFolderPath(group, route)
+	builtinTemplate := logicTemplate
+	sse := group.GetAnnotation("sse")
+	if sse == "true" {
+		builtinTemplate = sseLogicTemplate
+		responseString = "error"
+		returnString = "return nil"
+		resp := responseGoTypeName(route, typesPacket)
+		if len(requestString) == 0 {
+			requestString = "client chan<- " + resp
+		} else {
+			requestString += ", client chan<- " + resp
+		}
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          subDir,
@@ -61,7 +80,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		templateName:    "logicTemplate",
 		category:        category,
 		templateFile:    logicTemplateFile,
-		builtinTemplate: logicTemplate,
+		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
