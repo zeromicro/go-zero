@@ -51,8 +51,10 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 	if len(route.RequestTypeName()) > 0 {
 		requestString = "req *" + requestGoTypeName(route, typesPacket)
+		if len(route.OpenFiles) > 0 {
+			requestString = "r * http.Request, " + requestString
+		}
 	}
-
 	subDir := getLogicFolderPath(group, route)
 	return genFile(fileGenConfig{
 		dir:             dir,
@@ -72,6 +74,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"request":      requestString,
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
+			"openFiles":    route.OpenFiles,
 		},
 	})
 }
@@ -91,7 +94,10 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, `"context"`+"\n")
+	imports = append(imports, `"context"`)
+	if len(route.OpenFiles) != 0 {
+		imports = append(imports, fmt.Sprintf("\"net/http\"\n"))
+	}
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	if shallImportTypesPackage(route) {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
