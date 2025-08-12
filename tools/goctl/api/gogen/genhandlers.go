@@ -69,10 +69,19 @@ func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) err
 }
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
-	imports := []string{
-		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))),
-		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)),
+	var (
+		imports    []string
+		logicAlias string
+	)
+
+	_, exists := group.Annotation.Properties["group"]
+	if exists {
+		logicAlias = fmt.Sprintf("%s ", defaultLogicPackage)
 	}
+	imports = append(imports, fmt.Sprintf("%s\"%s\"", logicAlias,
+		pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
+	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
+
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
