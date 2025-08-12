@@ -20,7 +20,13 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		{{end}}client := make(chan {{.ResponseType}}, 16)
+		{{end}}// Buffer size of 16 is chosen as a reasonable default to balance throughput and memory usage.
+		// You can change this based on your application's needs.
+		// if your go-zero version less than 1.8.1, you need to add 3 lines below.
+        // w.Header().Set("Content-Type", "text/event-stream")
+        // w.Header().Set("Cache-Control", "no-cache")
+        // w.Header().Set("Connection", "keep-alive")
+		client := make(chan {{.ResponseType}}, 16)
         defer func() {
             close(client)
         }()
@@ -42,7 +48,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
                     continue
                 }
 
-                if, err := fmt.Fprintf(w, "data: %s\n\n", string(output)); err!=nil{
+                if _, err := fmt.Fprintf(w, "data: %s\n\n", string(output)); err!=nil{
                     logc.Errorw(r.Context(), "{{.HandlerName}}", logc.Field("error", err))
                     return
                 }
