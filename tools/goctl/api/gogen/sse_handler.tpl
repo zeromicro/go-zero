@@ -42,7 +42,10 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
                     continue
                 }
 
-                _, _ = fmt.Fprintf(w, "data: %s\n\n", string(output))
+                if, err := fmt.Fprintf(w, "data: %s\n\n", string(output)); err!=nil{
+                    logc.Errorw(r.Context(), "{{.HandlerName}}", logc.Field("error", err))
+                    return
+                }
                if flusher, ok := w.(http.Flusher); ok {
                    flusher.Flush()
                }
