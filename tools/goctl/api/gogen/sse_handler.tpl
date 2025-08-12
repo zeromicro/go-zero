@@ -28,7 +28,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
         threading.GoSafeCtx(r.Context(), func() {
             err := l.{{.Call}}({{if .HasRequest}}&req, {{end}}client)
             if err != nil {
-                logc.Errorw(r.Context(), "sseHandler", logc.Field("error", err))
+                logc.Errorw(r.Context(), "{{.HandlerName}}", logc.Field("error", err))
                 return
             }
         })
@@ -38,7 +38,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
             case data := <-client:
                 output, err := json.Marshal(data)
                 if err != nil {
-                    logc.Errorw(r.Context(), "sseHandler", logc.Field("error", err))
+                    logc.Errorw(r.Context(), "{{.HandlerName}}", logc.Field("error", err))
                     continue
                 }
 
