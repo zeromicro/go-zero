@@ -20,7 +20,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		{{end}}client := make(chan {{.ResponseType}})
+		{{end}}client := make(chan {{.ResponseType}}, 16)
         defer func() {
             close(client)
         }()
@@ -43,7 +43,9 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
                 }
 
                 _, _ = fmt.Fprintf(w, "data: %s\n\n", string(output))
-                w.(http.Flusher).Flush()
+               if flusher, ok := w.(http.Flusher); ok {
+                   flusher.Flush()
+               }
             case <-r.Context().Done():
                 return
             }
