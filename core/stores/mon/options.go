@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	mopt "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const defaultTimeout = time.Second * 3
@@ -20,16 +19,16 @@ var (
 
 type (
 	// Option defines the method to customize a mongo model.
-	Option func(opts *options)
+	Option func(opts *clientOptions)
 
 	// TypeCodec is a struct that stores specific type Encoder/Decoder.
 	TypeCodec struct {
 		ValueType reflect.Type
-		Encoder   bsoncodec.ValueEncoder
-		Decoder   bsoncodec.ValueDecoder
+		Encoder   bson.ValueEncoder
+		Decoder   bson.ValueDecoder
 	}
 
-	options = mopt.ClientOptions
+	clientOptions = options.ClientOptions
 )
 
 // DisableLog disables logging of mongo commands, includes info and slow logs.
@@ -50,14 +49,14 @@ func SetSlowThreshold(threshold time.Duration) {
 
 // WithTimeout set the mon client operation timeout.
 func WithTimeout(timeout time.Duration) Option {
-	return func(opts *options) {
+	return func(opts *clientOptions) {
 		opts.SetTimeout(timeout)
 	}
 }
 
 // WithTypeCodec registers TypeCodecs to convert custom types.
 func WithTypeCodec(typeCodecs ...TypeCodec) Option {
-	return func(opts *options) {
+	return func(opts *clientOptions) {
 		registry := bson.NewRegistry()
 		for _, v := range typeCodecs {
 			registry.RegisterTypeEncoder(v.ValueType, v.Encoder)
@@ -68,7 +67,7 @@ func WithTypeCodec(typeCodecs ...TypeCodec) Option {
 }
 
 func defaultTimeoutOption() Option {
-	return func(opts *options) {
+	return func(opts *clientOptions) {
 		opts.SetTimeout(defaultTimeout)
 	}
 }

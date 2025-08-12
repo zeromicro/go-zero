@@ -67,11 +67,11 @@ func enumsValueFromOptions(options []string) []any {
 	}
 	for _, option := range options {
 		if strings.HasPrefix(option, enumFlag) {
-			var resp = make([]any, 0)
 			val := option[8:]
 			fields := util.FieldsAndTrimSpace(val, func(r rune) bool {
 				return r == '|'
 			})
+			var resp = make([]any, 0, len(fields))
 			for _, field := range fields {
 				resp = append(resp, field)
 			}

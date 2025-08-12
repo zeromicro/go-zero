@@ -392,8 +392,8 @@ func (s *sseMcpServer) processListTools(ctx context.Context, client *mcpClient, 
 		}
 	}
 
-	var toolsList []Tool
 	s.toolsLock.Lock()
+	toolsList := make([]Tool, 0, len(s.tools))
 	for _, tool := range s.tools {
 		if len(tool.InputSchema.Type) == 0 {
 			tool.InputSchema.Type = ContentTypeObject
@@ -437,8 +437,8 @@ func (s *sseMcpServer) processListPrompts(ctx context.Context, client *mcpClient
 	}
 
 	// Prepare prompt list
-	var promptsList []Prompt
 	s.promptsLock.Lock()
+	promptsList := make([]Prompt, 0, len(s.prompts))
 	for _, prompt := range s.prompts {
 		promptsList = append(promptsList, prompt)
 	}
@@ -475,8 +475,8 @@ func (s *sseMcpServer) processListResources(ctx context.Context, client *mcpClie
 		}
 	}
 
-	var resourcesList []Resource
 	s.resourcesLock.Lock()
+	resourcesList := make([]Resource, 0, len(s.resources))
 	for _, resource := range s.resources {
 		// Create a copy without the handler function which shouldn't be sent to clients
 		resourceCopy := Resource{

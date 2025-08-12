@@ -154,7 +154,7 @@ func genTypesWithGroup(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 	}
 
 	for group, typeGroup := range groupTypes {
-		var types []spec.Type
+		types := make([]spec.Type, 0, len(typeGroup))
 		for _, v := range typeGroup {
 			types = append(types, v)
 		}
