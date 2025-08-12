@@ -40,7 +40,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}{{.sse}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}} {{.sse}}
 	)
 `
 	timeoutThreshold = time.Millisecond
@@ -63,13 +63,13 @@ type (
 		routes           []route
 		jwtEnabled       bool
 		signatureEnabled bool
+		sseEnabled       bool
 		authName         string
 		timeout          string
 		middlewares      []string
 		prefix           string
 		jwtTrans         string
 		maxBytes         string
-		sse              bool
 	}
 	route struct {
 		method  string
@@ -124,10 +124,17 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		if len(g.jwtTrans) > 0 {
 			jwt = jwt + fmt.Sprintf("\n rest.WithJwtTransition(serverCtx.Config.%s.PrevSecret,serverCtx.Config.%s.Secret),", g.jwtTrans, g.jwtTrans)
 		}
+
 		var signature, prefix string
 		if g.signatureEnabled {
 			signature = "\n rest.WithSignature(serverCtx.Config.Signature),"
 		}
+
+		var sse string
+		if g.sseEnabled {
+			sse = "\n rest.WithSSE(),"
+		}
+
 		if len(g.prefix) > 0 {
 			prefix = fmt.Sprintf(`
 rest.WithPrefix("%s"),`, g.prefix)
@@ -153,10 +160,6 @@ rest.WithPrefix("%s"),`, g.prefix)
 
 			maxBytes = fmt.Sprintf("\n rest.WithMaxBytes(%s),", g.maxBytes)
 		}
-		var sse string
-		if g.sse {
-			sse = "\n rest.WithSSE(),"
-		}
 
 		var routes string
 		if len(g.middlewares) > 0 {
@@ -177,10 +180,10 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"routes":    routes,
 			"jwt":       jwt,
 			"signature": signature,
+			"sse":       sse,
 			"prefix":    prefix,
 			"timeout":   timeout,
 			"maxBytes":  maxBytes,
-			"sse":       sse,
 		}); err != nil {
 			return err
 		}
@@ -283,14 +286,13 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			groupedRoutes.jwtTrans = jwtTrans
 		}
 
-		sse := g.GetAnnotation("sse")
-		if sse == "true" {
-			groupedRoutes.sse = true
-		}
-
 		signature := g.GetAnnotation("signature")
 		if signature == "true" {
 			groupedRoutes.signatureEnabled = true
+		}
+		sse := g.GetAnnotation("sse")
+		if sse == "true" {
+			groupedRoutes.sseEnabled = true
 		}
 		middleware := g.GetAnnotation("middleware")
 		if len(middleware) > 0 {
