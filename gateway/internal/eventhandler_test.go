@@ -29,7 +29,7 @@ func TestNewEventHandler(t *testing.T) {
 func TestNewEventHandlerWithContext(t *testing.T) {
 	ctx := context.Background()
 	w := httptest.NewRecorder()
-	h := NewEventHandlerWithContext(ctx, w, nil)
+	h := NewEventHandlerWithContext(ctx, w, nil, true)
 
 	assert.NotNil(t, h)
 	assert.Equal(t, w, h.writer)
@@ -56,7 +56,7 @@ func TestEventHandler_OnReceiveResponse_WithoutOkHandler(t *testing.T) {
 func TestEventHandler_OnReceiveResponse_WithOkHandler(t *testing.T) {
 	ctx := context.Background()
 	w := httptest.NewRecorder()
-	h := NewEventHandlerWithContext(ctx, w, nil)
+	h := NewEventHandlerWithContext(ctx, w, nil, false)
 
 	// Test with nil message (should log error but not panic)
 	h.OnReceiveResponse(nil)
