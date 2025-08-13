@@ -29,13 +29,22 @@ func TestNewEventHandler(t *testing.T) {
 func TestNewEventHandlerWithContext(t *testing.T) {
 	ctx := context.Background()
 	w := httptest.NewRecorder()
+	
+	// Test with useOkHandler = true
 	h := NewEventHandlerWithContext(ctx, w, nil, true)
-
 	assert.NotNil(t, h)
 	assert.Equal(t, w, h.writer)
 	assert.True(t, h.useOkHandler)
 	assert.Equal(t, ctx, h.ctx)
 	assert.True(t, h.marshaler.EmitDefaults)
+	
+	// Test with useOkHandler = false
+	h2 := NewEventHandlerWithContext(ctx, w, nil, false)
+	assert.NotNil(t, h2)
+	assert.Equal(t, w, h2.writer)
+	assert.False(t, h2.useOkHandler)
+	assert.Equal(t, ctx, h2.ctx)
+	assert.True(t, h2.marshaler.EmitDefaults)
 }
 
 func TestEventHandler_OnReceiveResponse_WithoutOkHandler(t *testing.T) {
@@ -56,7 +65,7 @@ func TestEventHandler_OnReceiveResponse_WithoutOkHandler(t *testing.T) {
 func TestEventHandler_OnReceiveResponse_WithOkHandler(t *testing.T) {
 	ctx := context.Background()
 	w := httptest.NewRecorder()
-	h := NewEventHandlerWithContext(ctx, w, nil, false)
+	h := NewEventHandlerWithContext(ctx, w, nil, true)
 
 	// Test with nil message (should log error but not panic)
 	h.OnReceiveResponse(nil)
@@ -72,6 +81,21 @@ func TestEventHandler_OnReceiveResponse_WithOkHandler(t *testing.T) {
 	assert.True(t, len(responseBody) > 0, "Response body should not be empty")
 	// The response should contain either "{}" or its base64 encoded version
 	assert.True(t, responseBody == "\"e30=\"" || responseBody == "{}" || len(responseBody) > 0)
+}
+
+func TestEventHandler_OnReceiveResponse_WithoutOkHandlerContext(t *testing.T) {
+	ctx := context.Background()
+	w := httptest.NewRecorder()
+	h := NewEventHandlerWithContext(ctx, w, nil, false)
+
+	// Test with valid message when useOkHandler is false
+	msg := &empty.Empty{}
+	h.OnReceiveResponse(msg)
+
+	// When useOkHandler is false, it should use the fallback behavior
+	// The response should be written directly to the writer
+	responseBody := w.Body.String()
+	assert.Contains(t, responseBody, "{}")
 }
 
 func TestEventHandler_OnReceiveResponse_MarshalError(t *testing.T) {
@@ -99,6 +123,48 @@ func TestEventHandler_OnReceiveTrailers(t *testing.T) {
 	h.OnReceiveTrailers(errorStatus, nil)
 	assert.Equal(t, codes.Internal, h.Status.Code())
 	assert.Equal(t, "internal error", h.Status.Message())
+}
+
+func TestEventHandler_OnResolveMethod(t *testing.T) {
+	h := NewEventHandler(io.Discard, nil)
+	
+	// Test with nil method descriptor - should not panic
+	h.OnResolveMethod(nil)
+	
+	// Since this is a no-op function, we just verify it doesn't panic
+	// and can be called multiple times
+	h.OnResolveMethod(nil)
+	h.OnResolveMethod(nil)
+}
+
+func TestEventHandler_OnSendHeaders(t *testing.T) {
+	h := NewEventHandler(io.Discard, nil)
+	
+	// Test with nil metadata - should not panic
+	h.OnSendHeaders(nil)
+	
+	// Test with valid metadata
+	md := metadata.New(map[string]string{"request-id": "123", "auth": "token"})
+	h.OnSendHeaders(md)
+	
+	// Test with empty metadata
+	emptyMd := metadata.New(map[string]string{})
+	h.OnSendHeaders(emptyMd)
+}
+
+func TestEventHandler_OnReceiveHeaders(t *testing.T) {
+	h := NewEventHandler(io.Discard, nil)
+	
+	// Test with nil metadata - should not panic
+	h.OnReceiveHeaders(nil)
+	
+	// Test with valid metadata
+	md := metadata.New(map[string]string{"response-id": "456", "content-type": "application/json"})
+	h.OnReceiveHeaders(md)
+	
+	// Test with empty metadata
+	emptyMd := metadata.New(map[string]string{})
+	h.OnReceiveHeaders(emptyMd)
 }
 
 func TestEventHandler_CompleteWorkflow(t *testing.T) {
