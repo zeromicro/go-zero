@@ -2,6 +2,7 @@ package internal
 
 import (
 	"io"
+	"net/http"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -33,15 +34,30 @@ func (h *EventHandler) OnReceiveResponse(message proto.Message) {
 	}
 }
 
-func (h *EventHandler) OnReceiveTrailers(status *status.Status, _ metadata.MD) {
+func (h *EventHandler) OnReceiveTrailers(status *status.Status, md metadata.MD) {
+	w, ok := h.writer.(http.ResponseWriter)
+	if ok {
+		for k, v := range md {
+			for _, v2 := range v {
+				w.Header().Add(k, v2)
+			}
+		}
+	}
 	h.Status = status
 }
-
 func (h *EventHandler) OnResolveMethod(_ *desc.MethodDescriptor) {
 }
 
 func (h *EventHandler) OnSendHeaders(_ metadata.MD) {
 }
 
-func (h *EventHandler) OnReceiveHeaders(_ metadata.MD) {
+func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
+	w, ok := h.writer.(http.ResponseWriter)
+	if ok {
+		for k, v := range md {
+			for _, v2 := range v {
+				w.Header().Add(k, v2)
+			}
+		}
+	}
 }
