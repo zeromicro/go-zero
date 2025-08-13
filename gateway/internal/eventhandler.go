@@ -34,7 +34,7 @@ func NewEventHandler(writer io.Writer, resolver jsonpb.AnyResolver) *EventHandle
 }
 
 // NewEventHandlerWithContext creates an EventHandler that supports httpx.OkHandler callbacks
-func NewEventHandlerWithContext(ctx context.Context, w http.ResponseWriter, resolver jsonpb.AnyResolver) *EventHandler {
+func NewEventHandlerWithContext(ctx context.Context, w http.ResponseWriter, resolver jsonpb.AnyResolver, useOkHandler bool) *EventHandler {
 	return &EventHandler{
 		writer: w,
 		marshaler: jsonpb.Marshaler{
@@ -42,7 +42,7 @@ func NewEventHandlerWithContext(ctx context.Context, w http.ResponseWriter, reso
 			AnyResolver:  resolver,
 		},
 		ctx:          ctx,
-		useOkHandler: true,
+		useOkHandler: useOkHandler,
 	}
 }
 

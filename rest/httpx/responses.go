@@ -22,6 +22,12 @@ var (
 	okLock       sync.RWMutex
 )
 
+func HasOkHandler() bool {
+	okLock.RLock()
+	defer okLock.RUnlock()
+	return okHandler != nil
+}
+
 // Error writes err into w.
 func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
 	doHandleError(w, err, buildErrorHandler(context.Background()), WriteJson, fns...)
