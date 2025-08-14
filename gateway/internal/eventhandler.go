@@ -56,7 +56,9 @@ func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
 	if ok {
 		for k, v := range md {
 			for _, v2 := range v {
-				w.Header().Add(k, v2)
+			canonicalKey := http.CanonicalHeaderKey(k)
+			for _, v2 := range v {
+				w.Header().Add(canonicalKey, v2)
 			}
 		}
 	}
