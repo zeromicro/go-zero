@@ -39,7 +39,7 @@ func (h *EventHandler) OnReceiveTrailers(status *status.Status, md metadata.MD) 
 	if ok {
 		for k, v := range md {
 			for _, v2 := range v {
-				w.Header().Add(k, v2)
+				w.Header().Add(http.CanonicalHeaderKey(k), v2)
 			}
 		}
 	}
