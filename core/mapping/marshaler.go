@@ -147,7 +147,6 @@ func validateOptional(field reflect.StructField, value reflect.Value) error {
 		if value.IsNil() || value.Len() == 0 {
 			return fmt.Errorf("field %q is empty", field.Name)
 		}
-	default:
 	}
 
 	return nil
