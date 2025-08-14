@@ -48,7 +48,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
                     continue
                 }
 
-                if _, err := fmt.Fprintf(w, "data: %s\n\n", string(output)); err!=nil{
+                if _, err := fmt.Fprintf(w, "data: %s\n\n", string(output)); err != nil {
                     logc.Errorw(r.Context(), "{{.HandlerName}}", logc.Field("error", err))
                     return
                 }
