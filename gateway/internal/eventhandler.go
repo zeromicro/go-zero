@@ -28,6 +28,17 @@ func NewEventHandler(writer io.Writer, resolver jsonpb.AnyResolver) *EventHandle
 	}
 }
 
+func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
+	w, ok := h.writer.(http.ResponseWriter)
+	if ok {
+		for k, v := range md {
+			for _, val := range v {
+				w.Header().Add(k, val)
+			}
+		}
+	}
+}
+
 func (h *EventHandler) OnReceiveResponse(message proto.Message) {
 	if err := h.marshaler.Marshal(h.writer, message); err != nil {
 		logx.Error(err)
@@ -38,28 +49,17 @@ func (h *EventHandler) OnReceiveTrailers(status *status.Status, md metadata.MD) 
 	w, ok := h.writer.(http.ResponseWriter)
 	if ok {
 		for k, v := range md {
-			for _, v2 := range v {
-				w.Header().Add(http.CanonicalHeaderKey(k), v2)
+			for _, val := range v {
+				w.Header().Add(k, val)
 			}
 		}
 	}
+
 	h.Status = status
 }
+
 func (h *EventHandler) OnResolveMethod(_ *desc.MethodDescriptor) {
 }
 
 func (h *EventHandler) OnSendHeaders(_ metadata.MD) {
-}
-
-func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
-	w, ok := h.writer.(http.ResponseWriter)
-	if ok {
-		for k, v := range md {
-			for _, v2 := range v {
-			canonicalKey := http.CanonicalHeaderKey(k)
-			for _, v2 := range v {
-				w.Header().Add(canonicalKey, v2)
-			}
-		}
-	}
 }
