@@ -79,7 +79,7 @@ type (
 	}
 )
 
-func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genRoutes(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -211,6 +211,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
 			"version":         version.BuildVersion,
+			"projectPkg":      projectPkg,
 		},
 	})
 }
