@@ -15,8 +15,12 @@ import (
 
 const defaultLogicPackage = "logic"
 
-//go:embed handler.tpl
-var handlerTemplate string
+var (
+	//go:embed handler.tpl
+	handlerTemplate string
+	//go:embed sse_handler.tpl
+	sseHandlerTemplate string
+)
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
@@ -32,6 +36,12 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		return err
 	}
 
+	var builtinTemplate = handlerTemplate
+	sse := group.GetAnnotation("sse")
+	if sse == "true" {
+		builtinTemplate = sseHandlerTemplate
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          getHandlerFolderPath(group, route),
@@ -39,12 +49,13 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		templateName:    "handlerTemplate",
 		category:        category,
 		templateFile:    handlerTemplateFile,
-		builtinTemplate: handlerTemplate,
+		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"PkgName":        pkgName,
 			"ImportPackages": genHandlerImports(group, route, rootPkg),
 			"HandlerName":    handler,
 			"RequestType":    util.Title(route.RequestTypeName()),
+			"ResponseType":   responseGoTypeName(route, typesPacket),
 			"LogicName":      logicName,
 			"LogicType":      strings.Title(getLogicName(route)),
 			"Call":           strings.Title(strings.TrimSuffix(handler, "Handler")),
@@ -73,7 +84,8 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))),
 		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)),
 	}
-	if len(route.RequestTypeName()) > 0 {
+	sse := group.GetAnnotation("sse")
+	if len(route.RequestTypeName()) > 0 || sse == "true" {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
 
