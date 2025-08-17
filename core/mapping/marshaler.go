@@ -157,6 +157,7 @@ func validateOptions(value reflect.Value, opt *fieldOptions) error {
 	if !slices.Contains(opt.Options, val) {
 		return fmt.Errorf("field %q not in options", val)
 	}
+
 	return nil
 }
 

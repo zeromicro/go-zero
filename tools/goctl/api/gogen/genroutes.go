@@ -226,8 +226,8 @@ func formatDuration(duration time.Duration) string {
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
-	importSet := collection.NewSet()
-	importSet.AddStr(fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
+	importSet := collection.NewSet[string]()
+	importSet.Add(fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
 			folder := route.GetAnnotation(groupProperty)
@@ -237,11 +237,11 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder),
+			importSet.Add(fmt.Sprintf("%s \"%s\"", toPrefix(folder),
 				pathx.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
-	imports := importSet.KeysStr()
+	imports := importSet.Keys()
 	sort.Strings(imports)
 	projectSection := strings.Join(imports, "\n\t")
 	depSection := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL)
