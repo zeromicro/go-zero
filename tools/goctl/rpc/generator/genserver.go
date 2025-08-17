@@ -66,8 +66,8 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 		svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 		pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
 
-		imports := collection.NewSet()
-		imports.AddStr(logicImport, svcImport, pbImport)
+		imports := collection.NewSet[string]()
+		imports.Add(logicImport, svcImport, pbImport)
 
 		head := util.GetHead(proto.Name)
 
@@ -94,7 +94,7 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 			"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 				parser.CamelCase(service.Name)),
 			"server":    stringx.From(service.Name).ToCamel(),
-			"imports":   strings.Join(imports.KeysStr(), pathx.NL),
+			"imports":   strings.Join(imports.Keys(), pathx.NL),
 			"funcs":     strings.Join(funcList, pathx.NL),
 			"notStream": notStream,
 		}, serverFile, true); err != nil {
@@ -111,8 +111,8 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
 
-	imports := collection.NewSet()
-	imports.AddStr(logicImport, svcImport, pbImport)
+	imports := collection.NewSet[string]()
+	imports.Add(logicImport, svcImport, pbImport)
 
 	head := util.GetHead(proto.Name)
 	service := proto.Service[0]
@@ -145,7 +145,7 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 		"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 			parser.CamelCase(service.Name)),
 		"server":    stringx.From(service.Name).ToCamel(),
-		"imports":   strings.Join(imports.KeysStr(), pathx.NL),
+		"imports":   strings.Join(imports.Keys(), pathx.NL),
 		"funcs":     strings.Join(funcList, pathx.NL),
 		"notStream": notStream,
 	}, serverFile, true)
