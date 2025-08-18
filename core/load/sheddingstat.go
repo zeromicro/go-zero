@@ -52,7 +52,7 @@ func (s *SheddingStat) loop(c <-chan time.Time) {
 	for range c {
 		st := s.reset()
 
-		if !logEnabled.True() {
+		if !logEnabled.Load() {
 			continue
 		}
 
