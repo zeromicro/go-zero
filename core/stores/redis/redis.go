@@ -8,6 +8,7 @@ import (
 	"time"
 
 	red "github.com/redis/go-redis/v9"
+
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -53,13 +54,14 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		User  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr        string
+		Type        string
+		User        string
+		Pass        string
+		resourceKey string
+		tls         bool
+		brk         breaker.Breaker
+		hooks       []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -131,6 +133,9 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 	if len(conf.Pass) > 0 {
 		opts = append([]Option{WithPass(conf.Pass)}, opts...)
+	}
+	if len(conf.ResourceKey) > 0 {
+		opts = append(opts, WithResourceKey(conf.ResourceKey))
 	}
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
@@ -2551,6 +2556,13 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 	return conn.ZUnionStore(ctx, dest, store).Result()
 }
 
+func (s *Redis) getResourceKey() string {
+	if len(s.resourceKey) > 0 {
+		return s.resourceKey
+	}
+	return s.Addr
+}
+
 func (s *Redis) checkConnection(pingTimeout time.Duration) error {
 	conn, err := getRedis(s)
 	if err != nil {
@@ -2598,6 +2610,13 @@ func WithPass(pass string) Option {
 func WithTLS() Option {
 	return func(r *Redis) {
 		r.tls = true
+	}
+}
+
+// WithResourceKey customizes the given Redis with resourceKey.
+func WithResourceKey(resourceKey string) Option {
+	return func(r *Redis) {
+		r.resourceKey = resourceKey
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	red "github.com/redis/go-redis/v9"
+
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
@@ -22,7 +23,7 @@ var (
 )
 
 func getClient(r *Redis) (*red.Client, error) {
-	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
+	val, err := clientManager.GetResource(r.getResourceKey(), func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {
 			tlsConfig = &tls.Config{
