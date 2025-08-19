@@ -2,6 +2,7 @@ package ctx
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
@@ -37,6 +38,16 @@ func Prepare(workDir string) (*ProjectContext, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// add go work support
+	f := filepath.Join(workDir, "/../go.work")
+	if _, err := os.Stat(f); err == nil {
+		_, err = execx.Run("go work use "+name, filepath.Join(workDir, "/.."))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return background(workDir)
 }
 
