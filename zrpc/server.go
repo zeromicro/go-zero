@@ -3,6 +3,8 @@ package zrpc
 import (
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
@@ -10,7 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
 // A RpcServer is a rpc server.
@@ -118,7 +119,11 @@ func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
 		return err
 	}
 
-	authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
+	whitelist := make(map[string]struct{}, len(c.AuthWhitelist))
+	for _, method := range c.AuthWhitelist {
+		whitelist[method] = struct{}{}
+	}
+	authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl, whitelist)
 	if err != nil {
 		return err
 	}

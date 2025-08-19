@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
-	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 )
 
 func TestStreamAuthorizeInterceptor(t *testing.T) {
@@ -54,7 +55,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 				defer store.Hdel("apps", test.app)
 			}
 
-			authenticator, err := auth.NewAuthenticator(store, "apps", test.strict)
+			authenticator, err := auth.NewAuthenticator(store, "apps", test.strict, nil)
 			assert.Nil(t, err)
 			interceptor := StreamAuthorizeInterceptor(authenticator)
 			md := metadata.New(map[string]string{
@@ -118,7 +119,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 				defer store.Hdel("apps", test.app)
 			}
 
-			authenticator, err := auth.NewAuthenticator(store, "apps", test.strict)
+			authenticator, err := auth.NewAuthenticator(store, "apps", test.strict, nil)
 			assert.Nil(t, err)
 			interceptor := UnaryAuthorizeInterceptor(authenticator)
 			md := metadata.New(map[string]string{

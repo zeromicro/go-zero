@@ -4,35 +4,38 @@ import (
 	"context"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 const defaultExpiration = 5 * time.Minute
 
 // An Authenticator is used to authenticate the rpc requests.
 type Authenticator struct {
-	store  *redis.Redis
-	key    string
-	cache  *collection.Cache
-	strict bool
+	store     *redis.Redis
+	key       string
+	cache     *collection.Cache
+	strict    bool
+	whitelist map[string]struct{}
 }
 
 // NewAuthenticator returns an Authenticator.
-func NewAuthenticator(store *redis.Redis, key string, strict bool) (*Authenticator, error) {
+func NewAuthenticator(store *redis.Redis, key string, strict bool, whitelist map[string]struct{}) (*Authenticator, error) {
 	cache, err := collection.NewCache(defaultExpiration)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Authenticator{
-		store:  store,
-		key:    key,
-		cache:  cache,
-		strict: strict,
+		store:     store,
+		key:       key,
+		cache:     cache,
+		strict:    strict,
+		whitelist: whitelist,
 	}, nil
 }
 
@@ -73,4 +76,9 @@ func (a *Authenticator) validate(app, token string) error {
 	}
 
 	return nil
+}
+
+func (a *Authenticator) IsWhitelist(path string) bool {
+	_, ok := a.whitelist[path]
+	return ok
 }

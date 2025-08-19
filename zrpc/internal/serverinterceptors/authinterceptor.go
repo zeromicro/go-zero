@@ -3,14 +3,19 @@ package serverinterceptors
 import (
 	"context"
 
-	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
+
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 )
 
 // StreamAuthorizeInterceptor returns a func that uses given authenticator in processing stream requests.
 func StreamAuthorizeInterceptor(authenticator *auth.Authenticator) grpc.StreamServerInterceptor {
 	return func(svr any, stream grpc.ServerStream, info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler) error {
+		if authenticator.IsWhitelist(info.FullMethod) {
+			return handler(svr, stream)
+		}
+
 		if err := authenticator.Authenticate(stream.Context()); err != nil {
 			return err
 		}
@@ -23,10 +28,13 @@ func StreamAuthorizeInterceptor(authenticator *auth.Authenticator) grpc.StreamSe
 func UnaryAuthorizeInterceptor(authenticator *auth.Authenticator) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (any, error) {
+		ok := authenticator.IsWhitelist(info.FullMethod)
+		if ok {
+			return handler(ctx, req)
+		}
 		if err := authenticator.Authenticate(ctx); err != nil {
 			return nil, err
 		}
-
 		return handler(ctx, req)
 	}
 }

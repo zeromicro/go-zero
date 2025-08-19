@@ -45,8 +45,9 @@ type (
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000)"`
 		// grpc health check switch
-		Health      bool `json:",default=true"`
-		Middlewares ServerMiddlewaresConf
+		Health        bool     `json:",default=true"`
+		AuthWhitelist []string `json:",optional"`
+		Middlewares   ServerMiddlewaresConf
 		// setting specified timeout for gRPC method
 		MethodTimeouts []MethodTimeoutConf `json:",optional"`
 	}

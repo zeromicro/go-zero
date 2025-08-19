@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 )
 
 func TestAuthenticator(t *testing.T) {
@@ -52,7 +53,7 @@ func TestAuthenticator(t *testing.T) {
 				defer store.Hdel("apps", test.app)
 			}
 
-			authenticator, err := NewAuthenticator(store, "apps", test.strict)
+			authenticator, err := NewAuthenticator(store, "apps", test.strict, nil)
 			assert.Nil(t, err)
 			assert.NotNil(t, authenticator.Authenticate(context.Background()))
 			md := metadata.New(map[string]string{})
