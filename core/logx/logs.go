@@ -277,6 +277,7 @@ func SetUp(c LogConf) (err error) {
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
 		setupLogLevel(c)
+		setupLogKey(c.LogKey)
 
 		if !c.Stat {
 			DisableStat()
@@ -578,4 +579,31 @@ func writeStack(msg string) {
 // The caller should check shallLog before calling this function.
 func writeStat(msg string) {
 	getWriter().Stat(msg, mergeGlobalFields(addCaller())...)
+}
+
+func setupLogKey(c logKeyConf) {
+	if c.CallerKey != "" {
+		callerKey = c.CallerKey
+	}
+	if c.ContentKey != "" {
+		contentKey = c.ContentKey
+	}
+	if c.DurationKey != "" {
+		durationKey = c.DurationKey
+	}
+	if c.LevelKey != "" {
+		levelKey = c.LevelKey
+	}
+	if c.SpanKey != "" {
+		spanKey = c.SpanKey
+	}
+	if c.TimestampKey != "" {
+		timestampKey = c.TimestampKey
+	}
+	if c.TraceKey != "" {
+		traceKey = c.TraceKey
+	}
+	if c.TruncatedKey != "" {
+		truncatedKey = c.TruncatedKey
+	}
 }
