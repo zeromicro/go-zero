@@ -44,4 +44,25 @@ type LogConf struct {
 	Rotation string `json:",default=daily,options=[daily,size]"`
 	// FileTimeFormat represents the time format for file name, default is `2006-01-02T15:04:05.000Z07:00`.
 	FileTimeFormat string `json:",optional"`
+	// LogKey represents the log key.
+	LogKey logKeyConf `json:",optional"`
+}
+
+type logKeyConf struct {
+	// CallerKey represents the caller key.
+	CallerKey string `json:",default=caller"`
+	// ContentKey represents the content key.
+	ContentKey string `json:",default=content"`
+	// DurationKey represents the duration key.
+	DurationKey string `json:",default=duration"`
+	// LevelKey represents the level key.
+	LevelKey string `json:",default=level"`
+	// SpanKey represents the span key.
+	SpanKey string `json:",default=span"`
+	// TimestampKey represents the timestamp key.
+	TimestampKey string `json:",default=@timestamp"`
+	// TraceKey represents the trace key.
+	TraceKey string `json:",default=trace"`
+	// TruncatedKey represents the truncated key.
+	TruncatedKey string `json:",default=truncated"`
 }
