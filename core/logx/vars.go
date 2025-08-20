@@ -64,17 +64,6 @@ const (
 )
 
 var (
-	callerKey    = defaultCallerKey
-	contentKey   = defaultContentKey
-	durationKey  = defaultDurationKey
-	levelKey     = defaultLevelKey
-	spanKey      = defaultSpanKey
-	timestampKey = defaultTimestampKey
-	traceKey     = defaultTraceKey
-	truncatedKey = defaultTruncatedKey
-)
-
-var (
 	// ErrLogPathNotSet is an error that indicates the log path is not set.
 	ErrLogPathNotSet = errors.New("log path must be set")
 	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
@@ -83,4 +72,15 @@ var (
 	ExitOnFatal = syncx.ForAtomicBool(true)
 
 	truncatedField = Field(truncatedKey, true)
+)
+
+var (
+	callerKey    = defaultCallerKey
+	contentKey   = defaultContentKey
+	durationKey  = defaultDurationKey
+	levelKey     = defaultLevelKey
+	spanKey      = defaultSpanKey
+	timestampKey = defaultTimestampKey
+	traceKey     = defaultTraceKey
+	truncatedKey = defaultTruncatedKey
 )

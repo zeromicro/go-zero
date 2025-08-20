@@ -779,15 +779,9 @@ func TestSetup(t *testing.T) {
 		MaxBackups:  3,
 		MaxSize:     1024 * 1024,
 	}))
-	setupLogLevel(LogConf{
-		Level: levelInfo,
-	})
-	setupLogLevel(LogConf{
-		Level: levelError,
-	})
-	setupLogLevel(LogConf{
-		Level: levelSevere,
-	})
+	setupLogLevel(levelInfo)
+	setupLogLevel(levelError)
+	setupLogLevel(levelSevere)
 	_, err := createOutput("")
 	assert.NotNil(t, err)
 	Disable()
@@ -1167,7 +1161,7 @@ func TestLogKey(t *testing.T) {
 		Mode:        "console",
 		Encoding:    "json",
 		TimeFormat:  timeFormat,
-		LogKey: logKeyConf{
+		FieldKeys: fieldKeyConf{
 			CallerKey:    "_caller",
 			ContentKey:   "_content",
 			DurationKey:  "_duration",
@@ -1180,7 +1174,7 @@ func TestLogKey(t *testing.T) {
 	})
 
 	t.Cleanup(func() {
-		setupLogKey(logKeyConf{
+		setupFieldKeys(fieldKeyConf{
 			CallerKey:    defaultCallerKey,
 			ContentKey:   defaultContentKey,
 			DurationKey:  defaultDurationKey,
