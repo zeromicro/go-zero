@@ -276,8 +276,8 @@ func SetUp(c LogConf) (err error) {
 	// Because multiple services in one process might call SetUp respectively.
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
-		setupLogLevel(c)
-		setupLogKey(c.LogKey)
+		setupLogLevel(c.Level)
+		setupFieldKeys(c.FieldKeys)
 
 		if !c.Stat {
 			DisableStat()
@@ -481,8 +481,35 @@ func handleOptions(opts []LogOption) {
 	}
 }
 
-func setupLogLevel(c LogConf) {
-	switch c.Level {
+func setupFieldKeys(c fieldKeyConf) {
+	if len(c.CallerKey) > 0 {
+		callerKey = c.CallerKey
+	}
+	if len(c.ContentKey) > 0 {
+		contentKey = c.ContentKey
+	}
+	if len(c.DurationKey) > 0 {
+		durationKey = c.DurationKey
+	}
+	if len(c.LevelKey) > 0 {
+		levelKey = c.LevelKey
+	}
+	if len(c.SpanKey) > 0 {
+		spanKey = c.SpanKey
+	}
+	if len(c.TimestampKey) > 0 {
+		timestampKey = c.TimestampKey
+	}
+	if len(c.TraceKey) > 0 {
+		traceKey = c.TraceKey
+	}
+	if len(c.TruncatedKey) > 0 {
+		truncatedKey = c.TruncatedKey
+	}
+}
+
+func setupLogLevel(level string) {
+	switch level {
 	case levelDebug:
 		SetLevel(DebugLevel)
 	case levelInfo:
@@ -579,31 +606,4 @@ func writeStack(msg string) {
 // The caller should check shallLog before calling this function.
 func writeStat(msg string) {
 	getWriter().Stat(msg, mergeGlobalFields(addCaller())...)
-}
-
-func setupLogKey(c logKeyConf) {
-	if c.CallerKey != "" {
-		callerKey = c.CallerKey
-	}
-	if c.ContentKey != "" {
-		contentKey = c.ContentKey
-	}
-	if c.DurationKey != "" {
-		durationKey = c.DurationKey
-	}
-	if c.LevelKey != "" {
-		levelKey = c.LevelKey
-	}
-	if c.SpanKey != "" {
-		spanKey = c.SpanKey
-	}
-	if c.TimestampKey != "" {
-		timestampKey = c.TimestampKey
-	}
-	if c.TraceKey != "" {
-		traceKey = c.TraceKey
-	}
-	if c.TruncatedKey != "" {
-		truncatedKey = c.TruncatedKey
-	}
 }

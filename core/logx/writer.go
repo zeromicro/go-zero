@@ -212,7 +212,6 @@ func newFileWriter(c LogConf) (Writer, error) {
 	statFile := path.Join(c.Path, statFilename)
 
 	handleOptions(opts)
-	setupLogLevel(c)
 
 	if infoLog, err = createOutput(accessFile); err != nil {
 		return nil, err
