@@ -1,3 +1,4 @@
+//go:generate mockgen -package mon -destination collectioninserter_mock.go -source bulkinserter.go collectionInserter
 package mon
 
 import (
@@ -6,7 +7,8 @@ import (
 
 	"github.com/zeromicro/go-zero/core/executors"
 	"github.com/zeromicro/go-zero/core/logx"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -27,10 +29,7 @@ type (
 
 // NewBulkInserter returns a BulkInserter.
 func NewBulkInserter(coll Collection, interval ...time.Duration) (*BulkInserter, error) {
-	cloneColl, err := coll.Clone()
-	if err != nil {
-		return nil, err
-	}
+	cloneColl := coll.Clone()
 
 	inserter := &dbInserter{
 		collection: cloneColl,
@@ -64,8 +63,16 @@ func (bi *BulkInserter) SetResultHandler(handler ResultHandler) {
 	})
 }
 
+type collectionInserter interface {
+	InsertMany(
+		ctx context.Context,
+		documents interface{},
+		opts ...options.Lister[options.InsertManyOptions],
+	) (*mongo.InsertManyResult, error)
+}
+
 type dbInserter struct {
-	collection    *mongo.Collection
+	collection    collectionInserter
 	documents     []any
 	resultHandler ResultHandler
 }
