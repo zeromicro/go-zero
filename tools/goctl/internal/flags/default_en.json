@@ -258,7 +258,7 @@
         "branch": "{{.global.branch}}",
         "verbose": "Enable log output",
         "client": "Whether to generate rpc client",
-        "rpc_name": "Rpc service name. Setting the rpc service name prevents it from defaulting to the proto file name. This enables the use of multiple proto files within the same service for code generation"
+        "name": "Service name. Setting the rpc service name prevents it from defaulting to the proto file name. This enables the use of multiple proto files within the same service for code generation"
       }
     },
     "template": {

@@ -21,7 +21,7 @@ var etcTemplate string
 // including host, port monitoring configuration items and etcd configuration
 func (g *Generator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config, c *ZRpcContext) error {
 	dir := ctx.GetEtc()
-	serviceName := c.RpcName
+	serviceName := c.Name
 	if len(serviceName) == 0 {
 		serviceName = ctx.GetServiceName().Source()
 	}
