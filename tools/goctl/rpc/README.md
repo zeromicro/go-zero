@@ -105,7 +105,7 @@ Flags:
       --style string      The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md] (default "gozero")
   -v, --verbose           Enable log output
       --zrpc_out string   The zrpc output directory
-      --rpc_name string   Rpc service name. Setting the rpc service name prevents it from defaulting to the proto file name. This enables the use of multiple proto files within the same service for code generation.
+      --name string   Rpc service name. Setting the rpc service name prevents it from defaulting to the proto file name. This enables the use of multiple proto files within the same service for code generation.
 ```
 
 ### 参数说明
