@@ -69,7 +69,7 @@ func getFirstUsableString(def ...string) string {
 	}
 	for _, val := range def {
 		str, err := strconv.Unquote(val)
-		if err != nil || len(str) != 0 {
+		if err == nil && len(str) != 0 {
 			return str
 		}
 	}
