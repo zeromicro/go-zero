@@ -3,6 +3,7 @@ package internal
 import (
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -10,6 +11,12 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+)
+
+const (
+	grpcContentType    = "application/grpc"
+	contentTypeHeader  = "content-type"
+	grpcMetadataHeader = "Grpc-Metadata-Content-Type"
 )
 
 type EventHandler struct {
@@ -33,6 +40,10 @@ func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
 	if ok {
 		for k, v := range md {
 			for _, val := range v {
+				if strings.EqualFold(k, contentTypeHeader) && strings.EqualFold(val, grpcContentType) {
+					w.Header().Set(grpcMetadataHeader, val)
+					continue
+				}
 				w.Header().Add(k, val)
 			}
 		}

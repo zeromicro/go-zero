@@ -162,3 +162,91 @@ func TestEventHandler_OnReceiveHeaders_MultipleValues(t *testing.T) {
 	assert.Equal(t, []string{"value1", "value2"}, recorder.Header()["X-Header-1"])
 	assert.Equal(t, []string{"value3"}, recorder.Header()["X-Header-2"])
 }
+
+func TestEventHandler_OnReceiveHeaders_GrpcContentType(t *testing.T) {
+	tests := []struct {
+		name           string
+		metadata       metadata.MD
+		expectedHeader map[string][]string
+	}{
+		{
+			name: "grpc content-type should be mapped to grpc metadata header",
+			metadata: metadata.MD{
+				"content-type":    []string{"application/grpc"},
+				"x-custom-header": []string{"value1"},
+			},
+			expectedHeader: map[string][]string{
+				"Grpc-Metadata-Content-Type": {"application/grpc"},
+				"X-Custom-Header":            {"value1"},
+			},
+		},
+		{
+			name: "case insensitive content-type header matching",
+			metadata: metadata.MD{
+				"Content-Type":    []string{"APPLICATION/GRPC"},
+				"x-custom-header": []string{"value1"},
+			},
+			expectedHeader: map[string][]string{
+				"Grpc-Metadata-Content-Type": {"APPLICATION/GRPC"},
+				"X-Custom-Header":            {"value1"},
+			},
+		},
+		{
+			name: "non-grpc content-type should be added normally",
+			metadata: metadata.MD{
+				"content-type":    []string{"application/json"},
+				"x-custom-header": []string{"value1"},
+			},
+			expectedHeader: map[string][]string{
+				"Content-Type":    {"application/json"},
+				"X-Custom-Header": {"value1"},
+			},
+		},
+		{
+			name: "multiple grpc content-type values",
+			metadata: metadata.MD{
+				"content-type": []string{"application/grpc", "application/json"},
+			},
+			expectedHeader: map[string][]string{
+				"Grpc-Metadata-Content-Type": {"application/grpc"},
+				"Content-Type":               {"application/json"},
+			},
+		},
+		{
+			name: "mixed case content-type key with grpc value",
+			metadata: metadata.MD{
+				"Content-TYPE": []string{"application/grpc"},
+			},
+			expectedHeader: map[string][]string{
+				"Grpc-Metadata-Content-Type": {"application/grpc"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			h := NewEventHandler(recorder, nil)
+			
+			h.OnReceiveHeaders(tt.metadata)
+			
+			// Check that headers are set correctly
+			for key, expectedValues := range tt.expectedHeader {
+				actualValues := recorder.Header()[key]
+				assert.Equal(t, expectedValues, actualValues, "Header %s should match", key)
+			}
+			
+			// Ensure no unexpected headers are set
+			for actualKey := range recorder.Header() {
+				found := false
+				for expectedKey := range tt.expectedHeader {
+					if actualKey == expectedKey {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "Unexpected header found: %s", actualKey)
+			}
+		})
+	}
+}
