@@ -40,8 +40,8 @@ func TestEventHandler_OnReceiveTrailers(t *testing.T) {
 			},
 			expectedStatus: codes.OK,
 			expectedHeader: map[string][]string{
-				"X-Custom-Header":  {"value1", "value2"},
-				"X-Another-Header": {"single-value"},
+				"Grpc-Trailer-X-Custom-Header":  {"value1", "value2"},
+				"Grpc-Trailer-X-Another-Header": {"single-value"},
 			},
 		},
 		{
@@ -100,9 +100,9 @@ func TestEventHandler_OnReceiveHeaders(t *testing.T) {
 				"x-another-header": []string{"single-value"},
 			},
 			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/json"},
-				"X-Custom-Header":            {"value1", "value2"},
-				"X-Another-Header":           {"single-value"},
+				"Grpc-Metadata-Content-Type":     {"application/json"},
+				"Grpc-Metadata-X-Custom-Header":  {"value1", "value2"},
+				"Grpc-Metadata-X-Another-Header": {"single-value"},
 			},
 		},
 		{
@@ -158,76 +158,54 @@ func TestEventHandler_OnReceiveHeaders_MultipleValues(t *testing.T) {
 		"x-header-2": []string{"value3"},
 	})
 	
-	// Check that headers are accumulated (not overwritten)
-	assert.Equal(t, []string{"value1", "value2"}, recorder.Header()["X-Header-1"])
-	assert.Equal(t, []string{"value3"}, recorder.Header()["X-Header-2"])
+	// Check that headers are accumulated (not overwritten) with proper prefix
+	assert.Equal(t, []string{"value1", "value2"}, recorder.Header()["Grpc-Metadata-X-Header-1"])
+	assert.Equal(t, []string{"value3"}, recorder.Header()["Grpc-Metadata-X-Header-2"])
 }
 
-func TestEventHandler_OnReceiveHeaders_GrpcContentType(t *testing.T) {
+func TestEventHandler_OnReceiveHeaders_MetadataPrefix(t *testing.T) {
 	tests := []struct {
 		name           string
 		metadata       metadata.MD
 		expectedHeader map[string][]string
 	}{
 		{
-			name: "grpc content-type should be mapped to grpc metadata header",
+			name: "all metadata headers should be prefixed with Grpc-Metadata-",
 			metadata: metadata.MD{
 				"content-type":    []string{"application/grpc"},
 				"x-custom-header": []string{"value1"},
+				"authorization":   []string{"Bearer token"},
 			},
 			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/grpc"},
-				"X-Custom-Header":            {"value1"},
+				"Grpc-Metadata-Content-Type":    {"application/grpc"},
+				"Grpc-Metadata-X-Custom-Header": {"value1"},
+				"Grpc-Metadata-Authorization":   {"Bearer token"},
 			},
 		},
 		{
-			name: "case insensitive content-type header matching",
+			name: "mixed case headers should be prefixed",
 			metadata: metadata.MD{
-				"Content-Type":    []string{"APPLICATION/GRPC"},
-				"x-custom-header": []string{"value1"},
+				"Content-Type":    []string{"APPLICATION/JSON"},
+				"X-Custom-Header": []string{"value1"},
 			},
 			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"APPLICATION/GRPC"},
-				"X-Custom-Header":            {"value1"},
+				"Grpc-Metadata-Content-Type":    {"APPLICATION/JSON"},
+				"Grpc-Metadata-X-Custom-Header": {"value1"},
 			},
 		},
 		{
-			name: "non-grpc content-type should also be prefixed",
+			name: "multiple values for same header",
 			metadata: metadata.MD{
-				"content-type":    []string{"application/json"},
-				"x-custom-header": []string{"value1"},
+				"x-multi-header": []string{"value1", "value2", "value3"},
 			},
 			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/json"},
-				"X-Custom-Header":            {"value1"},
+				"Grpc-Metadata-X-Multi-Header": {"value1", "value2", "value3"},
 			},
 		},
 		{
-			name: "multiple content-type values - all should be prefixed",
-			metadata: metadata.MD{
-				"content-type": []string{"application/grpc", "application/json"},
-			},
-			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/grpc", "application/json"},
-			},
-		},
-		{
-			name: "multiple content-type values - different order",
-			metadata: metadata.MD{
-				"content-type": []string{"application/json", "application/grpc"},
-			},
-			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/json", "application/grpc"},
-			},
-		},
-		{
-			name: "mixed case content-type key with grpc value",
-			metadata: metadata.MD{
-				"Content-TYPE": []string{"application/grpc"},
-			},
-			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/grpc"},
-			},
+			name: "empty metadata",
+			metadata: metadata.MD{},
+			expectedHeader: map[string][]string{},
 		},
 	}
 
