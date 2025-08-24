@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	grpcContentType    = "application/grpc"
 	contentTypeHeader  = "content-type"
 	grpcMetadataHeader = "Grpc-Metadata-Content-Type"
 )
@@ -40,8 +39,10 @@ func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
 	if ok {
 		for k, v := range md {
 			for _, val := range v {
-				if strings.EqualFold(k, contentTypeHeader) && strings.EqualFold(val, grpcContentType) {
-					w.Header().Set(grpcMetadataHeader, val)
+				if strings.EqualFold(k, contentTypeHeader) {
+					// Always prefix gRPC content-type headers to avoid conflicts
+					// with gateway's own content-type: application/json
+					w.Header().Add(grpcMetadataHeader, val)
 					continue
 				}
 				w.Header().Add(k, val)

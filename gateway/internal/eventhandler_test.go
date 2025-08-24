@@ -100,9 +100,9 @@ func TestEventHandler_OnReceiveHeaders(t *testing.T) {
 				"x-another-header": []string{"single-value"},
 			},
 			expectedHeader: map[string][]string{
-				"Content-Type":     {"application/json"},
-				"X-Custom-Header":  {"value1", "value2"},
-				"X-Another-Header": {"single-value"},
+				"Grpc-Metadata-Content-Type": {"application/json"},
+				"X-Custom-Header":            {"value1", "value2"},
+				"X-Another-Header":           {"single-value"},
 			},
 		},
 		{
@@ -192,24 +192,32 @@ func TestEventHandler_OnReceiveHeaders_GrpcContentType(t *testing.T) {
 			},
 		},
 		{
-			name: "non-grpc content-type should be added normally",
+			name: "non-grpc content-type should also be prefixed",
 			metadata: metadata.MD{
 				"content-type":    []string{"application/json"},
 				"x-custom-header": []string{"value1"},
 			},
 			expectedHeader: map[string][]string{
-				"Content-Type":    {"application/json"},
-				"X-Custom-Header": {"value1"},
+				"Grpc-Metadata-Content-Type": {"application/json"},
+				"X-Custom-Header":            {"value1"},
 			},
 		},
 		{
-			name: "multiple grpc content-type values",
+			name: "multiple content-type values - all should be prefixed",
 			metadata: metadata.MD{
 				"content-type": []string{"application/grpc", "application/json"},
 			},
 			expectedHeader: map[string][]string{
-				"Grpc-Metadata-Content-Type": {"application/grpc"},
-				"Content-Type":               {"application/json"},
+				"Grpc-Metadata-Content-Type": {"application/grpc", "application/json"},
+			},
+		},
+		{
+			name: "multiple content-type values - different order",
+			metadata: metadata.MD{
+				"content-type": []string{"application/json", "application/grpc"},
+			},
+			expectedHeader: map[string][]string{
+				"Grpc-Metadata-Content-Type": {"application/json", "application/grpc"},
 			},
 		},
 		{
