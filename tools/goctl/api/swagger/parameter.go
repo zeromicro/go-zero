@@ -8,22 +8,25 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func isPostJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
-	if !strings.EqualFold(method, http.MethodPost) {
+func isJsonMethod(ctx Context, method string, tp apiSpec.Type) (string, bool) {
+	// 支持POST、PUT、PATCH方法使用JSON请求体
+	if !strings.EqualFold(method, http.MethodPost) &&
+		!strings.EqualFold(method, http.MethodPut) &&
+		!strings.EqualFold(method, http.MethodPatch) {
 		return "", false
 	}
 	structType, ok := tp.(apiSpec.DefineStruct)
 	if !ok {
 		return "", false
 	}
-	var isPostJson bool
+	var hasJsonFields bool
 	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 		jsonTag, _ := tag.Get(tagJson)
-		if !isPostJson {
-			isPostJson = jsonTag != nil
+		if !hasJsonFields {
+			hasJsonFields = jsonTag != nil
 		}
 	})
-	return structType.RawName, isPostJson
+	return structType.RawName, hasJsonFields
 }
 
 func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Parameter {
@@ -181,7 +184,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	})
 	if len(properties) > 0 {
 		if ctx.UseDefinitions {
-			structName, ok := isPostJson(ctx, method, tp)
+			structName, ok := isJsonMethod(ctx, method, tp)
 			if ok {
 				resp = append(resp, spec.Parameter{
 					ParamProps: spec.ParamProps{
