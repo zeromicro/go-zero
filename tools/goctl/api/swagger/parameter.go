@@ -100,7 +100,8 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		}
 		if hasForm {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(formTag.Options)
-			if strings.EqualFold(method, http.MethodGet) {
+			// GET和DELETE请求都使用query参数
+			if strings.EqualFold(method, http.MethodGet) || strings.EqualFold(method, http.MethodDelete) {
 				resp = append(resp, spec.Parameter{
 					CommonValidations: spec.CommonValidations{
 						Maximum:          maximum,
@@ -145,7 +146,6 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 					},
 				})
 			}
-
 		}
 		if hasJson {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(jsonTag.Options)

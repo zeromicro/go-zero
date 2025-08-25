@@ -29,3 +29,4 @@ go.work.sum
 # vim auto backup file
 *~
 !OWNERS
+tools/goctl/goctl.exe
