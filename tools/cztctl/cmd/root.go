@@ -10,9 +10,11 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api"
+	"github.com/lerity-yao/go-zero/tools/cztctl/env"
 	"github.com/lerity-yao/go-zero/tools/cztctl/internal/cobrax"
 	"github.com/lerity-yao/go-zero/tools/cztctl/internal/version"
 	"github.com/spf13/cobra"
+	cobracompletefig "github.com/withfig/autocomplete-tools/integrations/cobra"
 )
 
 const (
@@ -100,8 +102,8 @@ func init() {
 		runtime.GOOS, runtime.GOARCH)
 
 	rootCmd.SetUsageTemplate(usageTpl)
-	rootCmd.AddCommand(api.Cmd)
+	rootCmd.AddCommand(api.Cmd, env.Cmd)
 	//rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, config.Cmd)
-	//rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 	rootCmd.MustInit()
 }

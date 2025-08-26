@@ -3,10 +3,12 @@ package swagger
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/lerity-yao/go-zero/tools/cztctl/pkg/parser/api/parser"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/pathx"
 	"github.com/spf13/cobra"
@@ -83,5 +85,11 @@ func Command(_ *cobra.Command, _ []string) error {
 
 	// generate json swagger file
 	filePath := filepath.Join(VarStringDir, filename+".json")
-	return os.WriteFile(filePath, data, 0644)
+	err = os.WriteFile(filePath, data, 0644)
+	if err != nil {
+		return err
+	}
+	fmt.Println(color.Green.Render(fmt.Sprintf("Swagger file path: %s", filePath)))
+	fmt.Println(color.Green.Render("Done."))
+	return nil
 }

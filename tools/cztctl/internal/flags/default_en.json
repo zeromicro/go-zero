@@ -1,7 +1,7 @@
 {
   "cztctl": {
     "short": "A cli tool to generate go-zero code",
-    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/zeromicro/go-zero\nSite:   https://go-zero.dev",
+    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/lerity-yao/go-zero \nSite:   https://go-zero.dev",
     "api": {
       "short": "Generate api related files",
       "o": "Output a sample api file",

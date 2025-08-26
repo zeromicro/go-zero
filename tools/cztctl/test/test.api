@@ -4,8 +4,7 @@ syntax = "v1"
 type (
     // GBoxCommonBoxReq 下拉框入参
     GBoxCommonBoxReq {
-        // 注意一下这个地方
-        Ad string `form:"ad,optional"` // ad广告
+        Ad string `form:"ad,optional" validate:"omitempty,xStr=1-10"` // ad广告
     }
     GBoxCommonBoxItem {
         // 注意value 可能存在几种情况

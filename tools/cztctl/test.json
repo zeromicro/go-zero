@@ -28,7 +28,7 @@
         "parameters": [
           {
             "type": "string",
-            "description": "ad广告\n 注意一下这个地方",
+            "description": "ad广告\n字段校验规则 omitempty，允许为空\n字段校验规则，为空不校验，不为空则校验 xStr=1-10，{0}长度{1}，首尾不能有空格",
             "name": "ad",
             "in": "query",
             "allowEmptyValue": true
@@ -75,7 +75,7 @@
     }
   },
   "x-cztctl-version": "1.9.0-alpha",
-  "x-date": "2025-08-26 22:48:22",
+  "x-date": "2025-08-26 23:40:00",
   "x-description": "This is a cztctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/"
