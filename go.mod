@@ -18,7 +18,7 @@ require (
 	github.com/prometheus/client_golang v1.21.1
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/spaolacci/murmur3 v1.1.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	go.etcd.io/etcd/api/v3 v3.5.15
 	go.etcd.io/etcd/client/v3 v3.5.15
 	go.mongodb.org/mongo-driver/v2 v2.3.0
