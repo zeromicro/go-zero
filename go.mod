@@ -1,4 +1,4 @@
-module github.com/zeromicro/go-zero
+module github.com/lerity-yao/go-zero
 
 go 1.21
 
