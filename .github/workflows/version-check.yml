@@ -3,7 +3,7 @@ name: Release Version Check
 on:
   push:
     tags:
-      - 'tools/goctl/v*'
+      - 'tools/cztctl/v*'
   workflow_dispatch:
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Extracted version: $VERSION"
 
-      - name: Check version in goctl source code
+      - name: Check version in cztctl source code
         run: |
           # Change to goctl directory
           cd tools/goctl

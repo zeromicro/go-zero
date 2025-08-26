@@ -1,6 +1,6 @@
 ---
 name: Question
-about: Ask a question on using go-zero or goctl
+about: Ask a question on using go-zero or cztctl
 title: ''
 labels: ''
 assignees: ''

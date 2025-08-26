@@ -1,10 +1,10 @@
 on:
   push:
     tags:
-      - "tools/goctl/*"
+      - "tools/cztctl/*"
 jobs:
   releases-matrix:
-    name: Release goctl binary
+    name: Release cztctl binary
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -23,6 +23,6 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           goversion: "https://dl.google.com/go/go1.21.13.linux-amd64.tar.gz"
-          project_path: "tools/goctl"
-          binary_name: "goctl"
-          extra_files: tools/goctl/readme.md tools/goctl/readme-cn.md
+          project_path: "tools/cztctl"
+          binary_name: "cztctl"
+          extra_files: tools/cztctl/readme.md tools/cztctl/readme-cn.md

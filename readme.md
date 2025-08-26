@@ -7,5 +7,5 @@
 ```shell
 GOPROXY=https://goproxy.cn/,direct 
 
-go install github.com/lerity-yao/goctl-swagger@latest
+go install github.com/lerity-yao/cztctl-swagger@latest
 ```
