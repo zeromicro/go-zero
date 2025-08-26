@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -225,21 +226,7 @@ func expandMembers(ctx Context, tp apiSpec.Type) []apiSpec.Member {
 func rangeMemberAndDo(ctx Context, structType apiSpec.Type, do func(tag *apiSpec.Tags, required bool, member apiSpec.Member)) {
 	var members = expandMembers(ctx, structType)
 
-	vd := paramsValidator.MustNewHttpxParseValidator(paramsValidator.Conf{ZhTrans: true})
-	x := vd.Validator.Trans
-	rv := reflect.ValueOf(x).Elem()
-
-	// 获取 translations 字段
-	transField := rv.FieldByName("translations")
-	if !transField.IsValid() {
-		fmt.Println("无法找到 translations 字段")
-		return
-	}
-	// 使用 unsafe 获取字段的地址
-	translationsAddr := unsafe.Pointer(transField.UnsafeAddr())
-	// 将指针转换为正确的类型
-	translationsMap := *(*map[interface{}]*transText)(translationsAddr)
-
+	translationsMap, _ := validateTransMap()
 	for _, field := range members {
 		tags, _ := apiSpec.Parse(field.Tag)
 		required := isRequired(ctx, tags)
@@ -269,7 +256,35 @@ func rangeMemberAndDo(ctx Context, structType apiSpec.Type, do func(tag *apiSpec
 	}
 }
 
+func validateTransMap() (t map[interface{}]*transText, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			// 将panic转换为error
+			err = fmt.Errorf("panic occurred: %v", r)
+		}
+	}()
+
+	vd := paramsValidator.MustNewHttpxParseValidator(paramsValidator.Conf{ZhTrans: true})
+	x := vd.Validator.Trans
+	rv := reflect.ValueOf(x).Elem()
+
+	// 获取 translations 字段
+	transField := rv.FieldByName("translations")
+	if !transField.IsValid() {
+		return nil, errors.New("translations field is not valid")
+	}
+	// 使用 unsafe 获取字段的地址
+	translationsAddr := unsafe.Pointer(transField.UnsafeAddr())
+	// 将指针转换为正确的类型
+	translationsMap := *(*map[interface{}]*transText)(translationsAddr)
+	return translationsMap, nil
+}
+
 func validateDocs(options []string, translationsMap map[interface{}]*transText, required bool) []string {
+	if translationsMap == nil {
+		return nil
+	}
+
 	docs := make([]string, 0)
 	for _, option := range options {
 		if option == "" {

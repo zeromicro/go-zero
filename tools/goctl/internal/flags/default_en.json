@@ -1,5 +1,5 @@
 {
-  "goctl": {
+  "cztctl": {
     "short": "A cli tool to generate go-zero code",
     "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/zeromicro/go-zero\nSite:   https://go-zero.dev",
     "api": {
@@ -75,8 +75,8 @@
       },
       "swagger": {
         "short": "Generate swagger file from api",
-        "dir": "{{.goctl.api.dir}}",
-        "api": "{{.goctl.api.api}}",
+        "dir": "{{.cztctl.api.dir}}",
+        "api": "{{.cztctl.api.api}}",
         "filename": "The generated swagger file name without the extension",
         "yaml": "Generate swagger yaml file, default to json"
       }
