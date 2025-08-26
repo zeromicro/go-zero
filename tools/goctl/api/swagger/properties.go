@@ -55,7 +55,7 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 					Example: example,
 				},
 				SchemaProps: spec.SchemaProps{
-					Description:          formatComment(member.Comment),
+					Description:          formatComment(member.Comment, member.Docs),
 					Type:                 typeFromGoType(ctx, member.Type),
 					Default:              defaultValue,
 					Maximum:              maximum,

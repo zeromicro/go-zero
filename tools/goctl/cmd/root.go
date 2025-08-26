@@ -10,22 +10,9 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
-	"github.com/withfig/autocomplete-tools/integrations/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api"
-	"github.com/zeromicro/go-zero/tools/goctl/bug"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/docker"
-	"github.com/zeromicro/go-zero/tools/goctl/env"
-	"github.com/zeromicro/go-zero/tools/goctl/gateway"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/kube"
-	"github.com/zeromicro/go-zero/tools/goctl/migrate"
-	"github.com/zeromicro/go-zero/tools/goctl/model"
-	"github.com/zeromicro/go-zero/tools/goctl/quickstart"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc"
-	"github.com/zeromicro/go-zero/tools/goctl/tpl"
-	"github.com/zeromicro/go-zero/tools/goctl/upgrade"
 )
 
 const (
@@ -38,7 +25,7 @@ const (
 var (
 	//go:embed usage.tpl
 	usageTpl string
-	rootCmd  = cobrax.NewCommand("goctl")
+	rootCmd  = cobrax.NewCommand("cztctl")
 )
 
 // Execute executes the given command
@@ -113,8 +100,8 @@ func init() {
 		runtime.GOOS, runtime.GOARCH)
 
 	rootCmd.SetUsageTemplate(usageTpl)
-	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, gateway.Cmd, model.Cmd)
-	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, config.Cmd)
-	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.AddCommand(api.Cmd)
+	//rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, config.Cmd)
+	//rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 	rootCmd.MustInit()
 }

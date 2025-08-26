@@ -1,15 +1,17 @@
 package swagger
 
 const (
-	tagHeader    = "header"
-	tagPath      = "path"
-	tagForm      = "form"
-	tagJson      = "json"
-	defFlag      = "default="
-	enumFlag     = "options="
-	rangeFlag    = "range="
-	exampleFlag  = "example="
-	optionalFlag = "optional"
+	tagHeader     = "header"
+	tagPath       = "path"
+	tagForm       = "form"
+	tagJson       = "json"
+	tagValidate   = "validate"
+	defFlag       = "default="
+	enumFlag      = "options="
+	rangeFlag     = "range="
+	exampleFlag   = "example="
+	optionalFlag  = "optional"
+	omitemptyFlag = "omitempty"
 
 	paramsInHeader = "header"
 	paramsInPath   = "path"

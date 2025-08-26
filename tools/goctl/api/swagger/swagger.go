@@ -2,13 +2,22 @@ package swagger
 
 import (
 	"encoding/json"
+	"fmt"
+	"reflect"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/go-openapi/spec"
+	paramsValidator "github.com/lerity-yao/param-validator"
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
+
+type transText struct {
+	text    string
+	indexes []int
+}
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 	ctx := contextFromApi(api.Info)
@@ -37,8 +46,13 @@ func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {
 	return swagger, nil
 }
 
-func formatComment(comment string) string {
+func formatComment(comment string, docs []string) string {
 	s := strings.TrimPrefix(comment, "//")
+	if docs != nil {
+		for _, doc := range docs {
+			s = s + "\n" + strings.TrimPrefix(doc, "//")
+		}
+	}
 	return strings.TrimSpace(s)
 }
 
@@ -207,14 +221,108 @@ func expandMembers(ctx Context, tp apiSpec.Type) []apiSpec.Member {
 	return members
 }
 
+// rangeMemberAndDo yaox do something
 func rangeMemberAndDo(ctx Context, structType apiSpec.Type, do func(tag *apiSpec.Tags, required bool, member apiSpec.Member)) {
 	var members = expandMembers(ctx, structType)
+
+	vd := paramsValidator.MustNewHttpxParseValidator(paramsValidator.Conf{ZhTrans: true})
+	x := vd.Validator.Trans
+	rv := reflect.ValueOf(x).Elem()
+
+	// 获取 translations 字段
+	transField := rv.FieldByName("translations")
+	if !transField.IsValid() {
+		fmt.Println("无法找到 translations 字段")
+		return
+	}
+	// 使用 unsafe 获取字段的地址
+	translationsAddr := unsafe.Pointer(transField.UnsafeAddr())
+	// 将指针转换为正确的类型
+	translationsMap := *(*map[interface{}]*transText)(translationsAddr)
 
 	for _, field := range members {
 		tags, _ := apiSpec.Parse(field.Tag)
 		required := isRequired(ctx, tags)
-		do(tags, required, field)
+
+		isValidateOmitempty := true
+		tagValidateOptions := validateOptions(tags)
+
+		if tagValidateOptions == nil {
+			isValidateOmitempty = true
+		}
+		if tagValidateOptions != nil {
+			isValidateOmitempty = isOmitempty(tagValidateOptions)
+		}
+		isNeed := false
+		if required {
+			isNeed = true
+		}
+
+		if !isValidateOmitempty {
+			isNeed = true
+		}
+
+		tagValidateDocs := validateDocs(tagValidateOptions, translationsMap, isNeed)
+		field.Docs = append(field.Docs, tagValidateDocs...)
+
+		do(tags, isNeed, field)
 	}
+}
+
+func validateDocs(options []string, translationsMap map[interface{}]*transText, required bool) []string {
+	docs := make([]string, 0)
+	for _, option := range options {
+		if option == "" {
+			continue
+		}
+		validateTag := strings.Split(option, "=")
+		validateTagName := ""
+		if len(validateTag) > 0 {
+			validateTagName = validateTag[0]
+		}
+
+		validateTagValue, exist := translationsMap[validateTagName]
+		if !exist {
+			if !required && validateTagName == omitemptyFlag {
+				docs = append(docs, fmt.Sprintf("字段校验规则 %s，允许为空", option))
+			}
+			continue
+		}
+		doc := validateTagValue.text
+
+		if !required {
+			docs = append(docs, fmt.Sprintf("字段校验规则，为空不校验，不为空则校验 %s，%s", option, doc))
+		} else {
+			docs = append(docs, fmt.Sprintf("字段校验规则 %s，%s", option, doc))
+		}
+	}
+	return docs
+}
+
+func validateOptions(tags *apiSpec.Tags) []string {
+	tag, err := tags.Get(tagValidate)
+	if tag == nil || err != nil {
+		return nil
+	}
+
+	if tag.Name != "" {
+		if tag.Options != nil {
+			tag.Options = append([]string{tag.Name}, tag.Options...)
+		} else {
+			tag.Options = []string{tag.Name}
+		}
+	}
+	return tag.Options
+}
+
+// isOmitempty yaox do something
+func isOmitempty(options []string) bool {
+	for _, option := range options {
+		if option == omitemptyFlag {
+			return true
+		}
+	}
+	return false
 }
 
 func isRequired(ctx Context, tags *apiSpec.Tags) bool {
