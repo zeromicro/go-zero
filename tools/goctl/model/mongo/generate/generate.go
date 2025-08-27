@@ -123,12 +123,19 @@ func generateTypes(ctx *Context) error {
 }
 
 func generateError(ctx *Context) error {
-	text, err := pathx.LoadTemplate(category, errTemplateFile, template.Error)
-	if err != nil {
-		return err
+	for _, t := range ctx.Types {
+		text, err := pathx.LoadTemplate(category, errTemplateFile, template.Error)
+		if err != nil {
+			return err
+		}
+
+		output := filepath.Join(ctx.Output, "error.go")
+		if err = util.With("error").Parse(text).GoFmt(true).SaveTo(map[string]any{
+			"Type": stringx.From(t).Title(),
+		}, output, false); err != nil {
+			return err
+		}
 	}
 
-	output := filepath.Join(ctx.Output, "error.go")
-
-	return util.With("error").Parse(text).GoFmt(true).SaveTo(ctx, output, false)
+	return nil
 }
