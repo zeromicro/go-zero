@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -92,4 +93,16 @@ func TemplateVariable(text string) string {
 		return text[3 : len(text)-2]
 	}
 	return ""
+}
+
+func DefaultFuncMap() template.FuncMap {
+	return sprig.FuncMap()
+}
+
+func MergeWithDefaultFuncMap(funcMap template.FuncMap) template.FuncMap {
+	mergedFuncMap := DefaultFuncMap()
+	for k, v := range funcMap {
+		mergedFuncMap[k] = v
+	}
+	return mergedFuncMap
 }
