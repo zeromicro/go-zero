@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
+
 	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -55,7 +57,7 @@ func (t *DefaultTemplate) SaveTo(data any, path string, forceUpdate bool) error 
 
 // Execute returns the codes after the template executed
 func (t *DefaultTemplate) Execute(data any) (*bytes.Buffer, error) {
-	tem, err := template.New(t.name).Parse(t.text)
+	tem, err := template.New(t.name).Funcs(sprig.TxtFuncMap()).Parse(t.text)
 	if err != nil {
 		return nil, errorx.Wrap(err, "template parse error:", t.text)
 	}
