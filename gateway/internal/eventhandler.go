@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -11,6 +12,22 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
+
+// MetadataHeaderPrefix is the http prefix that represents custom metadata
+// parameters to or from a gRPC call.
+const MetadataHeaderPrefix = "Grpc-Metadata-"
+
+// MetadataTrailerPrefix is prepended to gRPC metadata as it is converted to
+// HTTP headers in a response handled by go-zero gateway
+const MetadataTrailerPrefix = "Grpc-Trailer-"
+
+func defaultOutgoingHeaderMatcher(key string) (string, bool) {
+	return fmt.Sprintf("%s%s", MetadataHeaderPrefix, key), true
+}
+
+func defaultOutgoingTrailerMatcher(key string) (string, bool) {
+	return fmt.Sprintf("%s%s", MetadataTrailerPrefix, key), true
+}
 
 type EventHandler struct {
 	Status    *status.Status
@@ -31,9 +48,11 @@ func NewEventHandler(writer io.Writer, resolver jsonpb.AnyResolver) *EventHandle
 func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
 	w, ok := h.writer.(http.ResponseWriter)
 	if ok {
-		for k, v := range md {
-			for _, val := range v {
-				w.Header().Add(k, val)
+		for k, vs := range md {
+			if h, ok := defaultOutgoingHeaderMatcher(k); ok {
+				for _, v := range vs {
+					w.Header().Add(h, v)
+				}
 			}
 		}
 	}
@@ -48,9 +67,11 @@ func (h *EventHandler) OnReceiveResponse(message proto.Message) {
 func (h *EventHandler) OnReceiveTrailers(status *status.Status, md metadata.MD) {
 	w, ok := h.writer.(http.ResponseWriter)
 	if ok {
-		for k, v := range md {
-			for _, val := range v {
-				w.Header().Add(k, val)
+		for k, vs := range md {
+			if h, ok := defaultOutgoingTrailerMatcher(k); ok {
+				for _, v := range vs {
+					w.Header().Add(h, v)
+				}
 			}
 		}
 	}
