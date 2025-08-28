@@ -3,9 +3,9 @@
 <img align="center" width="150px" src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/go-zero.png">
 </p>
 
-go-zero is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design and has been serving sites with tens of millions of users for years.
+go-zero is a web and rpc framework with lots of builtin engineering practices. It's born to ensure the stability of the busy services with resilience design and has been serving sites with tens of millions of users for years.
 
-<div align=center>
+<div align="center">
 
 [![codecov](https://codecov.io/gh/zeromicro/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/zeromicro/go-zero)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zeromicro/go-zero)](https://goreportcard.com/report/github.com/zeromicro/go-zero)
@@ -17,6 +17,21 @@ go-zero is a web and rpc framework with lots of builtin engineering practices. I
 
 </div>
 
+## 📋 Table of Contents
+- [🤷‍ What is go-zero?](#-what-is-go-zero)
+- [🚀 Key Features](#-key-features)
+- [📐 Architecture](#-architecture)
+- [🎯 Background](#-background)
+- [🛠 Design Considerations](#-design-considerations)
+- [⚡ Implementation and Features](#-implementation-and-features)
+- [🏗 Our Architecture](#-our-architecture)
+- [📦 Installation](#-installation)
+- [🚀 Quick Start](#-quick-start)
+- [📊 Benchmark](#-benchmark)
+- [📚 Documentation](#-documentation)
+- [💬 Community](#-community)
+- [☁️ Cloud Native](#-cloud-native)
+- [⭐ Give a Star!](#-give-a-star)
 
 ## 🤷‍ What is go-zero?
 English | [简体中文](readme-cn.md)
@@ -24,23 +39,39 @@ English | [简体中文](readme-cn.md)
 <a href="https://trendshift.io/repositories/3263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3263" alt="zeromicro%2Fgo-zero | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-
-go-zero (listed in CNCF Landscape: [https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)) is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design and has been serving sites with tens of millions of users for years.
+go-zero (listed in [CNCF Landscape](https://landscape.cncf.io/?selected=go-zero)) is a web and rpc framework with lots of builtin engineering practices. It's born to ensure the stability of the busy services with resilience design and has been serving sites with tens of millions of users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
-#### Advantages of go-zero:
+## 🚀 Key Features
 
-* Improves the stability of the services with tens of millions of daily active users
-* Builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
-* Builtin middlewares also can be integrated into your frameworks
-* Simple API syntax, one command to generate a couple of different languages
-* Auto validate the request parameters from clients
-* Plenty of builtin microservice management and concurrent toolkits
+### 🎯 **Production-Ready Stability**
+- ✅ **Battle-tested** - Serving tens of millions of daily active users
+- ✅ **Resilience design** - Built-in failure-oriented programming
+- ✅ **High availability** - Proven in high-traffic production environments
+
+### ⚡ **Built-in Microservice Governance**
+- 🔄 **Automatic circuit breaker** - Self-triggering and self-recovering
+- 🚦 **Rate limiting** - Adaptive concurrency control
+- 📉 **Load shedding** - Intelligent traffic management
+- ⏱️ **Timeout control** - Cascading timeout management
+- 🔍 **Service discovery** - Built-in service registry and discovery
+
+### 🛠️ **Developer Experience**
+- 📝 **Simple API syntax** - Minimal, intuitive API definitions
+- 🎨 **Code generation** - One command generates multiple languages
+- ✅ **Auto validation** - Request parameter validation out-of-the-box
+- 🔧 **Powerful tooling** - Comprehensive `goctl` CLI tool
+- 📦 **Middleware support** - Easy to extend and customize
+
+### 🌐 **Multi-Language Support**
+Generate client code for: **Go** • **Java** • **TypeScript** • **JavaScript** • **Dart** • **Kotlin** • **iOS** • **Android**
+
+## 📐 Architecture
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
 
-## Backgrounds of go-zero
+## 🎯 Background
 
 In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
 
@@ -56,7 +87,7 @@ In early 2018, we embarked on a transformative journey to redesign our system, t
   * Easy to locate the problems within microservices.
   * Easy to extend the features by adding or modifying specific microservices without impacting the entire system.
 
-## Design considerations on go-zero
+## 🛠 Design Considerations
 
 By designing the microservice architecture, we expected to ensure stability, as well as productivity. And from just the beginning, we have the following design principles:
 
@@ -70,7 +101,7 @@ By designing the microservice architecture, we expected to ensure stability, as 
 
 After almost half a year, we finished the transfer from a monolithic system to microservice system and deployed on August 2018. The new system guaranteed business growth and system stability.
 
-## The implementation and features of go-zero
+## ⚡ Implementation and Features
 
 go-zero is a web and rpc framework that integrates lots of engineering practices. The features are mainly listed below:
 
@@ -92,11 +123,11 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-##  The simplified architecture that we use with go-zero
+## 🏗 Our Architecture
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
-##  Installation
+## 📦 Installation
 
 Run the following command under your project:
 
@@ -104,141 +135,168 @@ Run the following command under your project:
 go get -u github.com/zeromicro/go-zero
 ```
 
-##  Quick Start
+## 🚀 Quick Start
 
-1. Full examples can be checked out from below:
+### 🔧 Prerequisites
+- **Go 1.21+** - [Download Go](https://golang.org/dl/)
+- **Basic Go knowledge** - Understanding of Go syntax and modules
 
-     [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
+### 📚 Full Examples
+- 📖 [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
+- 🔗 [Multiple RPCs example](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 
-     [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
+### ⚡ 5-Minute Setup
 
-2. Install goctl
+#### Step 1: Install goctl
 
-   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve productivity, and make our lives easier.
+`goctl` is the Swiss Army knife for go-zero development.
 
-   ```shell
-   # for Go
-   go install github.com/zeromicro/go-zero/tools/goctl@latest
-   
-   # For Mac
-   brew install goctl
-   
-   # docker for all platforms
-   docker pull kevinwan/goctl
-   # run goctl
-   docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
-   ```
-   
-   make sure goctl is executable and in your $PATH.
-   
-3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
+```bash
+# For Go
+go install github.com/zeromicro/go-zero/tools/goctl@latest
 
-   ```go
-   type (
-     Request {
-       Name string `path:"name,options=[you,me]"` // parameters are auto validated
-     }
+# For Mac users
+brew install goctl
 
-     Response {
-       Message string `json:"message"`
-     }
-   )
+# Using Docker (all platforms)
+docker pull kevinwan/goctl
+# Run goctl
+docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
+```
 
-   service greet-api {
-     @handler GreetHandler
-     get /greet/from/:name(Request) returns (Response)
-   }
-   ```
+#### Step 2: Create Your First API
 
-   the .api files also can be generated by goctl, like below:
+Create a simple API definition file `greet.api`:
 
-   ```shell
-   goctl api -o greet.api
-   ```
+```go
+type (
+  Request {
+    Name string `path:"name,options=[you,me]"` // auto-validated parameters
+  }
 
-4. Generate the go server-side code
+  Response {
+    Message string `json:"message"`
+  }
+)
 
-   ```shell
-   goctl api go -api greet.api -dir greet
-   ```
+service greet-api {
+  @handler GreetHandler
+  get /greet/from/:name(Request) returns (Response)
+}
+```
 
-   the generated files look like:
+#### Step 3: Generate Code
 
-   ```Plain Text
-   ├── greet
-   │   ├── etc
-   │   │   └── greet-api.yaml        // configuration file
-   │   ├── greet.go                  // main file
-   │   └── internal
-   │       ├── config
-   │       │   └── config.go         // configuration definition
-   │       ├── handler
-   │       │   ├── greethandler.go   // get/put/post/delete routes are defined here
-   │       │   └── routes.go         // routes list
-   │       ├── logic
-   │       │   └── greetlogic.go     // request logic can be written here
-   │       ├── svc
-   │       │   └── servicecontext.go // service context, mysql/redis can be passed in here
-   │       └── types
-   │           └── types.go          // request/response defined here
-   └── greet.api                     // api description file
-   ```
+Generate a complete service with one command:
 
-   the generated code can be run directly:
+```bash
+goctl api go -api greet.api -dir greet
+```
 
-   ```shell
-   cd greet
-   go mod tidy
-   go run greet.go -f etc/greet-api.yaml
-   ```
+This creates a production-ready structure:
 
-   by default, it’s listening on port 8888, while it can be changed in the configuration file.
+```
+├── greet
+│   ├── etc
+│   │   └── greet-api.yaml        // ⚙️  Configuration
+│   ├── greet.go                  // 🚀 Main entry point
+│   └── internal
+│       ├── config
+│       │   └── config.go         // 📝 Config definitions
+│       ├── handler
+│       │   ├── greethandler.go   // 🎯 HTTP handlers
+│       │   └── routes.go         // 🛣️  Route definitions
+│       ├── logic
+│       │   └── greetlogic.go     // 💼 Business logic
+│       ├── svc
+│       │   └── servicecontext.go // 🔧 Service context
+│       └── types
+│           └── types.go          // 📊 Type definitions
+```
 
-   you can check it by curl:
+#### Step 4: Run Your Service
 
-   ```shell
-   curl -i http://localhost:8888/greet/from/you
-   ```
+```bash
+cd greet
+go mod tidy
+go run greet.go -f etc/greet-api.yaml
+```
 
-   the response looks like below:
+Your service is now running on `http://localhost:8888`! 🎉
 
-   ```http
-   HTTP/1.1 200 OK
-   Date: Sun, 30 Aug 2020 15:32:35 GMT
-   Content-Length: 0
-   ```
+#### Step 5: Test It
 
-5. Write the business logic code
+```bash
+curl -i http://localhost:8888/greet/from/you
+```
 
-    * the dependencies can be passed into the logic within servicecontext.go, like mysql, redis, etc.
-    * add the logic code in a logic package according to .api file
+Response:
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Mon, 01 Jan 2024 12:00:00 GMT
+Content-Length: 25
 
-6. Generate code like Java, TypeScript, Dart, JavaScript, etc. just from the api file
+{"message":"Hello you!"}
+```
 
-   ```shell
-   goctl api java -api greet.api -dir greet
-   goctl api dart -api greet.api -dir greet
-   ...
-   ```
+### 🎯 Next Steps
 
-## Benchmark
+1. **Add Business Logic** - Edit `internal/logic/greetlogic.go`
+2. **Add Dependencies** - Configure database, Redis, etc. in `servicecontext.go`
+3. **Generate Clients** - Use `goctl` to generate client code for other languages
+
+```bash
+# Generate TypeScript client
+goctl api ts -api greet.api -dir ./ts-client
+
+# Generate Java client
+goctl api java -api greet.api -dir ./java-client
+
+# Generate Dart client
+goctl api dart -api greet.api -dir ./dart-client
+```
+
+### 📚 More Examples
+
+#### 🏗️ **API Service Examples**
+- **[Simple CRUD API](https://github.com/zeromicro/zero-examples/tree/main/http)** - Basic REST API with CRUD operations
+- **[JWT Authentication](https://github.com/zeromicro/zero-examples/tree/main/http/jwt)** - API with JWT token authentication
+- **[File Upload API](https://github.com/zeromicro/zero-examples/tree/main/http/fileupload)** - Handle file uploads and downloads
+
+#### ⚡ **RPC Service Examples**
+- **[Simple RPC](https://github.com/zeromicro/zero-examples/tree/main/rpc/simple)** - Basic gRPC service
+- **[RPC with Database](https://github.com/zeromicro/zero-examples/tree/main/rpc/crud)** - RPC service with MySQL integration
+- **[Stream RPC](https://github.com/zeromicro/zero-examples/tree/main/rpc/stream)** - Server and client streaming
+
+#### 🌐 **Microservice Examples**
+- **[API Gateway](https://github.com/zeromicro/zero-examples/tree/main/gateway)** - API Gateway with multiple backend services
+- **[Service Discovery](https://github.com/zeromicro/zero-examples/tree/main/discovery)** - Service registration and discovery
+- **[Circuit Breaker Demo](https://github.com/zeromicro/zero-examples/tree/main/breaker)** - Resilience patterns in action
+
+#### 🗄️ **Database Integration**
+- **[MySQL Example](https://github.com/zeromicro/zero-examples/tree/main/mysql)** - MySQL database operations
+- **[Redis Cache](https://github.com/zeromicro/zero-examples/tree/main/redis)** - Redis caching implementation
+- **[MongoDB Example](https://github.com/zeromicro/zero-examples/tree/main/mongo)** - MongoDB document operations
+
+## 📊 Benchmark
 
 ![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 
-## Documents
+## 📚 Documentation
 
-* [Documents](https://go-zero.dev/)
-* [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
-* [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
-* [Examples](https://github.com/zeromicro/zero-examples)
+* [📖 Official Documentation](https://go-zero.dev/)
+* [🚀 Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
+* [🔗 Multiple RPCs example](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
+* [💡 Examples Repository](https://github.com/zeromicro/zero-examples)
 
-##  Chat group
+## 💬 Community
 
 Join the chat via https://discord.gg/4JQvC5A4Fe
 
-##  Cloud Native Landscape
+## ☁️ Cloud Native
 
 <p float="left">
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
@@ -247,6 +305,6 @@ Join the chat via https://discord.gg/4JQvC5A4Fe
 
 go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/?selected=go-zero).
 
-## Give a Star! ⭐
+## ⭐ Give a Star!
 
 If you like this project or are using it to learn or start your own solution, give it a star to get updates on new releases. Your support matters!
