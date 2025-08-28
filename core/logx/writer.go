@@ -422,6 +422,8 @@ func processFieldValue(value any) any {
 			times = append(times, fmt.Sprint(t))
 		}
 		return times
+	case json.Marshaler:
+		return val
 	case fmt.Stringer:
 		return encodeStringer(val)
 	case []fmt.Stringer:
