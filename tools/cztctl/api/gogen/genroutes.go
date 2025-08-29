@@ -198,15 +198,15 @@ rest.WithPrefix("%s"),`, g.prefix)
 	filename := path.Join(dir, handlerDir, routeFilename)
 	os.Remove(filename)
 
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          handlerDir,
-		filename:        routeFilename,
-		templateName:    "routesTemplate",
-		category:        category,
-		templateFile:    routesTemplateFile,
-		builtinTemplate: routesTemplate,
-		data: map[string]any{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          handlerDir,
+		Filename:        routeFilename,
+		TemplateName:    "routesTemplate",
+		Category:        category,
+		TemplateFile:    routesTemplateFile,
+		BuiltinTemplate: routesTemplate,
+		Data: map[string]any{
 			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),

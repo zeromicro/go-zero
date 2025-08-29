@@ -22,15 +22,15 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		}
 
 		name := strings.TrimSuffix(item, "Middleware") + "Middleware"
-		err = genFile(fileGenConfig{
-			dir:             dir,
-			subdir:          middlewareDir,
-			filename:        filename + ".go",
-			templateName:    "contextTemplate",
-			category:        category,
-			templateFile:    middlewareImplementCodeFile,
-			builtinTemplate: middlewareImplementCode,
-			data: map[string]string{
+		err = GenFile(FileGenConfig{
+			Dir:             dir,
+			Subdir:          middlewareDir,
+			Filename:        filename + ".go",
+			TemplateName:    "contextTemplate",
+			Category:        category,
+			TemplateFile:    middlewareImplementCodeFile,
+			BuiltinTemplate: middlewareImplementCode,
+			Data: map[string]string{
 				"name": strings.Title(name),
 			},
 		})

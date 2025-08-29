@@ -1,10 +1,12 @@
-package gogen
+package rabbitmqgen
 
 import (
 	_ "embed"
 	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/gogen"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
@@ -27,8 +29,8 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	service := api.Service
 	host := "0.0.0.0"
 	port := strconv.Itoa(defaultPort)
-
-	return GenFile(FileGenConfig{
+	rabbitmqNames := generateRabbitmqEtcNames(api)
+	return gogen.GenFile(gogen.FileGenConfig{
 		Dir:             dir,
 		Subdir:          etcDir,
 		Filename:        fmt.Sprintf("%s.yaml", filename),
@@ -37,9 +39,10 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		TemplateFile:    etcTemplateFile,
 		BuiltinTemplate: etcTemplate,
 		Data: map[string]string{
-			"serviceName": service.Name,
-			"host":        host,
-			"port":        port,
+			"serviceName":    service.Name,
+			"host":           host,
+			"port":           port,
+			"rabbitmqConfig": strings.Join(rabbitmqNames, "\n"),
 		},
 	})
 }

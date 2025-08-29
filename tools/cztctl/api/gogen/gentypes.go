@@ -188,15 +188,15 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 	filename := path.Join(dir, typesDir, typeFilename)
 	_ = os.Remove(filename)
 
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          typesDir,
-		filename:        typeFilename,
-		templateName:    "typesTemplate",
-		category:        category,
-		templateFile:    typesTemplateFile,
-		builtinTemplate: typesTemplate,
-		data: map[string]any{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          typesDir,
+		Filename:        typeFilename,
+		TemplateName:    "typesTemplate",
+		Category:        category,
+		TemplateFile:    typesTemplateFile,
+		BuiltinTemplate: typesTemplate,
+		Data: map[string]any{
 			"types":        val,
 			"containsTime": false,
 			"version":      version.BuildVersion,

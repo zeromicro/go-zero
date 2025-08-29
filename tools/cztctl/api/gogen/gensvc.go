@@ -40,15 +40,15 @@ func genServiceContext(dir, rootPkg, projectPkg string, cfg *config.Config, api 
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          contextDir,
-		filename:        filename + ".go",
-		templateName:    "contextTemplate",
-		category:        category,
-		templateFile:    contextTemplateFile,
-		builtinTemplate: contextTemplate,
-		data: map[string]string{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          contextDir,
+		Filename:        filename + ".go",
+		TemplateName:    "contextTemplate",
+		Category:        category,
+		TemplateFile:    contextTemplateFile,
+		BuiltinTemplate: contextTemplate,
+		Data: map[string]string{
 			"configImport":         configImport,
 			"config":               "config.Config",
 			"middleware":           middlewareStr,

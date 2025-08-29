@@ -29,15 +29,15 @@ func genHandlerTest(dir, rootPkg, projectPkg string, cfg *config.Config, group s
 		return err
 	}
 
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          getHandlerFolderPath(group, route),
-		filename:        filename + "_test.go",
-		templateName:    "handlerTestTemplate",
-		category:        category,
-		templateFile:    handlerTestTemplateFile,
-		builtinTemplate: handlerTestTemplate,
-		data: map[string]any{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          getHandlerFolderPath(group, route),
+		Filename:        filename + "_test.go",
+		TemplateName:    "handlerTestTemplate",
+		Category:        category,
+		TemplateFile:    handlerTestTemplateFile,
+		BuiltinTemplate: handlerTestTemplate,
+		Data: map[string]any{
 			"PkgName":        pkgName,
 			"ImportPackages": genHandlerTestImports(group, route, rootPkg),
 			"HandlerName":    handler,

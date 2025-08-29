@@ -1,0 +1,18 @@
+Name: cztAdminPc
+Host: 127.0.0.1
+Port: 8080
+GBoxCommonRabbitmqConf: 
+  Username:
+  Password:
+  Host:
+  Port:
+  ListenerQueues:
+    - Name: common
+
+GBoxCommon1RabbitmqConf: 
+  Username:
+  Password:
+  Host:
+  Port:
+  ListenerQueues:
+    - Name: common1

@@ -1,41 +1,47 @@
 syntax = "v1"
 
-
 type (
-    // GBoxCommonBoxReq 下拉框入参
-    GBoxCommonBoxReq {
-        Ad string `form:"ad,optional" validate:"omitempty,xStr=1-10"` // ad广告
-    }
-    GBoxCommonBoxItem {
-        // 注意value 可能存在几种情况
-        // 注意value 123
-        // 注意value 456
-        Value string `json:"value"` // 标签值
-        // 注意 label 可能存在几种情况
-        // 注意 label 123
-        // 注意 label 456
-        Label string `json:"label"` //标签
-       // ad == 1
-        Extra map[string]interface{} `json:"extra"` // 额外信息,对象类型，请把其他数据都放这里
-    }
-
-    // GBoxCommonBoxRes 下拉框出参
-    GBoxCommonBoxRes {
-        Items []GBoxCommonBoxItem `json:"items"` // 返回元素
-    }
+	// GBoxCommonBoxReq 下拉框入参
+	GBoxCommonBoxReq {
+		Ad string `form:"ad,optional" validate:"omitempty,xStr=1-10"` // ad广告
+	}
+	GBoxCommonBoxItem {
+		// 注意value 可能存在几种情况
+		// 注意value 123
+		// 注意value 456
+		Value string `json:"value"` // 标签值
+		// 注意 label 可能存在几种情况
+		// 注意 label 123
+		// 注意 label 456
+		Label string `json:"label"` //标签
+		// ad == 1
+		Extra map[string]interface{} `json:"extra"` // 额外信息,对象类型，请把其他数据都放这里
+	}
+	// GBoxCommonBoxRes 下拉框出参
+	GBoxCommonBoxRes {
+		Items []GBoxCommonBoxItem `json:"items"` // 返回元素
+	}
 )
 
 //下拉框分组
-@server(
-    group: box
-    prefix: /api/v2/box
-    jwt: Auth
+@server (
+	group:  box
+	prefix: /api/v2/box
+	jwt:    Auth
 )
-service czt_admin_pc {
-    @doc(
-        summary: "不带数据权限的下拉框-yx"
-        description: "不带数据权限的下拉框-yx"
-    )
-    @handler GBoxCommonBoxHandler
-    get /common(GBoxCommonBoxReq) returns (GBoxCommonBoxRes)
+service cztAdminPc {
+	@doc (
+		summary:     "不带数据权限的下拉框-yx"
+		description: "不带数据权限的下拉框-yx"
+	)
+	@handler GBoxCommonHandler
+	get /common
+
+	@doc (
+		summary:     "不带数据权限的下拉框-yx"
+		description: "不带数据权限的下拉框-yx"
+	)
+	@handler GBoxCommon1Handler
+	get /common1
 }
+

@@ -14,19 +14,19 @@ import (
 	"github.com/zeromicro/go-zero/core/collection"
 )
 
-type fileGenConfig struct {
-	dir             string
-	subdir          string
-	filename        string
-	templateName    string
-	category        string
-	templateFile    string
-	builtinTemplate string
-	data            any
+type FileGenConfig struct {
+	Dir             string
+	Subdir          string
+	Filename        string
+	TemplateName    string
+	Category        string
+	TemplateFile    string
+	BuiltinTemplate string
+	Data            any
 }
 
-func genFile(c fileGenConfig) error {
-	fp, created, err := util.MaybeCreateFile(c.dir, c.subdir, c.filename)
+func GenFile(c FileGenConfig) error {
+	fp, created, err := util.MaybeCreateFile(c.Dir, c.Subdir, c.Filename)
 	if err != nil {
 		return err
 	}
@@ -36,18 +36,18 @@ func genFile(c fileGenConfig) error {
 	defer fp.Close()
 
 	var text string
-	if len(c.category) == 0 || len(c.templateFile) == 0 {
-		text = c.builtinTemplate
+	if len(c.Category) == 0 || len(c.TemplateFile) == 0 {
+		text = c.BuiltinTemplate
 	} else {
-		text, err = pathx.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
+		text, err = pathx.LoadTemplate(c.Category, c.TemplateFile, c.BuiltinTemplate)
 		if err != nil {
 			return err
 		}
 	}
 
-	t := template.Must(template.New(c.templateName).Parse(text))
+	t := template.Must(template.New(c.TemplateName).Parse(text))
 	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, c.data)
+	err = t.Execute(buffer, c.Data)
 	if err != nil {
 		return err
 	}

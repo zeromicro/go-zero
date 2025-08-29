@@ -5,6 +5,8 @@ const (
 	ProjectName = "zero"
 	// ProjectOpenSourceURL the github url of go-zero
 	ProjectOpenSourceURL = "github.com/zeromicro/go-zero"
+	// RabbitmqProjectOpenSourceURL
+	RabbitmqProjectOpenSourceURL = "github.com/lerity-yao"
 	// OsWindows represents os windows
 	OsWindows = "windows"
 	// OsMac represents os mac

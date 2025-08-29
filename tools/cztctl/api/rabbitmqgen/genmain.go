@@ -1,10 +1,11 @@
-package gogen
+package rabbitmqgen
 
 import (
 	_ "embed"
 	"fmt"
 	"strings"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/gogen"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
@@ -16,8 +17,7 @@ import (
 var mainTemplate string
 
 func genMain(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
-	name := strings.ToLower(api.Service.Name)
-	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func genMain(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiS
 		filename = strings.ReplaceAll(filename, "-api", "")
 	}
 
-	return GenFile(FileGenConfig{
+	return gogen.GenFile(gogen.FileGenConfig{
 		Dir:             dir,
 		Subdir:          "",
 		Filename:        filename + ".go",
@@ -49,6 +49,5 @@ func genMainImports(parentPkg string) string {
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, handlerDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, contextDir)))
 	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceURL))
-	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }

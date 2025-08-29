@@ -73,15 +73,15 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 		}
 	}
 
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          subDir,
-		filename:        goFile + ".go",
-		templateName:    "logicTemplate",
-		category:        category,
-		templateFile:    logicTemplateFile,
-		builtinTemplate: builtinTemplate,
-		data: map[string]any{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          subDir,
+		Filename:        goFile + ".go",
+		TemplateName:    "logicTemplate",
+		Category:        category,
+		TemplateFile:    logicTemplateFile,
+		BuiltinTemplate: builtinTemplate,
+		Data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
 			"logic":        strings.Title(logic),

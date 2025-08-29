@@ -52,15 +52,15 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 	}
 
 	subDir := getLogicFolderPath(group, route)
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          subDir,
-		filename:        goFile + "_test.go",
-		templateName:    "logicTestTemplate",
-		category:        category,
-		templateFile:    logicTestTemplateFile,
-		builtinTemplate: logicTestTemplate,
-		data: map[string]any{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          subDir,
+		Filename:        goFile + "_test.go",
+		TemplateName:    "logicTestTemplate",
+		Category:        category,
+		TemplateFile:    logicTestTemplateFile,
+		BuiltinTemplate: logicTestTemplate,
+		Data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
 			"logic":        strings.Title(logic),

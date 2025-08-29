@@ -2,7 +2,9 @@ package api
 
 import (
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/apigen"
+	gorabbitmqgen "github.com/lerity-yao/go-zero/tools/cztctl/api/rabbitmqgen"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/swagger"
+	"github.com/lerity-yao/go-zero/tools/cztctl/config"
 	"github.com/lerity-yao/go-zero/tools/cztctl/internal/cobrax"
 )
 
@@ -20,7 +22,8 @@ var (
 	//ktCmd       = cobrax.NewCommand("kt", cobrax.WithRunE(ktgen.KtCommand))
 	//pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
 	//tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
-	swaggerCmd = cobrax.NewCommand("swagger", cobrax.WithRunE(swagger.Command))
+	swaggerCmd    = cobrax.NewCommand("swagger", cobrax.WithRunE(swagger.Command))
+	goRabbitmqCmd = cobrax.NewCommand("rabbitmq", cobrax.WithRunE(gorabbitmqgen.GoRabbitmqCommand))
 )
 
 func init() {
@@ -36,7 +39,8 @@ func init() {
 		//pluginCmdFlags   = pluginCmd.Flags()
 		//tsCmdFlags       = tsCmd.Flags()
 		//validateCmdFlags = validateCmd.Flags()
-		swaggerCmdFlags = swaggerCmd.Flags()
+		swaggerCmdFlags    = swaggerCmd.Flags()
+		goRabbitmqCmdFlags = goRabbitmqCmd.Flags()
 	)
 
 	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o")
@@ -66,6 +70,15 @@ func init() {
 	//goCmdFlags.BoolVar(&gogen.VarBoolWithTest, "test")
 	//goCmdFlags.BoolVar(&gogen.VarBoolTypeGroup, "type-group")
 	//goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
+
+	goRabbitmqCmdFlags.StringVar(&gorabbitmqgen.VarStringDir, "dir")
+	goRabbitmqCmdFlags.StringVar(&gorabbitmqgen.VarStringAPI, "api")
+	goRabbitmqCmdFlags.StringVar(&gorabbitmqgen.VarStringHome, "home")
+	goRabbitmqCmdFlags.StringVar(&gorabbitmqgen.VarStringRemote, "remote")
+	goRabbitmqCmdFlags.StringVar(&gorabbitmqgen.VarStringBranch, "branch")
+	goRabbitmqCmdFlags.BoolVar(&gorabbitmqgen.VarBoolWithTest, "test")
+	goRabbitmqCmdFlags.BoolVar(&gorabbitmqgen.VarBoolTypeGroup, "type-group")
+	goRabbitmqCmdFlags.StringVarWithDefaultValue(&gorabbitmqgen.VarStringStyle, "style", config.DefaultFormat)
 	//
 	//javaCmdFlags.StringVar(&javagen.VarStringDir, "dir")
 	//javaCmdFlags.StringVar(&javagen.VarStringAPI, "api")
@@ -97,5 +110,5 @@ func init() {
 	//validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
 	// Add sub-commands
-	Cmd.AddCommand(swaggerCmd)
+	Cmd.AddCommand(swaggerCmd, goRabbitmqCmd)
 }
