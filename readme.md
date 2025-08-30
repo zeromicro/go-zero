@@ -93,12 +93,13 @@ Flags:
 Use "cztctl api [command] --help" for more information about a command.
 ```
 
-| 命令      | 简写 | 描述                   |
-|---------|----|----------------------|
-| --help  | -h | 查看帮助提示信息             |
-| swagger | -h | 根据api文件生成 swagger 文档 |
+| 命令       | 简写 | 描述                    |
+|----------|----|-----------------------|
+| --help   | -h | 查看帮助提示信息              |
+| swagger  |    | 根据api文件生成 swagger 文档  |
+| rabbitmq |    | 根据api文件生成 rabbitmq 服务 |
 
-**暂时只支持swagger命令**
+**暂时只支持swagger, rabbitmq 命令**
 
 ### api swagger
 
@@ -174,3 +175,13 @@ value：
     注意value 123
     注意value 456
 ````
+
+### api rabbitmq
+
+根据 api 文件生成 rabbitmq 服务
+
+生成 rabbitmq 命令为：
+
+```
+cztctl api rabbitmq -api ./tools/cztctl/test/test.api -dir .
+```

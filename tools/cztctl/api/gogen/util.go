@@ -57,7 +57,7 @@ func GenFile(c FileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+func WriteProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
 	util.WriteIndent(writer, indent)
 	var (
 		err            error
@@ -150,7 +150,7 @@ func getMiddleware(api *spec.ApiSpec) []string {
 	return result.Keys()
 }
 
-func responseGoTypeName(r spec.Route, pkg ...string) string {
+func ResponseGoTypeName(r spec.Route, pkg ...string) string {
 	if r.ResponseType == nil {
 		return ""
 	}
@@ -225,7 +225,7 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 	return ""
 }
 
-func getDoc(doc string) string {
+func GetDoc(doc string) string {
 	if len(doc) == 0 {
 		return ""
 	}

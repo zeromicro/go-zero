@@ -1,4 +1,4 @@
-package gogen
+package rabbitmqgen
 
 import (
 	_ "embed"
@@ -6,11 +6,12 @@ import (
 	"path"
 	"strings"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/gogen"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
-	"github.com/lerity-yao/go-zero/tools/cztctl/util"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/pathx"
+	"github.com/lerity-yao/go-zero/tools/cztctl/vars"
 )
 
 const defaultLogicPackage = "logic"
@@ -18,8 +19,8 @@ const defaultLogicPackage = "logic"
 var (
 	//go:embed handler.tpl
 	handlerTemplate string
-	//go:embed sse_handler.tpl
-	sseHandlerTemplate string
+	////go:embed sse_handler.tpl
+	//sseHandlerTemplate string
 )
 
 func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
@@ -37,12 +38,8 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 	}
 
 	var builtinTemplate = handlerTemplate
-	sse := group.GetAnnotation("sse")
-	if sse == "true" {
-		builtinTemplate = sseHandlerTemplate
-	}
 
-	return GenFile(FileGenConfig{
+	return gogen.GenFile(gogen.FileGenConfig{
 		Dir:             dir,
 		Subdir:          getHandlerFolderPath(group, route),
 		Filename:        filename + ".go",
@@ -51,19 +48,14 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 		TemplateFile:    handlerTemplateFile,
 		BuiltinTemplate: builtinTemplate,
 		Data: map[string]any{
-			"PkgName":        pkgName,
-			"ImportPackages": genHandlerImports(group, route, rootPkg),
-			"HandlerName":    handler,
-			"RequestType":    util.Title(route.RequestTypeName()),
-			"ResponseType":   ResponseGoTypeName(route, typesPacket),
-			"LogicName":      logicName,
-			"LogicType":      strings.Title(getLogicName(route)),
-			"Call":           strings.Title(strings.TrimSuffix(handler, "Handler")),
-			"HasResp":        len(route.ResponseTypeName()) > 0,
-			"HasRequest":     len(route.RequestTypeName()) > 0,
-			"HasDoc":         len(route.JoinedDoc()) > 0,
-			"Doc":            GetDoc(route.JoinedDoc()),
-			"projectPkg":     projectPkg,
+			"PkgName":          pkgName,
+			"ImportPackages":   genHandlerImports(group, route, rootPkg),
+			"HandlerName":      handler,
+			"RabbitmqConfName": fmt.Sprintf("%s%s", strings.TrimSuffix(handler, "Handler"), "RabbitmqConf"),
+			"LogicName":        logicName,
+			"LogicType":        getLogicName(route),
+			"HasDoc":           len(route.JoinedDoc()) > 0,
+			"Doc":              GetDoc(route.JoinedDoc()),
 		},
 	})
 }
@@ -82,8 +74,10 @@ func genHandlers(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
 	imports := []string{
-		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, GetLogicFolderPath(group, route))),
+		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, gogen.GetLogicFolderPath(group, route))),
 		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)),
+		fmt.Sprintf("\"%s\"", pathx.JoinPackages(vars.RabbitmqProjectOpenSourceURL, "go-mq/rabbitmq")),
+		fmt.Sprintf("\"%s\"", pathx.JoinPackages(vars.ProjectOpenSourceURL, "core/service")),
 	}
 	sse := group.GetAnnotation("sse")
 	if len(route.RequestTypeName()) > 0 || sse == "true" {
@@ -132,5 +126,5 @@ func getLogicName(route spec.Route) string {
 		panic(err)
 	}
 
-	return handler + "Logic"
+	return strings.TrimSuffix(handler, "Handler") + "Logic"
 }

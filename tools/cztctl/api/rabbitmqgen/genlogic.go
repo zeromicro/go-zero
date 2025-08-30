@@ -1,4 +1,4 @@
-package gogen
+package rabbitmqgen
 
 import (
 	_ "embed"
@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/gogen"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/parser/g4/gen/api"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
@@ -18,15 +19,12 @@ import (
 var (
 	//go:embed logic.tpl
 	logicTemplate string
-
-	//go:embed sse_logic.tpl
-	sseLogicTemplate string
 )
 
-func genLogic(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, rootPkg, projectPkg, cfg, g, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -35,7 +33,7 @@ func genLogic(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.Api
 	return nil
 }
 
-func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
@@ -43,37 +41,11 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 	}
 
 	imports := genLogicImports(route, rootPkg)
-	var responseString string
-	var returnString string
-	var requestString string
-	if len(route.ResponseTypeName()) > 0 {
-		resp := ResponseGoTypeName(route, typesPacket)
-		responseString = "(resp " + resp + ", err error)"
-		returnString = "return"
-	} else {
-		responseString = "error"
-		returnString = "return nil"
-	}
-	if len(route.RequestTypeName()) > 0 {
-		requestString = "req *" + requestGoTypeName(route, typesPacket)
-	}
 
 	subDir := GetLogicFolderPath(group, route)
 	builtinTemplate := logicTemplate
-	sse := group.GetAnnotation("sse")
-	if sse == "true" {
-		builtinTemplate = sseLogicTemplate
-		responseString = "error"
-		returnString = "return nil"
-		resp := ResponseGoTypeName(route, typesPacket)
-		if len(requestString) == 0 {
-			requestString = "client chan<- " + resp
-		} else {
-			requestString += ", client chan<- " + resp
-		}
-	}
 
-	return GenFile(FileGenConfig{
+	return gogen.GenFile(gogen.FileGenConfig{
 		Dir:             dir,
 		Subdir:          subDir,
 		Filename:        goFile + ".go",
@@ -82,16 +54,11 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 		TemplateFile:    logicTemplateFile,
 		BuiltinTemplate: builtinTemplate,
 		Data: map[string]any{
-			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
-			"imports":      imports,
-			"logic":        strings.Title(logic),
-			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
-			"responseType": responseString,
-			"returnString": returnString,
-			"request":      requestString,
-			"hasDoc":       len(route.JoinedDoc()) > 0,
-			"doc":          GetDoc(route.JoinedDoc()),
-			"projectPkg":   projectPkg,
+			"pkgName": subDir[strings.LastIndex(subDir, "/")+1:],
+			"imports": imports,
+			"logic":   strings.Title(logic),
+			"hasDoc":  len(route.JoinedDoc()) > 0,
+			"doc":     GetDoc(route.JoinedDoc()),
 		},
 	})
 }

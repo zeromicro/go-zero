@@ -31,3 +31,11 @@ func generateRabbitmqConfigNames(api *apiSpec.ApiSpec) []string {
 	}
 	return names.Keys()
 }
+
+func GetDoc(doc string) string {
+	if len(doc) == 0 {
+		return ""
+	}
+
+	return "// " + strings.Trim(doc, "\"")
+}

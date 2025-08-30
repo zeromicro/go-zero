@@ -49,5 +49,6 @@ func genMainImports(parentPkg string) string {
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, handlerDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, contextDir)))
 	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceURL))
+	imports = append(imports, fmt.Sprintf("\"%s/core/service\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }

@@ -12,6 +12,7 @@ const (
 	contextTemplateFile         = "context.tpl"
 	etcTemplateFile             = "etc.tpl"
 	handlerTemplateFile         = "handler.tpl"
+	listenerTemplateFile        = "listener.tpl"
 	sseHandlerTemplateFile      = "sse_handler.tpl"
 	handlerTestTemplateFile     = "handler_test.tpl"
 	logicTemplateFile           = "logic.tpl"
@@ -28,17 +29,18 @@ var templates = map[string]string{
 	configTemplateFile:  configTemplate,
 	contextTemplateFile: contextTemplate,
 	etcTemplateFile:     etcTemplate,
-	//handlerTemplateFile:         handlerTemplate,
+	handlerTemplateFile: handlerTemplate,
 	//sseHandlerTemplateFile:      sseHandlerTemplate,
 	//handlerTestTemplateFile:     handlerTestTemplate,
 	//logicTemplateFile:           logicTemplate,
 	//sseLogicTemplateFile:        sseLogicTemplate,
 	//logicTestTemplateFile:       logicTestTemplate,
-	mainTemplateFile: mainTemplate,
+	mainTemplateFile:     mainTemplate,
+	listenerTemplateFile: listenerTemplate,
 	//middlewareImplementCodeFile: middlewareImplementCode,
 	//routesTemplateFile:          routesTemplate,
 	//routesAdditionTemplateFile:  routesAdditionTemplate,
-	//typesTemplateFile:           typesTemplate,
+	typesTemplateFile: typesTemplate,
 }
 
 // Category returns the category of the api files.

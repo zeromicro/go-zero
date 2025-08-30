@@ -1,4 +1,4 @@
-package gogen
+package rabbitmqgen
 
 import (
 	_ "embed"
@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/gogen"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	apiutil "github.com/lerity-yao/go-zero/tools/cztctl/api/util"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
@@ -188,7 +189,7 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 	filename := path.Join(dir, typesDir, typeFilename)
 	_ = os.Remove(filename)
 
-	return GenFile(FileGenConfig{
+	return gogen.GenFile(gogen.FileGenConfig{
 		Dir:             dir,
 		Subdir:          typesDir,
 		Filename:        typeFilename,
@@ -240,7 +241,7 @@ func writeMember(writer io.Writer, members []spec.Member) error {
 			continue
 		}
 
-		if err := WriteProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1); err != nil {
+		if err := gogen.WriteProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1); err != nil {
 			return err
 		}
 	}

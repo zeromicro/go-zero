@@ -39,7 +39,7 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 	var requestString string
 	var requestType string
 	if len(route.ResponseTypeName()) > 0 {
-		resp := responseGoTypeName(route, typesPacket)
+		resp := ResponseGoTypeName(route, typesPacket)
 		responseString = "(resp " + resp + ", err error)"
 		returnString = "return"
 	} else {
@@ -51,7 +51,7 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 		requestType = requestGoTypeName(route, typesPacket)
 	}
 
-	subDir := getLogicFolderPath(group, route)
+	subDir := GetLogicFolderPath(group, route)
 	return GenFile(FileGenConfig{
 		Dir:             dir,
 		Subdir:          subDir,
@@ -72,7 +72,7 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 			"hasResponse":  len(route.ResponseTypeName()) > 0,
 			"requestType":  requestType,
 			"hasDoc":       len(route.JoinedDoc()) > 0,
-			"doc":          getDoc(route.JoinedDoc()),
+			"doc":          GetDoc(route.JoinedDoc()),
 			"projectPkg":   projectPkg,
 		},
 	})

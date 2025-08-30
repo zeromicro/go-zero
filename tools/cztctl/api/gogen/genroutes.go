@@ -105,7 +105,7 @@ func genRoutes(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.Ap
 						Method:  %s,
 						Path:    "%s",
 						Handler: %s,
-					},`, getDoc(r.doc), r.method, r.path, r.handler)
+					},`, GetDoc(r.doc), r.method, r.path, r.handler)
 			} else {
 				routeString = fmt.Sprintf(`
 					{

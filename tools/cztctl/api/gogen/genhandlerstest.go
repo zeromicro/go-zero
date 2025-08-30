@@ -49,7 +49,7 @@ func genHandlerTest(dir, rootPkg, projectPkg string, cfg *config.Config, group s
 			"HasResp":        len(route.ResponseTypeName()) > 0,
 			"HasRequest":     len(route.RequestTypeName()) > 0,
 			"HasDoc":         len(route.JoinedDoc()) > 0,
-			"Doc":            getDoc(route.JoinedDoc()),
+			"Doc":            GetDoc(route.JoinedDoc()),
 			"projectPkg":     projectPkg,
 		},
 	})
