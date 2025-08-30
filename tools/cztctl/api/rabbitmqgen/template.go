@@ -32,7 +32,7 @@ var templates = map[string]string{
 	handlerTemplateFile: handlerTemplate,
 	//sseHandlerTemplateFile:      sseHandlerTemplate,
 	//handlerTestTemplateFile:     handlerTestTemplate,
-	//logicTemplateFile:           logicTemplate,
+	logicTemplateFile: logicTemplate,
 	//sseLogicTemplateFile:        sseLogicTemplate,
 	//logicTestTemplateFile:       logicTestTemplate,
 	mainTemplateFile:     mainTemplate,
