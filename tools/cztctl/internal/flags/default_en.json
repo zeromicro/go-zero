@@ -3,7 +3,7 @@
     "short": "A cli tool to generate go-zero code",
     "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/lerity-yao/go-zero \nSite:   https://go-zero.dev",
     "api": {
-      "short": "Generate api related files",
+      "short": "Generate api related files\n根据 api 文件生成相关项目文件",
       "o": "Output a sample api file",
       "home": "{{.global.home}}",
       "remote": "{{.global.remote}}",
@@ -42,7 +42,7 @@
         "type-group": "Generate type group files"
       },
       "rabbitmq": {
-        "short": "Generate go files for provided rabbitmq in api file",
+        "short": "Generate go files for provided rabbitmq in api file(根据 api 文件生成 rabbitmq 服务)",
         "dir": "{{.cztctl.api.dir}}",
         "api": "{{.cztctl.api.api}}",
         "home": "{{.global.home}}",
@@ -85,11 +85,11 @@
         "unwrap": "Unwrap the webapi caller for import"
       },
       "swagger": {
-        "short": "Generate swagger file from api",
+        "short": "Generate swagger file from api(根据 api 文件生成 swagger 文档)",
         "dir": "{{.cztctl.api.dir}}",
         "api": "{{.cztctl.api.api}}",
-        "filename": "The generated swagger file name without the extension",
-        "yaml": "Generate swagger yaml file, default to json"
+        "filename": "The generated swagger file name without the extension\n生成的 swagger 文件名称，不包含后缀",
+        "yaml": "Generate swagger yaml file, default to json\n生成 yaml 类型的 swagger, 默认是 json"
       }
     },
     "bug": {
@@ -311,6 +311,6 @@
     "home": "The cztctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\n本地模板的地址, --home 和 --remote 一起输入时, --remote优先级别高",
     "remote": "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure\n远程托管模板的地址, --home 和 --remote 一起输入时, --remote优先级别高",
     "branch": "The branch of the remote repo, it does work with --remote\n远程托管模板的分支",
-    "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/cztctl/config/readme.md] \n代码命名格式化"
+    "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md] \n代码命名格式化"
   }
 }

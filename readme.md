@@ -73,22 +73,26 @@ Use "cztctl [command] --help" for more information about a command.
 ```shell
 $ cztctl api -h
 Generate api related files
+根据 api 文件生成相关项目文件
 
 Usage:
   cztctl api [flags]
   cztctl api [command]
 
 Available Commands:
-  swagger     Generate swagger file from api
+  rabbitmq    Generate go files for provided rabbitmq in api file(根据 api 文件生成 rabbitmq 服务)
+  swagger     Generate swagger file from api(根据 api 文件生成 swagger 文档)
 
 Flags:
       --branch string   The branch of the remote repo, it does work with --remote
-  -h, --help            help for api                                                                                                                                                                                                
-      --home string     The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority                                                                          
-      --o string        Output a sample api file                                                                                                                                                                                    
-      --remote string   The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority                                                                          
-                        The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure                                                                                        
-                                                                                                                                                                                                                                    
+                        远程托管模板的分支
+  -h, --help            help for api
+      --home string     The cztctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                        本地模板的地址, --home 和 --remote 一起输入时, --remote优先级别高
+      --o string        Output a sample api file
+      --remote string   The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                        The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
+                        远程托管模板的地址, --home 和 --remote 一起输入时, --remote优先级别高
 
 Use "cztctl api [command] --help" for more information about a command.
 ```
@@ -104,6 +108,26 @@ Use "cztctl api [command] --help" for more information about a command.
 ### api swagger
 
 根据api文件生成swagger文档。
+
+```SHELL
+$ cztctl api swagger -h
+Generate swagger file from api(根据 api 文件生成 swagger 文档)
+
+Usage:
+  cztctl api swagger [flags]
+
+Flags:
+      --api string        The api file
+                          api 文件位置
+      --dir string        The target dir
+                          生成项目文件夹
+      --filename string   The generated swagger file name without the extension
+                          生成的 swagger 文件名称，不包含后缀
+  -h, --help              help for swagger
+      --yaml              Generate swagger yaml file, default to json
+                          生成 yaml 类型的 swagger, 默认是 json
+```
+
 
 生成 swagger 命令为：
 
@@ -180,8 +204,90 @@ value：
 
 根据 api 文件生成 rabbitmq 服务
 
+```shell
+$ cztctl api rabbitmq -h
+Generate go files for provided rabbitmq in api file(根据 api 文件生成 rabbitmq 服务)
+
+Usage:
+  cztctl api rabbitmq [flags]
+
+Flags:
+      --api string      The api file
+                        api 文件位置
+      --branch string   The branch of the remote repo, it does work with --remote
+                        远程托管模板的分支
+      --dir string      The target dir
+                        生成项目文件夹
+  -h, --help            help for rabbitmq
+      --home string     The cztctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                        本地模板的地址, --home 和 --remote 一起输入时, --remote优先级别高
+      --remote string   The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                        The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
+                        远程托管模板的地址, --home 和 --remote 一起输入时, --remote优先级别高
+      --style string    The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/cztctl/config/readme.md] 
+                        代码命名格式化 (default "gozero")
+      --test            Generate test files
+                        生成测试文件
+      --type-group      Generate type group files
+                        types分组
+```
+
 生成 rabbitmq 命令为：
 
 ```
 cztctl api rabbitmq -api ./tools/cztctl/test/test.api -dir .
+```
+
+写 api 文件需要注意事项
+
+1、 route 后面不要任何结构体
+
+/common 后面不要写其他东西了
+
+```api
+	@doc (
+		summary:     "不带数据权限的下拉框-yx"
+		description: "不带数据权限的下拉框-yx"
+	)
+	@handler GBoxCommonHandler
+	get /common
+
+```
+
+2、 route 路径则是 rabbitmq 的队列名称+/,
+
+test.direct.queue 是队列名称
+
+```api
+syntax = "v1"
+type (
+    // 用户结构体
+    User {
+        Name string `json:"name"` // 用户名称
+    }
+
+    Name {
+        Code int `json:"code"`
+    }
+)
+
+@server(
+    // 分组 demoA
+    group: demoA
+)
+service demoA {
+    // 消费者 GDemoA
+    @handler GDemoA
+    get /test.direct.queue
+}
+```
+
+3、 route 的 method 请写 get
+
+```api
+service demoA {
+    // 消费者 GDemoA
+    @handler GDemoA
+    get /test.direct.queue
+}
 ```
