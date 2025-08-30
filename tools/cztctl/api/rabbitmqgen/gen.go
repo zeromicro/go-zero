@@ -94,7 +94,6 @@ func DoGenProject(apiFile, dir, style string, withTest bool) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(cfg, rootPkg, projectPkg)
 
 	logx.Must(genEtc(dir, cfg, api))
 	logx.Must(genConfig(dir, cfg, api))
