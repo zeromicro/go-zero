@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
@@ -777,15 +779,9 @@ func TestSetup(t *testing.T) {
 		MaxBackups:  3,
 		MaxSize:     1024 * 1024,
 	}))
-	setupLogLevel(LogConf{
-		Level: levelInfo,
-	})
-	setupLogLevel(LogConf{
-		Level: levelError,
-	})
-	setupLogLevel(LogConf{
-		Level: levelSevere,
-	})
+	setupLogLevel(levelInfo)
+	setupLogLevel(levelError)
+	setupLogLevel(levelSevere)
 	_, err := createOutput("")
 	assert.NotNil(t, err)
 	Disable()
@@ -1156,4 +1152,67 @@ func (s *countingStringer) Count() int32 {
 func (s *countingStringer) String() string {
 	atomic.AddInt32(&s.count, 1)
 	return "countingStringer"
+}
+
+func TestLogKey(t *testing.T) {
+	setupOnce = sync.Once{}
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "console",
+		Encoding:    "json",
+		TimeFormat:  timeFormat,
+		FieldKeys: fieldKeyConf{
+			CallerKey:    "_caller",
+			ContentKey:   "_content",
+			DurationKey:  "_duration",
+			LevelKey:     "_level",
+			SpanKey:      "_span",
+			TimestampKey: "_timestamp",
+			TraceKey:     "_trace",
+			TruncatedKey: "_truncated",
+		},
+	})
+
+	t.Cleanup(func() {
+		setupFieldKeys(fieldKeyConf{
+			CallerKey:    defaultCallerKey,
+			ContentKey:   defaultContentKey,
+			DurationKey:  defaultDurationKey,
+			LevelKey:     defaultLevelKey,
+			SpanKey:      defaultSpanKey,
+			TimestampKey: defaultTimestampKey,
+			TraceKey:     defaultTraceKey,
+			TruncatedKey: defaultTruncatedKey,
+		})
+	})
+
+	const message = "hello there"
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	otp := otel.GetTracerProvider()
+	tp := trace.NewTracerProvider(trace.WithSampler(trace.AlwaysSample()))
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(otp)
+
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
+	defer span.End()
+
+	WithContext(ctx).WithDuration(time.Second).Info(message)
+	now := time.Now()
+
+	var m map[string]string
+	if err := json.Unmarshal([]byte(w.String()), &m); err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "info", m["_level"])
+	assert.Equal(t, message, m["_content"])
+	assert.Equal(t, "1000.0ms", m["_duration"])
+	assert.Regexp(t, `logx/logs_test.go:\d+`, m["_caller"])
+	assert.NotEmpty(t, m["_trace"])
+	assert.NotEmpty(t, m["_span"])
+	parsedTime, err := time.Parse(timeFormat, m["_timestamp"])
+	assert.True(t, err == nil)
+	assert.Equal(t, now.Minute(), parsedTime.Minute())
 }
