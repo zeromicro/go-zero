@@ -7,6 +7,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
@@ -61,6 +62,7 @@ func genConfig(dir, projectPkg string, cfg *config.Config, api *spec.ApiSpec) er
 			"auth":       strings.Join(auths, "\n"),
 			"jwtTrans":   strings.Join(jwtTransList, "\n"),
 			"projectPkg": projectPkg,
+			"version":    version.BuildVersion,
 		},
 	})
 }
