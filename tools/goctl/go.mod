@@ -10,8 +10,8 @@ require (
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/gookit/color v1.6.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.7
+	github.com/spf13/cobra v1.10.1
+	github.com/spf13/pflag v1.0.9
 	github.com/stretchr/testify v1.11.1
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
