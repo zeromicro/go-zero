@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -212,7 +213,10 @@ func rangeMemberAndDo(structType apiSpec.Type, do func(tag *apiSpec.Tags, requir
 	var members = expandMembers(structType)
 
 	for _, field := range members {
-		tags, _ := apiSpec.Parse(field.Tag)
+		tags, err := apiSpec.Parse(field.Tag)
+		if err != nil {
+			panic(fmt.Sprintf("failed to parse tag for field %s in structure %s, %s", field.Name, structType.Name(), err.Error()))
+		}
 		required := isRequired(tags)
 		do(tags, required, field)
 	}
