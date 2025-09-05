@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
@@ -38,6 +39,8 @@ var (
 	VarStringStyle string
 	// VarStringZRPCOut describes the zRPC output.
 	VarStringZRPCOut string
+	// VarStringName describes the service name
+	VarStringName string
 	// VarBoolIdea describes whether idea or not
 	VarBoolIdea bool
 	// VarBoolVerbose describes whether verbose.
@@ -91,6 +94,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 	ctx.IsGenClient = VarBoolClient
+	ctx.Name = VarStringName
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

@@ -12,8 +12,10 @@ const (
 	contextTemplateFile         = "context.tpl"
 	etcTemplateFile             = "etc.tpl"
 	handlerTemplateFile         = "handler.tpl"
+	sseHandlerTemplateFile      = "sse_handler.tpl"
 	handlerTestTemplateFile     = "handler_test.tpl"
 	logicTemplateFile           = "logic.tpl"
+	sseLogicTemplateFile        = "sse_logic.tpl"
 	logicTestTemplateFile       = "logic_test.tpl"
 	mainTemplateFile            = "main.tpl"
 	middlewareImplementCodeFile = "middleware.tpl"
@@ -27,8 +29,10 @@ var templates = map[string]string{
 	contextTemplateFile:         contextTemplate,
 	etcTemplateFile:             etcTemplate,
 	handlerTemplateFile:         handlerTemplate,
+	sseHandlerTemplateFile:      sseHandlerTemplate,
 	handlerTestTemplateFile:     handlerTestTemplate,
 	logicTemplateFile:           logicTemplate,
+	sseLogicTemplateFile:        sseLogicTemplate,
 	logicTestTemplateFile:       logicTestTemplate,
 	mainTemplateFile:            mainTemplate,
 	middlewareImplementCodeFile: middlewareImplementCode,

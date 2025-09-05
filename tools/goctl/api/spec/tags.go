@@ -66,7 +66,7 @@ func (t *Tags) Keys() []string {
 	if t == nil {
 		return []string{}
 	}
-	var keys []string
+	keys := make([]string, 0, len(t.tags))
 	for _, tag := range t.tags {
 		keys = append(keys, tag.Key)
 	}
