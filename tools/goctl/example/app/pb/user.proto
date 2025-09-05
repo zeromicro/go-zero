@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package borrower;
+option go_package = "./user";
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  string id = 1;
+  string name = 2;
+}
+
+
+service user {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/zeromicro/go-zero/tools/goctl/example/app/pb/common";
+
+message EmptyRequest {
+}
+
+message EmptyResponse {
+}

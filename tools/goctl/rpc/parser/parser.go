@@ -77,6 +77,7 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 			}
 		}),
 	)
+
 	if err = serviceList.validate(abs, multiple...); err != nil {
 		return ret, err
 	}

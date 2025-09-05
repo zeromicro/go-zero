@@ -3,6 +3,8 @@ package generator
 import (
 	"path/filepath"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
@@ -36,6 +38,7 @@ type ZRpcContext struct {
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
+	spew.Dump(zctx)
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
 		return err

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package borrower;
+option go_package = "./role";
+
+import "common.proto";
+
+message GetRoleRequest {
+  string id = 1;
+}
+
+message GetRoleResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+
+service role {
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  rpc Empty(common.EmptyRequest) returns (common.EmptyResponse);
+}
