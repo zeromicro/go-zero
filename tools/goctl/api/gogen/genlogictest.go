@@ -7,6 +7,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -74,6 +75,7 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
 			"projectPkg":   projectPkg,
+			"version":      version.BuildVersion,
 		},
 	})
 }

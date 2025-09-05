@@ -75,6 +75,11 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 
 // DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string, withTest bool) error {
+	return DoGenProjectWithModule(apiFile, dir, "", style, withTest)
+}
+
+// DoGenProjectWithModule gen go project files with api file using custom module name
+func DoGenProjectWithModule(apiFile, dir, moduleName, style string, withTest bool) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -90,7 +95,13 @@ func DoGenProject(apiFile, dir, style string, withTest bool) error {
 	}
 
 	logx.Must(pathx.MkdirIfNotExist(dir))
-	rootPkg, projectPkg, err := golang.GetParentPackage(dir)
+
+	var rootPkg, projectPkg string
+	if len(moduleName) > 0 {
+		rootPkg, projectPkg, err = golang.GetParentPackageWithModule(dir, moduleName)
+	} else {
+		rootPkg, projectPkg, err = golang.GetParentPackage(dir)
+	}
 	if err != nil {
 		return err
 	}
