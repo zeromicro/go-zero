@@ -5,12 +5,7 @@ import (
 
 	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/lang"
 )
-
-var ignoreCmds = map[string]lang.PlaceholderType{
-	"blpop": {},
-}
 
 type breakerHook struct {
 	brk breaker.Breaker
@@ -34,6 +29,12 @@ func (h breakerHook) ProcessHook(next red.ProcessHook) red.ProcessHook {
 
 func (h breakerHook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []red.Cmder) error {
+		for _, cmd := range cmds {
+			if _, ok := ignoreCmds[cmd.Name()]; ok {
+				return next(ctx, cmds)
+			}
+		}
+
 		return h.brk.DoWithAcceptableCtx(ctx, func() error {
 			return next(ctx, cmds)
 		}, acceptable)
