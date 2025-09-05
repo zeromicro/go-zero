@@ -13,7 +13,7 @@ import (
 
 type ZRpcContext struct {
 	// Src is the source file of the proto.
-	Src string
+	Src []string
 	// ProtocCmd is the command to generate proto files.
 	ProtocCmd string
 	// ProtoGenGrpcDir is the directory to store the generated proto files.
@@ -61,56 +61,59 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
+	// todo handle *.proto
+
 	p := parser.NewDefaultProtoParser()
-	proto, err := p.Parse(zctx.Src, zctx.Multiple)
+	protos, err := p.ParseAll(zctx.Src, zctx.Multiple)
 	if err != nil {
 		return err
 	}
 
-	dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+	for i, proto := range protos {
+		dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenEtc(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenEtc(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenPb(dirCtx, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenPb(dirCtx, zctx, i)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenConfig(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
-	}
+		err = g.GenConfig(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenSvc(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
-	}
+		err = g.GenSvc(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenServer(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenMain(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenMain(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	if zctx.IsGenClient {
-		err = g.GenCall(dirCtx, proto, g.cfg, zctx)
+		if zctx.IsGenClient {
+			err = g.GenCall(dirCtx, proto, g.cfg, zctx)
+		}
 	}
-
 	console.NewColorConsole().MarkDone()
 
 	return err

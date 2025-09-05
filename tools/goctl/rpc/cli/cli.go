@@ -87,7 +87,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	}
 
 	var ctx generator.ZRpcContext
-	ctx.Src = src
+	ctx.Src = []string{src}
 	ctx.GoOutput = filepath.Dir(src)
 	ctx.GrpcOutput = filepath.Dir(src)
 	ctx.IsGooglePlugin = true

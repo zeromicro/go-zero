@@ -14,11 +14,11 @@ import (
 
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
-func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext) error {
-	return g.genPbDirect(ctx, c)
+func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext, srcIndex int) error {
+	return g.genPbDirect(ctx, c, srcIndex)
 }
 
-func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
+func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext, srcIndex int) error {
 	g.log.Debug("[command]: %s", c.ProtocCmd)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -29,18 +29,18 @@ func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
 	if err != nil {
 		return err
 	}
-	return g.setPbDir(ctx, c)
+	return g.setPbDir(ctx, c, srcIndex)
 }
 
-func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext) error {
-	pbDir, err := findPbFile(c.GoOutput, c.Src, false)
+func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext, srcIndex int) error {
+	pbDir, err := findPbFile(c.GoOutput, c.Src[srcIndex], false)
 	if err != nil {
 		return err
 	}
 	if len(pbDir) == 0 {
 		return fmt.Errorf("pg.go is not found under %q", c.GoOutput)
 	}
-	grpcDir, err := findPbFile(c.GrpcOutput, c.Src, true)
+	grpcDir, err := findPbFile(c.GrpcOutput, c.Src[srcIndex], true)
 	if err != nil {
 		return err
 	}

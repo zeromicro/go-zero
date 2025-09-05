@@ -24,6 +24,19 @@ func NewDefaultProtoParser() *DefaultProtoParser {
 	return &DefaultProtoParser{}
 }
 
+func (p *DefaultProtoParser) ParseAll(sources []string, multiple ...bool) ([]Proto, error) {
+	var protos []Proto
+	for _, source := range sources {
+		parsed, err := p.Parse(source, multiple...)
+		if err != nil {
+			return nil, err
+		}
+		protos = append(protos, parsed)
+	}
+	return protos, nil
+
+}
+
 // Parse provides to parse the proto file into a golang structure,
 // which is convenient for subsequent rpc generation and use
 func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) {

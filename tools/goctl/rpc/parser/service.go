@@ -20,7 +20,10 @@ type (
 
 func (s Services) validate(filename string, multipleOpt ...bool) error {
 	if len(s) == 0 {
-		return errors.New("rpc service not found")
+		// return errors.New("rpc service not found")
+
+		// message only proto file, no service defined
+		return nil
 	}
 
 	var multiple bool

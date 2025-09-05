@@ -28,7 +28,8 @@ func ZRPC(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	source := args[0]
+	// source := args[0]
+	source := args
 	grpcOutList := VarStringSliceGoGRPCOut
 	goOutList := VarStringSliceGoOut
 	zrpcOut := VarStringZRPCOut
