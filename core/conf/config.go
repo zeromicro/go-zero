@@ -152,10 +152,6 @@ func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo, fullName st
 	return nil
 }
 
-func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
-	return buildAnonymousFieldInfoWithVisited(info, lowerCaseName, ft, fullName, make(map[reflect.Type]bool))
-}
-
 func buildAnonymousFieldInfoWithVisited(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string, visited map[reflect.Type]bool) error {
 	switch ft.Kind() {
 	case reflect.Struct:
@@ -225,10 +221,6 @@ func buildFieldsInfoWithVisited(tp reflect.Type, fullName string, visited map[re
 	}
 }
 
-func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
-	return buildNamedFieldInfoWithVisited(info, lowerCaseName, ft, fullName, make(map[reflect.Type]bool))
-}
-
 func buildNamedFieldInfoWithVisited(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string, visited map[reflect.Type]bool) error {
 	var finfo *fieldInfo
 	var err error
@@ -262,10 +254,6 @@ func buildNamedFieldInfoWithVisited(info *fieldInfo, lowerCaseName string, ft re
 	}
 
 	return addOrMergeFields(info, lowerCaseName, finfo, fullName)
-}
-
-func buildStructFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
-	return buildStructFieldsInfoWithVisited(tp, fullName, make(map[reflect.Type]bool))
 }
 
 func buildStructFieldsInfoWithVisited(tp reflect.Type, fullName string, visited map[reflect.Type]bool) (*fieldInfo, error) {
