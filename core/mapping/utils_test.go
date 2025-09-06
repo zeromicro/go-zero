@@ -334,3 +334,89 @@ func TestValidateValueRange(t *testing.T) {
 func TestSetMatchedPrimitiveValue(t *testing.T) {
 	assert.Error(t, setMatchedPrimitiveValue(reflect.Func, reflect.ValueOf(2), "1"))
 }
+
+func TestImplicitValueRequiredStruct_CircularReference(t *testing.T) {
+	type MySQLConfig struct {
+		Alias        string         `json:",optional"`
+		DSN          string         `json:",optional"`
+		Type         string         `json:",optional"`
+		MaxOpenConns int            `json:",optional"`
+		MaxIdleConns int            `json:",optional"`
+		Slave        []*MySQLConfig `json:",optional"` // Self-reference slice
+	}
+
+	type CountryConfig struct {
+		MySQL MySQLConfig `json:",optional"`
+	}
+
+	type GlobalConfig struct {
+		CN CountryConfig `json:",optional"`
+	}
+
+	tests := []struct {
+		name     string
+		tag      string
+		tp       reflect.Type
+		expected bool
+	}{
+		{
+			name:     "direct circular reference - all optional",
+			tag:      "json",
+			tp:       reflect.TypeOf(MySQLConfig{}),
+			expected: false,
+		},
+		{
+			name:     "nested circular reference - all optional",
+			tag:      "json",
+			tp:       reflect.TypeOf(GlobalConfig{}),
+			expected: false,
+		},
+		{
+			name:     "pointer circular reference",
+			tag:      "json",
+			tp:       reflect.TypeOf(&MySQLConfig{}),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := implicitValueRequiredStruct(tt.tag, tt.tp)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestImplicitValueRequiredStructWithDepth_MaxDepth(t *testing.T) {
+	type DeepStruct struct {
+		Child *DeepStruct `json:",optional"`
+	}
+
+	visited := make(map[reflect.Type]bool)
+	tp := reflect.TypeOf(DeepStruct{})
+
+	result, err := implicitValueRequiredStructWithDepth("json", tp, 150, visited)
+	assert.NoError(t, err)
+	assert.False(t, result)
+}
+
+func TestImplicitValueRequiredStructWithDepth_CircularDetection(t *testing.T) {
+	type CircularStruct struct {
+		Name     string            `json:",optional"`
+		Children []*CircularStruct `json:",optional"`
+	}
+
+	visited := make(map[reflect.Type]bool)
+	tp := reflect.TypeOf(CircularStruct{})
+
+	result1, err1 := implicitValueRequiredStructWithDepth("json", tp, 0, visited)
+	assert.NoError(t, err1)
+	assert.False(t, result1)
+
+	visited[Deref(tp)] = true
+
+	result2, err2 := implicitValueRequiredStructWithDepth("json", tp, 0, visited)
+	assert.NoError(t, err2)
+	assert.False(t, result2)
+}
