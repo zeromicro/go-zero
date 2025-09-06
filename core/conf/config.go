@@ -152,10 +152,10 @@ func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo, fullName st
 	return nil
 }
 
-func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
+func buildAnonymousFieldInfoWithVisited(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string, visited map[reflect.Type]bool) error {
 	switch ft.Kind() {
 	case reflect.Struct:
-		fields, err := buildFieldsInfo(ft, fullName)
+		fields, err := buildFieldsInfoWithVisited(ft, fullName, visited)
 		if err != nil {
 			return err
 		}
@@ -166,7 +166,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 			}
 		}
 	case reflect.Map:
-		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName)
+		elemField, err := buildFieldsInfoWithVisited(mapping.Deref(ft.Elem()), fullName, visited)
 		if err != nil {
 			return err
 		}
@@ -193,13 +193,25 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 }
 
 func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
+	return buildFieldsInfoWithVisited(tp, fullName, make(map[reflect.Type]bool))
+}
+
+func buildFieldsInfoWithVisited(tp reflect.Type, fullName string, visited map[reflect.Type]bool) (*fieldInfo, error) {
 	tp = mapping.Deref(tp)
+
+	if visited[tp] {
+		return &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}, nil
+	}
 
 	switch tp.Kind() {
 	case reflect.Struct:
-		return buildStructFieldsInfo(tp, fullName)
+		visited[tp] = true
+		defer delete(visited, tp)
+		return buildStructFieldsInfoWithVisited(tp, fullName, visited)
 	case reflect.Array, reflect.Slice, reflect.Map:
-		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName)
+		return buildFieldsInfoWithVisited(mapping.Deref(tp.Elem()), fullName, visited)
 	case reflect.Chan, reflect.Func:
 		return nil, fmt.Errorf("unsupported type: %s, fullName: %s", tp.Kind(), fullName)
 	default:
@@ -209,23 +221,23 @@ func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
 	}
 }
 
-func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
+func buildNamedFieldInfoWithVisited(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string, visited map[reflect.Type]bool) error {
 	var finfo *fieldInfo
 	var err error
 
 	switch ft.Kind() {
 	case reflect.Struct:
-		finfo, err = buildFieldsInfo(ft, fullName)
+		finfo, err = buildFieldsInfoWithVisited(ft, fullName, visited)
 		if err != nil {
 			return err
 		}
 	case reflect.Array, reflect.Slice:
-		finfo, err = buildFieldsInfo(ft.Elem(), fullName)
+		finfo, err = buildFieldsInfoWithVisited(ft.Elem(), fullName, visited)
 		if err != nil {
 			return err
 		}
 	case reflect.Map:
-		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName)
+		elemInfo, err := buildFieldsInfoWithVisited(mapping.Deref(ft.Elem()), fullName, visited)
 		if err != nil {
 			return err
 		}
@@ -235,7 +247,7 @@ func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type,
 			mapField: elemInfo,
 		}
 	default:
-		finfo, err = buildFieldsInfo(ft, fullName)
+		finfo, err = buildFieldsInfoWithVisited(ft, fullName, visited)
 		if err != nil {
 			return err
 		}
@@ -244,7 +256,7 @@ func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type,
 	return addOrMergeFields(info, lowerCaseName, finfo, fullName)
 }
 
-func buildStructFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
+func buildStructFieldsInfoWithVisited(tp reflect.Type, fullName string, visited map[reflect.Type]bool) (*fieldInfo, error) {
 	info := &fieldInfo{
 		children: make(map[string]*fieldInfo),
 	}
@@ -260,12 +272,12 @@ func buildStructFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error)
 		ft := mapping.Deref(field.Type)
 		// flatten anonymous fields
 		if field.Anonymous {
-			if err := buildAnonymousFieldInfo(info, lowerCaseName, ft,
-				getFullName(fullName, lowerCaseName)); err != nil {
+			if err := buildAnonymousFieldInfoWithVisited(info, lowerCaseName, ft,
+				getFullName(fullName, lowerCaseName), visited); err != nil {
 				return nil, err
 			}
-		} else if err := buildNamedFieldInfo(info, lowerCaseName, ft,
-			getFullName(fullName, lowerCaseName)); err != nil {
+		} else if err := buildNamedFieldInfoWithVisited(info, lowerCaseName, ft,
+			getFullName(fullName, lowerCaseName), visited); err != nil {
 			return nil, err
 		}
 	}
