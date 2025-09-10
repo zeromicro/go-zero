@@ -96,8 +96,10 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 	ctx.IsGenClient = VarBoolClient
+	ctx.Name = VarStringName
 	ctx.Module = VarStringModule
 	ctx.Name = VarStringName
+
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

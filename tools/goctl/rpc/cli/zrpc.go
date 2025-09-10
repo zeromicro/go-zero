@@ -106,6 +106,7 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	ctx.IsGenClient = VarBoolClient
 	ctx.Name = VarStringName
 	ctx.Module = VarStringModule
+
 	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }

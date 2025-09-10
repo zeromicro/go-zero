@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           check-latest: true
@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           # make sure Go version compatible with go-zero
           go-version-file: go.mod

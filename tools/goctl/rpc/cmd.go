@@ -61,6 +61,7 @@ func init() {
 	protocCmdFlags.StringVar(&cli.VarStringBranch, "branch")
 	protocCmdFlags.StringVar(&cli.VarStringName, "name")
 	protocCmdFlags.StringVar(&cli.VarStringModule, "module")
+
 	protocCmdFlags.BoolVarP(&cli.VarBoolVerbose, "verbose", "v")
 	protocCmdFlags.MarkHidden("go_out")
 	protocCmdFlags.MarkHidden("go-grpc_out")
