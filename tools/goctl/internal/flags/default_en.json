@@ -47,6 +47,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "module": "Custom module name for go.mod (default: directory name)",
         "style": "{{.global.style}}"
       },
       "validate": {
@@ -238,6 +239,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "module": "Custom module name for go.mod (default: directory name)",
         "verbose": "Enable log output",
         "client": "Whether to generate rpc client"
       },

@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
@@ -31,7 +32,8 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			templateFile:    middlewareImplementCodeFile,
 			builtinTemplate: middlewareImplementCode,
 			data: map[string]string{
-				"name": strings.Title(name),
+				"name":    strings.Title(name),
+				"version": version.BuildVersion,
 			},
 		})
 		if err != nil {

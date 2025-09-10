@@ -8,11 +8,11 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/go-openapi/spec v0.21.1-0.20250328170532-a3928469592e
 	github.com/go-sql-driver/mysql v1.9.0
-	github.com/gookit/color v1.5.4
+	github.com/gookit/color v1.6.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.7
-	github.com/stretchr/testify v1.11.0
+	github.com/spf13/cobra v1.10.1
+	github.com/spf13/pflag v1.0.10
+	github.com/stretchr/testify v1.11.1
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v1.0.5
@@ -74,7 +74,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/redis/go-redis/v9 v9.12.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
+	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.15 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.15 // indirect
