@@ -3,6 +3,9 @@ package mr
 import (
 	"context"
 	"errors"
+	"fmt"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -183,12 +186,16 @@ func buildOptions(opts ...Option) *mapReduceOptions {
 	return options
 }
 
+func buildPanicInfo(r any, stack []byte) string {
+	return fmt.Sprintf("%+v\n\n%s", r, strings.TrimSpace(string(stack)))
+}
+
 func buildSource[T any](generate GenerateFunc[T], panicChan *onceChan) chan T {
 	source := make(chan T)
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				panicChan.write(r)
+				panicChan.write(buildPanicInfo(r, debug.Stack()))
 			}
 			close(source)
 		}()
@@ -235,7 +242,7 @@ func executeMappers[T, U any](mCtx mapperContext[T, U]) {
 				defer func() {
 					if r := recover(); r != nil {
 						atomic.AddInt32(&failed, 1)
-						mCtx.panicChan.write(r)
+						mCtx.panicChan.write(buildPanicInfo(r, debug.Stack()))
 					}
 					wg.Done()
 					<-pool
@@ -289,7 +296,7 @@ func mapReduceWithPanicChan[T, U, V any](source <-chan T, panicChan *onceChan, m
 		defer func() {
 			drain(collector)
 			if r := recover(); r != nil {
-				panicChan.write(r)
+				panicChan.write(buildPanicInfo(r, debug.Stack()))
 			}
 			finish()
 		}()
