@@ -73,7 +73,7 @@ func AddWriter(w Writer) {
 
 // Alert alerts v in alert level, and the message is written to error log.
 func Alert(v string) {
-	getWriter().Alert(v)
+	getWriter().Alert(v, 0)
 }
 
 // Close closes the logging.
@@ -236,7 +236,7 @@ func Must(err error) {
 
 	msg := fmt.Sprintf("%+v\n\n%s", err.Error(), debug.Stack())
 	log.Print(msg)
-	getWriter().Severe(msg)
+	getWriter().Severe(msg, 0)
 
 	if ExitOnFatal.True() {
 		os.Exit(1)
@@ -557,7 +557,7 @@ func shallLogStat() bool {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeDebug(val any, fields ...LogField) {
-	getWriter().Debug(val, mergeGlobalFields(addCaller(fields...))...)
+	getWriter().Debug(val, 0, mergeGlobalFields(addCaller(fields...))...)
 }
 
 // writeError writes v into the error log.
@@ -565,7 +565,7 @@ func writeDebug(val any, fields ...LogField) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeError(val any, fields ...LogField) {
-	getWriter().Error(val, mergeGlobalFields(addCaller(fields...))...)
+	getWriter().Error(val, 0, mergeGlobalFields(addCaller(fields...))...)
 }
 
 // writeInfo writes v into info log.
@@ -573,7 +573,7 @@ func writeError(val any, fields ...LogField) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeInfo(val any, fields ...LogField) {
-	getWriter().Info(val, mergeGlobalFields(addCaller(fields...))...)
+	getWriter().Info(val, 0, mergeGlobalFields(addCaller(fields...))...)
 }
 
 // writeSevere writes v into severe log.
@@ -581,7 +581,7 @@ func writeInfo(val any, fields ...LogField) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeSevere(msg string) {
-	getWriter().Severe(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
+	getWriter().Severe(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())), 0)
 }
 
 // writeSlow writes v into slow log.
@@ -589,7 +589,7 @@ func writeSevere(msg string) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeSlow(val any, fields ...LogField) {
-	getWriter().Slow(val, mergeGlobalFields(addCaller(fields...))...)
+	getWriter().Slow(val, 0, mergeGlobalFields(addCaller(fields...))...)
 }
 
 // writeStack writes v into stack log.
@@ -597,7 +597,7 @@ func writeSlow(val any, fields ...LogField) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeStack(msg string) {
-	getWriter().Stack(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
+	getWriter().Stack(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())), 0)
 }
 
 // writeStat writes v into the stat log.
@@ -605,5 +605,5 @@ func writeStack(msg string) {
 // If we check shallLog here, the fmt.Sprint might be called even if the log level is not enabled.
 // The caller should check shallLog before calling this function.
 func writeStat(msg string) {
-	getWriter().Stat(msg, mergeGlobalFields(addCaller())...)
+	getWriter().Stat(msg, 0, mergeGlobalFields(addCaller())...)
 }

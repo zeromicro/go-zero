@@ -16,10 +16,13 @@ var loggerIDCounter uint64
 // WithCallerSkip returns a Logger with given caller skip.
 func WithCallerSkip(skip int) Logger {
 	if skip <= 0 {
-		return new(richLogger)
+		return &richLogger{
+			id: atomic.AddUint64(&loggerIDCounter, 1),
+		}
 	}
 
 	return &richLogger{
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		callerSkip: skip,
 	}
 }
@@ -247,24 +250,24 @@ func (l *richLogger) buildFields(fields ...LogField) []LogField {
 
 func (l *richLogger) debug(v any, fields ...LogField) {
 	if shallLog(DebugLevel) {
-		getWriter().Debug(v, l.buildFields(fields...)...)
+		getWriter().Debug(v, l.id, l.buildFields(fields...)...)
 	}
 }
 
 func (l *richLogger) err(v any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		getWriter().Error(v, l.buildFields(fields...)...)
+		getWriter().Error(v, l.id, l.buildFields(fields...)...)
 	}
 }
 
 func (l *richLogger) info(v any, fields ...LogField) {
 	if shallLog(InfoLevel) {
-		getWriter().Info(v, l.buildFields(fields...)...)
+		getWriter().Info(v, l.id, l.buildFields(fields...)...)
 	}
 }
 
 func (l *richLogger) slow(v any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		getWriter().Slow(v, l.buildFields(fields...)...)
+		getWriter().Slow(v, l.id, l.buildFields(fields...)...)
 	}
 }

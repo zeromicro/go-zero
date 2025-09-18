@@ -23,23 +23,23 @@ type (
 	// such as writing logs to a kafka, a database, or using third-party loggers.
 	Writer interface {
 		// Alert sends an alert message, if your writer implemented alerting functionality.
-		Alert(v any)
+		Alert(v any, loggerID uint64)
 		// Close closes the writer.
 		Close() error
 		// Debug logs a message at debug level.
-		Debug(v any, fields ...LogField)
+		Debug(v any, loggerID uint64, fields ...LogField)
 		// Error logs a message at error level.
-		Error(v any, fields ...LogField)
+		Error(v any, loggerID uint64, fields ...LogField)
 		// Info logs a message at info level.
-		Info(v any, fields ...LogField)
+		Info(v any, loggerID uint64, fields ...LogField)
 		// Severe logs a message at severe level.
-		Severe(v any)
+		Severe(v any, loggerID uint64)
 		// Slow logs a message at slow level.
-		Slow(v any, fields ...LogField)
+		Slow(v any, loggerID uint64, fields ...LogField)
 		// Stack logs a message at error level.
-		Stack(v any)
+		Stack(v any, loggerID uint64)
 		// Stat logs a message at stat level.
-		Stat(v any, fields ...LogField)
+		Stat(v any, loggerID uint64, fields ...LogField)
 	}
 
 	atomicWriter struct {
@@ -106,9 +106,9 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 	return old
 }
 
-func (c comboWriter) Alert(v any) {
+func (c comboWriter) Alert(v any, loggerID uint64) {
 	for _, w := range c.writers {
-		w.Alert(v)
+		w.Alert(v, loggerID)
 	}
 }
 
@@ -120,45 +120,45 @@ func (c comboWriter) Close() error {
 	return be.Err()
 }
 
-func (c comboWriter) Debug(v any, fields ...LogField) {
+func (c comboWriter) Debug(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Debug(v, fields...)
+		w.Debug(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Error(v any, fields ...LogField) {
+func (c comboWriter) Error(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Error(v, fields...)
+		w.Error(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Info(v any, fields ...LogField) {
+func (c comboWriter) Info(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Info(v, fields...)
+		w.Info(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Severe(v any) {
+func (c comboWriter) Severe(v any, loggerID uint64) {
 	for _, w := range c.writers {
-		w.Severe(v)
+		w.Severe(v, loggerID)
 	}
 }
 
-func (c comboWriter) Slow(v any, fields ...LogField) {
+func (c comboWriter) Slow(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Slow(v, fields...)
+		w.Slow(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Stack(v any) {
+func (c comboWriter) Stack(v any, loggerID uint64) {
 	for _, w := range c.writers {
-		w.Stack(v)
+		w.Stack(v, loggerID)
 	}
 }
 
-func (c comboWriter) Stat(v any, fields ...LogField) {
+func (c comboWriter) Stat(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Stat(v, fields...)
+		w.Stat(v, loggerID, fields...)
 	}
 }
 
@@ -245,8 +245,8 @@ func newFileWriter(c LogConf) (Writer, error) {
 	}, nil
 }
 
-func (w *concreteWriter) Alert(v any) {
-	output(w.errorLog, levelAlert, v)
+func (w *concreteWriter) Alert(v any, loggerID uint64) {
+	output(w.errorLog, levelAlert, v, loggerID)
 }
 
 func (w *concreteWriter) Close() error {
@@ -269,62 +269,62 @@ func (w *concreteWriter) Close() error {
 	return w.statLog.Close()
 }
 
-func (w *concreteWriter) Debug(v any, fields ...LogField) {
-	output(w.infoLog, levelDebug, v, fields...)
+func (w *concreteWriter) Debug(v any, loggerID uint64, fields ...LogField) {
+	output(w.infoLog, levelDebug, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Error(v any, fields ...LogField) {
-	output(w.errorLog, levelError, v, fields...)
+func (w *concreteWriter) Error(v any, loggerID uint64, fields ...LogField) {
+	output(w.errorLog, levelError, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Info(v any, fields ...LogField) {
-	output(w.infoLog, levelInfo, v, fields...)
+func (w *concreteWriter) Info(v any, loggerID uint64, fields ...LogField) {
+	output(w.infoLog, levelInfo, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Severe(v any) {
-	output(w.severeLog, levelFatal, v)
+func (w *concreteWriter) Severe(v any, loggerID uint64) {
+	output(w.severeLog, levelFatal, v, loggerID)
 }
 
-func (w *concreteWriter) Slow(v any, fields ...LogField) {
-	output(w.slowLog, levelSlow, v, fields...)
+func (w *concreteWriter) Slow(v any, loggerID uint64, fields ...LogField) {
+	output(w.slowLog, levelSlow, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Stack(v any) {
-	output(w.stackLog, levelError, v)
+func (w *concreteWriter) Stack(v any, loggerID uint64) {
+	output(w.stackLog, levelError, v, loggerID)
 }
 
-func (w *concreteWriter) Stat(v any, fields ...LogField) {
-	output(w.statLog, levelStat, v, fields...)
+func (w *concreteWriter) Stat(v any, loggerID uint64, fields ...LogField) {
+	output(w.statLog, levelStat, v, loggerID, fields...)
 }
 
 type nopWriter struct{}
 
-func (n nopWriter) Alert(_ any) {
+func (n nopWriter) Alert(_ any, _ uint64) {
 }
 
 func (n nopWriter) Close() error {
 	return nil
 }
 
-func (n nopWriter) Debug(_ any, _ ...LogField) {
+func (n nopWriter) Debug(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Error(_ any, _ ...LogField) {
+func (n nopWriter) Error(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Info(_ any, _ ...LogField) {
+func (n nopWriter) Info(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Severe(_ any) {
+func (n nopWriter) Severe(_ any, _ uint64) {
 }
 
-func (n nopWriter) Slow(_ any, _ ...LogField) {
+func (n nopWriter) Slow(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Stack(_ any) {
+func (n nopWriter) Stack(_ any, _ uint64) {
 }
 
-func (n nopWriter) Stat(_ any, _ ...LogField) {
+func (n nopWriter) Stat(_ any, _ uint64, _ ...LogField) {
 }
 
 func buildPlainFields(fields logEntry) []string {
@@ -364,7 +364,7 @@ func mergeGlobalFields(fields []LogField) []LogField {
 	return ret
 }
 
-func output(writer io.Writer, level string, val any, fields ...LogField) {
+func output(writer io.Writer, level string, val any, loggerID uint64, fields ...LogField) {
 	switch v := val.(type) {
 	case string:
 		// only truncate string content, don't know how to truncate the values of other types.
