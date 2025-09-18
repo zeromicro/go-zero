@@ -25,9 +25,9 @@ func logDuration(ctx context.Context, name, method string, startTime time.Durati
 		return
 	}
 
-	if logSlowMon.True() && duration > slowThreshold.Load() {
+	if logSlowMon.Load() && duration > slowThreshold.Load() {
 		logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", name, method)
-	} else if logMon.True() {
+	} else if logMon.Load() {
 		logger.Infof("mongo(%s) - %s - ok", name, method)
 	}
 }
@@ -43,9 +43,9 @@ func logDurationWithDocs(ctx context.Context, name, method string, startTime tim
 	if jerr != nil {
 		if err != nil {
 			logger.Errorf("mongo(%s) - %s - fail(%s)", name, method, err.Error())
-		} else if logSlowMon.True() && duration > slowThreshold.Load() {
+		} else if logSlowMon.Load() && duration > slowThreshold.Load() {
 			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", name, method)
-		} else if logMon.True() {
+		} else if logMon.Load() {
 			logger.Infof("mongo(%s) - %s - ok", name, method)
 		}
 		return
@@ -53,9 +53,9 @@ func logDurationWithDocs(ctx context.Context, name, method string, startTime tim
 
 	if err != nil {
 		logger.Errorf("mongo(%s) - %s - fail(%s) - %s", name, method, err.Error(), string(content))
-	} else if logSlowMon.True() && duration > slowThreshold.Load() {
+	} else if logSlowMon.Load() && duration > slowThreshold.Load() {
 		logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s", name, method, string(content))
-	} else if logMon.True() {
+	} else if logMon.Load() {
 		logger.Infof("mongo(%s) - %s - ok - %s", name, method, string(content))
 	}
 }
