@@ -3,11 +3,15 @@ package logx
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/internal/trace"
 )
+
+// 全局logger ID计数器
+var loggerIDCounter uint64
 
 // WithCallerSkip returns a Logger with given caller skip.
 func WithCallerSkip(skip int) Logger {
@@ -23,6 +27,7 @@ func WithCallerSkip(skip int) Logger {
 // WithContext sets ctx to log, for keeping tracing information.
 func WithContext(ctx context.Context) Logger {
 	return &richLogger{
+		id:  atomic.AddUint64(&loggerIDCounter, 1),
 		ctx: ctx,
 	}
 }
@@ -30,11 +35,13 @@ func WithContext(ctx context.Context) Logger {
 // WithDuration returns a Logger with given duration.
 func WithDuration(d time.Duration) Logger {
 	return &richLogger{
+		id:     atomic.AddUint64(&loggerIDCounter, 1),
 		fields: []LogField{Field(durationKey, timex.ReprOfDuration(d))},
 	}
 }
 
 type richLogger struct {
+	id         uint64 // 唯一标识符
 	ctx        context.Context
 	callerSkip int
 	fields     []LogField
@@ -166,6 +173,7 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 	}
 
 	return &richLogger{
+		id:         l.id,
 		ctx:        l.ctx,
 		callerSkip: skip,
 		fields:     l.fields,
@@ -174,6 +182,7 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 
 func (l *richLogger) WithContext(ctx context.Context) Logger {
 	return &richLogger{
+		id:         l.id,
 		ctx:        ctx,
 		callerSkip: l.callerSkip,
 		fields:     l.fields,
@@ -184,6 +193,7 @@ func (l *richLogger) WithDuration(duration time.Duration) Logger {
 	fields := append(l.fields, Field(durationKey, timex.ReprOfDuration(duration)))
 
 	return &richLogger{
+		id:         l.id,
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
 		fields:     fields,
@@ -198,6 +208,7 @@ func (l *richLogger) WithFields(fields ...LogField) Logger {
 	f := append(l.fields, fields...)
 
 	return &richLogger{
+		id:         l.id,
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
 		fields:     f,
