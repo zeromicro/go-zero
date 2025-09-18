@@ -17,6 +17,9 @@ import (
 	"github.com/zeromicro/go-zero/core/errorx"
 )
 
+// global field cache
+var fieldCache sync.Map
+
 type (
 	// Writer is the interface for writing logs.
 	// It's designed to let users customize their own log writer,
@@ -383,7 +386,16 @@ func output(writer io.Writer, level string, val any, loggerID uint64, fields ...
 		// mask sensitive data before processing types,
 		// in case field.Value is a sensitive type and also implemented fmt.Stringer.
 		mval := maskSensitive(field.Value)
-		entry[field.Key] = processFieldValue(mval)
+
+		// first try to get cached value
+		if cached, ok := getCachedFieldValue(loggerID, field); ok {
+			entry[field.Key] = cached
+		} else {
+			// not cached, process value and cache it
+			processedValue := processFieldValue(mval)
+			entry[field.Key] = processedValue
+			cacheFieldValue(loggerID, field, processedValue)
+		}
 	}
 
 	switch atomic.LoadUint32(&encoding) {
@@ -536,4 +548,18 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
+}
+
+func generateCacheKey(loggerID uint64, fieldKey string, fieldValue any) string {
+	return fmt.Sprintf("%d:%s:%v", loggerID, fieldKey, fieldValue)
+}
+
+func getCachedFieldValue(loggerID uint64, field LogField) (any, bool) {
+	cacheKey := generateCacheKey(loggerID, field.Key, field.Value)
+	return fieldCache.Load(cacheKey)
+}
+
+func cacheFieldValue(loggerID uint64, field LogField, processedValue any) {
+	cacheKey := generateCacheKey(loggerID, field.Key, field.Value)
+	fieldCache.Store(cacheKey, processedValue)
 }

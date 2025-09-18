@@ -10,7 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/internal/trace"
 )
 
-// 全局logger ID计数器
+// loggerIDCounter is a counter for generating unique logger IDs.
 var loggerIDCounter uint64
 
 // WithCallerSkip returns a Logger with given caller skip.
