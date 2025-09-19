@@ -176,7 +176,7 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 	}
 
 	return &richLogger{
-		id:         l.id,
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        l.ctx,
 		callerSkip: skip,
 		fields:     l.fields,
@@ -185,7 +185,7 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 
 func (l *richLogger) WithContext(ctx context.Context) Logger {
 	return &richLogger{
-		id:         l.id,
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        ctx,
 		callerSkip: l.callerSkip,
 		fields:     l.fields,
@@ -196,7 +196,7 @@ func (l *richLogger) WithDuration(duration time.Duration) Logger {
 	fields := append(l.fields, Field(durationKey, timex.ReprOfDuration(duration)))
 
 	return &richLogger{
-		id:         l.id,
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
 		fields:     fields,
@@ -211,7 +211,7 @@ func (l *richLogger) WithFields(fields ...LogField) Logger {
 	f := append(l.fields, fields...)
 
 	return &richLogger{
-		id:         l.id,
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
 		fields:     f,
