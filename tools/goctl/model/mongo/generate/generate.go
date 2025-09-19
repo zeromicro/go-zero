@@ -21,6 +21,7 @@ type Context struct {
 	Easy   bool
 	Output string
 	Cfg    *config.Config
+	PackageName string
 }
 
 // Do executes model template and output the result into the specified file path
@@ -63,6 +64,7 @@ func generateModel(ctx *Context) error {
 			"Cache":     ctx.Cache,
 			"Prefix":    ctx.Prefix,
 			"version":   version.BuildVersion,
+			"PackageName": ctx.PackageName,
 		}, output, true); err != nil {
 			return err
 		}
@@ -90,6 +92,7 @@ func generateCustomModel(ctx *Context) error {
 			"snakeType": stringx.From(t).ToSnake(),
 			"Cache":     ctx.Cache,
 			"Easy":      ctx.Easy,
+			"PackageName": ctx.PackageName,
 		}, output, false)
 		if err != nil {
 			return err
@@ -114,6 +117,7 @@ func generateTypes(ctx *Context) error {
 		output := filepath.Join(ctx.Output, fn+".go")
 		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type": stringx.From(t).Title(),
+			"PackageName": ctx.PackageName,
 		}, output, false); err != nil {
 			return err
 		}
@@ -130,5 +134,7 @@ func generateError(ctx *Context) error {
 
 	output := filepath.Join(ctx.Output, "error.go")
 
-	return util.With("error").Parse(text).GoFmt(true).SaveTo(ctx, output, false)
+	return util.With("error").Parse(text).GoFmt(true).SaveTo(map[string]any{
+		"PackageName": ctx.PackageName,
+	}, output, false)
 }
