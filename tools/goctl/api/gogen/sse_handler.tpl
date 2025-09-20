@@ -33,9 +33,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 
         l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
         threading.GoSafeCtx(r.Context(), func() {
-            defer func() {
-                close(client)
-            }()
+            defer close(client)
             err := l.{{.Call}}({{if .HasRequest}}&req, {{end}}client)
             if err != nil {
                 logc.Errorw(r.Context(), "{{.HandlerName}}", logc.Field("error", err))
