@@ -6,3 +6,9 @@ type Config struct {
 	Port int    `json:",default=9101"`
 	Path string `json:",default=/metrics"`
 }
+
+type MetricsPusherConfig struct {
+	Url      string
+	JobName  string
+	Interval int `json:",default=300"`
+}
