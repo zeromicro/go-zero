@@ -17,29 +17,32 @@ import (
 	"github.com/zeromicro/go-zero/core/errorx"
 )
 
+// global field cache
+var fieldCache sync.Map
+
 type (
 	// Writer is the interface for writing logs.
 	// It's designed to let users customize their own log writer,
 	// such as writing logs to a kafka, a database, or using third-party loggers.
 	Writer interface {
 		// Alert sends an alert message, if your writer implemented alerting functionality.
-		Alert(v any)
+		Alert(v any, loggerID uint64)
 		// Close closes the writer.
 		Close() error
 		// Debug logs a message at debug level.
-		Debug(v any, fields ...LogField)
+		Debug(v any, loggerID uint64, fields ...LogField)
 		// Error logs a message at error level.
-		Error(v any, fields ...LogField)
+		Error(v any, loggerID uint64, fields ...LogField)
 		// Info logs a message at info level.
-		Info(v any, fields ...LogField)
+		Info(v any, loggerID uint64, fields ...LogField)
 		// Severe logs a message at severe level.
-		Severe(v any)
+		Severe(v any, loggerID uint64)
 		// Slow logs a message at slow level.
-		Slow(v any, fields ...LogField)
+		Slow(v any, loggerID uint64, fields ...LogField)
 		// Stack logs a message at error level.
-		Stack(v any)
+		Stack(v any, loggerID uint64)
 		// Stat logs a message at stat level.
-		Stat(v any, fields ...LogField)
+		Stat(v any, loggerID uint64, fields ...LogField)
 	}
 
 	atomicWriter struct {
@@ -106,9 +109,9 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 	return old
 }
 
-func (c comboWriter) Alert(v any) {
+func (c comboWriter) Alert(v any, loggerID uint64) {
 	for _, w := range c.writers {
-		w.Alert(v)
+		w.Alert(v, loggerID)
 	}
 }
 
@@ -120,45 +123,45 @@ func (c comboWriter) Close() error {
 	return be.Err()
 }
 
-func (c comboWriter) Debug(v any, fields ...LogField) {
+func (c comboWriter) Debug(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Debug(v, fields...)
+		w.Debug(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Error(v any, fields ...LogField) {
+func (c comboWriter) Error(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Error(v, fields...)
+		w.Error(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Info(v any, fields ...LogField) {
+func (c comboWriter) Info(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Info(v, fields...)
+		w.Info(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Severe(v any) {
+func (c comboWriter) Severe(v any, loggerID uint64) {
 	for _, w := range c.writers {
-		w.Severe(v)
+		w.Severe(v, loggerID)
 	}
 }
 
-func (c comboWriter) Slow(v any, fields ...LogField) {
+func (c comboWriter) Slow(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Slow(v, fields...)
+		w.Slow(v, loggerID, fields...)
 	}
 }
 
-func (c comboWriter) Stack(v any) {
+func (c comboWriter) Stack(v any, loggerID uint64) {
 	for _, w := range c.writers {
-		w.Stack(v)
+		w.Stack(v, loggerID)
 	}
 }
 
-func (c comboWriter) Stat(v any, fields ...LogField) {
+func (c comboWriter) Stat(v any, loggerID uint64, fields ...LogField) {
 	for _, w := range c.writers {
-		w.Stat(v, fields...)
+		w.Stat(v, loggerID, fields...)
 	}
 }
 
@@ -245,8 +248,8 @@ func newFileWriter(c LogConf) (Writer, error) {
 	}, nil
 }
 
-func (w *concreteWriter) Alert(v any) {
-	output(w.errorLog, levelAlert, v)
+func (w *concreteWriter) Alert(v any, loggerID uint64) {
+	output(w.errorLog, levelAlert, v, loggerID)
 }
 
 func (w *concreteWriter) Close() error {
@@ -269,62 +272,62 @@ func (w *concreteWriter) Close() error {
 	return w.statLog.Close()
 }
 
-func (w *concreteWriter) Debug(v any, fields ...LogField) {
-	output(w.infoLog, levelDebug, v, fields...)
+func (w *concreteWriter) Debug(v any, loggerID uint64, fields ...LogField) {
+	output(w.infoLog, levelDebug, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Error(v any, fields ...LogField) {
-	output(w.errorLog, levelError, v, fields...)
+func (w *concreteWriter) Error(v any, loggerID uint64, fields ...LogField) {
+	output(w.errorLog, levelError, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Info(v any, fields ...LogField) {
-	output(w.infoLog, levelInfo, v, fields...)
+func (w *concreteWriter) Info(v any, loggerID uint64, fields ...LogField) {
+	output(w.infoLog, levelInfo, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Severe(v any) {
-	output(w.severeLog, levelFatal, v)
+func (w *concreteWriter) Severe(v any, loggerID uint64) {
+	output(w.severeLog, levelFatal, v, loggerID)
 }
 
-func (w *concreteWriter) Slow(v any, fields ...LogField) {
-	output(w.slowLog, levelSlow, v, fields...)
+func (w *concreteWriter) Slow(v any, loggerID uint64, fields ...LogField) {
+	output(w.slowLog, levelSlow, v, loggerID, fields...)
 }
 
-func (w *concreteWriter) Stack(v any) {
-	output(w.stackLog, levelError, v)
+func (w *concreteWriter) Stack(v any, loggerID uint64) {
+	output(w.stackLog, levelError, v, loggerID)
 }
 
-func (w *concreteWriter) Stat(v any, fields ...LogField) {
-	output(w.statLog, levelStat, v, fields...)
+func (w *concreteWriter) Stat(v any, loggerID uint64, fields ...LogField) {
+	output(w.statLog, levelStat, v, loggerID, fields...)
 }
 
 type nopWriter struct{}
 
-func (n nopWriter) Alert(_ any) {
+func (n nopWriter) Alert(_ any, _ uint64) {
 }
 
 func (n nopWriter) Close() error {
 	return nil
 }
 
-func (n nopWriter) Debug(_ any, _ ...LogField) {
+func (n nopWriter) Debug(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Error(_ any, _ ...LogField) {
+func (n nopWriter) Error(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Info(_ any, _ ...LogField) {
+func (n nopWriter) Info(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Severe(_ any) {
+func (n nopWriter) Severe(_ any, _ uint64) {
 }
 
-func (n nopWriter) Slow(_ any, _ ...LogField) {
+func (n nopWriter) Slow(_ any, _ uint64, _ ...LogField) {
 }
 
-func (n nopWriter) Stack(_ any) {
+func (n nopWriter) Stack(_ any, _ uint64) {
 }
 
-func (n nopWriter) Stat(_ any, _ ...LogField) {
+func (n nopWriter) Stat(_ any, _ uint64, _ ...LogField) {
 }
 
 func buildPlainFields(fields logEntry) []string {
@@ -364,7 +367,7 @@ func mergeGlobalFields(fields []LogField) []LogField {
 	return ret
 }
 
-func output(writer io.Writer, level string, val any, fields ...LogField) {
+func output(writer io.Writer, level string, val any, loggerID uint64, fields ...LogField) {
 	switch v := val.(type) {
 	case string:
 		// only truncate string content, don't know how to truncate the values of other types.
@@ -379,11 +382,20 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
+	// process all fields, using cache to avoid processing same field values repeatedly
 	for _, field := range fields {
-		// mask sensitive data before processing types,
-		// in case field.Value is a sensitive type and also implemented fmt.Stringer.
-		mval := maskSensitive(field.Value)
-		entry[field.Key] = processFieldValue(mval)
+		// first try to get cached processor for this field
+		if processor, ok := getCachedFieldProcessor(loggerID, field.Key); ok {
+			entry[field.Key] = processor(field.Value)
+		} else {
+			// not cached, create a new processor and cache it
+			processor := func(value interface{}) interface{} {
+				mval := maskSensitive(value)
+				return processFieldValue(mval)
+			}
+			cacheFieldProcessor(loggerID, field.Key, processor)
+			entry[field.Key] = processor(field.Value)
+		}
 	}
 
 	switch atomic.LoadUint32(&encoding) {
@@ -536,4 +548,23 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
+}
+
+func generateCacheKey(loggerID uint64, fieldKey string) string {
+	return fmt.Sprintf("%d:%s", loggerID, fieldKey)
+}
+
+func getCachedFieldProcessor(loggerID uint64, fieldKey string) (func(interface{}) interface{}, bool) {
+	cacheKey := generateCacheKey(loggerID, fieldKey)
+	if val, ok := fieldCache.Load(cacheKey); ok {
+		if processor, ok := val.(func(interface{}) interface{}); ok {
+			return processor, true
+		}
+	}
+	return nil, false
+}
+
+func cacheFieldProcessor(loggerID uint64, fieldKey string, processor func(interface{}) interface{}) {
+	cacheKey := generateCacheKey(loggerID, fieldKey)
+	fieldCache.Store(cacheKey, processor)
 }
