@@ -33,11 +33,11 @@ func benchmarkLogger(b *testing.B, numFields int, cache bool) {
 	}
 }
 
-func BenchmarkWithCache20Fields(b *testing.B) {
+func BenchmarkWithCache10Fields(b *testing.B) {
 	benchmarkLogger(b, 10, true)
 }
 
-func BenchmarkWithoutCache20Fields(b *testing.B) {
+func BenchmarkWithoutCache10Fields(b *testing.B) {
 	benchmarkLogger(b, 10, false)
 }
 
