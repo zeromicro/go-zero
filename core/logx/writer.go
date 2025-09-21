@@ -383,20 +383,37 @@ func output(writer io.Writer, level string, val any, loggerID uint64, fields ...
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
 	// process all fields, using cache to avoid processing same field values repeatedly
-	for _, field := range fields {
-		// first try to get cached processor for this field
-		if processor, ok := getCachedFieldProcessor(loggerID, field.Key); ok {
-			entry[field.Key] = processor(field.Value)
-		} else {
-			// not cached, create a new processor and cache it
-			processor := func(value interface{}) interface{} {
-				mval := maskSensitive(value)
-				return processFieldValue(mval)
+	if cached, ok := fieldCache.Load(loggerID); ok {
+		processors := cached.([]func(interface{}) interface{})
+		if len(processors) == len(fields) {
+			for i, field := range fields {
+				entry[field.Key] = processors[i](field.Value)
 			}
-			cacheFieldProcessor(loggerID, field.Key, processor)
-			entry[field.Key] = processor(field.Value)
+
+			switch atomic.LoadUint32(&encoding) {
+			case plainEncodingType:
+				plainFields := buildPlainFields(entry)
+				writePlainAny(writer, level, val, plainFields...)
+			default:
+				entry[timestampKey] = getTimestamp()
+				entry[levelKey] = level
+				entry[contentKey] = val
+				writeJson(writer, entry)
+			}
+			return
 		}
 	}
+
+	processors := make([]func(interface{}) interface{}, len(fields))
+	for i, field := range fields {
+		processor := func(value interface{}) interface{} {
+			mval := maskSensitive(value)
+			return processFieldValue(mval)
+		}
+		processors[i] = processor
+		entry[field.Key] = processor(field.Value)
+	}
+	fieldCache.Store(loggerID, processors)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
@@ -548,23 +565,4 @@ func writePlainValue(writer io.Writer, level string, val any, fields ...string) 
 	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
-}
-
-func generateCacheKey(loggerID uint64, fieldKey string) string {
-	return fmt.Sprintf("%d:%s", loggerID, fieldKey)
-}
-
-func getCachedFieldProcessor(loggerID uint64, fieldKey string) (func(interface{}) interface{}, bool) {
-	cacheKey := generateCacheKey(loggerID, fieldKey)
-	if val, ok := fieldCache.Load(cacheKey); ok {
-		if processor, ok := val.(func(interface{}) interface{}); ok {
-			return processor, true
-		}
-	}
-	return nil, false
-}
-
-func cacheFieldProcessor(loggerID uint64, fieldKey string, processor func(interface{}) interface{}) {
-	cacheKey := generateCacheKey(loggerID, fieldKey)
-	fieldCache.Store(cacheKey, processor)
 }
