@@ -12,6 +12,17 @@ import (
 
 // loggerIDCounter is a counter for generating unique logger IDs.
 var loggerIDCounter uint64
+var cacheEnabled uint32 = 1
+
+// EnableCache enables the field processor cache.
+func EnableCache() {
+	atomic.StoreUint32(&cacheEnabled, 1)
+}
+
+// DisableCache disables the field processor cache.
+func DisableCache() {
+	atomic.StoreUint32(&cacheEnabled, 0)
+}
 
 // WithCallerSkip returns a Logger with given caller skip.
 func WithCallerSkip(skip int) Logger {

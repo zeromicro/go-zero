@@ -383,37 +383,33 @@ func output(writer io.Writer, level string, val any, loggerID uint64, fields ...
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
 	// process all fields, using cache to avoid processing same field values repeatedly
-	if cached, ok := fieldCache.Load(loggerID); ok {
-		processors := cached.([]func(interface{}) interface{})
-		if len(processors) == len(fields) {
-			for i, field := range fields {
-				entry[field.Key] = processors[i](field.Value)
+	cacheHit := false
+	if atomic.LoadUint32(&cacheEnabled) == 1 {
+		if cached, ok := fieldCache.Load(loggerID); ok {
+			processors := cached.([]func(interface{}) interface{})
+			if len(processors) == len(fields) {
+				for i, field := range fields {
+					entry[field.Key] = processors[i](field.Value)
+				}
+				cacheHit = true
 			}
-
-			switch atomic.LoadUint32(&encoding) {
-			case plainEncodingType:
-				plainFields := buildPlainFields(entry)
-				writePlainAny(writer, level, val, plainFields...)
-			default:
-				entry[timestampKey] = getTimestamp()
-				entry[levelKey] = level
-				entry[contentKey] = val
-				writeJson(writer, entry)
-			}
-			return
 		}
 	}
 
-	processors := make([]func(interface{}) interface{}, len(fields))
-	for i, field := range fields {
-		processor := func(value interface{}) interface{} {
-			mval := maskSensitive(value)
-			return processFieldValue(mval)
+	if !cacheHit {
+		processors := make([]func(interface{}) interface{}, len(fields))
+		for i, field := range fields {
+			processor := func(value interface{}) interface{} {
+				mval := maskSensitive(value)
+				return processFieldValue(mval)
+			}
+			processors[i] = processor
+			entry[field.Key] = processor(field.Value)
 		}
-		processors[i] = processor
-		entry[field.Key] = processor(field.Value)
+		if atomic.LoadUint32(&cacheEnabled) == 1 {
+			fieldCache.Store(loggerID, processors)
+		}
 	}
-	fieldCache.Store(loggerID, processors)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
