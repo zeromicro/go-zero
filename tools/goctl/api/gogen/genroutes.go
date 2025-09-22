@@ -14,6 +14,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
@@ -92,7 +93,7 @@ func genRoutes(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.Ap
 	}
 
 	var hasTimeout bool
-	gt := template.Must(template.New("groupTemplate").Parse(templateText))
+	gt := template.Must(template.New("groupTemplate").Funcs(util.DefaultFuncMap()).Parse(templateText))
 	for _, g := range groups {
 		var gbuilder strings.Builder
 		gbuilder.WriteString("[]rest.Route{")
