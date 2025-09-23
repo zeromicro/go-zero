@@ -399,9 +399,10 @@ func output(writer io.Writer, level string, val any, loggerID uint64, fields ...
 	if !cacheHit {
 		processors := make([]func(interface{}) interface{}, len(fields))
 		for i, field := range fields {
+			typeProcessor := createProcessor(field.Value)
 			processor := func(value interface{}) interface{} {
 				mval := maskSensitive(value)
-				return processFieldValue(mval)
+				return typeProcessor(mval)
 			}
 			processors[i] = processor
 			entry[field.Key] = processor(field.Value)
@@ -423,42 +424,64 @@ func output(writer io.Writer, level string, val any, loggerID uint64, fields ...
 	}
 }
 
-func processFieldValue(value any) any {
-	switch val := value.(type) {
+func createProcessor(value any) func(any) any {
+	switch value.(type) {
 	case error:
-		return encodeError(val)
+		return func(v any) any {
+			return encodeError(v.(error))
+		}
 	case []error:
-		var errs []string
-		for _, err := range val {
-			errs = append(errs, encodeError(err))
+		return func(v any) any {
+			errs := v.([]error)
+			result := make([]string, len(errs))
+			for i, e := range errs {
+				result[i] = encodeError(e)
+			}
+			return result
 		}
-		return errs
 	case time.Duration:
-		return fmt.Sprint(val)
+		return func(v any) any {
+			return fmt.Sprint(v.(time.Duration))
+		}
 	case []time.Duration:
-		var durs []string
-		for _, dur := range val {
-			durs = append(durs, fmt.Sprint(dur))
+		return func(v any) any {
+			durs := v.([]time.Duration)
+			result := make([]string, len(durs))
+			for i, d := range durs {
+				result[i] = fmt.Sprint(d)
+			}
+			return result
 		}
-		return durs
 	case []time.Time:
-		var times []string
-		for _, t := range val {
-			times = append(times, fmt.Sprint(t))
+		return func(v any) any {
+			times := v.([]time.Time)
+			result := make([]string, len(times))
+			for i, t := range times {
+				result[i] = fmt.Sprint(t)
+			}
+			return result
 		}
-		return times
 	case json.Marshaler:
-		return val
-	case fmt.Stringer:
-		return encodeStringer(val)
-	case []fmt.Stringer:
-		var strs []string
-		for _, str := range val {
-			strs = append(strs, encodeStringer(str))
+		return func(v any) any {
+			return v.(json.Marshaler)
 		}
-		return strs
+	case fmt.Stringer:
+		return func(v any) any {
+			return encodeStringer(v.(fmt.Stringer))
+		}
+	case []fmt.Stringer:
+		return func(v any) any {
+			strs := v.([]fmt.Stringer)
+			result := make([]string, len(strs))
+			for i, s := range strs {
+				result[i] = encodeStringer(s)
+			}
+			return result
+		}
 	default:
-		return val
+		return func(v any) any {
+			return v
+		}
 	}
 }
 

@@ -176,6 +176,10 @@ func TestField(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
+			fieldCache.Range(func(key, value interface{}) bool {
+				fieldCache.Delete(key)
+				return true
+			})
 			w := new(mockWriter)
 			old := writer.Swap(w)
 			defer writer.Store(old)
