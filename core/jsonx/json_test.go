@@ -1,6 +1,7 @@
 package jsonx
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestMarshal(t *testing.T) {
-	var v = struct {
+	v := struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}{
@@ -22,7 +23,7 @@ func TestMarshal(t *testing.T) {
 }
 
 func TestMarshalToString(t *testing.T) {
-	var v = struct {
+	v := struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
 	}{
@@ -201,6 +202,108 @@ func Test_doMarshalJson(t *testing.T) {
 			}
 
 			assert.Equalf(t, string(tt.want), string(got), "Marshal(%v)", tt.args.v)
+		})
+	}
+}
+
+func TestMarshalWithBuffer(t *testing.T) {
+	v := struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}{
+		Name: "John",
+		Age:  30,
+	}
+
+	buf := &bytes.Buffer{}
+	bs, err := MarshalWithBuffer(v, buf)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"name":"John","age":30}`, string(bs))
+
+	// Test that buffer content is as expected (includes trailing newline)
+	bufContent := buf.String()
+	assert.Equal(t, "{\"name\":\"John\",\"age\":30}\n", bufContent)
+}
+
+func TestMarshalWithBufferError(t *testing.T) {
+	buf := &bytes.Buffer{}
+	_, err := MarshalWithBuffer(make(chan int), buf)
+	assert.NotNil(t, err)
+}
+
+func TestMarshalWithBufferReuse(t *testing.T) {
+	buf := &bytes.Buffer{}
+
+	// First marshal
+	v1 := map[string]string{"key": "value1"}
+	bs1, err := MarshalWithBuffer(v1, buf)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"key":"value1"}`, string(bs1))
+
+	// Reset buffer and reuse
+	buf.Reset()
+	v2 := map[string]string{"key": "value2"}
+	bs2, err := MarshalWithBuffer(v2, buf)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"key":"value2"}`, string(bs2))
+}
+
+func TestMarshalWithBufferMultipleTypes(t *testing.T) {
+	tests := []struct {
+		name string
+		args interface{}
+		want string
+	}{
+		{
+			name: "nil",
+			args: nil,
+			want: "null",
+		},
+		{
+			name: "string",
+			args: "hello",
+			want: `"hello"`,
+		},
+		{
+			name: "int",
+			args: 42,
+			want: "42",
+		},
+		{
+			name: "bool",
+			args: true,
+			want: "true",
+		},
+		{
+			name: "struct",
+			args: struct {
+				Name string `json:"name"`
+			}{Name: "test"},
+			want: `{"name":"test"}`,
+		},
+		{
+			name: "slice",
+			args: []int{1, 2, 3},
+			want: "[1,2,3]",
+		},
+		{
+			name: "map",
+			args: map[string]int{"a": 1, "b": 2},
+			want: `{"a":1,"b":2}`,
+		},
+		{
+			name: "url with special characters",
+			args: "https://example.com/api?name=test&age=25",
+			want: `"https://example.com/api?name=test&age=25"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			got, err := MarshalWithBuffer(tt.args, buf)
+			assert.Nil(t, err, "MarshalWithBuffer should not return error for %v", tt.args)
+			assert.Equal(t, tt.want, string(got), "MarshalWithBuffer(%v)", tt.args)
 		})
 	}
 }

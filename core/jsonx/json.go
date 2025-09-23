@@ -29,6 +29,22 @@ func Marshal(v any) ([]byte, error) {
 	return bs, nil
 }
 
+func MarshalWithBuffer(v any, buf *bytes.Buffer) ([]byte, error) {
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	bs := buf.Bytes()
+	// Remove trailing newline added by json.Encoder.Encode
+	if len(bs) > 0 && bs[len(bs)-1] == '\n' {
+		bs = bs[:len(bs)-1]
+	}
+
+	return bs, nil
+}
+
 // MarshalToString marshals v into a string.
 func MarshalToString(v any) (string, error) {
 	data, err := Marshal(v)

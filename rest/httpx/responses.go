@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -22,6 +23,12 @@ var (
 	okLock       sync.RWMutex
 )
 
+var bufferPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
+
 // Error writes err into w.
 func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
 	doHandleError(w, err, buildErrorHandler(context.Background()), WriteJson, fns...)
@@ -29,7 +36,8 @@ func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, 
 
 // ErrorCtx writes err into w.
 func ErrorCtx(ctx context.Context, w http.ResponseWriter, err error,
-	fns ...func(w http.ResponseWriter, err error)) {
+	fns ...func(w http.ResponseWriter, err error),
+) {
 	writeJson := func(w http.ResponseWriter, code int, v any) {
 		WriteJsonCtx(ctx, w, code, v)
 	}
@@ -141,7 +149,8 @@ func buildErrorHandler(ctx context.Context) func(error) (int, any) {
 
 func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, any),
 	writeJson func(w http.ResponseWriter, code int, v any),
-	fns ...func(w http.ResponseWriter, err error)) {
+	fns ...func(w http.ResponseWriter, err error),
+) {
 	if handler == nil {
 		if len(fns) > 0 {
 			for _, fn := range fns {
@@ -173,7 +182,9 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 }
 
 func doWriteJson(w http.ResponseWriter, code int, v any) error {
-	bs, err := jsonx.Marshal(v)
+	buf := bufferPool.Get().(*bytes.Buffer)
+	defer bufferPool.Put(buf)
+	bs, err := jsonx.MarshalWithBuffer(v, buf)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return fmt.Errorf("marshal json failed, error: %w", err)
