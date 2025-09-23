@@ -183,6 +183,7 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 
 func doWriteJson(w http.ResponseWriter, code int, v any) error {
 	buf := bufferPool.Get().(*bytes.Buffer)
+	buf.Reset()
 	defer bufferPool.Put(buf)
 	bs, err := jsonx.MarshalWithBuffer(v, buf)
 	if err != nil {
