@@ -2172,36 +2172,63 @@ func TestRedisUnlink(t *testing.T) {
 	})
 }
 
-func TestRedisTxPipeline(t *testing.T) {
+func TestRedis_Pipeline(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		ctx := context.Background()
-		_, err := newRedis(client.Addr, badType()).TxPipeline()
-		assert.NotNil(t, err)
-		pipe, err := client.TxPipeline()
-		assert.Nil(t, err)
+		pipe := client.Pipeline()
+		assert.NotNil(t, pipe)
+
 		key := "key"
-		hashKey := "field"
-		hashValue := "value"
+		value := "value"
 
-		// setting value
-		pipe.HSet(ctx, key, hashKey, hashValue)
+		pipe.Set(ctx, key, value, 0)
+		getCmd := pipe.Get(ctx, key)
 
-		existsCmd := pipe.Exists(ctx, key)
-		getCmd := pipe.HGet(ctx, key, hashKey)
+		_, err := pipe.Exec(ctx)
+		assert.NoError(t, err)
 
-		// execution
-		_, err = pipe.Exec(ctx)
-		assert.Nil(t, err)
-
-		// verification results
-		exists, err := existsCmd.Result()
-		assert.Nil(t, err)
-		assert.Equal(t, int64(1), exists)
-
-		value, err := getCmd.Result()
-		assert.Nil(t, err)
-		assert.Equal(t, hashValue, value)
+		val, err := getCmd.Result()
+		assert.NoError(t, err)
+		assert.Equal(t, value, val)
 	})
+}
+
+func TestRedis_Pipeline_Error(t *testing.T) {
+	r := newRedis("localhost:6379", badType())
+	pipe := r.Pipeline()
+	assert.Nil(t, pipe)
+}
+
+func TestRedis_TxPipelined(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		ctx := context.Background()
+		var incr *red.IntCmd
+		fn := func(p red.Pipeliner) error {
+			incr = p.Incr(ctx, "key")
+			return nil
+		}
+
+		_, err := client.TxPipelined(ctx, fn)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), incr.Val())
+	})
+}
+
+func TestRedis_Command(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		ctx := context.Background()
+		cmd := client.Command(ctx)
+		assert.NotNil(t, cmd)
+		val, err := cmd.Result()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, val)
+	})
+}
+
+func TestRedis_Command_Error(t *testing.T) {
+	r := newRedis("localhost:6379", badType())
+	cmd := r.Command(context.Background())
+	assert.Nil(t, cmd)
 }
 
 func TestRedisXGroupCreate(t *testing.T) {
