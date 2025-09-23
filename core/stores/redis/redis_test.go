@@ -2214,6 +2214,14 @@ func TestRedis_TxPipelined(t *testing.T) {
 	})
 }
 
+func TestRedis_TxPipelined_Error(t *testing.T) {
+	r := newRedis("localhost:6379", badType())
+	_, err := r.TxPipelined(context.Background(), func(p red.Pipeliner) error {
+		return nil
+	})
+	assert.Error(t, err)
+}
+
 func TestRedis_Command(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		ctx := context.Background()
