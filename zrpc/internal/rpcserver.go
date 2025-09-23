@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/zeromicro/go-zero/core/proc"
-	"github.com/zeromicro/go-zero/internal/health"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
+
+	"github.com/zeromicro/go-zero/core/proc"
+	"github.com/zeromicro/go-zero/internal/health"
 )
 
 const probeNamePrefix = "zrpc"
