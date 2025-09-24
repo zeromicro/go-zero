@@ -407,7 +407,7 @@ func output(writer io.Writer, level string, val any, loggerID uint64, fields ...
 			processors[i] = processor
 			entry[field.Key] = processor(field.Value)
 		}
-		if atomic.LoadUint32(&cacheEnabled) == 1 {
+		if atomic.LoadUint32(&cacheEnabled) == 1 && loggerID != 0 {
 			fieldCache.Store(loggerID, processors)
 		}
 	}
