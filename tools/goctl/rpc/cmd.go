@@ -1,10 +1,10 @@
 package rpc
 
 import (
+	"github.com/dropship-dev/go-zero/tools/goctl/config"
+	"github.com/dropship-dev/go-zero/tools/goctl/internal/cobrax"
+	"github.com/dropship-dev/go-zero/tools/goctl/rpc/cli"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 )
 
 var (

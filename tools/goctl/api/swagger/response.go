@@ -3,8 +3,8 @@ package swagger
 import (
 	"net/http"
 
+	apiSpec "github.com/dropship-dev/go-zero/tools/goctl/api/spec"
 	"github.com/go-openapi/spec"
-	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *spec.Responses {
@@ -46,7 +46,8 @@ func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *sp
 		}
 	}
 
-	p, _ := propertiesFromType(ctx, tp)
+	p, r := propertiesFromType(ctx, tp)
+	props.Required = r
 	props.Type = typeFromGoType(ctx, tp)
 	props.Properties = p
 	return &spec.Responses{

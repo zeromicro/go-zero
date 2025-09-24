@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/dropship-dev/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
 // Service describes service for api syntax

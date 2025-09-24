@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+import "github.com/dropship-dev/go-zero/tools/goctl/pkg/parser/api/token"
 
 /*******************TypeStmt Begin********************/
 

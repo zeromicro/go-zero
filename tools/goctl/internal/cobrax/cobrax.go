@@ -3,9 +3,9 @@ package cobrax
 import (
 	"fmt"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/internal/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
 )
 
 type Option func(*cobra.Command)

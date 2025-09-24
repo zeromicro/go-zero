@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	apiSpec "github.com/dropship-dev/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
-	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func TestIsPostJson(t *testing.T) {

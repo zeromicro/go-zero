@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/internal/version"
 	"github.com/gookit/color"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
 // NL defines a new line.

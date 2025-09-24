@@ -35,7 +35,7 @@ execute_command "export GOBIN=$BIN"
 
 echo "=======================install goctl============================="
 # install latest goctl
-execute_command "go install github.com/zeromicro/go-zero/tools/goctl@master"
+execute_command "go install github.com/dropship-dev/go-zero/tools/goctl@master"
 execute_command "mv $BIN/goctl $BIN/goctl.old"
 execute_command "$BIN/goctl.old env"
 execute_command "$BIN/goctl.old env -w GOCTL_EXPERIMENTAL=on"

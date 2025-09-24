@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	apiSpec "github.com/dropship-dev/go-zero/tools/goctl/api/spec"
+	"github.com/dropship-dev/go-zero/tools/goctl/internal/version"
 	"github.com/go-openapi/spec"
-	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
 func spec2Swagger(api *apiSpec.ApiSpec) (*spec.Swagger, error) {

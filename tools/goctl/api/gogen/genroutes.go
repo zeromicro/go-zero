@@ -10,13 +10,13 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/api/spec"
+	"github.com/dropship-dev/go-zero/tools/goctl/config"
+	"github.com/dropship-dev/go-zero/tools/goctl/internal/version"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/format"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/pathx"
+	"github.com/dropship-dev/go-zero/tools/goctl/vars"
 	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const (

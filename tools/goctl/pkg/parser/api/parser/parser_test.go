@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/pkg/parser/api/assertx"
+	"github.com/dropship-dev/go-zero/tools/goctl/pkg/parser/api/ast"
+	"github.com/dropship-dev/go-zero/tools/goctl/pkg/parser/api/token"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/assertx"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
 //go:embed testdata/comment_test.api
@@ -130,7 +130,7 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 			"author":  `"type author here"`,
 			"email":   `"type email here"`,
 			"version": `"type version here"`,
-			"enable": `true`,
+			"enable":  `true`,
 			"disable": `false`,
 		}
 		p := New("foo.api", infoTestAPI)

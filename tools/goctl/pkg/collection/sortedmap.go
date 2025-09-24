@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/stringx"
 )
 
 var (

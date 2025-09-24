@@ -12,11 +12,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/dropship-dev/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/dropship-dev/go-zero/tools/goctl/api/util"
+	"github.com/dropship-dev/go-zero/tools/goctl/internal/version"
+	"github.com/dropship-dev/go-zero/tools/goctl/util"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/pathx"
 )
 
 const (

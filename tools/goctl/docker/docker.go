@@ -9,11 +9,11 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/util"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/env"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/pathx"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/env"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (

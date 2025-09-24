@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/api/parser/g4/ast"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/pathx"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/ast"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 var (

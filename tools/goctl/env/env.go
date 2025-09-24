@@ -3,8 +3,8 @@ package env
 import (
 	"fmt"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/pkg/env"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 )
 
 func write(_ *cobra.Command, args []string) error {

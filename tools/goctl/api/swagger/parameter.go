@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	apiSpec "github.com/dropship-dev/go-zero/tools/goctl/api/spec"
 	"github.com/go-openapi/spec"
-	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func isPostJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {

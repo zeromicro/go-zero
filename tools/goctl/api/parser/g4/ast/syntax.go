@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
+import "github.com/dropship-dev/go-zero/tools/goctl/api/parser/g4/gen/api"
 
 // SyntaxExpr describes syntax for api
 type SyntaxExpr struct {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/model/sql/util"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
 )
 
 const indexPri = "PRIMARY"

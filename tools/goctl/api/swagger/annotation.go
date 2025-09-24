@@ -3,7 +3,7 @@ package swagger
 import (
 	"strconv"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/dropship-dev/go-zero/tools/goctl/util"
 	"google.golang.org/grpc/metadata"
 )
 

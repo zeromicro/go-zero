@@ -3,8 +3,8 @@ package tsgen
 import (
 	"testing"
 
+	"github.com/dropship-dev/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func TestGenTsType(t *testing.T) {

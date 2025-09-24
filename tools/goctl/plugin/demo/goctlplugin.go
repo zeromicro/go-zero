@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/zeromicro/go-zero/tools/goctl/plugin"
+	"github.com/dropship-dev/go-zero/tools/goctl/plugin"
 )
 
 func main() {

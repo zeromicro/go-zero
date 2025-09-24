@@ -3,9 +3,9 @@ package gen
 import (
 	"fmt"
 
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/dropship-dev/go-zero/tools/goctl/model/sql/template"
+	"github.com/dropship-dev/go-zero/tools/goctl/util"
+	"github.com/dropship-dev/go-zero/tools/goctl/util/pathx"
 )
 
 func genNew(table Table, withCache, postgreSql bool) (string, error) {
