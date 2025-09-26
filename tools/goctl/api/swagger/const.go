@@ -57,9 +57,11 @@ const (
 	propertyKeyHost                    = "host"
 	propertyKeyBasePath                = "basePath"
 	propertyKeyWrapCodeMsg             = "wrapCodeMsg"
+	propertyKeyWrapCodeMsgMapping      = "wrapCodeMsgMapping"
 	propertyKeyBizCodeEnumDescription  = "bizCodeEnumDescription"
 )
 
 const (
-	defaultValueOfPropertyUseDefinition = false
+	defaultValueOfPropertyUseDefinition      = false
+	defaultValueOfPropertyWrapCodeMsgMapping = `{"code":"code", "data":"data", "msg":"msg"}`
 )
