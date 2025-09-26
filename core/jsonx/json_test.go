@@ -1,7 +1,6 @@
 package jsonx
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -215,35 +214,31 @@ func TestMarshalWithBuffer(t *testing.T) {
 		Age:  30,
 	}
 
-	buf := &bytes.Buffer{}
-	bs, err := MarshalWithBuffer(v, buf)
+	bs, err := MarshalWithBuffer(v)
 	assert.Nil(t, err)
 	assert.Equal(t, `{"name":"John","age":30}`, string(bs))
 
-	// Test that buffer content is as expected (includes trailing newline)
-	bufContent := buf.String()
-	assert.Equal(t, "{\"name\":\"John\",\"age\":30}\n", bufContent)
+	// Test consistency with Marshal
+	bs_marshal, err := Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, string(bs_marshal), string(bs))
 }
 
 func TestMarshalWithBufferError(t *testing.T) {
-	buf := &bytes.Buffer{}
-	_, err := MarshalWithBuffer(make(chan int), buf)
+	_, err := MarshalWithBuffer(make(chan int))
 	assert.NotNil(t, err)
 }
 
 func TestMarshalWithBufferReuse(t *testing.T) {
-	buf := &bytes.Buffer{}
-
 	// First marshal
 	v1 := map[string]string{"key": "value1"}
-	bs1, err := MarshalWithBuffer(v1, buf)
+	bs1, err := MarshalWithBuffer(v1)
 	assert.Nil(t, err)
 	assert.Equal(t, `{"key":"value1"}`, string(bs1))
 
 	// Reset buffer and reuse
-	buf.Reset()
 	v2 := map[string]string{"key": "value2"}
-	bs2, err := MarshalWithBuffer(v2, buf)
+	bs2, err := MarshalWithBuffer(v2)
 	assert.Nil(t, err)
 	assert.Equal(t, `{"key":"value2"}`, string(bs2))
 }
@@ -251,7 +246,7 @@ func TestMarshalWithBufferReuse(t *testing.T) {
 func TestMarshalWithBufferMultipleTypes(t *testing.T) {
 	tests := []struct {
 		name string
-		args interface{}
+		args any
 		want string
 	}{
 		{
@@ -300,10 +295,199 @@ func TestMarshalWithBufferMultipleTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			buf := &bytes.Buffer{}
-			got, err := MarshalWithBuffer(tt.args, buf)
+			got, err := MarshalWithBuffer(tt.args)
 			assert.Nil(t, err, "MarshalWithBuffer should not return error for %v", tt.args)
 			assert.Equal(t, tt.want, string(got), "MarshalWithBuffer(%v)", tt.args)
 		})
 	}
+}
+
+// 基准测试数据结构
+type Person struct {
+	ID          int               `json:"id"`
+	Name        string            `json:"name"`
+	Email       string            `json:"email"`
+	Age         int               `json:"age"`
+	Address     Address           `json:"address"`
+	PhoneNumber string            `json:"phone_number"`
+	IsActive    bool              `json:"is_active"`
+	Tags        []string          `json:"tags"`
+	Metadata    map[string]string `json:"metadata"`
+}
+
+type Address struct {
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	ZipCode string `json:"zip_code"`
+	Country string `json:"country"`
+}
+
+func generateTestData(size int) []Person {
+	people := make([]Person, size)
+	for i := 0; i < size; i++ {
+		people[i] = Person{
+			ID:    i + 1,
+			Name:  fmt.Sprintf("Person %d", i+1),
+			Email: fmt.Sprintf("person%d@example.com", i+1),
+			Age:   20 + (i % 50),
+			Address: Address{
+				Street:  fmt.Sprintf("%d Main St", (i+1)*100),
+				City:    "New York",
+				State:   "NY",
+				ZipCode: fmt.Sprintf("100%02d", i%100),
+				Country: "USA",
+			},
+			PhoneNumber: fmt.Sprintf("+1-555-%04d", i+1),
+			IsActive:    i%2 == 0,
+			Tags:        []string{"tag1", "tag2", "tag3"},
+			Metadata: map[string]string{
+				"department": "Engineering",
+				"level":      "Senior",
+				"location":   "Remote",
+			},
+		}
+	}
+	return people
+}
+
+// 基准测试：对比 Marshal 和 MarshalWithBuffer 的性能
+func BenchmarkMarshal_vs_MarshalWithBuffer(b *testing.B) {
+	person := generateTestData(1)[0]
+
+	b.Run("Marshal", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := Marshal(person)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("MarshalWithBuffer", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := MarshalWithBuffer(person)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+// 测试不同大小数据的性能
+func BenchmarkMarshal_DifferentSizes(b *testing.B) {
+	sizes := []int{1, 10, 100, 1000}
+
+	for _, size := range sizes {
+		data := generateTestData(size)
+
+		b.Run(fmt.Sprintf("Marshal_%d_items", size), func(b *testing.B) {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := Marshal(data)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+
+		b.Run(fmt.Sprintf("MarshalWithBuffer_%d_items", size), func(b *testing.B) {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := MarshalWithBuffer(data)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
+// 内存分配对比测试
+func BenchmarkMarshal_MemoryAllocs(b *testing.B) {
+	person := generateTestData(1)[0]
+
+	b.Run("Marshal_Allocs", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := Marshal(person)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("MarshalWithBuffer_Allocs", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := MarshalWithBuffer(person)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+// 并发性能测试
+func BenchmarkMarshal_Concurrent(b *testing.B) {
+	person := generateTestData(1)[0]
+
+	b.Run("Marshal_Concurrent", func(b *testing.B) {
+		b.ResetTimer()
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_, err := Marshal(person)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
+
+	b.Run("MarshalWithBuffer_Concurrent", func(b *testing.B) {
+		b.ResetTimer()
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_, err := MarshalWithBuffer(person)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
+}
+
+// 测试简单数据类型的性能
+func BenchmarkMarshal_SimpleTypes(b *testing.B) {
+	simpleData := map[string]any{
+		"string": "hello world",
+		"int":    42,
+		"bool":   true,
+		"slice":  []int{1, 2, 3, 4, 5},
+		"map":    map[string]int{"a": 1, "b": 2, "c": 3},
+	}
+
+	b.Run("Marshal_SimpleTypes", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := Marshal(simpleData)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("MarshalWithBuffer_SimpleTypes", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := MarshalWithBuffer(simpleData)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }

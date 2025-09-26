@@ -6,7 +6,27 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
+
+const maxBufferSize = 64 * 1024 // 64KB
+
+var bufferPool = sync.Pool{
+	New: func() any {
+		return bytes.NewBuffer(make([]byte, 0, maxBufferSize))
+	},
+}
+
+func getBuffer() *bytes.Buffer {
+	return bufferPool.Get().(*bytes.Buffer)
+}
+
+func putBuffer(buf *bytes.Buffer) {
+	buf.Reset()
+	if buf.Cap() <= maxBufferSize {
+		bufferPool.Put(buf)
+	}
+}
 
 // Marshal marshals v into json bytes, without escaping HTML and removes the trailing newline.
 func Marshal(v any) ([]byte, error) {
@@ -29,7 +49,10 @@ func Marshal(v any) ([]byte, error) {
 	return bs, nil
 }
 
-func MarshalWithBuffer(v any, buf *bytes.Buffer) ([]byte, error) {
+func MarshalWithBuffer(v any) ([]byte, error) {
+	buf := getBuffer()
+	defer putBuffer(buf)
+
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(v); err != nil {
