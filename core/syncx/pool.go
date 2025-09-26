@@ -100,6 +100,34 @@ func (p *Pool) Put(x any) {
 	p.cond.Signal()
 }
 
+// DestroyAll destroys all resources in the pool.
+// It calls the destroy function on each resource and resets the pool state.
+// This is useful when you need to forcefully clean up all resources, for example:
+//   - When removing an obsolete pool
+//   - When refreshing all resources after configuration changes
+//   - When avoiding resource leaks in dynamic pool scenarios
+func (p *Pool) DestroyAll() {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	// Iterate through the linked list and destroy all resources
+	current := p.head
+	for current != nil {
+		next := current.next
+		if p.destroy != nil {
+			p.destroy(current.item)
+		}
+		current = next
+	}
+
+	// Reset pool state
+	p.head = nil
+	p.created = 0
+
+	// Wake up all waiting goroutines since the pool is now empty
+	p.cond.Broadcast()
+}
+
 // WithMaxAge returns a function to customize a Pool with given max age.
 func WithMaxAge(duration time.Duration) PoolOption {
 	return func(pool *Pool) {
