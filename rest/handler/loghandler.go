@@ -139,12 +139,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %s %s - %s - %s",
 		wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
 
-	threshold := slowThreshold.Load()
-	if r.Header.Get(headerAccept) == valueSSE {
-		threshold = sseSlowThreshold.Load()
-	}
-
-	if duration > threshold {
+	if duration > getSlowThreshold(r) {
 		logger.Slowf("[HTTP] %s - %s %s - %s - %s - slowcall(%s)",
 			wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),
 			timex.ReprOfDuration(duration))
@@ -176,11 +171,7 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s\n=> %s\n",
 		r.Method, code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
 
-	threshold := slowThreshold.Load()
-	if r.Header.Get(headerAccept) == valueSSE {
-		threshold = sseSlowThreshold.Load()
-	}
-	if duration > threshold {
+	if duration > getSlowThreshold(r) {
 		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n", r.Method, code, r.RemoteAddr,
 			timex.ReprOfDuration(duration), dumpRequest(r))
 	}
@@ -242,4 +233,13 @@ func wrapStatusCode(code int) string {
 	}
 
 	return logx.WithColorPadding(strconv.Itoa(code), colour)
+}
+
+func getSlowThreshold(r *http.Request) time.Duration {
+	threshold := slowThreshold.Load()
+	if r.Header.Get(headerAccept) == valueSSE {
+		threshold = sseSlowThreshold.Load()
+	}
+
+	return threshold
 }
