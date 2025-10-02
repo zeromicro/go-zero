@@ -127,6 +127,14 @@ func dumpRequest(r *http.Request) string {
 	return string(reqContent)
 }
 
+func getSlowThreshold(r *http.Request) time.Duration {
+	if r.Header.Get(headerAccept) == valueSSE {
+		return sseSlowThreshold.Load()
+	} else {
+		return slowThreshold.Load()
+	}
+}
+
 func isOkResponse(code int) bool {
 	// not server error
 	return code < http.StatusInternalServerError
@@ -233,13 +241,4 @@ func wrapStatusCode(code int) string {
 	}
 
 	return logx.WithColorPadding(strconv.Itoa(code), colour)
-}
-
-func getSlowThreshold(r *http.Request) time.Duration {
-	threshold := slowThreshold.Load()
-	if r.Header.Get(headerAccept) == valueSSE {
-		threshold = sseSlowThreshold.Load()
-	}
-
-	return threshold
 }
