@@ -1,11 +1,9 @@
 package swagger
 
 import (
-	"encoding/json"
-	"fmt"
 	"testing"
 
-	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,18 +35,18 @@ func TestArrayDefinitionsBug(t *testing.T) {
 	}
 
 	// Create a test struct containing an array of structs
-	testStruct := apiSpec.DefineStruct{
+	testStruct := spec.DefineStruct{
 		RawName: "TestStruct",
-		Members: []apiSpec.Member{
+		Members: []spec.Member{
 			{
 				Name: "ArrayField",
-				Type: apiSpec.ArrayType{
-					Value: apiSpec.DefineStruct{
+				Type: spec.ArrayType{
+					Value: spec.DefineStruct{
 						RawName: "ItemStruct",
-						Members: []apiSpec.Member{
+						Members: []spec.Member{
 							{
 								Name: "ItemName",
-								Type: apiSpec.PrimitiveType{RawName: "string"},
+								Type: spec.PrimitiveType{RawName: "string"},
 								Tag:  `json:"itemName"`,
 							},
 						},
@@ -65,12 +63,6 @@ func TestArrayDefinitionsBug(t *testing.T) {
 	// Check that we have the array field
 	assert.Contains(t, properties, "arrayField")
 	arrayField := properties["arrayField"]
-
-	// Convert to JSON to see the actual structure
-	jsonData, err := json.MarshalIndent(arrayField, "", "  ")
-	assert.NoError(t, err)
-	
-	fmt.Printf("Generated schema for arrayField:\n%s\n", string(jsonData))
 
 	// Verify the array field has correct structure
 	assert.Equal(t, "array", arrayField.Type[0])
@@ -92,8 +84,6 @@ func TestArrayDefinitionsBug(t *testing.T) {
 	assert.Nil(t, arrayField.Items.Schema.Properties, "Items with $ref should not have properties")
 	assert.Empty(t, arrayField.Items.Schema.Required, "Items with $ref should not have required")
 	assert.Empty(t, arrayField.Items.Schema.Type, "Items with $ref should not have type")
-
-	fmt.Printf("✅ FIXED: $ref is correctly placed inside items object\n")
 }
 
 func TestArrayWithoutDefinitions(t *testing.T) {
@@ -103,18 +93,18 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	}
 
 	// Create the same test struct
-	testStruct := apiSpec.DefineStruct{
+	testStruct := spec.DefineStruct{
 		RawName: "TestStruct",
-		Members: []apiSpec.Member{
+		Members: []spec.Member{
 			{
 				Name: "ArrayField",
-				Type: apiSpec.ArrayType{
-					Value: apiSpec.DefineStruct{
+				Type: spec.ArrayType{
+					Value: spec.DefineStruct{
 						RawName: "ItemStruct",
-						Members: []apiSpec.Member{
+						Members: []spec.Member{
 							{
 								Name: "ItemName",
-								Type: apiSpec.PrimitiveType{RawName: "string"},
+								Type: spec.PrimitiveType{RawName: "string"},
 								Tag:  `json:"itemName"`,
 							},
 						},
@@ -147,6 +137,4 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	assert.Equal(t, "object", arrayField.Items.Schema.Type[0])
 	assert.Contains(t, arrayField.Items.Schema.Properties, "itemName")
 	assert.Equal(t, []string{"itemName"}, arrayField.Items.Schema.Required)
-
-	fmt.Printf("✅ Without definitions: Full schema properties preserved\n")
 }
