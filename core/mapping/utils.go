@@ -198,6 +198,25 @@ func ensureValue(v reflect.Value) reflect.Value {
 }
 
 func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
+	return implicitValueRequiredStructWithDepth(tag, tp, 0, make(map[reflect.Type]bool))
+}
+
+func implicitValueRequiredStructWithDepth(tag string, tp reflect.Type, depth int, visited map[reflect.Type]bool) (bool, error) {
+
+	// max depth to avoid too deep recursion
+	const maxDepth = 100
+	if depth > maxDepth {
+		return false, nil
+	}
+
+	tp = Deref(tp)
+	if visited[tp] {
+		return false, nil
+	}
+
+	visited[tp] = true
+	defer delete(visited, tp)
+
 	numFields := tp.NumField()
 	for i := 0; i < numFields; i++ {
 		childField := tp.Field(i)
@@ -215,7 +234,7 @@ func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
 				return true, nil
 			}
 
-			if required, err := implicitValueRequiredStruct(tag, childField.Type); err != nil {
+			if required, err := implicitValueRequiredStructWithDepth(tag, childField.Type, depth+1, visited); err != nil {
 				return false, err
 			} else if required {
 				return true, nil
