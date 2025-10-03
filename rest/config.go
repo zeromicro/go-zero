@@ -35,6 +35,38 @@ type (
 		PrivateKeys []PrivateKeyConf
 	}
 
+	// JWTConf Key and expiration time configuration required for JWT authentication
+	JWTConf struct {
+		AccessSecret string
+		AccessExpire int64
+		// TokenLookup is a slice in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional.
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "form:<name>"
+		// - "param:<name>"
+		// - "cookie:<name>"
+		TokenLookup []string `json:",optional"`
+	}
+
+	// A JWTTransConf is a jwtTrans config.
+	JWTTransConf struct {
+		Secret     string
+		PrevSecret string
+		// TokenLookup is a slice in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional.
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "form:<name>"
+		// - "param:<name>"
+		// - "cookie:<name>"
+		TokenLookup []string `json:",optional"`
+	}
+
 	// A RestConf is a http service config.
 	// Why not name it as Conf, because we need to consider usage like:
 	//  type Config struct {
