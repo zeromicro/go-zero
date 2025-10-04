@@ -92,7 +92,7 @@ Port: 0
 			Path:    "/",
 			Handler: nil,
 		}, WithJwt("thesecret"), WithSignature(SignatureConf{}),
-			WithJwtTransition("preivous", "thenewone"))
+			WithJwtTransition("previous", "thenewone"))
 
 		func() {
 			defer func() {
