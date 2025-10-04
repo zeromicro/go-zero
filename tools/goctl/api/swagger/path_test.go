@@ -38,6 +38,24 @@ func TestSpec2PathsWithRootRoute(t *testing.T) {
 			routePath:    "/list",
 			expectedPath: "/list",
 		},
+		{
+			name:         "prefix with trailing slash and root route",
+			prefix:       "/api/v1/shoppings/",
+			routePath:    "/",
+			expectedPath: "/api/v1/shoppings",
+		},
+		{
+			name:         "prefix without leading slash and root route",
+			prefix:       "api/v1/shoppings",
+			routePath:    "/",
+			expectedPath: "/api/v1/shoppings",
+		},
+		{
+			name:         "single level prefix with root route",
+			prefix:       "/api",
+			routePath:    "/",
+			expectedPath: "/api",
+		},
 	}
 
 	for _, tt := range tests {
