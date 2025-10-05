@@ -21,6 +21,19 @@ func Test_getBoolFromKVOrDefault(t *testing.T) {
 	assert.False(t, getBoolFromKVOrDefault(properties, "empty_value", false))
 	assert.False(t, getBoolFromKVOrDefault(nil, "nil", false))
 	assert.False(t, getBoolFromKVOrDefault(map[string]string{}, "empty", false))
+	
+	// Test unquoted boolean values (as returned by API parser)
+	unquotedProperties := map[string]string{
+		"enabled_unquoted":  "true",
+		"disabled_unquoted": "false",
+		"one":               "1",
+		"zero":              "0",
+	}
+	
+	assert.True(t, getBoolFromKVOrDefault(unquotedProperties, "enabled_unquoted", false))
+	assert.False(t, getBoolFromKVOrDefault(unquotedProperties, "disabled_unquoted", true))
+	assert.True(t, getBoolFromKVOrDefault(unquotedProperties, "one", false))
+	assert.False(t, getBoolFromKVOrDefault(unquotedProperties, "zero", true))
 }
 
 func Test_getStringFromKVOrDefault(t *testing.T) {

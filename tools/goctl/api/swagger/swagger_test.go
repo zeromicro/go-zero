@@ -138,3 +138,81 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	assert.Contains(t, arrayField.Items.Schema.Properties, "itemName")
 	assert.Equal(t, []string{"itemName"}, arrayField.Items.Schema.Required)
 }
+
+func TestArrayResponseWithDefinitions(t *testing.T) {
+	// Test that array responses work correctly with useDefinitions
+	ctx := Context{
+		UseDefinitions: true,
+	}
+
+	// Create an array response type
+	arrayType := spec.ArrayType{
+		RawName: "[]ItemStruct",
+		Value: spec.DefineStruct{
+			RawName: "ItemStruct",
+			Members: []spec.Member{
+				{
+					Name: "ItemName",
+					Type: spec.PrimitiveType{RawName: "string"},
+					Tag:  `json:"itemName"`,
+				},
+			},
+		},
+	}
+
+	// Get the response schema
+	resp := jsonResponseFromType(ctx, spec.AtDoc{}, arrayType)
+
+	// Check the response structure
+	assert.NotNil(t, resp)
+	assert.Contains(t, resp.StatusCodeResponses, 200)
+
+	schema := resp.StatusCodeResponses[200].Schema
+
+	// Should be array type
+	assert.Equal(t, "array", schema.Type[0])
+
+	// Should NOT have $ref at schema level for arrays
+	assert.Empty(t, schema.Ref.String(), "Array response should not have $ref at schema level")
+
+	// Should have items defined
+	assert.NotNil(t, schema.Items)
+	assert.NotNil(t, schema.Items.Schema)
+
+	// Items should have $ref when useDefinitions is true
+	assert.Equal(t, "#/definitions/ItemStruct", schema.Items.Schema.Ref.String())
+}
+
+func TestNonArrayResponseWithDefinitions(t *testing.T) {
+	// Test that non-array responses correctly use $ref with useDefinitions
+	ctx := Context{
+		UseDefinitions: true,
+	}
+
+	// Create a struct response type
+	structType := spec.DefineStruct{
+		RawName: "ItemStruct",
+		Members: []spec.Member{
+			{
+				Name: "ItemName",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"itemName"`,
+			},
+		},
+	}
+
+	// Get the response schema
+	resp := jsonResponseFromType(ctx, spec.AtDoc{}, structType)
+
+	// Check the response structure
+	assert.NotNil(t, resp)
+	assert.Contains(t, resp.StatusCodeResponses, 200)
+
+	schema := resp.StatusCodeResponses[200].Schema
+
+	// Should have $ref at schema level for structs
+	assert.Equal(t, "#/definitions/ItemStruct", schema.Ref.String())
+
+	// Should NOT have properties when using $ref
+	assert.Nil(t, schema.Properties)
+}

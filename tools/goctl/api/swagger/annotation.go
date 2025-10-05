@@ -18,8 +18,14 @@ func getBoolFromKVOrDefault(properties map[string]string, key string, def bool) 
 	}
 	//I think this function and those below should handle error, but they didn't.
 	//Since a default value (def) is provided, any parsing errors will result in the default being returned.
-	str, err := strconv.Unquote(val[0])
-	if err != nil || len(str) == 0 {
+	str := val[0]
+	// Try to unquote first, but if it fails, use the original value
+	// This handles both quoted ("true") and unquoted (true) values
+	unquoted, err := strconv.Unquote(str)
+	if err == nil && len(unquoted) > 0 {
+		str = unquoted
+	}
+	if len(str) == 0 {
 		return def
 	}
 	res, _ := strconv.ParseBool(str)
