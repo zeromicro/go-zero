@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func TestSpec2PathsWithRootRoute(t *testing.T) {
@@ -60,15 +60,15 @@ func TestSpec2PathsWithRootRoute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			srv := apiSpec.Service{
-				Groups: []apiSpec.Group{
+			srv := spec.Service{
+				Groups: []spec.Group{
 					{
-						Annotation: apiSpec.Annotation{
+						Annotation: spec.Annotation{
 							Properties: map[string]string{
 								propertyKeyPrefix: tt.prefix,
 							},
 						},
-						Routes: []apiSpec.Route{
+						Routes: []spec.Route{
 							{
 								Method:  "get",
 								Path:    tt.routePath,
