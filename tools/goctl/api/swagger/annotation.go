@@ -8,82 +8,66 @@ import (
 )
 
 func getBoolFromKVOrDefault(properties map[string]string, key string, def bool) bool {
-	if len(properties) == 0 {
-		return def
-	}
-	md := metadata.New(properties)
-	val := md.Get(key)
-	if len(val) == 0 {
-		return def
-	}
-	//I think this function and those below should handle error, but they didn't.
-	//Since a default value (def) is provided, any parsing errors will result in the default being returned.
-	str := val[0]
-	// Try to unquote if the string is quoted, otherwise use as-is
-	if unquoted, err := strconv.Unquote(str); err == nil {
-		str = unquoted
-	}
-	if len(str) == 0 {
-		return def
-	}
-	res, _ := strconv.ParseBool(str)
-	return res
-}
+	return getOrDefault(properties, key, def, func(str string, def bool) bool {
+		res, err := strconv.ParseBool(str)
+		if err != nil {
+			return def
+		}
 
-func getStringFromKVOrDefault(properties map[string]string, key string, def string) string {
-	if len(properties) == 0 {
-		return def
-	}
-	md := metadata.New(properties)
-	val := md.Get(key)
-	if len(val) == 0 {
-		return def
-	}
-	str := val[0]
-	// Try to unquote if the string is quoted, otherwise use as-is
-	if unquoted, err := strconv.Unquote(str); err == nil {
-		str = unquoted
-	}
-	if len(str) == 0 {
-		return def
-	}
-	return str
-}
-
-func getListFromInfoOrDefault(properties map[string]string, key string, def []string) []string {
-	if len(properties) == 0 {
-		return def
-	}
-	md := metadata.New(properties)
-	val := md.Get(key)
-	if len(val) == 0 {
-		return def
-	}
-
-	str := val[0]
-	// Try to unquote if the string is quoted, otherwise use as-is
-	if unquoted, err := strconv.Unquote(str); err == nil {
-		str = unquoted
-	}
-	if len(str) == 0 {
-		return def
-	}
-	resp := util.FieldsAndTrimSpace(str, commaRune)
-	if len(resp) == 0 {
-		return def
-	}
-	return resp
+		return res
+	})
 }
 
 func getFirstUsableString(def ...string) string {
 	if len(def) == 0 {
 		return ""
 	}
+
 	for _, val := range def {
 		str, err := strconv.Unquote(val)
 		if err == nil && len(str) != 0 {
 			return str
 		}
 	}
+
 	return ""
+}
+
+func getListFromInfoOrDefault(properties map[string]string, key string, def []string) []string {
+	return getOrDefault(properties, key, def, func(str string, def []string) []string {
+		resp := util.FieldsAndTrimSpace(str, commaRune)
+		if len(resp) == 0 {
+			return def
+		}
+		return resp
+	})
+}
+
+// getOrDefault abstracts the common logic for fetching, unquoting, and defaulting.
+func getOrDefault[T any](properties map[string]string, key string, def T, convert func(string, T) T) T {
+	if len(properties) == 0 {
+		return def
+	}
+
+	md := metadata.New(properties)
+	val := md.Get(key)
+	if len(val) == 0 {
+		return def
+	}
+
+	str := val[0]
+	if unquoted, err := strconv.Unquote(str); err == nil {
+		str = unquoted
+	}
+	if len(str) == 0 {
+		return def
+	}
+
+	return convert(str, def)
+}
+
+func getStringFromKVOrDefault(properties map[string]string, key string, def string) string {
+	return getOrDefault(properties, key, def, func(str string, def string) string {
+		return str
+	})
 }
