@@ -18,8 +18,12 @@ func getBoolFromKVOrDefault(properties map[string]string, key string, def bool) 
 	}
 	//I think this function and those below should handle error, but they didn't.
 	//Since a default value (def) is provided, any parsing errors will result in the default being returned.
-	str, err := strconv.Unquote(val[0])
-	if err != nil || len(str) == 0 {
+	str := val[0]
+	// Try to unquote if the string is quoted, otherwise use as-is
+	if unquoted, err := strconv.Unquote(str); err == nil {
+		str = unquoted
+	}
+	if len(str) == 0 {
 		return def
 	}
 	res, _ := strconv.ParseBool(str)
@@ -35,8 +39,12 @@ func getStringFromKVOrDefault(properties map[string]string, key string, def stri
 	if len(val) == 0 {
 		return def
 	}
-	str, err := strconv.Unquote(val[0])
-	if err != nil || len(str) == 0 {
+	str := val[0]
+	// Try to unquote if the string is quoted, otherwise use as-is
+	if unquoted, err := strconv.Unquote(str); err == nil {
+		str = unquoted
+	}
+	if len(str) == 0 {
 		return def
 	}
 	return str
@@ -52,8 +60,12 @@ func getListFromInfoOrDefault(properties map[string]string, key string, def []st
 		return def
 	}
 
-	str, err := strconv.Unquote(val[0])
-	if err != nil || len(str) == 0 {
+	str := val[0]
+	// Try to unquote if the string is quoted, otherwise use as-is
+	if unquoted, err := strconv.Unquote(str); err == nil {
+		str = unquoted
+	}
+	if len(str) == 0 {
 		return def
 	}
 	resp := util.FieldsAndTrimSpace(str, commaRune)
