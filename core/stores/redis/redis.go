@@ -1894,7 +1894,7 @@ func (s *Redis) XInfoStreamCtx(ctx context.Context, stream string) (*red.XInfoSt
 //	    10,                // max number of messages to read
 //	    5*time.Second,     // block duration
 //	    false,             // noAck flag
-//	    "mystream", ">",   // stream name and ID
+//	    "mystream",        // stream name
 //	)
 //
 // Doesn't benefit from pooling redis connections of blocking queries.
