@@ -61,9 +61,11 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 
 	subDir := getLogicFolderPath(group, route)
 	builtinTemplate := logicTemplate
+	templateFile := logicTemplateFile
 	sse := group.GetAnnotation("sse")
 	if sse == "true" {
 		builtinTemplate = sseLogicTemplate
+		templateFile = sseLogicTemplateFile
 		responseString = "error"
 		returnString = "return nil"
 		resp := responseGoTypeName(route, typesPacket)
@@ -80,7 +82,7 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 		filename:        goFile + ".go",
 		templateName:    "logicTemplate",
 		category:        category,
-		templateFile:    logicTemplateFile,
+		templateFile:    templateFile,
 		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
