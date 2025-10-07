@@ -13,7 +13,37 @@ type ClosableNode interface {
 	Close()
 }
 
-// CreateBlockingNode returns a ClosableNode.
+// CreateBlockingNode creates a dedicated RedisNode for blocking operations.
+//
+// Blocking Redis commands (like BLPOP, BRPOP, XREADGROUP with block parameter) hold connections
+// for extended periods while waiting for data. Using them with the regular Redis connection pool
+// can exhaust all available connections, causing other operations to fail or timeout.
+//
+// CreateBlockingNode creates a separate Redis client with a minimal connection pool (size 1) that
+// is dedicated to blocking operations. This ensures blocking commands don't interfere with regular
+// Redis operations.
+//
+// Example usage:
+//
+//	rds := redis.MustNewRedis(redis.RedisConf{
+//	    Host: "localhost:6379",
+//	    Type: redis.NodeType,
+//	})
+//
+//	// Create a dedicated node for blocking operations
+//	node, err := redis.CreateBlockingNode(rds)
+//	if err != nil {
+//	    // handle error
+//	}
+//	defer node.Close() // Important: close the node when done
+//
+//	// Use the node for blocking operations
+//	value, err := rds.Blpop(node, "mylist")
+//	if err != nil {
+//	    // handle error
+//	}
+//
+// The returned ClosableNode must be closed when no longer needed to release resources.
 func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 	timeout := readWriteTimeout + blockingQueryTimeout
 
