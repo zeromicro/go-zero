@@ -175,7 +175,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 * API 文档
 
-  [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
+  [https://go-zero.dev](https://go-zero.dev)
 
 * awesome 系列（更多文章见『微服务实践』公众号）
 
