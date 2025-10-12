@@ -2,7 +2,6 @@ package util
 
 import (
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
@@ -129,15 +128,4 @@ func FieldsAndTrimSpace(s string, f func(r rune) bool) []string {
 		}
 	}
 	return resp
-}
-
-//Deprecated: This function implementation is incomplete and does not properly handle exceptional input cases.
-//We strongly recommend using the standard library's strconv.Unquote function instead,
-//which provides robust error handling and comprehensive support for various input formats.
-func Unquote(s string) string {
-	ns, err := strconv.Unquote(s)
-	if err != nil {
-		return ""
-	}
-	return ns
 }
