@@ -8,22 +8,27 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func isPostJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
-	if !strings.EqualFold(method, http.MethodPost) {
+func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
+	// Support HTTP methods that commonly use request bodies with JSON
+	// POST, PUT, PATCH are standard methods with bodies
+	// DELETE can also have a body (though less common)
+	method = strings.ToUpper(method)
+	if method != http.MethodPost && method != http.MethodPut &&
+		method != http.MethodPatch && method != http.MethodDelete {
 		return "", false
 	}
 	structType, ok := tp.(apiSpec.DefineStruct)
 	if !ok {
 		return "", false
 	}
-	var isPostJson bool
+	var hasJsonField bool
 	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 		jsonTag, _ := tag.Get(tagJson)
-		if !isPostJson {
-			isPostJson = jsonTag != nil
+		if !hasJsonField {
+			hasJsonField = jsonTag != nil
 		}
 	})
-	return structType.RawName, isPostJson
+	return structType.RawName, hasJsonField
 }
 
 func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Parameter {
@@ -181,7 +186,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	})
 	if len(properties) > 0 {
 		if ctx.UseDefinitions {
-			structName, ok := isPostJson(ctx, method, tp)
+			structName, ok := isRequestBodyJson(ctx, method, tp)
 			if ok {
 				resp = append(resp, spec.Parameter{
 					ParamProps: spec.ParamProps{
