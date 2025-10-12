@@ -28,6 +28,7 @@ func getFirstUsableString(def ...string) string {
 		if str, err := strconv.Unquote(val); err == nil && len(str) != 0 {
 			return str
 		}
+
 		// Otherwise, use the value as-is if it's not empty
 		if len(val) != 0 {
 			return val
