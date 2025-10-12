@@ -31,6 +31,7 @@ type (
 		Timeout       int64           `json:",default=2000"`
 		KeepaliveTime time.Duration   `json:",optional"`
 		Middlewares   ClientMiddlewaresConf
+		BalancerName  string `json:",default=p2c_ewma"`
 	}
 
 	// A RpcServerConf is a rpc server config.
