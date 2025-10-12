@@ -1,12 +1,16 @@
 package zrpc
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -67,6 +71,9 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		})))
 	}
 
+	svcCfg := makeLBServiceConfig(c.BalancerName)
+	opts = append(opts, WithDialOption(grpc.WithDefaultServiceConfig(svcCfg)))
+
 	opts = append(opts, options...)
 
 	target, err := c.BuildTarget()
@@ -111,7 +118,20 @@ func SetClientSlowThreshold(threshold time.Duration) {
 	clientinterceptors.SetSlowThreshold(threshold)
 }
 
+// SetHashKey sets the hash key into context.
+func SetHashKey(ctx context.Context, key string) context.Context {
+	return consistenthash.SetHashKey(ctx, key)
+}
+
 // WithCallTimeout return a call option with given timeout to make a method call.
 func WithCallTimeout(timeout time.Duration) grpc.CallOption {
 	return clientinterceptors.WithCallTimeout(timeout)
+}
+
+func makeLBServiceConfig(balancerName string) string {
+	if len(balancerName) == 0 {
+		balancerName = p2c.Name
+	}
+
+	return fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, balancerName)
 }
