@@ -24,9 +24,13 @@ func getFirstUsableString(def ...string) string {
 	}
 
 	for _, val := range def {
-		str, err := strconv.Unquote(val)
-		if err == nil && len(str) != 0 {
+		// Try to unquote if it's a quoted string
+		if str, err := strconv.Unquote(val); err == nil && len(str) != 0 {
 			return str
+		}
+		// Otherwise, use the value as-is if it's not empty
+		if len(val) != 0 {
+			return val
 		}
 	}
 
