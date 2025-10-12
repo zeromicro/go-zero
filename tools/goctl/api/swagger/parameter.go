@@ -17,10 +17,12 @@ func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, boo
 		method != http.MethodPatch && method != http.MethodDelete {
 		return "", false
 	}
+
 	structType, ok := tp.(apiSpec.DefineStruct)
 	if !ok {
 		return "", false
 	}
+
 	var hasJsonField bool
 	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 		jsonTag, _ := tag.Get(tagJson)
@@ -28,6 +30,7 @@ func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, boo
 			hasJsonField = jsonTag != nil
 		}
 	})
+
 	return structType.RawName, hasJsonField
 }
 
@@ -35,6 +38,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	if tp == nil {
 		return []spec.Parameter{}
 	}
+
 	structType, ok := tp.(apiSpec.DefineStruct)
 	if !ok {
 		return []spec.Parameter{}
@@ -48,15 +52,13 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 		headerTag, _ := tag.Get(tagHeader)
 		hasHeader := headerTag != nil
-
 		pathParameterTag, _ := tag.Get(tagPath)
 		hasPathParameter := pathParameterTag != nil
-
 		formTag, _ := tag.Get(tagForm)
 		hasForm := formTag != nil
-
 		jsonTag, _ := tag.Get(tagJson)
 		hasJson := jsonTag != nil
+
 		if hasHeader {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(headerTag.Options)
 			resp = append(resp, spec.Parameter{
@@ -80,6 +82,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 				},
 			})
 		}
+
 		if hasPathParameter {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(pathParameterTag.Options)
 			resp = append(resp, spec.Parameter{
@@ -103,6 +106,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 				},
 			})
 		}
+
 		if hasForm {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(formTag.Options)
 			if strings.EqualFold(method, http.MethodGet) {
@@ -150,8 +154,8 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 					},
 				})
 			}
-
 		}
+
 		if hasJson {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(jsonTag.Options)
 			if required {
@@ -184,6 +188,7 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 			properties[jsonTag.Name] = schema
 		}
 	})
+
 	if len(properties) > 0 {
 		if ctx.UseDefinitions {
 			structName, ok := isRequestBodyJson(ctx, method, tp)
@@ -218,5 +223,6 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 			})
 		}
 	}
+
 	return resp
 }
