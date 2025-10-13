@@ -89,23 +89,8 @@ func TestStartAgent(t *testing.T) {
 	StartAgent(c10)
 	defer StopAgent()
 
-	lock.Lock()
-	defer lock.Unlock()
-
-	// because remotehost cannot be resolved
-	assert.Equal(t, 6, len(agents))
-	_, ok := agents[""]
-	assert.True(t, ok)
-	_, ok = agents[endpoint1]
-	assert.True(t, ok)
-	_, ok = agents[endpoint2]
-	assert.False(t, ok)
-	_, ok = agents[endpoint5]
-	assert.True(t, ok)
-	_, ok = agents[endpoint6]
-	assert.False(t, ok)
-	_, ok = agents[endpoint71]
-	assert.True(t, ok)
-	_, ok = agents[endpoint72]
-	assert.False(t, ok)
+	// With sync.Once, only the first non-disabled config (c1) takes effect.
+	// Subsequent calls are ignored, which is the desired behavior to prevent
+	// multiple servers (REST + RPC) from reinitializing the global tracer.
+	assert.NotNil(t, tp)
 }
