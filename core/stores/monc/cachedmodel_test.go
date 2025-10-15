@@ -532,7 +532,7 @@ func createModel(t *testing.T, coll mon.Collection) *Model {
 	}
 }
 
-// mustNewTestModel  returns a test Model with the given cache.
+// mustNewTestModel returns a test Model with the given cache.
 func mustNewTestModel(collection mon.Collection, c cache.CacheConf, opts ...cache.Option) *Model {
 	return &Model{
 		Model: &mon.Model{
