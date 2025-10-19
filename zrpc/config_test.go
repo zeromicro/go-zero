@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	zconf "github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 )
 
 func TestRpcClientConf(t *testing.T) {
@@ -38,6 +40,13 @@ func TestRpcClientConf(t *testing.T) {
 		conf.Etcd.CACertFile = "ca"
 		_, err := conf.BuildTarget()
 		assert.Error(t, err)
+	})
+
+	t.Run("default balancer name", func(t *testing.T) {
+		var conf RpcClientConf
+		err := zconf.FillDefault(&conf)
+		assert.NoError(t, err)
+		assert.Equal(t, p2c.Name, conf.BalancerName)
 	})
 }
 
