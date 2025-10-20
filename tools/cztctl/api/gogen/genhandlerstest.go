@@ -7,6 +7,7 @@ import (
 
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
+	"github.com/zeromicro/go-zero/tools/cztctl/internal/version"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/pathx"
@@ -51,6 +52,7 @@ func genHandlerTest(dir, rootPkg, projectPkg string, cfg *config.Config, group s
 			"HasDoc":         len(route.JoinedDoc()) > 0,
 			"Doc":            GetDoc(route.JoinedDoc()),
 			"projectPkg":     projectPkg,
+			"version":        version.BuildVersion,
 		},
 	})
 }

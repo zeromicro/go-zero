@@ -18,7 +18,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
@@ -1192,7 +1192,7 @@ func TestLogKey(t *testing.T) {
 	defer writer.Store(old)
 
 	otp := otel.GetTracerProvider()
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp := trace.NewTracerProvider(trace.WithSampler(trace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 

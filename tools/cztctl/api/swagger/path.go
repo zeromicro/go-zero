@@ -19,7 +19,11 @@ func spec2Paths(ctx Context, srv apiSpec.Service) *spec.Paths {
 		for _, route := range group.Routes {
 			routPath := pathVariable2SwaggerVariable(ctx, route.Path)
 			if len(prefix) > 0 && prefix != "." {
-				routPath = "/" + path.Clean(prefix) + routPath
+				if routPath == "/" {
+					routPath = "/" + path.Clean(prefix)
+				} else {
+					routPath = "/" + path.Clean(prefix) + routPath
+				}
 			}
 			pathItem := spec2Path(ctx, group, route)
 			existPathItem, ok := paths.Paths[routPath]

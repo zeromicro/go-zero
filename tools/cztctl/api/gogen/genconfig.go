@@ -7,6 +7,7 @@ import (
 
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
+	"github.com/zeromicro/go-zero/tools/cztctl/internal/version"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 	"github.com/lerity-yao/go-zero/tools/cztctl/vars"
 )
@@ -61,6 +62,7 @@ func genConfig(dir, projectPkg string, cfg *config.Config, api *spec.ApiSpec) er
 			"auth":       strings.Join(auths, "\n"),
 			"jwtTrans":   strings.Join(jwtTransList, "\n"),
 			"projectPkg": projectPkg,
+			"version":    version.BuildVersion,
 		},
 	})
 }

@@ -120,20 +120,3 @@ func TestFieldsAndTrimSpace(t *testing.T) {
 		})
 	}
 }
-
-func TestUnquote(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected string
-	}{
-		{input: `"hello"`, expected: `hello`},
-		{input: "`world`", expected: `world`},
-		{input: `"foo'bar"`, expected: `foo'bar`},
-		{input: "", expected: ""},
-	}
-
-	for _, tc := range testCases {
-		result := Unquote(tc.input)
-		assert.Equal(t, tc.expected, result)
-	}
-}

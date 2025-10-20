@@ -425,9 +425,12 @@ func (a *Analyzer) getType(expr *ast.BodyStmt, req bool) (spec.Type, error) {
 	}
 	if body.LBrack != nil {
 		if body.Star != nil {
-			return spec.PointerType{
+			return spec.ArrayType{
 				RawName: rawText,
-				Type:    tp,
+				Value: spec.PointerType{
+					RawName: rawText,
+					Type:    tp,
+				},
 			}, nil
 		}
 		return spec.ArrayType{

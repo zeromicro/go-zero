@@ -5,7 +5,7 @@ import (
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 )
 
-// BeforeCommands run before comamnd run to show some migration notes
+// BeforeCommands run before command run to show some migration notes
 func BeforeCommands(dir, style string) error {
 	if err := migrateBefore1_3_4(dir, style); err != nil {
 		return err

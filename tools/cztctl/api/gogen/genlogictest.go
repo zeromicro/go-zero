@@ -7,6 +7,7 @@ import (
 
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
+	"github.com/zeromicro/go-zero/tools/cztctl/internal/version"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/pathx"
 )
@@ -74,6 +75,7 @@ func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, gr
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          GetDoc(route.JoinedDoc()),
 			"projectPkg":   projectPkg,
+			"version":      version.BuildVersion,
 		},
 	})
 }

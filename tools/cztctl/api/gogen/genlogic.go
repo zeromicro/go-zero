@@ -10,6 +10,7 @@ import (
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/parser/g4/gen/api"
 	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/lerity-yao/go-zero/tools/cztctl/config"
+	"github.com/zeromicro/go-zero/tools/cztctl/internal/version"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 	"github.com/lerity-yao/go-zero/tools/cztctl/util/pathx"
 	"github.com/lerity-yao/go-zero/tools/cztctl/vars"
@@ -60,9 +61,11 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 
 	subDir := GetLogicFolderPath(group, route)
 	builtinTemplate := logicTemplate
+	templateFile := logicTemplateFile
 	sse := group.GetAnnotation("sse")
 	if sse == "true" {
 		builtinTemplate = sseLogicTemplate
+		templateFile = sseLogicTemplateFile
 		responseString = "error"
 		returnString = "return nil"
 		resp := ResponseGoTypeName(route, typesPacket)
@@ -79,7 +82,7 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 		Filename:        goFile + ".go",
 		TemplateName:    "logicTemplate",
 		Category:        category,
-		TemplateFile:    logicTemplateFile,
+		TemplateFile:    templateFile,
 		BuiltinTemplate: builtinTemplate,
 		Data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
@@ -92,6 +95,7 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          GetDoc(route.JoinedDoc()),
 			"projectPkg":   projectPkg,
+			"version":      version.BuildVersion,
 		},
 	})
 }
