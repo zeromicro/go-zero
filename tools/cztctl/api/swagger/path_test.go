@@ -3,8 +3,8 @@ package swagger
 import (
 	"testing"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/tools/cztctl/api/spec"
 )
 
 func TestSpec2PathsWithRootRoute(t *testing.T) {

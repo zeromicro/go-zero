@@ -3,10 +3,10 @@ package gogen
 import (
 	_ "embed"
 
-	"github.com/zeromicro/go-zero/tools/cztctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/cztctl/config"
-	"github.com/zeromicro/go-zero/tools/cztctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/cztctl/util/format"
+	"github.com/lerity-yao/go-zero/tools/cztctl/api/spec"
+	"github.com/lerity-yao/go-zero/tools/cztctl/config"
+	"github.com/lerity-yao/go-zero/tools/cztctl/internal/version"
+	"github.com/lerity-yao/go-zero/tools/cztctl/util/format"
 )
 
 //go:embed svc_test.tpl
@@ -18,15 +18,15 @@ func genServiceContextTest(dir, rootPkg, projectPkg string, cfg *config.Config, 
 		return err
 	}
 
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          contextDir,
-		filename:        filename + "_test.go",
-		templateName:    "svcTestTemplate",
-		category:        category,
-		templateFile:    svcTestTemplateFile,
-		builtinTemplate: svcTestTemplate,
-		data: map[string]any{
+	return GenFile(FileGenConfig{
+		Dir:             dir,
+		Subdir:          contextDir,
+		Filename:        filename + "_test.go",
+		TemplateName:    "svcTestTemplate",
+		Category:        category,
+		TemplateFile:    svcTestTemplateFile,
+		BuiltinTemplate: svcTestTemplate,
+		Data: map[string]any{
 			"projectPkg": projectPkg,
 			"version":    version.BuildVersion,
 		},

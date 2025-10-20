@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lerity-yao/go-zero/tools/cztctl/internal/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeromicro/go-zero/tools/cztctl/internal/version"
 )
 
 // TestGenerationComments verifies that all generated files have appropriate generation comments
