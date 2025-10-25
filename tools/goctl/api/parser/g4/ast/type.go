@@ -190,7 +190,7 @@ func (v *ApiVisitor) VisitTypeBlockStruct(ctx *api.TypeBlockStructContext) any {
 		structExpr := v.newExprWithToken(ctx.GetStructToken())
 		structTokenText := ctx.GetStructToken().GetText()
 		if structTokenText != "struct" {
-			v.panic(structExpr, fmt.Sprintf("expecting 'struct', found imput '%s'", structTokenText))
+			v.panic(structExpr, fmt.Sprintf("expecting 'struct', found input '%s'", structTokenText))
 		}
 
 		if api.IsGolangKeyWord(structTokenText, "struct") {
