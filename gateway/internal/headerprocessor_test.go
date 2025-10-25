@@ -106,5 +106,5 @@ func TestProcessHeadersTraceparentCaseInsensitive(t *testing.T) {
 func TestProcessHeadersEmptyHeaders(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", http.NoBody)
 	headers := ProcessHeaders(req.Header)
-	assert.Nil(t, headers)
+	assert.Empty(t, headers)
 }
