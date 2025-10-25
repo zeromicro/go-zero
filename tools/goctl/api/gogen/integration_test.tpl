@@ -31,20 +31,16 @@ func TestServerIntegration(t *testing.T) {
 			Port: 0, // Use random available port
 		},
 	}
-	
+
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
-	// Start server in background
-	go func() {
-		server.Start()
-	}()
-
-	// Wait for server to start
-	time.Sleep(100 * time.Millisecond)
+	// Create serverless wrapper for testing
+	serverless, err := rest.NewServerless(server)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name           string
@@ -56,7 +52,7 @@ func TestServerIntegration(t *testing.T) {
 	}{
 		{
 			name:           "health check",
-			method:         "GET",
+			method:         http.MethodGet,
 			path:           "/health",
 			expectedStatus: http.StatusNotFound, // Adjust based on actual routes
 			setup:          func() {},
@@ -72,7 +68,7 @@ func TestServerIntegration(t *testing.T) {
 		},
 		{{end}}{{end}}{
 			name:           "not found route",
-			method:         "GET", 
+			method:         http.MethodGet,
 			path:           "/nonexistent",
 			expectedStatus: http.StatusNotFound,
 			setup:          func() {},
@@ -87,10 +83,10 @@ func TestServerIntegration(t *testing.T) {
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
-			server.ServeHTTP(rr, req)
+			serverless.Serve(rr, req)
 
 			assert.Equal(t, tt.expectedStatus, rr.Code)
-			
+
 			// TODO: Add response body assertions
 			t.Logf("Response: %s", rr.Body.String())
 		})
@@ -100,13 +96,13 @@ func TestServerIntegration(t *testing.T) {
 func TestServerLifecycle(t *testing.T) {
 	c := config.Config{
 		RestConf: rest.RestConf{
-			Host: "127.0.0.1", 
+			Host: "127.0.0.1",
 			Port: 0,
 		},
 	}
 
 	server := rest.MustNewServer(c.RestConf)
-	
+
 	// Test server can start and stop without errors
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
