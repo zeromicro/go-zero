@@ -29,8 +29,13 @@ const (
 )
 
 var (
-	once sync.Once
-	tp   *sdktrace.TracerProvider
+	once           sync.Once
+	tp             *sdktrace.TracerProvider
+	shutdownOnceFn = sync.OnceFunc(func() {
+		if tp != nil {
+			_ = tp.Shutdown(context.Background())
+		}
+	})
 )
 
 // StartAgent starts an opentelemetry agent.
@@ -53,9 +58,7 @@ func StartAgent(c Config) {
 
 // StopAgent shuts down the span processors in the order they were registered.
 func StopAgent() {
-	if tp != nil {
-		_ = tp.Shutdown(context.Background())
-	}
+	shutdownOnceFn()
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
