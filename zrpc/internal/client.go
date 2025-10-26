@@ -141,6 +141,15 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 	return nil
 }
 
+// WithBlock sets the dialing to be blocking.
+// Deprecated: blocking dials are not recommended by gRPC.
+// See https://github.com/grpc/grpc-go/blob/master/Documentation/anti-patterns.md
+func WithBlock() ClientOption {
+	return func(options *ClientOptions) {
+		options.NonBlock = false
+	}
+}
+
 // WithDialOption returns a func to customize a ClientOptions with given dial option.
 func WithDialOption(opt grpc.DialOption) ClientOption {
 	return func(options *ClientOptions) {

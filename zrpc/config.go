@@ -27,7 +27,7 @@ type (
 		Target        string          `json:",optional"`
 		App           string          `json:",optional"`
 		Token         string          `json:",optional"`
-		NonBlock      bool            `json:",optional"`
+		NonBlock      bool            `json:",default=true"`
 		Timeout       int64           `json:",default=2000"`
 		KeepaliveTime time.Duration   `json:",optional"`
 		Middlewares   ClientMiddlewaresConf
