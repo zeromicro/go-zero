@@ -20,6 +20,7 @@ type EtcdConf struct {
 	CertKeyFile        string `json:",optional=CertFile"`
 	CACertFile         string `json:",optional=CertFile"`
 	InsecureSkipVerify bool   `json:",optional"`
+	RegisterTimeout    int    `json:",default=60"`
 }
 
 // HasAccount returns if account provided.
