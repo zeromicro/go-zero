@@ -38,9 +38,11 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 	}
 
 	var builtinTemplate = handlerTemplate
+	var templateFile = handlerTemplateFile
 	sse := group.GetAnnotation("sse")
 	if sse == "true" {
 		builtinTemplate = sseHandlerTemplate
+		templateFile = sseHandlerTemplateFile
 	}
 
 	return genFile(fileGenConfig{
@@ -49,7 +51,7 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 		filename:        filename + ".go",
 		templateName:    "handlerTemplate",
 		category:        category,
-		templateFile:    handlerTemplateFile,
+		templateFile:    templateFile,
 		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"PkgName":        pkgName,

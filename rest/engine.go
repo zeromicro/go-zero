@@ -389,7 +389,9 @@ func buildSSERoutes(routes []Route) []Route {
 			// because SSE requires the connection to be kept alive indefinitely.
 			rc := http.NewResponseController(w)
 			if err := rc.SetWriteDeadline(time.Time{}); err != nil {
-				logc.Errorf(r.Context(), "set conn write deadline failed: %v", err)
+				// Some ResponseWriter implementations (like timeoutWriter) don't support SetWriteDeadline.
+				// This is expected behavior and doesn't affect SSE functionality.
+				logc.Debugf(r.Context(), "unable to clear write deadline for SSE connection: %v", err)
 			}
 
 			w.Header().Set(header.ContentType, header.ContentTypeEventStream)
