@@ -72,7 +72,7 @@ func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 func getValueInterface(value reflect.Value) (any, error) {
 	switch value.Kind() {
 	case reflect.Ptr:
-		if !value.CanInterface() {
+		if !value.CanAddr() || !value.Addr().CanInterface() {
 			return nil, ErrNotReadableValue
 		}
 
@@ -81,7 +81,7 @@ func getValueInterface(value reflect.Value) (any, error) {
 			value.Set(reflect.New(baseValueType))
 		}
 
-		return value.Interface(), nil
+		return value.Addr().Interface(), nil
 	default:
 		if !value.CanAddr() || !value.Addr().CanInterface() {
 			return nil, ErrNotReadableValue
