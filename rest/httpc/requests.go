@@ -39,7 +39,11 @@ func Do(ctx context.Context, method, url string, data any) (*http.Response, erro
 
 // DoRequest sends an HTTP request and returns an HTTP response.
 func DoRequest(r *http.Request) (*http.Response, error) {
-	return request(r, defaultClient{})
+	interceptor := internal.MetricsInterceptor("", nil)
+	r, handler := interceptor(r)
+	resp, err := request(r, defaultClient{})
+	handler(resp, err)
+	return resp, err
 }
 
 type (
