@@ -26,6 +26,7 @@ go.work.sum
 # gitlab ci
 .cache
 .golangci.yml
+.specstory
 
 # vim auto backup file
 *~
