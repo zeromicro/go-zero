@@ -44,6 +44,13 @@ func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 	return model
 }
 
+// MustNewModelWithDatabase 使用现有的 mongo.Database 创建一个 Model，出错时会退出。
+func MustNewModelWithDatabase(db *mongo.Database, uri string, collection string, opts ...Option) *Model {
+	model, err := NewModelWithDatabase(db, uri, collection, opts...)
+	logx.Must(err)
+	return model
+}
+
 // NewModel returns a Model.
 func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	cli, err := getClient(uri, opts...)
@@ -55,6 +62,14 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	brk := breaker.GetBreaker(uri)
 	coll := newCollection(cli.Database(db).Collection(collection), brk)
 	return newModel(name, cli, coll, brk, opts...), nil
+}
+
+// NewModelWithDatabase 使用现有的 mongo.Database 创建一个 Model。
+func NewModelWithDatabase(db *mongo.Database, uri string, collection string, opts ...Option) (*Model, error) {
+	name := strings.Join([]string{uri, collection}, "/")
+	brk := breaker.GetBreaker(uri)
+	coll := newCollection(db.Collection(collection), brk)
+	return newModel(name, db.Client(), coll, brk, opts...), nil
 }
 
 func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Breaker,
