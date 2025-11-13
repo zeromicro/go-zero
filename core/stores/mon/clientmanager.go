@@ -27,7 +27,7 @@ func Inject(key string, client *mongo.Client) {
 	clientManager.Inject(key, &ClosableClient{client})
 }
 
-func GetClient(url string, opts ...Option) (*mongo.Client, error) {
+func getClient(url string, opts ...Option) (*mongo.Client, error) {
 	val, err := clientManager.GetResource(url, func() (io.Closer, error) {
 		o := options.Client().ApplyURI(url)
 		opts = append([]Option{defaultTimeoutOption()}, opts...)
@@ -56,4 +56,8 @@ func GetClient(url string, opts ...Option) (*mongo.Client, error) {
 	}
 
 	return val.(*ClosableClient).Client, nil
+}
+
+func GetClient(url string, opts ...Option) (*mongo.Client, error) {
+	return getClient(url, opts...)
 }

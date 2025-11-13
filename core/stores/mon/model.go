@@ -53,7 +53,7 @@ func MustNewModelWithDatabase(db *mongo.Database, uri string, collection string,
 
 // NewModel returns a Model.
 func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
-	cli, err := GetClient(uri, opts...)
+	cli, err := getClient(uri, opts...)
 	if err != nil {
 		return nil, err
 	}
