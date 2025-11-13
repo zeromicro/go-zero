@@ -10,7 +10,7 @@ import (
 func TestClientManger_getClient(t *testing.T) {
 	c := &mongo.Client{}
 	Inject("foo", c)
-	cli, err := getClient("foo")
+	cli, err := GetClient("foo")
 	assert.Nil(t, err)
 	assert.Equal(t, c, cli)
 }
