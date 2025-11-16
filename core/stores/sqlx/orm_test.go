@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -2201,6 +2202,145 @@ func TestUnmarshalRowsSqlNullStringEmptyVsNull(t *testing.T) {
 			if each.NormalString.Valid {
 				assert.Equal(t, each.NormalString.String, value[i].NormalString.String)
 			}
+		}
+	})
+}
+
+func TestGetValueInterface(t *testing.T) {
+	t.Run("non_pointer_field", func(t *testing.T) {
+		type testStruct struct {
+			Name string
+			Age  int
+		}
+		s := testStruct{}
+		v := reflect.ValueOf(&s).Elem()
+
+		nameField := v.Field(0)
+		result, err := getValueInterface(nameField)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+
+		// Should return pointer to the field
+		ptr, ok := result.(*string)
+		assert.True(t, ok)
+		*ptr = "test"
+		assert.Equal(t, "test", s.Name)
+	})
+
+	t.Run("pointer_field_nil", func(t *testing.T) {
+		type testStruct struct {
+			NamePtr *string
+			AgePtr  *int64
+		}
+		s := testStruct{}
+		v := reflect.ValueOf(&s).Elem()
+
+		// Test with nil pointer field
+		namePtrField := v.Field(0)
+		assert.True(t, namePtrField.IsNil(), "initial pointer should be nil")
+
+		result, err := getValueInterface(namePtrField)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+
+		// Should have allocated the pointer
+		assert.False(t, namePtrField.IsNil(), "pointer should be allocated after getValueInterface")
+
+		// Should return pointer to pointer field
+		ptrPtr, ok := result.(**string)
+		assert.True(t, ok)
+		testValue := "initialized"
+		*ptrPtr = &testValue
+		assert.NotNil(t, s.NamePtr)
+		assert.Equal(t, "initialized", *s.NamePtr)
+	})
+
+	t.Run("pointer_field_already_allocated", func(t *testing.T) {
+		type testStruct struct {
+			NamePtr *string
+		}
+		initial := "existing"
+		s := testStruct{NamePtr: &initial}
+		v := reflect.ValueOf(&s).Elem()
+
+		namePtrField := v.Field(0)
+		assert.False(t, namePtrField.IsNil(), "pointer should not be nil initially")
+
+		result, err := getValueInterface(namePtrField)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+
+		// Should return pointer to pointer field
+		ptrPtr, ok := result.(**string)
+		assert.True(t, ok)
+
+		// Verify it points to the existing value
+		assert.Equal(t, "existing", **ptrPtr)
+
+		// Modify through the returned pointer
+		newValue := "modified"
+		*ptrPtr = &newValue
+		assert.Equal(t, "modified", *s.NamePtr)
+	})
+
+	t.Run("pointer_field_zero_value", func(t *testing.T) {
+		type testStruct struct {
+			IntPtr *int
+		}
+		s := testStruct{}
+		v := reflect.ValueOf(&s).Elem()
+
+		intPtrField := v.Field(0)
+		result, err := getValueInterface(intPtrField)
+		assert.NoError(t, err)
+
+		// After calling getValueInterface, nil pointer should be allocated
+		assert.NotNil(t, s.IntPtr)
+
+		// Set zero value through returned interface
+		ptrPtr, ok := result.(**int)
+		assert.True(t, ok)
+		zero := 0
+		*ptrPtr = &zero
+		assert.Equal(t, 0, *s.IntPtr)
+	})
+
+	t.Run("not_addressable_value", func(t *testing.T) {
+		type testStruct struct {
+			Name string
+		}
+		s := testStruct{Name: "test"}
+		v := reflect.ValueOf(s) // Non-pointer, not addressable
+
+		nameField := v.Field(0)
+		result, err := getValueInterface(nameField)
+		assert.Error(t, err)
+		assert.Equal(t, ErrNotReadableValue, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("multiple_pointer_types", func(t *testing.T) {
+		type testStruct struct {
+			StringPtr *string
+			IntPtr    *int
+			Int64Ptr  *int64
+			FloatPtr  *float64
+			BoolPtr   *bool
+		}
+		s := testStruct{}
+		v := reflect.ValueOf(&s).Elem()
+
+		// Test each pointer type gets properly initialized
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			assert.True(t, field.IsNil(), "field %d should start as nil", i)
+
+			result, err := getValueInterface(field)
+			assert.NoError(t, err, "field %d should not error", i)
+			assert.NotNil(t, result, "field %d result should not be nil", i)
+
+			// After getValueInterface, pointer should be allocated
+			assert.False(t, field.IsNil(), "field %d should be allocated", i)
 		}
 	})
 }
