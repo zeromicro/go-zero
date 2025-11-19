@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -37,9 +38,11 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 	}
 
 	var builtinTemplate = handlerTemplate
+	var templateFile = handlerTemplateFile
 	sse := group.GetAnnotation("sse")
 	if sse == "true" {
 		builtinTemplate = sseHandlerTemplate
+		templateFile = sseHandlerTemplateFile
 	}
 
 	return genFile(fileGenConfig{
@@ -48,7 +51,7 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 		filename:        filename + ".go",
 		templateName:    "handlerTemplate",
 		category:        category,
-		templateFile:    handlerTemplateFile,
+		templateFile:    templateFile,
 		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"PkgName":        pkgName,
@@ -64,6 +67,7 @@ func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.
 			"HasDoc":         len(route.JoinedDoc()) > 0,
 			"Doc":            getDoc(route.JoinedDoc()),
 			"projectPkg":     projectPkg,
+			"version":        version.BuildVersion,
 		},
 	})
 }

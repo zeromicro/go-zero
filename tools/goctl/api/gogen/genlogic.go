@@ -10,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
@@ -60,9 +61,11 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 
 	subDir := getLogicFolderPath(group, route)
 	builtinTemplate := logicTemplate
+	templateFile := logicTemplateFile
 	sse := group.GetAnnotation("sse")
 	if sse == "true" {
 		builtinTemplate = sseLogicTemplate
+		templateFile = sseLogicTemplateFile
 		responseString = "error"
 		returnString = "return nil"
 		resp := responseGoTypeName(route, typesPacket)
@@ -79,7 +82,7 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 		filename:        goFile + ".go",
 		templateName:    "logicTemplate",
 		category:        category,
-		templateFile:    logicTemplateFile,
+		templateFile:    templateFile,
 		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
@@ -92,6 +95,7 @@ func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group 
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
 			"projectPkg":   projectPkg,
+			"version":      version.BuildVersion,
 		},
 	})
 }

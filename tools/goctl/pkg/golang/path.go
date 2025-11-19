@@ -9,17 +9,30 @@ import (
 )
 
 func GetParentPackage(dir string) (string, string, error) {
+	return GetParentPackageWithModule(dir, "")
+}
+
+func GetParentPackageWithModule(dir, moduleName string) (string, string, error) {
 	abs, err := filepath.Abs(dir)
 	if err != nil {
 		return "", "", err
 	}
 
-	projectCtx, err := ctx.Prepare(abs)
+	var projectCtx *ctx.ProjectContext
+	if len(moduleName) > 0 {
+		projectCtx, err = ctx.PrepareWithModule(abs, moduleName)
+	} else {
+		projectCtx, err = ctx.Prepare(abs)
+	}
 	if err != nil {
 		return "", "", err
 	}
 
-	// fix https://github.com/zeromicro/go-zero/issues/1058
+	return buildParentPackage(projectCtx)
+}
+
+// buildParentPackage extracts the common logic for building parent package paths
+func buildParentPackage(projectCtx *ctx.ProjectContext) (string, string, error) {
 	wd := projectCtx.WorkDir
 	d := projectCtx.Dir
 	same, err := pathx.SameFile(wd, d)

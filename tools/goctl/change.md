@@ -11,7 +11,7 @@
 ## swagger
 1. [bug fix] remove example generation when request body are `query`, `path` and `header`
 - it not supported in api spec 2.0
-- it's will generate example when request body is json format.
+- it will generate example when request body is json format.
 2. [features] swagger generation supported definitions
 - supported response definitions
 - supported json request body definitions
