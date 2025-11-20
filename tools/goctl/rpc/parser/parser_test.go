@@ -81,3 +81,11 @@ func TestDefaultProtoParse_Option2(t *testing.T) {
 	assert.Equal(t, "stream", data.GoPackage)
 	assert.Equal(t, "stream", data.PbPackage)
 }
+
+func TestDefaultProtoParse_import(t *testing.T) {
+	p := NewDefaultProtoParser()
+	data, err := p.Parse("./test_import.proto", []string{"./"})
+	assert.Nil(t, err)
+	assert.NotNil(t, data.ImportMessageMap)
+	assert.Equal(t, 2, len(data.ImportMessageMap))
+}

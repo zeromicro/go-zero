@@ -62,6 +62,5 @@ func (p *Proto) HasGrpcService() (hasGrpcService bool) {
 			break
 		}
 	}
-
 	return hasGrpcService
 }
