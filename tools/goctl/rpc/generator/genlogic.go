@@ -158,9 +158,7 @@ func (g *Generator) genLogicFunction(proto parser.Proto, logicName string, rpc *
 		return "", err
 	}
 
-	// streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(serviceName),
-	// 	parser.CamelCase(rpc.Name), "Server")
-	streamServer := buildPackageArg(goPackage, fmt.Sprintf("%s_%s%s", parser.CamelCase(serviceName), parser.CamelCase(rpc.Name), "Server"), true)
+	streamServer := buildPackageArg(goPackage, fmt.Sprintf("%s_%s%s", parser.CamelCase(serviceName), parser.CamelCase(rpc.Name), "Server"), false)
 	buffer, err := util.With("fun").Parse(text).Execute(map[string]any{
 		"logicName":    logicName,
 		"method":       parser.CamelCase(rpc.Name),
@@ -199,24 +197,15 @@ func getImports(proto parser.Proto, rpc *parser.RPC) ([]string,
 
 	imports = append(imports,
 		fmt.Sprintf(`"%s"`, requestMsg.GoPackage),
-		fmt.Sprintf(`"%s"`, responseMsg.GoPackage),
 	)
-	return imports, nil
-}
+	// no reply
+	if !rpc.StreamsRequest && !rpc.StreamsReturns {
+		imports = append(imports,
+			fmt.Sprintf(`"%s"`, responseMsg.GoPackage),
+		)
+	}
 
-func getImport(packageName string, proto parser.Proto) string {
-	var importPackage string
-	if packageName == proto.PbPackage {
-		importPackage = proto.GoPackage
-		return importPackage
-	}
-	for _, item := range proto.Import {
-		if item.Proto.PbPackage == packageName {
-			importPackage = item.Proto.GoPackage
-			break
-		}
-	}
-	return importPackage
+	return imports, nil
 }
 
 func buildPackageArg(goPackage string, arg string, isPtr bool) string {

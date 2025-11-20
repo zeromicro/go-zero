@@ -202,7 +202,7 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, proto
 		}
 		// streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name),
 		// 	parser.CamelCase(rpc.Name), "Server")
-		streamServer := buildPackageArg(goPackage, fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Server"), true)
+		streamServer := buildPackageArg(goPackage, fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Server"), false)
 		buffer, err := util.With("func").Parse(text).Execute(map[string]any{
 			"server":     stringx.From(service.Name).ToCamel(),
 			"logicName":  logicName,

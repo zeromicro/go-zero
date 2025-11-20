@@ -93,7 +93,9 @@ func (p *DefaultProtoParser) Parse(src string, protoPath []string, multiple ...b
 		}),
 		proto.WithOption(func(option *proto.Option) {
 			if option.Name == "go_package" {
-				ret.GoPackage = option.Constant.Source
+				goPackage := option.Constant.Source
+				goPackageArr := strings.Split(goPackage, ";")
+				ret.GoPackage = goPackageArr[0]
 			}
 		}),
 	)
