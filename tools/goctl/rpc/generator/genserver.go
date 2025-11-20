@@ -71,7 +71,7 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 		imports.Add(logicImport, svcImport, pbImport)
 
 		for _, rpc := range service.RPC {
-			funcImports, err := getImports(proto, rpc)
+			funcImports, err := getImports(ctx, proto, rpc)
 			if err != nil {
 				return err
 			}
@@ -124,7 +124,7 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 	imports.Add(logicImport, svcImport, pbImport)
 
 	for _, rpc := range proto.Service[0].RPC {
-		funcImports, err := getImports(proto, rpc)
+		funcImports, err := getImports(ctx, proto, rpc)
 		if err != nil {
 			return err
 		}

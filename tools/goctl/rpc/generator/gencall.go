@@ -104,8 +104,14 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			protoGoPackage = ""
 		}
 		imports := collection.NewSet[string]()
+		workDir := ctx.GetMain()
 		for _, item := range proto.ImportMessageMap {
-			imports.Add(fmt.Sprintf(`"%s"`, item.GoPackage))
+			importPackage := item.GoPackage
+			if strings.HasPrefix(importPackage, "./") {
+				importPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
+				importPackage = strings.TrimSuffix(importPackage, ".proto")
+			}
+			imports.Add(fmt.Sprintf(`"%s"`, importPackage))
 		}
 
 		aliasKeys := alias.Keys()
@@ -181,6 +187,17 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		pbPackage = ""
 		protoGoPackage = ""
 	}
+	imports := collection.NewSet[string]()
+	workDir := ctx.GetMain()
+	for _, item := range proto.ImportMessageMap {
+		importPackage := item.GoPackage
+		if strings.HasPrefix(importPackage, "./") {
+			importPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
+			importPackage = strings.TrimSuffix(importPackage, ".proto")
+		}
+		imports.Add(fmt.Sprintf(`"%s"`, importPackage))
+	}
+
 	aliasKeys := alias.Keys()
 	sort.Strings(aliasKeys)
 	return util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]any{
@@ -190,6 +207,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		"filePackage":    dir.Base,
 		"pbPackage":      pbPackage,
 		"protoGoPackage": protoGoPackage,
+		"imports":        strings.Join(imports.Keys(), pathx.NL),
 		"serviceName":    serviceName,
 		"functions":      strings.Join(functions, pathx.NL),
 		"interface":      strings.Join(iFunctions, pathx.NL),

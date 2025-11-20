@@ -56,7 +56,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 
 		imports := collection.NewSet[string]()
 		imports.Add(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
-		funcImports, err := getImports(proto, rpc)
+		funcImports, err := getImports(ctx, proto, rpc)
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 
 			imports := collection.NewSet[string]()
 			imports.Add(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
-			funcImports, err := getImports(proto, rpc)
+			funcImports, err := getImports(ctx, proto, rpc)
 			if err != nil {
 				return err
 			}
@@ -136,8 +136,7 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 	return nil
 }
 
-func (g *Generator) genLogicFunction(proto parser.Proto, logicName string, rpc *parser.RPC) (string,
-	error) {
+func (g *Generator) genLogicFunction(proto parser.Proto, logicName string, rpc *parser.RPC) (string, error) {
 	serviceName := proto.Service[0].Service.Name
 	goPackage := proto.PbPackage
 	functions := make([]string, 0)
@@ -180,8 +179,7 @@ func (g *Generator) genLogicFunction(proto parser.Proto, logicName string, rpc *
 	return strings.Join(functions, pathx.NL), nil
 }
 
-func getImports(proto parser.Proto, rpc *parser.RPC) ([]string,
-	error) {
+func getImports(ctx DirContext, proto parser.Proto, rpc *parser.RPC) ([]string, error) {
 	var err error
 	requestMsg, existed := proto.GetImportMessage(rpc.RequestType)
 	if !existed {
@@ -193,15 +191,27 @@ func getImports(proto parser.Proto, rpc *parser.RPC) ([]string,
 		err = fmt.Errorf("response type %s is invalid", rpc.ReturnsType)
 		return nil, err
 	}
+	workDir := ctx.GetMain()
 	imports := make([]string, 0)
+	pbPackage := requestMsg.GoPackage
+	if strings.HasPrefix(pbPackage, "./") {
+		pbPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
+		pbPackage = strings.TrimSuffix(pbPackage, ".proto")
+	}
 
 	imports = append(imports,
-		fmt.Sprintf(`"%s"`, requestMsg.GoPackage),
+		fmt.Sprintf(`"%s"`, pbPackage),
 	)
 	// no reply
 	if !rpc.StreamsRequest && !rpc.StreamsReturns {
+		pbPackage = responseMsg.GoPackage
+		if strings.HasPrefix(pbPackage, "./") {
+			// pbPackage = ctx.GetPb().Package
+			pbPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
+			pbPackage = strings.TrimSuffix(pbPackage, ".proto")
+		}
 		imports = append(imports,
-			fmt.Sprintf(`"%s"`, responseMsg.GoPackage),
+			fmt.Sprintf(`"%s"`, pbPackage),
 		)
 	}
 
