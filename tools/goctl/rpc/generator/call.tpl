@@ -5,15 +5,13 @@ package {{.filePackage}}
 import (
 	"context"
 
-	{{.pbPackage}}
-	{{if ne .pbPackage .protoGoPackage}}{{.protoGoPackage}}{{end}}
+	{{.imports}}
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
 type (
-	{{.alias}}
 
 	{{.serviceName}} interface {
 		{{.interface}}

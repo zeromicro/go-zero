@@ -3,8 +3,6 @@ package generator
 import (
 	"path/filepath"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
@@ -36,13 +34,14 @@ type ZRpcContext struct {
 	IsGenClient bool
 	// Module is the custom module name for go.mod
 	Module string
+	// ImportProtoDirs is the directories to import proto files
+	ImportProtoDirs []string
 }
 
 // Generate generates a rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
-	spew.Dump(zctx)
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
 		return err
@@ -68,10 +67,8 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	// todo handle *.proto
-
 	p := parser.NewDefaultProtoParser()
-	protos, err := p.ParseAll(zctx.Src, zctx.Multiple)
+	protos, err := p.ParseAll(zctx.Src, zctx.ImportProtoDirs, zctx.Multiple)
 	if err != nil {
 		return err
 	}
@@ -87,7 +84,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 			return err
 		}
 
-		err = g.GenPb(dirCtx, zctx, i)
+		err = g.GenPb(dirCtx, zctx, i, proto.HasGrpcService())
 		if err != nil {
 			return err
 		}

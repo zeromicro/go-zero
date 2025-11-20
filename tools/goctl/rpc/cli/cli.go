@@ -98,6 +98,9 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
 	ctx.Name = VarStringName
+	for _, protoPath := range VarStringSliceProtoPath {
+		ctx.ImportProtoDirs = append(ctx.ImportProtoDirs, filepath.Dir(protoPath))
+	}
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

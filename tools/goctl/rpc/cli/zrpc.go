@@ -68,6 +68,7 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -107,6 +108,14 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
 	ctx.Name = VarStringName
+	for _, protoPath := range VarStringSliceProtoPath {
+		protoPath, err = filepath.Abs(protoPath)
+		if err != nil {
+			return err
+		}
+		ctx.ImportProtoDirs = append(ctx.ImportProtoDirs, protoPath)
+	}
+
 	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }
