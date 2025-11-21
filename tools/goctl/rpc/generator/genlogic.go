@@ -192,30 +192,13 @@ func getImports(ctx DirContext, proto parser.Proto, rpc *parser.RPC) ([]string, 
 		return nil, err
 	}
 	workDir := ctx.GetMain()
-	imports := make([]string, 0)
-	pbPackage := requestMsg.GoPackage
-	if strings.HasPrefix(pbPackage, "./") {
-		pbPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
-		pbPackage = strings.TrimSuffix(pbPackage, ".proto")
-	}
-
-	imports = append(imports,
-		fmt.Sprintf(`"%s"`, pbPackage),
-	)
-	// no reply
+	imports := collection.NewSet[string]()
+	imports.Add(buildImportPackage(requestMsg.GoPackage, proto, workDir))
+	// has reply
 	if !rpc.StreamsRequest && !rpc.StreamsReturns {
-		pbPackage = responseMsg.GoPackage
-		if strings.HasPrefix(pbPackage, "./") {
-			// pbPackage = ctx.GetPb().Package
-			pbPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
-			pbPackage = strings.TrimSuffix(pbPackage, ".proto")
-		}
-		imports = append(imports,
-			fmt.Sprintf(`"%s"`, pbPackage),
-		)
+		imports.Add(buildImportPackage(responseMsg.GoPackage, proto, workDir))
 	}
-
-	return imports, nil
+	return imports.Keys(), nil
 }
 
 func buildPackageArg(goPackage string, arg string, isPtr bool) string {
@@ -230,4 +213,12 @@ func buildPackageArg(goPackage string, arg string, isPtr bool) string {
 	}
 
 	return arg
+}
+
+func buildImportPackage(importPackage string, proto parser.Proto, workDir Dir) string {
+	if strings.HasPrefix(importPackage, "./") {
+		importPackage = filepath.ToSlash(filepath.Join(workDir.Package, strings.TrimPrefix(proto.Src, workDir.Filename)))
+		importPackage = strings.TrimSuffix(importPackage, ".proto")
+	}
+	return fmt.Sprintf(`"%s"`, importPackage)
 }

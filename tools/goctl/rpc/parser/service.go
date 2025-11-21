@@ -34,21 +34,5 @@ func (s Services) validate(filename string, multipleOpt ...bool) error {
 	if !multiple && len(s) > 1 {
 		return errors.New("only one service expected")
 	}
-
-	// name := filepath.Base(filename)
-	// for _, service := range s {
-	// 	for _, rpc := range service.RPC {
-	// 		if strings.Contains(rpc.RequestType, ".") {
-	// 			return fmt.Errorf("line %v:%v, request type must defined in %s",
-	// 				rpc.Position.Line,
-	// 				rpc.Position.Column, name)
-	// 		}
-	// 		if strings.Contains(rpc.ReturnsType, ".") {
-	// 			return fmt.Errorf("line %v:%v, returns type must defined in %s",
-	// 				rpc.Position.Line,
-	// 				rpc.Position.Column, name)
-	// 		}
-	// 	}
-	// }
 	return nil
 }

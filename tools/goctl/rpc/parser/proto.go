@@ -47,12 +47,13 @@ func (p *Proto) generateImportMessageMap() {
 	}
 }
 
-func (p *Proto) GetImportMessage(key string) (msg PbMessage, existed bool) {
-	msg, existed = p.ImportMessageMap[key]
+func (p *Proto) GetImportMessage(key string) (PbMessage, bool) {
+	msg, existed := p.ImportMessageMap[key]
 	return msg, existed
 }
 
-func (p *Proto) HasGrpcService() (hasGrpcService bool) {
+func (p *Proto) HasGrpcService() bool {
+	var hasGrpcService bool
 	if p == nil {
 		return hasGrpcService
 	}

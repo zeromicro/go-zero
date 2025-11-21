@@ -14,11 +14,11 @@ import (
 
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
-func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext, srcIndex int, grpc bool) error {
-	return g.genPbDirect(ctx, c, srcIndex, grpc)
+func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext, srcIndex int, hasService bool) error {
+	return g.genPbDirect(ctx, c, srcIndex, hasService)
 }
 
-func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext, srcIndex int, grpc bool) error {
+func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext, srcIndex int, hasService bool) error {
 	g.log.Debug("[command]: %s", c.ProtocCmd)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -29,10 +29,10 @@ func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext, srcIndex int, gr
 	if err != nil {
 		return err
 	}
-	return g.setPbDir(ctx, c, srcIndex, grpc)
+	return g.setPbDir(ctx, c, srcIndex, hasService)
 }
 
-func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext, srcIndex int, grpc bool) error {
+func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext, srcIndex int, hasService bool) error {
 	var grpcDir string
 	pbDir, err := findPbFile(c.GoOutput, c.Src[srcIndex], false)
 	if err != nil {
@@ -41,7 +41,7 @@ func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext, srcIndex int, grpc 
 	if len(pbDir) == 0 {
 		return fmt.Errorf("pg.go is not found under %q", c.GoOutput)
 	}
-	if grpc {
+	if hasService {
 		grpcDir, err = findPbFile(c.GrpcOutput, c.Src[srcIndex], true)
 		if err != nil {
 			return err

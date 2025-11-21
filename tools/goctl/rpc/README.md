@@ -248,3 +248,114 @@ app/
     ├── user.proto
     └── role.proto
 ```
+
+## 使用多个proto生成rpc服务，并且允许导入其他proto文件
+目录结构如下：
+```text
+root/
+├── app/
+│   └──pb/
+│      ├── subpb/
+│      ├── common.proto
+│      ├── role.proto
+│      └── user.proto 
+└── third_party/
+    └── google/
+```
+commom.proto
+```protobuf
+syntax = "proto3";
+
+package common;
+
+option go_package = "github/xxx/project/app/pb/common";
+
+message EmptyRequest {
+}
+
+message EmptyResponse {
+}
+```
+role.proto
+```protobuf
+syntax = "proto3";
+
+package role;
+option go_package = "github/xxx/project/app/pb/role";
+
+import "common.proto";
+import "google/protobuf/any.proto";
+import "subpb/sub.proto";
+
+message GetRoleRequest {
+  string id = 1;
+}
+
+message GetRoleResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+
+service role {
+//  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  rpc Empty(common.EmptyRequest) returns (subpb.sub.SubMessage);
+  rpc GetRole(google.protobuf.Any) returns (GetRoleResponse);
+  rpc GetStream(stream GetRoleRequest) returns (stream subpb.sub.SubResponse);
+  rpc GetStream2(GetRoleRequest) returns (stream subpb.sub.SubResponse);
+  rpc GetStream3(stream GetRoleRequest) returns (subpb.sub.SubResponse);
+}
+```
+user.proto
+```protobuf
+syntax = "proto3";
+
+package user;
+option go_package = "github/xxx/project/app/pb/user";
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  string id = 1;
+  string name = 2;
+}
+service user {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+```
+sub.proto
+```protobuf
+syntax = "proto3";
+
+package subpb.sub;
+
+option go_package = "github/xxx/project/app/pb/subpb/sub;sub";
+
+message SubMessage {
+  string name = 1;
+}
+
+message SubResponse {
+  SubMessage message = 1;
+}
+```
+执行命令生成rpc服务(需要配合go_package一起使用)
+```shell
+goctl rpc protoc \
+app/pb/role.proto \
+app/pb/user.proto \
+app/pb/common.proto \
+app/pb/subpb/sub.proto \
+--go_out=./app/pb \
+--go_opt=module=github/xxx/project/app/pb \
+--go-grpc_out=./app/pb \
+--go-grpc_opt=module=github/xxx/project/app/pb \
+--zrpc_out=./app \
+--style go_zero \
+-I ./app/pb \
+-I ./third_party \
+-m --name=myapp 
+```
