@@ -30,13 +30,14 @@ func getClient(r *Redis) (*red.Client, error) {
 			}
 		}
 		store := red.NewClient(&red.Options{
-			Addr:         r.Addr,
-			Username:     r.User,
-			Password:     r.Pass,
-			DB:           defaultDatabase,
-			MaxRetries:   maxRetries,
-			MinIdleConns: idleConns,
-			TLSConfig:    tlsConfig,
+			Addr:            r.Addr,
+			Username:        r.User,
+			Password:        r.Pass,
+			DB:              defaultDatabase,
+			MaxRetries:      maxRetries,
+			MinIdleConns:    idleConns,
+			TLSConfig:       tlsConfig,
+			DisableIdentity: r.disableIdentity,
 		})
 
 		hooks := append([]red.Hook{defaultDurationHook, breakerHook{
