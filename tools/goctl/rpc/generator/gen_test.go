@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
@@ -39,7 +40,7 @@ func TestRpcGenerate(t *testing.T) {
 	// case go path
 	t.Run("GOPATH", func(t *testing.T) {
 		ctx := &ZRpcContext{
-			Src: "./test.proto",
+			Src: []string{"./test.proto"},
 			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
 				common, projectDir, projectDir),
 			IsGooglePlugin: true,
@@ -65,7 +66,7 @@ func TestRpcGenerate(t *testing.T) {
 
 		projectDir = filepath.Join(workDir, projectName)
 		ctx := &ZRpcContext{
-			Src: "./test.proto",
+			Src: []string{"./test.proto"},
 			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
 				common, projectDir, projectDir),
 			IsGooglePlugin: true,

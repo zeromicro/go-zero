@@ -82,7 +82,7 @@ service ` + strings.Title(tt.serviceName) + ` {
 
 			// Set up ZRpcContext with module support
 			zctx := &ZRpcContext{
-				Src:         protoFile,
+				Src:         []string{protoFile},
 				ProtocCmd:   "", // We'll skip protoc generation in tests
 				GoOutput:    serviceDir,
 				GrpcOutput:  serviceDir,
@@ -188,7 +188,7 @@ func testRpcGenerateCore(g *Generator, zctx *ZRpcContext) error {
 func TestZRpcContext_ModuleField(t *testing.T) {
 	// Test that ZRpcContext properly holds the Module field
 	zctx := &ZRpcContext{
-		Src:         "/path/to/test.proto",
+		Src:         []string{"/path/to/test.proto"},
 		Output:      "/path/to/output",
 		Multiple:    false,
 		IsGenClient: false,
@@ -292,7 +292,7 @@ func TestRandomProjectGeneration_WithModule(t *testing.T) {
 	// Test with a custom module name
 	customModule := "github.com/test/" + projectName
 	zctx := &ZRpcContext{
-		Src:         filepath.Join(serviceDir, "test.proto"),
+		Src:         []string{filepath.Join(serviceDir, "test.proto")},
 		Output:      serviceDir,
 		Module:      customModule,
 		Multiple:    false,
@@ -314,10 +314,10 @@ service Test {
   rpc Call(Request) returns (Response);
 }`
 
-	err = os.WriteFile(zctx.Src, []byte(protoContent), 0644)
+	err = os.WriteFile(zctx.Src[0], []byte(protoContent), 0644)
 	require.NoError(t, err)
 
 	// Verify file was created and context is properly set
-	assert.FileExists(t, zctx.Src)
+	assert.FileExists(t, zctx.Src[0])
 	assert.Equal(t, customModule, zctx.Module)
 }
