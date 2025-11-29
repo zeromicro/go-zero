@@ -5,20 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
 	"go.uber.org/goleak"
 )
 
 var errDummy = errors.New("dummy")
 
 func init() {
-	log.SetOutput(io.Discard)
+	logx.SetWriter(logx.NewWriter(io.Discard))
 }
 
 func TestFinish(t *testing.T) {

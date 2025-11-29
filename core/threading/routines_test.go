@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +16,7 @@ func TestRoutineId(t *testing.T) {
 }
 
 func TestRunSafe(t *testing.T) {
-	log.SetOutput(io.Discard)
+	logx.SetWriter(logx.NewWriter(io.Discard))
 
 	i := 0
 
