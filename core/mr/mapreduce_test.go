@@ -4,22 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
 	"go.uber.org/goleak"
 )
 
 var errDummy = errors.New("dummy")
 
-func init() {
-	logx.SetWriter(logx.NewWriter(io.Discard))
-}
 
 func TestFinish(t *testing.T) {
 	defer goleak.VerifyNone(t)
