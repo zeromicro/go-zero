@@ -17,12 +17,13 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host     string
-		Type     string `json:",default=node,options=node|cluster"`
-		User     string `json:",optional"`
-		Pass     string `json:",optional"`
-		Tls      bool   `json:",optional"`
-		NonBlock bool   `json:",default=true"`
+		Host            string
+		Type            string `json:",default=node,options=node|cluster"`
+		User            string `json:",optional"`
+		Pass            string `json:",optional"`
+		Tls             bool   `json:",optional"`
+		NonBlock        bool   `json:",default=true"`
+		DisableIdentity bool   `json:",optional"`
 		// PingTimeout is the timeout for ping redis.
 		PingTimeout time.Duration `json:",default=1s"`
 	}
@@ -50,7 +51,9 @@ func (rc RedisConf) NewRedis() *Redis {
 	if rc.Tls {
 		opts = append(opts, WithTLS())
 	}
-
+	if rc.DisableIdentity {
+		opts = append(opts, WithDisableIdentity(rc.DisableIdentity))
+	}
 	return newRedis(rc.Host, opts...)
 }
 
