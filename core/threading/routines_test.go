@@ -3,12 +3,12 @@ package threading
 import (
 	"bytes"
 	"context"
-	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestRoutineId(t *testing.T) {
@@ -16,7 +16,7 @@ func TestRoutineId(t *testing.T) {
 }
 
 func TestRunSafe(t *testing.T) {
-	logx.SetWriter(logx.NewWriter(io.Discard))
+	logtest.Discard(t)
 
 	i := 0
 

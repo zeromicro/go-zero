@@ -1,7 +1,6 @@
 package fx
 
 import (
-	"io"
 	"math/rand"
 	"reflect"
 	"runtime"
@@ -12,7 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"go.uber.org/goleak"
 )
@@ -238,7 +237,7 @@ func TestLast(t *testing.T) {
 
 func TestMap(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		logx.SetWriter(logx.NewWriter(io.Discard))
+		logtest.Discard(t)
 
 		tests := []struct {
 			mapper MapFunc

@@ -1,13 +1,12 @@
 package threading
 
 import (
-	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestRoutineGroupRun(t *testing.T) {
@@ -25,7 +24,7 @@ func TestRoutineGroupRun(t *testing.T) {
 }
 
 func TestRoutingGroupRunSafe(t *testing.T) {
-	logx.SetWriter(logx.NewWriter(io.Discard))
+	logtest.Discard(t)
 	var count int32
 	group := NewRoutineGroup()
 	var once sync.Once
