@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"log"
 	"runtime"
 	"sync/atomic"
 	"testing"
@@ -17,9 +15,6 @@ import (
 
 var errDummy = errors.New("dummy")
 
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestFinish(t *testing.T) {
 	defer goleak.VerifyNone(t)
