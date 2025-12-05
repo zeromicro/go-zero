@@ -14,11 +14,11 @@ import (
 
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
-func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext) error {
-	return g.genPbDirect(ctx, c)
+func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext, srcIndex int, hasService bool) error {
+	return g.genPbDirect(ctx, c, srcIndex, hasService)
 }
 
-func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
+func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext, srcIndex int, hasService bool) error {
 	g.log.Debug("[command]: %s", c.ProtocCmd)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -29,28 +29,32 @@ func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
 	if err != nil {
 		return err
 	}
-	return g.setPbDir(ctx, c)
+	return g.setPbDir(ctx, c, srcIndex, hasService)
 }
 
-func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext) error {
-	pbDir, err := findPbFile(c.GoOutput, c.Src, false)
+func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext, srcIndex int, hasService bool) error {
+	var grpcDir string
+	pbDir, err := findPbFile(c.GoOutput, c.Src[srcIndex], false)
 	if err != nil {
 		return err
 	}
 	if len(pbDir) == 0 {
 		return fmt.Errorf("pg.go is not found under %q", c.GoOutput)
 	}
-	grpcDir, err := findPbFile(c.GrpcOutput, c.Src, true)
-	if err != nil {
-		return err
+	if hasService {
+		grpcDir, err = findPbFile(c.GrpcOutput, c.Src[srcIndex], true)
+		if err != nil {
+			return err
+		}
+		if len(grpcDir) == 0 {
+			return fmt.Errorf("_grpc.pb.go is not found in %q", c.GrpcOutput)
+		}
+		if pbDir != grpcDir {
+			return fmt.Errorf("the pb.go and _grpc.pb.go must under the same dir: "+
+				"\n pb.go: %s\n_grpc.pb.go: %s", pbDir, grpcDir)
+		}
 	}
-	if len(grpcDir) == 0 {
-		return fmt.Errorf("_grpc.pb.go is not found in %q", c.GrpcOutput)
-	}
-	if pbDir != grpcDir {
-		return fmt.Errorf("the pb.go and _grpc.pb.go must under the same dir: "+
-			"\n pb.go: %s\n_grpc.pb.go: %s", pbDir, grpcDir)
-	}
+
 	if pbDir == c.Output {
 		return fmt.Errorf("the output of pb.go and _grpc.pb.go must not be the same "+
 			"with --zrpc_out:\npb output: %s\nzrpc out: %s", pbDir, c.Output)

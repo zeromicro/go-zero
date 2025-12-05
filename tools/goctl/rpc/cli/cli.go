@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
@@ -38,6 +39,8 @@ var (
 	VarStringStyle string
 	// VarStringZRPCOut describes the zRPC output.
 	VarStringZRPCOut string
+	// VarStringName describes the service name
+	VarStringName string
 	// VarBoolIdea describes whether idea or not
 	VarBoolIdea bool
 	// VarBoolVerbose describes whether verbose.
@@ -86,7 +89,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	}
 
 	var ctx generator.ZRpcContext
-	ctx.Src = src
+	ctx.Src = []string{src}
 	ctx.GoOutput = filepath.Dir(src)
 	ctx.GrpcOutput = filepath.Dir(src)
 	ctx.IsGooglePlugin = true
@@ -94,6 +97,10 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
+	ctx.Name = VarStringName
+	for _, protoPath := range VarStringSliceProtoPath {
+		ctx.ImportProtoDirs = append(ctx.ImportProtoDirs, filepath.Dir(protoPath))
+	}
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

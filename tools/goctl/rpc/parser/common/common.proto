@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package common;
+option go_package = "github/go-zero/common";
+
+message CommonMessage{
+  string name = 1;
+}
+
