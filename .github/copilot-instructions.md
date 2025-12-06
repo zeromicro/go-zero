@@ -27,7 +27,7 @@ go-zero is a web and RPC framework with lots of built-in engineering practices d
 2. **Package naming**: Use lowercase, single-word package names when possible
 3. **Error handling**: Always handle errors explicitly, use `errorx.BatchError` for multiple errors
 4. **Context propagation**: Always pass `context.Context` as the first parameter for functions that may block
-### Configuration structures**: Use struct tags with JSON annotations, defaults, and validation
+5. **Configuration structures**: Use struct tags with JSON annotations, defaults, and validation
 
 **Pattern**: All service configs embed `service.ServiceConf` for common fields (Name, Log, Mode, Telemetry)
 ```go
