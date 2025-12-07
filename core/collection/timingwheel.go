@@ -164,6 +164,7 @@ func (tw *TimingWheel) Stop() {
 
 func (tw *TimingWheel) drainAll(fn func(key, value any)) {
 	runner := threading.NewTaskRunner(drainWorkers)
+
 	for _, slot := range tw.slots {
 		for e := slot.Front(); e != nil; {
 			task := e.Value.(*timingEntry)
@@ -177,6 +178,8 @@ func (tw *TimingWheel) drainAll(fn func(key, value any)) {
 			}
 		}
 	}
+
+	runner.Wait()
 }
 
 func (tw *TimingWheel) getPositionAndCircle(d time.Duration) (pos, circle int) {

@@ -25,6 +25,7 @@ func TestRoutineGroupRun(t *testing.T) {
 
 func TestRoutingGroupRunSafe(t *testing.T) {
 	logtest.Discard(t)
+
 	var count int32
 	group := NewRoutineGroup()
 	var once sync.Once
