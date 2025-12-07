@@ -203,7 +203,10 @@ func (tw *TimingWheel) moveTask(task baseEntry) {
 	}
 
 	timer := val.(*positionEntry)
+	// FIX: Delete timer if delay is too short (executes immediately)
 	if task.delay < tw.interval {
+		timer.item.removed = true // 标记删除
+		tw.timers.Del(task.key)   // 删除映射
 		threading.GoSafe(func() {
 			tw.execute(timer.item.key, timer.item.value)
 		})
