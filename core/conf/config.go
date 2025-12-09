@@ -368,5 +368,5 @@ func getFullName(parent, child string) string {
 		return child
 	}
 
-	return strings.Join([]string{parent, child}, ".")
+	return parent + "." + child
 }
