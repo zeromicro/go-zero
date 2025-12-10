@@ -1339,6 +1339,78 @@ func Test_buildFieldsInfo(t *testing.T) {
 	}
 }
 
+func Test_buildFieldsInfo_CircularReference(t *testing.T) {
+	type MySQLConfig struct {
+		Alias        string         `json:",optional"`
+		DSN          string         `json:",optional"`
+		Type         string         `json:",optional"`
+		MaxOpenConns int            `json:",optional"`
+		MaxIdleConns int            `json:",optional"`
+		Slave        []*MySQLConfig `json:",optional"` // Self-reference slice
+	}
+
+	type CountryConfig struct {
+		MySQL MySQLConfig `json:",optional"`
+	}
+
+	type GlobalConfig struct {
+		CN CountryConfig `json:",optional"`
+	}
+
+	tests := []struct {
+		name string
+		t    reflect.Type
+	}{
+		{
+			name: "direct circular reference",
+			t:    reflect.TypeOf(MySQLConfig{}),
+		},
+		{
+			name: "nested circular reference",
+			t:    reflect.TypeOf(GlobalConfig{}),
+		},
+		{
+			name: "pointer circular reference",
+			t:    reflect.TypeOf(&MySQLConfig{}),
+		},
+		{
+			name: "slice of circular reference",
+			t:    reflect.TypeOf([]MySQLConfig{}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			info, err := buildFieldsInfo(tt.t, "test")
+			assert.NoError(t, err)
+			assert.NotNil(t, info)
+			assert.NotNil(t, info.children)
+		})
+	}
+}
+
+func Test_buildFieldsInfoWithVisited_CircularDetection(t *testing.T) {
+	type CircularStruct struct {
+		Name     string            `json:",optional"`
+		Children []*CircularStruct `json:",optional"`
+	}
+
+	visited := make(map[reflect.Type]bool)
+	tp := reflect.TypeOf(CircularStruct{})
+
+	info1, err1 := buildFieldsInfoWithVisited(tp, "test1", visited)
+	assert.NoError(t, err1)
+	assert.NotNil(t, info1)
+
+	visited[tp] = true
+
+	info2, err2 := buildFieldsInfoWithVisited(tp, "test2", visited)
+	assert.NoError(t, err2)
+	assert.NotNil(t, info2)
+	assert.NotNil(t, info2.children)
+	assert.Equal(t, 0, len(info2.children))
+}
+
 func createTempFile(t *testing.T, ext, text string) (string, error) {
 	tmpFile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
