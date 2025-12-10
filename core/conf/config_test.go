@@ -1377,3 +1377,23 @@ func (m mockConfig) Validate() error {
 
 	return nil
 }
+
+func TestGetFullName(t *testing.T) {
+	tests := []struct {
+		parent string
+		child  string
+		want   string
+	}{
+		{"", "child", "child"},
+		{"parent", "child", "parent.child"},
+		{"a.b", "c", "a.b.c"},
+		{"root", "nested.field", "root.nested.field"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.parent+"."+tt.child, func(t *testing.T) {
+			got := getFullName(tt.parent, tt.child)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
