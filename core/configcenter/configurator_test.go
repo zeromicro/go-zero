@@ -19,7 +19,7 @@ func TestNewConfigCenter(t *testing.T) {
 		Type: "json",
 		Log:  true,
 	}, &mockSubscriber{})
-	assert.Error(t, err)
+	assert.Nil(t, err)
 }
 
 func TestConfigCenter_GetConfig(t *testing.T) {
