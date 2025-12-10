@@ -25,6 +25,7 @@ func MustNewEtcdSubscriber(conf EtcdConf) Subscriber {
 // NewEtcdSubscriber returns an etcd Subscriber.
 func NewEtcdSubscriber(conf EtcdConf) (Subscriber, error) {
 	opts := buildSubOptions(conf)
+	opts = append(opts, discov.WithConfigCenter())
 	s, err := discov.NewSubscriber(conf.Hosts, conf.Key, opts...)
 	if err != nil {
 		return nil, err
