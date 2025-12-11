@@ -60,14 +60,16 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	if svc.Port == 0 {
-		endpointSlices, err := cs.DiscoveryV1().EndpointSlices(svc.Namespace).List(context.Background(), v1.ListOptions{
-			LabelSelector: serviceSelector + svc.Name,
-		})
+		endpointSlices, err := cs.DiscoveryV1().EndpointSlices(svc.Namespace).List(context.Background(),
+			v1.ListOptions{
+				LabelSelector: serviceSelector + svc.Name,
+			})
 		if err != nil {
 			return nil, err
 		}
 		if len(endpointSlices.Items) == 0 {
-			return nil, fmt.Errorf("no endpoint slices found for service %s in namespace %s", svc.Name, svc.Namespace)
+			return nil, fmt.Errorf("no endpoint slices found for service %s in namespace %s",
+				svc.Name, svc.Namespace)
 		}
 
 		// Find the first slice with a valid port.
@@ -82,7 +84,8 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			}
 		}
 		if !foundPort {
-			return nil, fmt.Errorf("no valid port found in endpoint slices for service %s in namespace %s", svc.Name, svc.Namespace)
+			return nil, fmt.Errorf("no valid port found in endpoint slices for service %s in namespace %s",
+				svc.Name, svc.Namespace)
 		}
 	}
 
