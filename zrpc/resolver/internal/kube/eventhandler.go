@@ -5,8 +5,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
-	"k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
+	"k8s.io/api/discovery/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -29,9 +28,9 @@ func NewEventHandler(update func([]string)) *EventHandler {
 
 // OnAdd handles the endpoints add events.
 func (h *EventHandler) OnAdd(obj any, _ bool) {
-	endpoints, ok := obj.(*discoveryv1.EndpointSlice)
+	endpoints, ok := obj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *discoveryv1.EndpointSlice", obj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", obj)
 		return
 	}
 
@@ -55,9 +54,9 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 
 // OnDelete handles the endpoints delete events.
 func (h *EventHandler) OnDelete(obj any) {
-	endpoints, ok := obj.(*discoveryv1.EndpointSlice)
+	endpoints, ok := obj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *discoveryv1.EndpointSlice", obj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", obj)
 		return
 	}
 
@@ -81,15 +80,15 @@ func (h *EventHandler) OnDelete(obj any) {
 
 // OnUpdate handles the endpoints update events.
 func (h *EventHandler) OnUpdate(oldObj, newObj any) {
-	oldEndpointSlices, ok := oldObj.(*discoveryv1.EndpointSlice)
+	oldEndpointSlices, ok := oldObj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *discoveryv1.EndpointSlice", oldObj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", oldObj)
 		return
 	}
 
-	newEndpointSlices, ok := newObj.(*discoveryv1.EndpointSlice)
+	newEndpointSlices, ok := newObj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *discoveryv1.EndpointSlice", newObj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", newObj)
 		return
 	}
 
@@ -101,7 +100,7 @@ func (h *EventHandler) OnUpdate(oldObj, newObj any) {
 }
 
 // Update updates the endpoints.
-func (h *EventHandler) Update(endpoints *discoveryv1.EndpointSlice) {
+func (h *EventHandler) Update(endpoints *v1.EndpointSlice) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
