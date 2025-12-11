@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	resyncInterval = 5 * time.Minute
-	nameSelector   = "metadata.name="
+	resyncInterval  = 5 * time.Minute
+	serviceSelector = "kubernetes.io/service-name="
 )
 
 type kubeResolver struct {
@@ -60,14 +60,33 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	if svc.Port == 0 {
-		// getting endpoints is only to get the port
-		endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(
-			context.Background(), svc.Name, v1.GetOptions{})
+		endpointSlices, err := cs.DiscoveryV1().EndpointSlices(svc.Namespace).List(context.Background(),
+			v1.ListOptions{
+				LabelSelector: serviceSelector + svc.Name,
+			})
 		if err != nil {
 			return nil, err
 		}
+		if len(endpointSlices.Items) == 0 {
+			return nil, fmt.Errorf("no endpoint slices found for service %s in namespace %s",
+				svc.Name, svc.Namespace)
+		}
 
-		svc.Port = int(endpoints.Subsets[0].Ports[0].Port)
+		// Find the first slice with a valid port.
+		// Since this resolver is used for in-cluster service discovery,
+		// we expect at least one port to be available.
+		var foundPort bool
+		for _, slice := range endpointSlices.Items {
+			if len(slice.Ports) > 0 && slice.Ports[0].Port != nil {
+				svc.Port = int(*slice.Ports[0].Port)
+				foundPort = true
+				break
+			}
+		}
+		if !foundPort {
+			return nil, fmt.Errorf("no valid port found in endpoint slices for service %s in namespace %s",
+				svc.Name, svc.Namespace)
+		}
 	}
 
 	handler := kube.NewEventHandler(func(endpoints []string) {
@@ -88,23 +107,29 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	inf := informers.NewSharedInformerFactoryWithOptions(cs, resyncInterval,
 		informers.WithNamespace(svc.Namespace),
 		informers.WithTweakListOptions(func(options *v1.ListOptions) {
-			options.FieldSelector = nameSelector + svc.Name
+			options.LabelSelector = serviceSelector + svc.Name
 		}))
-	in := inf.Core().V1().Endpoints()
+	in := inf.Discovery().V1().EndpointSlices()
 	_, err = in.Informer().AddEventHandler(handler)
 	if err != nil {
 		return nil, err
 	}
 
-	// get the initial endpoints, cannot use the previous endpoints,
-	// because the endpoints may be updated before/after the informer is started.
-	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(
-		context.Background(), svc.Name, v1.GetOptions{})
+	// get the initial endpoint slices, cannot use the previous endpoint slices,
+	// because the endpoint slices may be updated before/after the informer is started.
+	endpointSlices, err := cs.DiscoveryV1().EndpointSlices(svc.Namespace).List(
+		context.Background(), v1.ListOptions{
+			LabelSelector: serviceSelector + svc.Name,
+		})
 	if err != nil {
 		return nil, err
 	}
 
-	handler.Update(endpoints)
+	// Aggregate endpoints from all EndpointSlices.
+	// Use OnAdd (not Update) to accumulate addresses across multiple slices.
+	for _, endpointSlice := range endpointSlices.Items {
+		handler.OnAdd(&endpointSlice, false)
+	}
 
 	r := &kubeResolver{
 		cc:     cc,
