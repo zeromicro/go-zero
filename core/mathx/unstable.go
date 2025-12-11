@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// An Unstable is used to generate random value around the mean value base on given deviation.
+// An Unstable is used to generate random value around the mean value based on given deviation.
 type Unstable struct {
 	deviation float64
 	r         *rand.Rand

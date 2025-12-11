@@ -175,7 +175,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 * API 文档
 
-  [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
+  [https://go-zero.dev](https://go-zero.dev)
 
 * awesome 系列（更多文章见『微服务实践』公众号）
 
@@ -304,6 +304,10 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >106. 无锡盛算信息技术有限公司
 >107. 深圳市聚货通信息科技有限公司
 >108. 浙江银盾云科技有限公司
+>109. 南京造世网络科技有限公司
+>110. 温州飞儿云信息技术有限公司
+>111. 统信软件
+>112. 深圳坐标软件集团有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

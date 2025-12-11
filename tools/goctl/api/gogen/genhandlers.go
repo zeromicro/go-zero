@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -15,10 +16,14 @@ import (
 
 const defaultLogicPackage = "logic"
 
-//go:embed handler.tpl
-var handlerTemplate string
+var (
+	//go:embed handler.tpl
+	handlerTemplate string
+	//go:embed sse_handler.tpl
+	sseHandlerTemplate string
+)
 
-func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	handlerPath := getHandlerFolderPath(group, route)
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
@@ -32,19 +37,28 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		return err
 	}
 
+	var builtinTemplate = handlerTemplate
+	var templateFile = handlerTemplateFile
+	sse := group.GetAnnotation("sse")
+	if sse == "true" {
+		builtinTemplate = sseHandlerTemplate
+		templateFile = sseHandlerTemplateFile
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          getHandlerFolderPath(group, route),
 		filename:        filename + ".go",
 		templateName:    "handlerTemplate",
 		category:        category,
-		templateFile:    handlerTemplateFile,
-		builtinTemplate: handlerTemplate,
+		templateFile:    templateFile,
+		builtinTemplate: builtinTemplate,
 		data: map[string]any{
 			"PkgName":        pkgName,
 			"ImportPackages": genHandlerImports(group, route, rootPkg),
 			"HandlerName":    handler,
 			"RequestType":    util.Title(route.RequestTypeName()),
+			"ResponseType":   responseGoTypeName(route, typesPacket),
 			"LogicName":      logicName,
 			"LogicType":      strings.Title(getLogicName(route)),
 			"Call":           strings.Title(strings.TrimSuffix(handler, "Handler")),
@@ -52,14 +66,16 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 			"HasRequest":     len(route.RequestTypeName()) > 0,
 			"HasDoc":         len(route.JoinedDoc()) > 0,
 			"Doc":            getDoc(route.JoinedDoc()),
+			"projectPkg":     projectPkg,
+			"version":        version.BuildVersion,
 		},
 	})
 }
 
-func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genHandlers(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
+			if err := genHandler(dir, rootPkg, projectPkg, cfg, group, route); err != nil {
 				return err
 			}
 		}
@@ -73,7 +89,8 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))),
 		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)),
 	}
-	if len(route.RequestTypeName()) > 0 {
+	sse := group.GetAnnotation("sse")
+	if len(route.RequestTypeName()) > 0 || sse == "true" {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
 

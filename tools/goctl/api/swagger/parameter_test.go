@@ -8,7 +8,7 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func TestIsPostJson(t *testing.T) {
+func TestIsRequestBodyJson(t *testing.T) {
 	tests := []struct {
 		name     string
 		method   string
@@ -18,13 +18,18 @@ func TestIsPostJson(t *testing.T) {
 		{"POST with JSON", http.MethodPost, true, true},
 		{"POST without JSON", http.MethodPost, false, false},
 		{"GET with JSON", http.MethodGet, true, false},
-		{"PUT with JSON", http.MethodPut, true, false},
+		{"PUT with JSON", http.MethodPut, true, true},
+		{"PUT without JSON", http.MethodPut, false, false},
+		{"PATCH with JSON", http.MethodPatch, true, true},
+		{"PATCH without JSON", http.MethodPatch, false, false},
+		{"DELETE with JSON", http.MethodDelete, true, true},
+		{"DELETE without JSON", http.MethodDelete, false, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testStruct := createTestStruct("TestStruct", tt.hasJson)
-			_, result := isPostJson(testingContext(t), tt.method, testStruct)
+			_, result := isRequestBodyJson(testingContext(t), tt.method, testStruct)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -41,6 +46,12 @@ func TestParametersFromType(t *testing.T) {
 	}{
 		{"POST JSON with definitions", http.MethodPost, true, true, 1, true},
 		{"POST JSON without definitions", http.MethodPost, false, true, 1, true},
+		{"PUT JSON with definitions", http.MethodPut, true, true, 1, true},
+		{"PUT JSON without definitions", http.MethodPut, false, true, 1, true},
+		{"PATCH JSON with definitions", http.MethodPatch, true, true, 1, true},
+		{"PATCH JSON without definitions", http.MethodPatch, false, true, 1, true},
+		{"DELETE JSON with definitions", http.MethodDelete, true, true, 1, true},
+		{"DELETE JSON without definitions", http.MethodDelete, false, true, 1, true},
 		{"GET with form", http.MethodGet, false, false, 1, false},
 		{"POST with form", http.MethodPost, false, false, 1, false},
 	}

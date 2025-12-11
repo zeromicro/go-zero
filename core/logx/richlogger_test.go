@@ -423,3 +423,49 @@ type mockValue struct {
 	Foo     string `json:"foo"`
 	Content any    `json:"content"`
 }
+
+type testJson struct {
+	Name  string  `json:"name"`
+	Age   int     `json:"age"`
+	Score float64 `json:"score"`
+}
+
+func (t testJson) MarshalJSON() ([]byte, error) {
+	type testJsonImpl testJson
+	return json.Marshal(testJsonImpl(t))
+}
+
+func (t testJson) String() string {
+	return fmt.Sprintf("%s %d %f", t.Name, t.Age, t.Score)
+}
+
+func TestLogWithJson(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithContext(context.Background()).WithFields(Field("bar", testJson{
+		Name:  "foo",
+		Age:   1,
+		Score: 1.0,
+	}))
+	l.Info(testlog)
+
+	type mockValue2 struct {
+		mockValue
+		Bar testJson `json:"bar"`
+	}
+
+	var val mockValue2
+	err := json.Unmarshal([]byte(w.String()), &val)
+	assert.NoError(t, err)
+
+	assert.Equal(t, testlog, val.Content)
+	assert.Equal(t, "foo", val.Bar.Name)
+	assert.Equal(t, 1, val.Bar.Age)
+	assert.Equal(t, 1.0, val.Bar.Score)
+}

@@ -6083,6 +6083,105 @@ func TestParseJsonStringValue(t *testing.T) {
 	})
 }
 
+// issue #5033, string type
+func TestUnmarshalFromEnvString(t *testing.T) {
+	t.Setenv("STRING_ENV", "dev")
+
+	t.Run("by value", func(t *testing.T) {
+		type (
+			Env    string
+			Config struct {
+				Env Env `json:",env=STRING_ENV,default=prod"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env("dev"), c.Env)
+		}
+	})
+
+	t.Run("by ptr", func(t *testing.T) {
+		type (
+			Env    string
+			Config struct {
+				Env *Env `json:",env=STRING_ENV,default=prod"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env("dev"), *c.Env)
+		}
+	})
+}
+
+// issue #5033, bool type
+func TestUnmarshalFromEnvBool(t *testing.T) {
+	t.Setenv("BOOL_ENV", "true")
+
+	t.Run("by value", func(t *testing.T) {
+		type (
+			Env    bool
+			Config struct {
+				Env Env `json:",env=BOOL_ENV,default=false"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(true), c.Env)
+		}
+	})
+
+	t.Run("by ptr", func(t *testing.T) {
+		type (
+			Env    bool
+			Config struct {
+				Env *Env `json:",env=BOOL_ENV,default=false"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(true), *c.Env)
+		}
+	})
+}
+
+// issue #5033, customized int type
+func TestUnmarshalFromEnvInt(t *testing.T) {
+	t.Setenv("INT_ENV", "2")
+
+	t.Run("by value", func(t *testing.T) {
+		type (
+			Env    int
+			Config struct {
+				Env Env `json:",env=INT_ENV,default=0"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(2), c.Env)
+		}
+	})
+
+	t.Run("by ptr", func(t *testing.T) {
+		type (
+			Env    int
+			Config struct {
+				Env *Env `json:",env=INT_ENV,default=0"`
+			}
+		)
+
+		var c Config
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{}, &c)) {
+			assert.Equal(t, Env(2), *c.Env)
+		}
+	})
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {

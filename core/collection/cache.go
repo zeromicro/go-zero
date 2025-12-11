@@ -81,6 +81,10 @@ func (c *Cache) Del(key string) {
 	delete(c.data, key)
 	c.lruCache.remove(key)
 	c.lock.Unlock()
+
+	// RemoveTimer is called outside the lock to avoid performance impact from this
+	// potentially time-consuming operation. Data integrity is maintained by lruCache,
+	// which will eventually evict any remaining entries when capacity is exceeded.
 	c.timingWheel.RemoveTimer(key)
 }
 

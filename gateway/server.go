@@ -34,6 +34,7 @@ type (
 		conns         []zrpc.Client
 		processHeader func(http.Header) []string
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		middlewares   []rest.Middleware
 	}
 
 	// Option defines the method to customize Server.
@@ -103,9 +104,16 @@ func (s *Server) build() error {
 	})
 }
 
+func (s *Server) buildChainHandler(handler http.HandlerFunc) http.HandlerFunc {
+	for i := len(s.middlewares) - 1; i >= 0; i-- {
+		handler = s.middlewares[i](handler)
+	}
+	return handler
+}
+
 func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
 	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -124,6 +132,8 @@ func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver json
 			httpx.ErrorCtx(r.Context(), w, st.Err())
 		}
 	}
+
+	return s.buildChainHandler(handler)
 }
 
 func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
@@ -177,7 +187,7 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 }
 
 func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		req, err := buildRequestWithNewTarget(r, target)
 		if err != nil {
@@ -213,6 +223,7 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			logc.Error(r.Context(), err)
 		}
 	}
+	return s.buildChainHandler(handler)
 }
 
 func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route]) {
@@ -260,6 +271,14 @@ func (s *Server) prepareMetadata(header http.Header) []string {
 func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server) {
 	return func(s *Server) {
 		s.processHeader = processHeader
+	}
+}
+
+// WithMiddleware adds one or more middleware functions to process HTTP requests.
+// Multiple middlewares will be executed in the order they were passed (like an onion model).
+func WithMiddleware(middlewares ...rest.Middleware) func(*Server) {
+	return func(s *Server) {
+		s.middlewares = append(s.middlewares, middlewares...)
 	}
 }
 

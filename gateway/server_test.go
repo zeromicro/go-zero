@@ -325,3 +325,50 @@ type badResponseWriter struct {
 func (w *badResponseWriter) Write([]byte) (int, error) {
 	return 0, errors.New("bad writer")
 }
+
+func TestWithMiddleware(t *testing.T) {
+	var callOrder []string
+
+	firstMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			callOrder = append(callOrder, "first-start")
+			w.Header().Set("X-First-Middleware", "called")
+			next(w, r)
+			callOrder = append(callOrder, "first-end")
+		}
+	}
+
+	secondMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			callOrder = append(callOrder, "second-start")
+			w.Header().Set("X-Second-Middleware", "called")
+			next(w, r)
+			callOrder = append(callOrder, "second-end")
+		}
+	}
+
+	var c GatewayConf
+	err := conf.FillDefault(&c)
+	assert.Nil(t, err)
+	// Test multiple middlewares in one call
+	server1 := MustNewServer(c, WithMiddleware(firstMiddleware, secondMiddleware))
+	assert.Len(t, server1.middlewares, 2, "Should have 2 middlewares from one call")
+	// Test multiple middleware calls
+	server2 := MustNewServer(c, WithMiddleware(firstMiddleware), WithMiddleware(secondMiddleware))
+	assert.Len(t, server2.middlewares, 2, "Should have 2 middlewares from separate calls")
+	// Test execution order (onion model)
+	finalHandler := func(w http.ResponseWriter, r *http.Request) {
+		callOrder = append(callOrder, "handler")
+		w.WriteHeader(http.StatusOK)
+	}
+
+	testHandler := server1.buildChainHandler(finalHandler)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/test", nil)
+	testHandler(w, r)
+
+	expectedOrder := []string{"first-start", "second-start", "handler", "second-end", "first-end"}
+	assert.Equal(t, expectedOrder, callOrder, "Middleware execution should follow onion model")
+	assert.Equal(t, "called", w.Header().Get("X-First-Middleware"))
+	assert.Equal(t, "called", w.Header().Get("X-Second-Middleware"))
+}

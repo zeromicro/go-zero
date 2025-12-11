@@ -66,7 +66,7 @@ type (
 		gzip        bool
 	}
 
-	// SizeLimitRotateRule a rotation rule that make the log file rotated base on size
+	// SizeLimitRotateRule a rotation rule that makes the log file rotated based on size
 	SizeLimitRotateRule struct {
 		DailyRotateRule
 		maxSize    int64
@@ -211,7 +211,7 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 		}
 	}
 
-	var result []string
+	result := make([]string, 0, len(outdated))
 	for k := range outdated {
 		result = append(result, k)
 	}
