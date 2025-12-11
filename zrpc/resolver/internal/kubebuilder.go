@@ -70,9 +70,20 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			return nil, fmt.Errorf("no endpoint slices found for service %s in namespace %s", svc.Name, svc.Namespace)
 		}
 
+		// Find the first slice with a valid port.
 		// Since this resolver is used for in-cluster service discovery,
-		// there should be at least one port available.
-		svc.Port = int(*endpointSlices.Items[0].Ports[0].Port)
+		// we expect at least one port to be available.
+		var foundPort bool
+		for _, slice := range endpointSlices.Items {
+			if len(slice.Ports) > 0 && slice.Ports[0].Port != nil {
+				svc.Port = int(*slice.Ports[0].Port)
+				foundPort = true
+				break
+			}
+		}
+		if !foundPort {
+			return nil, fmt.Errorf("no valid port found in endpoint slices for service %s in namespace %s", svc.Name, svc.Namespace)
+		}
 	}
 
 	handler := kube.NewEventHandler(func(endpoints []string) {
@@ -111,8 +122,10 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
+	// Aggregate endpoints from all EndpointSlices.
+	// Use OnAdd (not Update) to accumulate addresses across multiple slices.
 	for _, endpointSlice := range endpointSlices.Items {
-		handler.Update(&endpointSlice)
+		handler.OnAdd(&endpointSlice, false)
 	}
 
 	r := &kubeResolver{
