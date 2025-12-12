@@ -34,9 +34,9 @@ var (
 	ErrServiceOverloaded = errors.New("service overloaded")
 
 	// default to be enabled
-	enabled = syncx.ForAtomicBool(true)
+	enabled = syncx.AtomicBoolFromVal(true)
 	// default to be enabled
-	logEnabled = syncx.ForAtomicBool(true)
+	logEnabled = syncx.AtomicBoolFromVal(true)
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
@@ -75,7 +75,7 @@ type (
 		avgFlying       float64
 		avgFlyingLock   syncx.SpinLock
 		overloadTime    *syncx.AtomicDuration
-		droppedRecently *syncx.AtomicBool
+		droppedRecently atomic.Bool
 		passCounter     *collection.RollingWindow[int64, *collection.Bucket[int64]]
 		rtCounter       *collection.RollingWindow[int64, *collection.Bucket[int64]]
 	}
@@ -83,18 +83,18 @@ type (
 
 // Disable lets callers disable load shedding.
 func Disable() {
-	enabled.Set(false)
+	enabled.Store(false)
 }
 
 // DisableLog disables the stat logs for load shedding.
 func DisableLog() {
-	logEnabled.Set(false)
+	logEnabled.Store(false)
 }
 
 // NewAdaptiveShedder returns an adaptive shedder.
 // opts can be used to customize the Shedder.
 func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
-	if !enabled.True() {
+	if !enabled.Load() {
 		return newNopShedder()
 	}
 
@@ -114,7 +114,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 		cpuThreshold:    options.cpuThreshold,
 		windowScale:     float64(time.Second) / float64(bucketDuration) / millisecondsPerSecond,
 		overloadTime:    syncx.NewAtomicDuration(),
-		droppedRecently: syncx.NewAtomicBool(),
+		droppedRecently: atomic.Bool{},
 		passCounter:     collection.NewRollingWindow[int64, *collection.Bucket[int64]](newBucket, options.buckets, bucketDuration, collection.IgnoreCurrentBucket[int64, *collection.Bucket[int64]]()),
 		rtCounter:       collection.NewRollingWindow[int64, *collection.Bucket[int64]](newBucket, options.buckets, bucketDuration, collection.IgnoreCurrentBucket[int64, *collection.Bucket[int64]]()),
 	}
@@ -123,7 +123,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 // Allow implements Shedder.Allow.
 func (as *adaptiveShedder) Allow() (Promise, error) {
 	if as.shouldDrop() {
-		as.droppedRecently.Set(true)
+		as.droppedRecently.Store(true)
 
 		return nil, ErrServiceOverloaded
 	}
@@ -225,7 +225,7 @@ func (as *adaptiveShedder) shouldDrop() bool {
 }
 
 func (as *adaptiveShedder) stillHot() bool {
-	if !as.droppedRecently.True() {
+	if !as.droppedRecently.Load() {
 		return false
 	}
 
@@ -238,7 +238,7 @@ func (as *adaptiveShedder) stillHot() bool {
 		return true
 	}
 
-	as.droppedRecently.Set(false)
+	as.droppedRecently.Store(false)
 	return false
 }
 

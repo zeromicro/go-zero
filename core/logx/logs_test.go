@@ -28,7 +28,7 @@ var (
 )
 
 func init() {
-	ExitOnFatal.Set(false)
+	ExitOnFatal.Store(false)
 }
 
 type mockWriter struct {

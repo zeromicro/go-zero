@@ -12,7 +12,7 @@ import (
 
 func TestMetrics(t *testing.T) {
 	DisableLog()
-	defer logEnabled.Set(true)
+	defer logEnabled.Store(true)
 
 	counts := []int{1, 5, 10, 100, 1000, 1000}
 	for _, count := range counts {
@@ -39,10 +39,10 @@ func TestTopDurationWithEmpty(t *testing.T) {
 
 func TestLogAndReport(t *testing.T) {
 	buf := logtest.NewCollector(t)
-	old := logEnabled.True()
-	logEnabled.Set(true)
+	old := logEnabled.Load()
+	logEnabled.Store(true)
 	t.Cleanup(func() {
-		logEnabled.Set(old)
+		logEnabled.Store(old)
 	})
 
 	log(&StatReport{})

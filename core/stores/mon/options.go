@@ -13,8 +13,8 @@ const defaultTimeout = time.Second * 3
 
 var (
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logMon        = syncx.ForAtomicBool(true)
-	logSlowMon    = syncx.ForAtomicBool(true)
+	logMon        = syncx.AtomicBoolFromVal(true)
+	logSlowMon    = syncx.AtomicBoolFromVal(true)
 )
 
 type (
@@ -33,13 +33,13 @@ type (
 
 // DisableLog disables logging of mongo commands, includes info and slow logs.
 func DisableLog() {
-	logMon.Set(false)
-	logSlowMon.Set(false)
+	logMon.Store(false)
+	logSlowMon.Store(false)
 }
 
 // DisableInfoLog disables info logging of mongo commands, but keeps slow logs.
 func DisableInfoLog() {
-	logMon.Set(false)
+	logMon.Store(false)
 }
 
 // SetSlowThreshold sets the slow threshold.

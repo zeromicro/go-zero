@@ -59,8 +59,8 @@ func Test_logDuration(t *testing.T) {
 	assert.Contains(t, buf.String(), "fail")
 
 	defer func() {
-		logMon.Set(true)
-		logSlowMon.Set(true)
+		logMon.Store(true)
+		logSlowMon.Store(true)
 	}()
 
 	buf.Reset()
@@ -131,8 +131,8 @@ func Test_logDurationWithDoc(t *testing.T) {
 	assert.Contains(t, buf.String(), "json")
 
 	defer func() {
-		logMon.Set(true)
-		logSlowMon.Set(true)
+		logMon.Store(true)
+		logSlowMon.Store(true)
 	}()
 
 	buf.Reset()

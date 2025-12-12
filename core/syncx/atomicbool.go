@@ -1,16 +1,20 @@
 package syncx
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+)
 
 // An AtomicBool is an atomic implementation for boolean values.
-type AtomicBool uint32
+type AtomicBool atomic.Bool
 
 // NewAtomicBool returns an AtomicBool.
-func NewAtomicBool() *AtomicBool {
-	return new(AtomicBool)
+// Deprecated: use atomic.Bool instead.
+func NewAtomicBool() (b *AtomicBool) {
+	return (*AtomicBool)(new(atomic.Bool))
 }
 
 // ForAtomicBool returns an AtomicBool with given val.
+// Deprecated: use AtomicBoolFromVal instead.
 func ForAtomicBool(val bool) *AtomicBool {
 	b := NewAtomicBool()
 	b.Set(val)
@@ -19,28 +23,21 @@ func ForAtomicBool(val bool) *AtomicBool {
 
 // CompareAndSwap compares current value with given old, if equals, set to given val.
 func (b *AtomicBool) CompareAndSwap(old, val bool) bool {
-	var ov, nv uint32
-
-	if old {
-		ov = 1
-	}
-	if val {
-		nv = 1
-	}
-
-	return atomic.CompareAndSwapUint32((*uint32)(b), ov, nv)
+	return (*atomic.Bool)(b).CompareAndSwap(old, val)
 }
 
 // Set sets the value to v.
 func (b *AtomicBool) Set(v bool) {
-	if v {
-		atomic.StoreUint32((*uint32)(b), 1)
-	} else {
-		atomic.StoreUint32((*uint32)(b), 0)
-	}
+	(*atomic.Bool)(b).Store(v)
 }
 
 // True returns true if current value is true.
 func (b *AtomicBool) True() bool {
-	return atomic.LoadUint32((*uint32)(b)) == 1
+	return (*atomic.Bool)(b).Load()
+}
+
+// AtomicBoolFromVal returns an atomic.Bool with given val.
+func AtomicBoolFromVal(val bool) (b atomic.Bool) {
+	b.Store(val)
+	return
 }
