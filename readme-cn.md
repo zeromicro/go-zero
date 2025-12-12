@@ -17,7 +17,7 @@
 <a href="https://trendshift.io/repositories/3263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3263" alt="zeromicro%2Fgo-zero | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-## 0. go-zero 介绍
+## go-zero 介绍
 
 go-zero（收录于 CNCF 云原生技术全景图：[https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)）是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
 
@@ -34,7 +34,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 
 ![架构图](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/architecture.png)
 
-## 1. go-zero 框架背景
+## go-zero 框架背景
 
 18 年初，我们决定从 `Java+MongoDB` 的单体架构迁移到微服务架构，经过仔细思考和对比，我们决定：
 
@@ -49,7 +49,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
   * 需要有更快速的问题定位能力
   * 更便捷的增加新特性
 
-## 2. go-zero 框架设计思考
+## go-zero 框架设计思考
 
 对于微服务框架的设计，我们期望保障微服务稳定性的同时，也要特别注重研发效率。所以设计之初，我们就有如下一些准则：
 
@@ -62,7 +62,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 
 我们经历不到半年时间，彻底完成了从 `Java+MongoDB` 到 `Golang+MySQL` 为主的微服务体系迁移，并于 18 年 8 月底完全上线，稳定保障了业务后续迅速增长，确保了整个服务的高可用。
 
-## 3. go-zero 项目实现和特点
+## go-zero 项目实现和特点
 
 go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有如下主要特点：
 
@@ -84,13 +84,13 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 ![弹性设计](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience.jpg)
 
-## 4. 我们使用 go-zero 的基本架构图
+## 我们使用 go-zero 的基本架构图
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880582-11a86658-41c3-466c-95e7-7b1220eecc52.png">
 
 觉得不错的话，别忘 **star** 👏
 
-## 5. Installation
+## Installation
 
 在项目目录下通过如下命令安装：
 
@@ -98,7 +98,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero
 ```
 
-## 5.5. AI 原生开发
+## AI 原生开发
 
 让大模型成为你的 go-zero 专家！go-zero 团队构建了完整的 AI 工具生态，包括 **ai-context**、**zero-skills** 和 **mcp-zero** 三个项目，让 Claude、GitHub Copilot、Cursor 等 AI 编程助手生成符合 go-zero 规范的代码。
 
@@ -199,7 +199,7 @@ AI 助手通过这三个工具协同配合，提供完整的开发体验：
 - AI 参考 **zero-skills** → 获取完整的 Handler/Logic/Context 三层架构模式
 - 结果：符合 go-zero 规范的生产级代码 ✅
 
-## 6. Quick Start
+## Quick Start
 
 0. 完整示例请查看
 
@@ -266,13 +266,13 @@ AI 助手通过这三个工具协同配合，提供完整的开发体验：
     ...
     ```
 
-## 7. Benchmark
+## Benchmark
 
 ![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 8. 文档
+## 文档
 
 * API 文档
 
@@ -293,7 +293,7 @@ AI 助手通过这三个工具协同配合，提供完整的开发体验：
   | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
   | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
 
-## 9. go-zero 用户
+## go-zero 用户
 
 go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
 
@@ -412,7 +412,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
-## 10. CNCF 云原生技术全景图
+## CNCF 云原生技术全景图
 
 <p float="left">
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
@@ -421,13 +421,13 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
 
-## 11. 微信公众号
+## 微信公众号
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zeromicro.jpg" alt="wechat" width="600" />
 
-## 12. 微信交流群
+## 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
@@ -438,9 +438,3 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力！🤝
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
-
-## 13. 知识星球
-
-官方团队运营的知识星球
-
-<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zsxq.jpg" alt="知识星球" width="300" />

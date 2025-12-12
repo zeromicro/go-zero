@@ -92,11 +92,11 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-##  The simplified architecture that we use with go-zero
+## The simplified architecture that we use with go-zero
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
-##  Installation
+## Installation
 
 Run the following command under your project:
 
@@ -104,7 +104,7 @@ Run the following command under your project:
 go get -u github.com/zeromicro/go-zero
 ```
 
-##  AI-Native Development
+## AI-Native Development
 
 Make AI assistants (Claude, GitHub Copilot, Cursor, etc.) your go-zero experts! The go-zero team provides a complete AI tooling ecosystem to generate framework-compliant code and boost your productivity.
 
@@ -335,11 +335,11 @@ AI assistants use these tools together for a complete development experience:
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
 
-##  Chat group
+## Chat group
 
 Join the chat via https://discord.gg/4JQvC5A4Fe
 
-##  Cloud Native Landscape
+## Cloud Native Landscape
 
 <p float="left">
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
