@@ -104,12 +104,12 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 ### 三大核心项目
 
-**[ai-context](https://github.com/zeromicro/ai-context)** - AI 的"工作手册"（~5KB）
+**[ai-context](https://github.com/zeromicro/ai-context)** - AI 的"工作手册"
 - 告诉 AI 助手**什么时候做什么**
 - 工作流程和决策树的快速参考
 - 专为 GitHub Copilot 优化（通过 `.github/copilot-instructions.md`）
 
-**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI 的"技术百科"（~40KB+）
+**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI 的"技术百科"
 - 提供**详细模式**和完整示例
 - ✅ 正确做法 vs ❌ 错误做法对比
 - 涵盖 REST API、RPC、数据库、弹性保护等

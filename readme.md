@@ -110,12 +110,12 @@ Make AI assistants (Claude, GitHub Copilot, Cursor, etc.) your go-zero experts! 
 
 ### Three Core Projects
 
-**[ai-context](https://github.com/zeromicro/ai-context)** - AI's "Workflow Guide" (~5KB)
+**[ai-context](https://github.com/zeromicro/ai-context)** - AI's "Workflow Guide"
 - Tells AI assistants **when and how** to use go-zero tools
 - Quick reference for code patterns and decision trees
 - Optimized for GitHub Copilot via `.github/copilot-instructions.md`
 
-**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI's "Knowledge Base" (~40KB+)
+**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI's "Knowledge Base"
 - Provides **detailed patterns** with complete examples
 - Shows ✅ correct patterns vs ❌ common mistakes
 - Covers REST APIs, RPC, databases, and resilience patterns
