@@ -664,6 +664,28 @@ func (s *Redis) GetDelCtx(ctx context.Context, key string) (string, error) {
 	return val, err
 }
 
+// GetEx is the implementation of redis getex command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetEx(key string, seconds int) (string, error) {
+	return s.GetExCtx(context.Background(), key, seconds)
+}
+
+// GetExCtx is the implementation of redis getex command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetExCtx(ctx context.Context, key string, seconds int) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	val, err := conn.GetEx(ctx, key, time.Duration(seconds)*time.Second).Result()
+	if errors.Is(err, red.Nil) {
+		return "", nil
+	}
+
+	return val, err
+}
+
 // GetSet is the implementation of redis getset command.
 func (s *Redis) GetSet(key, value string) (string, error) {
 	return s.GetSetCtx(context.Background(), key, value)
