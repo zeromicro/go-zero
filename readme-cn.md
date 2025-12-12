@@ -98,6 +98,107 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero
 ```
 
+## 5.5. AI 原生开发
+
+让大模型成为你的 go-zero 专家！go-zero 团队构建了完整的 AI 工具生态，包括 **ai-context**、**zero-skills** 和 **mcp-zero** 三个项目，让 Claude、GitHub Copilot、Cursor 等 AI 编程助手生成符合 go-zero 规范的代码。
+
+### 三大核心项目
+
+**[ai-context](https://github.com/zeromicro/ai-context)** - AI 的"工作手册"（~5KB）
+- 告诉 AI 助手**什么时候做什么**
+- 工作流程和决策树的快速参考
+- 专为 GitHub Copilot 优化（通过 `.github/copilot-instructions.md`）
+
+**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI 的"技术百科"（~40KB+）
+- 提供**详细模式**和完整示例
+- ✅ 正确做法 vs ❌ 错误做法对比
+- 涵盖 REST API、RPC、数据库、弹性保护等
+
+**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - AI 的"实时助手"
+- 让 AI 能**真正动手做**：生成代码、分析项目
+- 基于 Model Context Protocol (MCP)
+- 与 Claude Desktop 深度集成
+
+### 快速配置
+
+#### GitHub Copilot
+```bash
+# 添加 ai-context 作为 submodule
+git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context
+
+# 创建符号链接（macOS/Linux）
+ln -s ai-context/00-instructions.md .github/copilot-instructions.md
+
+# Windows 用户使用
+mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
+
+# 更新到最新版本
+git submodule update --remote .github/ai-context
+```
+
+#### Cursor
+```bash
+# 添加 ai-context 作为 submodule
+git submodule add https://github.com/zeromicro/ai-context.git .cursorrules
+
+# 更新到最新版本
+git submodule update --remote .cursorrules
+```
+
+#### Windsurf (Codeium)
+```bash
+# 添加 ai-context 作为 submodule
+git submodule add https://github.com/zeromicro/ai-context.git .windsurfrules
+
+# 更新到最新版本
+git submodule update --remote .windsurfrules
+```
+
+#### Claude Desktop + mcp-zero
+```bash
+# 安装 mcp-zero
+git clone https://github.com/zeromicro/mcp-zero.git
+cd mcp-zero
+go build -o mcp-zero main.go
+
+# 配置 Claude Desktop（macOS: ~/Library/Application Support/Claude/claude_desktop_config.json）
+# 在 mcpServers 中添加：
+{
+  "mcpServers": {
+    "mcp-zero": {
+      "command": "/path/to/mcp-zero",
+      "env": {
+        "GOCTL_PATH": "/Users/yourname/go/bin/goctl"
+      }
+    }
+  }
+}
+```
+
+或使用 Claude 命令行：
+```bash
+# 通过 CLI 添加 mcp-zero 服务器
+claude mcp add \
+  --transport stdio \
+  mcp-zero \
+  --env GOCTL_PATH=/Users/yourname/go/bin/goctl \
+  -- /path/to/mcp-zero
+```
+
+### 协同工作原理
+
+AI 助手通过这三个工具协同配合，提供完整的开发体验：
+
+1. **ai-context** 提供工作流程指导和快速模式
+2. **zero-skills** 提供详细实现和最佳实践
+3. **mcp-zero** 提供实时代码生成和项目分析
+
+**示例**：创建新的 REST API
+- AI 读取 **ai-context** → 了解应该用 `create_api_service` 工具
+- AI 调用 **mcp-zero** → 执行生成项目结构
+- AI 参考 **zero-skills** → 获取完整的 Handler/Logic/Context 三层架构模式
+- 结果：符合 go-zero 规范的生产级代码 ✅
+
 ## 6. Quick Start
 
 0. 完整示例请查看
@@ -113,18 +214,18 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     ```shell
     # Go
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-    
+
     # For Mac
     brew install goctl
-    
+
     # docker for all platforms
     docker pull kevinwan/goctl
     # run goctl
     docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
     ```
-    
+
     确保 goctl 可执行，并且在 $PATH 环境变量里。
-    
+
 2. 快速生成 api 服务
 
     ```shell
