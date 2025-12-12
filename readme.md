@@ -92,11 +92,11 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-##  The simplified architecture that we use with go-zero
+## The simplified architecture that we use with go-zero
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
-##  Installation
+## Installation
 
 Run the following command under your project:
 
@@ -104,7 +104,108 @@ Run the following command under your project:
 go get -u github.com/zeromicro/go-zero
 ```
 
-##  Quick Start
+## AI-Native Development
+
+Make AI assistants (Claude, GitHub Copilot, Cursor, etc.) your go-zero experts! The go-zero team provides a complete AI tooling ecosystem to generate framework-compliant code and boost your productivity.
+
+### Three Core Projects
+
+**[ai-context](https://github.com/zeromicro/ai-context)** - AI's "Workflow Guide" (~5KB)
+- Tells AI assistants **when and how** to use go-zero tools
+- Quick reference for code patterns and decision trees
+- Optimized for GitHub Copilot via `.github/copilot-instructions.md`
+
+**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI's "Knowledge Base" (~40KB+)
+- Provides **detailed patterns** with complete examples
+- Shows ✅ correct patterns vs ❌ common mistakes
+- Covers REST APIs, RPC, databases, and resilience patterns
+
+**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - AI's "Runtime Tools"
+- Enables AI to **execute actions**: generate code, analyze projects
+- Based on Model Context Protocol (MCP)
+- Deep integration with Claude Desktop
+
+### Quick Setup
+
+#### GitHub Copilot
+```bash
+# Add ai-context as a submodule
+git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context
+
+# Create symbolic link (macOS/Linux)
+ln -s ai-context/00-instructions.md .github/copilot-instructions.md
+
+# Windows
+mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
+
+# Update to latest version
+git submodule update --remote .github/ai-context
+```
+
+#### Cursor
+```bash
+# Add ai-context as project rules
+git submodule add https://github.com/zeromicro/ai-context.git .cursorrules
+
+# Update to latest
+git submodule update --remote .cursorrules
+```
+
+#### Windsurf (Codeium)
+```bash
+# Add ai-context for Windsurf
+git submodule add https://github.com/zeromicro/ai-context.git .windsurfrules
+
+# Update to latest
+git submodule update --remote .windsurfrules
+```
+
+#### Claude Desktop + mcp-zero
+```bash
+# Install mcp-zero
+git clone https://github.com/zeromicro/mcp-zero.git
+cd mcp-zero
+go build -o mcp-zero main.go
+
+# Configure Claude Desktop (macOS: ~/Library/Application Support/Claude/claude_desktop_config.json)
+# Add to mcpServers:
+{
+  "mcpServers": {
+    "mcp-zero": {
+      "command": "/path/to/mcp-zero",
+      "env": {
+        "GOCTL_PATH": "/Users/yourname/go/bin/goctl"
+      }
+    }
+  }
+}
+```
+
+Or use Claude CLI:
+```bash
+# Add mcp-zero server via CLI
+claude mcp add \
+  --transport stdio \
+  mcp-zero \
+  --env GOCTL_PATH=/Users/yourname/go/bin/goctl \
+  -- /path/to/mcp-zero
+```
+
+### How It Works
+
+AI assistants use these tools together for a complete development experience:
+
+1. **ai-context** provides workflow guidance and quick patterns
+2. **zero-skills** supplies detailed implementations and best practices
+3. **mcp-zero** enables real-time code generation and project analysis
+
+**Example**: Creating a new REST API
+- AI reads **ai-context** → knows to use `create_api_service` tool
+- AI calls **mcp-zero** → generates project structure
+- AI references **zero-skills** → implements handlers with correct patterns
+- Result: Production-ready code following go-zero conventions ✅
+
+## Quick Start
 
 1. Full examples can be checked out from below:
 
@@ -119,18 +220,18 @@ go get -u github.com/zeromicro/go-zero
    ```shell
    # for Go
    go install github.com/zeromicro/go-zero/tools/goctl@latest
-   
+
    # For Mac
    brew install goctl
-   
+
    # docker for all platforms
    docker pull kevinwan/goctl
    # run goctl
    docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
    ```
-   
+
    make sure goctl is executable and in your $PATH.
-   
+
 3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 
    ```go
@@ -234,11 +335,11 @@ go get -u github.com/zeromicro/go-zero
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
 
-##  Chat group
+## Chat group
 
 Join the chat via https://discord.gg/4JQvC5A4Fe
 
-##  Cloud Native Landscape
+## Cloud Native Landscape
 
 <p float="left">
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
