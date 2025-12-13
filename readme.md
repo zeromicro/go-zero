@@ -42,57 +42,35 @@ go-zero contains simple API description syntax and code generation tool called `
 
 ## Backgrounds of go-zero
 
-In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
+In early 2018, we transitioned from a Java+MongoDB monolithic architecture to microservices, choosing:
 
-* Go Beyond with Golang
-  * Great performance
-  * Simple syntax
-  * Proven engineering efficiency
-  * Extreme deployment experience
-  * Less server resource consumption
-
-* Self-Design Our Microservice Architecture
-  * Microservice architecture facilitates the creation of scalable, flexible, and maintainable software systems with independent, reusable components.
-  * Easy to locate the problems within microservices.
-  * Easy to extend the features by adding or modifying specific microservices without impacting the entire system.
+* **Golang** - High performance, simple syntax, excellent deployment experience, and low resource consumption
+* **Self-designed microservice framework** - Better problem isolation, easier feature extension, and faster issue resolution
 
 ## Design considerations on go-zero
 
-By designing the microservice architecture, we expected to ensure stability, as well as productivity. And from just the beginning, we have the following design principles:
+go-zero follows these core design principles:
 
-* Keep it simple
-* High availability
-* Stable on high concurrency
-* Easy to extend
-* Resilience design, failure-oriented programming
-* Try best to be friendly to the business logic development, encapsulate the complexity
-* One thing, one way
-
-After almost half a year, we finished the transfer from a monolithic system to microservice system and deployed on August 2018. The new system guaranteed business growth and system stability.
+* **Simplicity** - Keep it simple, first principle
+* **High availability** - Stable under high concurrency
+* **Resilience** - Failure-oriented programming with adaptive protection
+* **Developer friendly** - Encapsulate complexity, one way to do one thing
+* **Easy to extend** - Flexible architecture for growth
 
 ## The implementation and features of go-zero
 
-go-zero is a web and rpc framework that integrates lots of engineering practices. The features are mainly listed below:
+go-zero integrates engineering best practices:
 
-* Powerful tool included, less code to write
-* Simple interfaces
-* Fully compatible with net/http
-* Middlewares are supported, easy to extend
-* High performance
-* Failure-oriented programming, resilience design
-* Builtin service discovery, load balancing
-* Builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto-trigger, auto recover
-* Auto validation of API request parameters
-* Chained timeout control
-* Auto management of data caching
-* Call tracing, metrics, and monitoring
-* High concurrency protected
-
-As below, go-zero protects the system with a couple of layers and mechanisms:
+* **Code generation** - Powerful tools to minimize boilerplate
+* **Simple API** - Clean interfaces, fully compatible with net/http
+* **High performance** - Optimized for speed and efficiency
+* **Resilience** - Built-in circuit breaker, rate limiting, load shedding, timeout control
+* **Service mesh** - Service discovery, load balancing, call tracing
+* **Developer tools** - Auto parameter validation, cache management, metrics and monitoring
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-## The simplified architecture that we use with go-zero
+## Architecture with go-zero
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
@@ -106,116 +84,63 @@ go get -u github.com/zeromicro/go-zero
 
 ## AI-Native Development
 
-Make AI assistants (Claude, GitHub Copilot, Cursor, etc.) your go-zero experts! The go-zero team provides a complete AI tooling ecosystem to generate framework-compliant code and boost your productivity.
+The go-zero team provides AI tooling for Claude, GitHub Copilot, Cursor to generate framework-compliant code.
 
 ### Three Core Projects
 
-**[ai-context](https://github.com/zeromicro/ai-context)** - AI's "Workflow Guide"
-- Tells AI assistants **when and how** to use go-zero tools
-- Quick reference for code patterns and decision trees
-- Optimized for GitHub Copilot via `.github/copilot-instructions.md`
+**[ai-context](https://github.com/zeromicro/ai-context)** - Workflow guide for AI assistants
 
-**[zero-skills](https://github.com/zeromicro/zero-skills)** - AI's "Knowledge Base"
-- Provides **detailed patterns** with complete examples
-- Shows ✅ correct patterns vs ❌ common mistakes
-- Covers REST APIs, RPC, databases, and resilience patterns
+**[zero-skills](https://github.com/zeromicro/zero-skills)** - Pattern library with examples
 
-**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - AI's "Runtime Tools"
-- Enables AI to **execute actions**: generate code, analyze projects
-- Based on Model Context Protocol (MCP)
-- Deep integration with Claude Desktop
+**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - Code generation tools via Model Context Protocol
 
 ### Quick Setup
 
 #### GitHub Copilot
 ```bash
-# Add ai-context as a submodule
 git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context
-
-# Create symbolic link (macOS/Linux)
-ln -s ai-context/00-instructions.md .github/copilot-instructions.md
-
-# Windows
-mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
-
-# Update to latest version
-git submodule update --remote .github/ai-context
+ln -s ai-context/00-instructions.md .github/copilot-instructions.md  # macOS/Linux
+# Windows: mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
+git submodule update --remote .github/ai-context  # Update
 ```
 
 #### Cursor
 ```bash
-# Add ai-context as project rules
 git submodule add https://github.com/zeromicro/ai-context.git .cursorrules
-
-# Update to latest
-git submodule update --remote .cursorrules
+git submodule update --remote .cursorrules  # Update
 ```
 
-#### Windsurf (Codeium)
+#### Windsurf
 ```bash
-# Add ai-context for Windsurf
 git submodule add https://github.com/zeromicro/ai-context.git .windsurfrules
-
-# Update to latest
-git submodule update --remote .windsurfrules
+git submodule update --remote .windsurfrules  # Update
 ```
 
-#### Claude Desktop + mcp-zero
+#### Claude Desktop
 ```bash
-# Install mcp-zero
-git clone https://github.com/zeromicro/mcp-zero.git
-cd mcp-zero
-go build -o mcp-zero main.go
-
-# Configure Claude Desktop (macOS: ~/Library/Application Support/Claude/claude_desktop_config.json)
-# Add to mcpServers:
-{
-  "mcpServers": {
-    "mcp-zero": {
-      "command": "/path/to/mcp-zero",
-      "env": {
-        "GOCTL_PATH": "/Users/yourname/go/bin/goctl"
-      }
-    }
-  }
-}
-```
-
-Or use Claude CLI:
-```bash
-# Add mcp-zero server via CLI
-claude mcp add \
-  --transport stdio \
-  mcp-zero \
-  --env GOCTL_PATH=/Users/yourname/go/bin/goctl \
-  -- /path/to/mcp-zero
+git clone https://github.com/zeromicro/mcp-zero.git && cd mcp-zero && go build
+# Configure: ~/Library/Application Support/Claude/claude_desktop_config.json
+# Or: claude mcp add --transport stdio mcp-zero --env GOCTL_PATH=/path/to/goctl -- /path/to/mcp-zero
 ```
 
 ### How It Works
 
-AI assistants use these tools together for a complete development experience:
+AI assistants use these tools together:
+1. **ai-context** - workflow guidance
+2. **zero-skills** - implementation patterns
+3. **mcp-zero** - real-time code generation
 
-1. **ai-context** provides workflow guidance and quick patterns
-2. **zero-skills** supplies detailed implementations and best practices
-3. **mcp-zero** enables real-time code generation and project analysis
-
-**Example**: Creating a new REST API
-- AI reads **ai-context** → knows to use `create_api_service` tool
-- AI calls **mcp-zero** → generates project structure
-- AI references **zero-skills** → implements handlers with correct patterns
-- Result: Production-ready code following go-zero conventions ✅
+**Example**: Creating a REST API → AI reads **ai-context** for workflow → calls **mcp-zero** to generate code → references **zero-skills** for patterns → produces production-ready code ✅
 
 ## Quick Start
 
-1. Full examples can be checked out from below:
+1. Full examples:
 
      [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 
      [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 
 2. Install goctl
-
-   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve productivity, and make our lives easier.
 
    ```shell
    # for Go
@@ -230,9 +155,9 @@ AI assistants use these tools together for a complete development experience:
    docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
    ```
 
-   make sure goctl is executable and in your $PATH.
+   Ensure goctl is executable and in your $PATH.
 
-3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
+3. Create the API file (greet.api):
 
    ```go
    type (
@@ -251,19 +176,19 @@ AI assistants use these tools together for a complete development experience:
    }
    ```
 
-   the .api files also can be generated by goctl, like below:
+   Generate .api template:
 
    ```shell
    goctl api -o greet.api
    ```
 
-4. Generate the go server-side code
+4. Generate Go server code
 
    ```shell
    goctl api go -api greet.api -dir greet
    ```
 
-   the generated files look like:
+   Generated structure:
 
    ```Plain Text
    ├── greet
@@ -285,7 +210,7 @@ AI assistants use these tools together for a complete development experience:
    └── greet.api                     // api description file
    ```
 
-   the generated code can be run directly:
+   Run the service:
 
    ```shell
    cd greet
@@ -293,15 +218,15 @@ AI assistants use these tools together for a complete development experience:
    go run greet.go -f etc/greet-api.yaml
    ```
 
-   by default, it’s listening on port 8888, while it can be changed in the configuration file.
+   Default port: 8888 (configurable in etc/greet-api.yaml)
 
-   you can check it by curl:
+   Test with curl:
 
    ```shell
    curl -i http://localhost:8888/greet/from/you
    ```
 
-   the response looks like below:
+   Response:
 
    ```http
    HTTP/1.1 200 OK
@@ -309,12 +234,12 @@ AI assistants use these tools together for a complete development experience:
    Content-Length: 0
    ```
 
-5. Write the business logic code
+5. Write business logic
 
-    * the dependencies can be passed into the logic within servicecontext.go, like mysql, redis, etc.
-    * add the logic code in a logic package according to .api file
+    * Pass dependencies (mysql, redis, etc.) via servicecontext.go
+    * Add logic code in the logic package per .api definition
 
-6. Generate code like Java, TypeScript, Dart, JavaScript, etc. just from the api file
+6. Generate client code for multiple languages
 
    ```shell
    goctl api java -api greet.api -dir greet
