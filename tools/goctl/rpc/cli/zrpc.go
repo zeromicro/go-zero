@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -27,7 +28,8 @@ func ZRPC(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	source := args[0]
+	// source := args[0]
+	source := args
 	grpcOutList := VarStringSliceGoGRPCOut
 	goOutList := VarStringSliceGoOut
 	zrpcOut := VarStringZRPCOut
@@ -66,6 +68,7 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -104,6 +107,15 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
+	ctx.Name = VarStringName
+	for _, protoPath := range VarStringSliceProtoPath {
+		protoPath, err = filepath.Abs(protoPath)
+		if err != nil {
+			return err
+		}
+		ctx.ImportProtoDirs = append(ctx.ImportProtoDirs, protoPath)
+	}
+
 	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }

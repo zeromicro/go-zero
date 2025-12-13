@@ -10,7 +10,7 @@ import (
 
 func TestDefaultProtoParse(t *testing.T) {
 	p := NewDefaultProtoParser()
-	data, err := p.Parse("./test.proto")
+	data, err := p.Parse("./test.proto", nil)
 	assert.Nil(t, err)
 	assert.Equal(t, "base.proto", func() string {
 		ip := data.Import[0]
@@ -46,7 +46,7 @@ func TestDefaultProtoParse(t *testing.T) {
 
 func TestDefaultProtoParseCaseInvalidRequestType(t *testing.T) {
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./test_invalid_request.proto")
+	_, err := p.Parse("./test_invalid_request.proto", nil)
 	assert.True(t, true, func() bool {
 		return strings.Contains(err.Error(), "request type must defined in")
 	}())
@@ -54,7 +54,7 @@ func TestDefaultProtoParseCaseInvalidRequestType(t *testing.T) {
 
 func TestDefaultProtoParseCaseInvalidResponseType(t *testing.T) {
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./test_invalid_response.proto")
+	_, err := p.Parse("./test_invalid_response.proto", nil)
 	assert.True(t, true, func() bool {
 		return strings.Contains(err.Error(), "response type must defined in")
 	}())
@@ -62,13 +62,13 @@ func TestDefaultProtoParseCaseInvalidResponseType(t *testing.T) {
 
 func TestDefaultProtoParseError(t *testing.T) {
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./nil.proto")
+	_, err := p.Parse("./nil.proto", nil)
 	assert.NotNil(t, err)
 }
 
 func TestDefaultProtoParse_Option(t *testing.T) {
 	p := NewDefaultProtoParser()
-	data, err := p.Parse("./test_option.proto")
+	data, err := p.Parse("./test_option.proto", nil)
 	assert.Nil(t, err)
 	assert.Equal(t, "github.com/zeromicro/go-zero", data.GoPackage)
 	assert.Equal(t, "go_zero", data.PbPackage)
@@ -76,8 +76,16 @@ func TestDefaultProtoParse_Option(t *testing.T) {
 
 func TestDefaultProtoParse_Option2(t *testing.T) {
 	p := NewDefaultProtoParser()
-	data, err := p.Parse("./test_option2.proto")
+	data, err := p.Parse("./test_option2.proto", nil)
 	assert.Nil(t, err)
 	assert.Equal(t, "stream", data.GoPackage)
 	assert.Equal(t, "stream", data.PbPackage)
+}
+
+func TestDefaultProtoParse_import(t *testing.T) {
+	p := NewDefaultProtoParser()
+	data, err := p.Parse("./test_import.proto", []string{"./"})
+	assert.Nil(t, err)
+	assert.NotNil(t, data.ImportMessageMap)
+	assert.Equal(t, 2, len(data.ImportMessageMap))
 }
