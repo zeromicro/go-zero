@@ -15,11 +15,12 @@ type (
 
 	// A Subscriber is used to subscribe the given key on an etcd cluster.
 	Subscriber struct {
-		endpoints  []string
-		exclusive  bool
-		key        string
-		exactMatch bool
-		items      *container
+		endpoints    []string
+		exclusive    bool
+		configCenter bool
+		key          string
+		exactMatch   bool
+		items        *container
 	}
 )
 
@@ -35,7 +36,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	for _, opt := range opts {
 		opt(sub)
 	}
-	sub.items = newContainer(sub.exclusive)
+	sub.items = newContainer(sub.exclusive, sub.configCenter)
 
 	if err := internal.GetRegistry().Monitor(endpoints, key, sub.exactMatch, sub.items); err != nil {
 		return nil, err
@@ -88,22 +89,31 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 	}
 }
 
-type container struct {
-	exclusive bool
-	values    map[string][]string
-	mapping   map[string]string
-	snapshot  atomic.Value
-	dirty     *syncx.AtomicBool
-	listeners []func()
-	lock      sync.Mutex
+// WithConfigCenter provides the config center option.
+func WithConfigCenter() SubOption {
+	return func(sub *Subscriber) {
+		sub.configCenter = true
+	}
 }
 
-func newContainer(exclusive bool) *container {
+type container struct {
+	exclusive    bool
+	configCenter bool
+	values       map[string][]string
+	mapping      map[string]string
+	snapshot     atomic.Value
+	dirty        *syncx.AtomicBool
+	listeners    []func()
+	lock         sync.Mutex
+}
+
+func newContainer(exclusive, configCenter bool) *container {
 	return &container{
-		exclusive: exclusive,
-		values:    make(map[string][]string),
-		mapping:   make(map[string]string),
-		dirty:     syncx.ForAtomicBool(true),
+		exclusive:    exclusive,
+		configCenter: configCenter,
+		values:       make(map[string][]string),
+		mapping:      make(map[string]string),
+		dirty:        syncx.ForAtomicBool(true),
 	}
 }
 
@@ -131,8 +141,17 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 			c.doRemoveKey(each)
 		}
 	}
-	c.values[value] = append(c.values[value], key)
-	c.mapping[key] = value
+	if c.configCenter { // store the last value only
+		c.values = map[string][]string{
+			value: {key},
+		}
+		c.mapping = map[string]string{
+			key: value,
+		}
+	} else {
+		c.values[value] = append(c.values[value], key)
+		c.mapping[key] = value
+	}
 
 	if early {
 		return previous, true

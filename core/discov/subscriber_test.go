@@ -170,7 +170,7 @@ func TestContainer(t *testing.T) {
 		for _, exclusive := range exclusives {
 			t.Run(test.name, func(t *testing.T) {
 				var changed bool
-				c := newContainer(exclusive)
+				c := newContainer(exclusive, false)
 				c.addListener(func() {
 					changed = true
 				})
@@ -201,10 +201,198 @@ func TestContainer(t *testing.T) {
 	}
 }
 
+func TestConfigCenterContainer(t *testing.T) {
+	type action struct {
+		act int
+		key string
+		val string
+	}
+	tests := []struct {
+		name   string
+		do     []action
+		expect []string
+	}{
+		{
+			name: "add one",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+			},
+			expect: []string{
+				"a",
+			},
+		},
+		{
+			name: "add two",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+			},
+			expect: []string{
+				"b",
+			},
+		},
+		{
+			name: "add two, delete one",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+				{
+					act: actionDel,
+					key: "first",
+				},
+			},
+			expect: []string{"b"},
+		},
+		{
+			name: "add two, delete two",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+				{
+					act: actionDel,
+					key: "first",
+				},
+				{
+					act: actionDel,
+					key: "second",
+				},
+			},
+			expect: []string{},
+		},
+		{
+			name: "add three, dup values, delete two",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+				{
+					act: actionAdd,
+					key: "third",
+					val: "a",
+				},
+				{
+					act: actionDel,
+					key: "first",
+				},
+				{
+					act: actionDel,
+					key: "second",
+				},
+			},
+			expect: []string{"a"},
+		},
+		{
+			name: "add three, dup values, delete two, delete not added",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+				{
+					act: actionAdd,
+					key: "third",
+					val: "a",
+				},
+				{
+					act: actionDel,
+					key: "first",
+				},
+				{
+					act: actionDel,
+					key: "second",
+				},
+				{
+					act: actionDel,
+					key: "forth",
+				},
+			},
+			expect: []string{"a"},
+		},
+	}
+
+	exclusives := []bool{true, false}
+	for _, test := range tests {
+		for _, exclusive := range exclusives {
+			t.Run(test.name, func(t *testing.T) {
+				var changed bool
+				c := newContainer(exclusive, true)
+				c.addListener(func() {
+					changed = true
+				})
+				assert.Nil(t, c.getValues())
+				assert.False(t, changed)
+
+				for _, order := range test.do {
+					if order.act == actionAdd {
+						c.OnAdd(internal.KV{
+							Key: order.key,
+							Val: order.val,
+						})
+					} else {
+						c.OnDelete(internal.KV{
+							Key: order.key,
+							Val: order.val,
+						})
+					}
+				}
+
+				assert.True(t, changed)
+				assert.True(t, c.dirty.True())
+				assert.ElementsMatch(t, test.expect, c.getValues())
+				assert.False(t, c.dirty.True())
+				assert.ElementsMatch(t, test.expect, c.getValues())
+				assert.Equal(t, len(test.expect), len(c.values))
+				assert.Equal(t, len(test.expect), len(c.mapping))
+			})
+		}
+	}
+}
+
 func TestSubscriber(t *testing.T) {
 	sub := new(Subscriber)
 	Exclusive()(sub)
-	sub.items = newContainer(sub.exclusive)
+	sub.items = newContainer(sub.exclusive, false)
 	var count int32
 	sub.AddListener(func() {
 		atomic.AddInt32(&count, 1)
@@ -229,7 +417,7 @@ func TestWithSubEtcdAccount(t *testing.T) {
 func TestWithExactMatch(t *testing.T) {
 	sub := new(Subscriber)
 	WithExactMatch()(sub)
-	sub.items = newContainer(sub.exclusive)
+	sub.items = newContainer(sub.exclusive, false)
 	var count int32
 	sub.AddListener(func() {
 		atomic.AddInt32(&count, 1)
@@ -240,7 +428,7 @@ func TestWithExactMatch(t *testing.T) {
 }
 
 func TestSubscriberClose(t *testing.T) {
-	l := newContainer(false)
+	l := newContainer(false, false)
 	sub := &Subscriber{
 		endpoints: []string{"localhost:12379"},
 		key:       "foo",
