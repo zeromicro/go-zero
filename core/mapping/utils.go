@@ -104,14 +104,13 @@ func convertToString(val any, fullName string) (string, error) {
 func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 	switch kind {
 	case reflect.Bool:
-		switch strings.ToLower(str) {
-		case "1", "true":
+		if str == "1" || strings.EqualFold(str, "true") {
 			return true, nil
-		case "0", "false":
-			return false, nil
-		default:
-			return false, errTypeMismatch
 		}
+		if str == "0" || strings.EqualFold(str, "false") {
+			return false, nil
+		}
+		return false, errTypeMismatch
 	case reflect.Int:
 		return strconv.ParseInt(str, 10, intSize)
 	case reflect.Int8:

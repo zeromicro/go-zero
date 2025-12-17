@@ -17,7 +17,7 @@
 <a href="https://trendshift.io/repositories/3263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3263" alt="zeromicro%2Fgo-zero | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
-## 0. go-zero 介绍
+## go-zero 介绍
 
 go-zero（收录于 CNCF 云原生技术全景图：[https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)）是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
 
@@ -25,72 +25,51 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 
 使用 go-zero 的好处：
 
-* 轻松获得支撑千万日活服务的稳定性
-* 内建级联超时控制、限流、自适应熔断、自适应降载等微服务治理能力，无需配置和额外代码
-* 微服务治理中间件可无缝集成到其它现有框架使用
-* 极简的 API 描述，一键生成各端代码
-* 自动校验客户端请求参数合法性
-* 大量微服务治理和并发工具包
+* 经过千万日活服务验证的稳定性
+* 内建弹性保护:级联超时、限流、熔断、降载(无需配置)
+* 极简 API 语法生成多端代码
+* 自动参数校验和丰富的微服务工具包
 
 ![架构图](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/architecture.png)
 
-## 1. go-zero 框架背景
+## go-zero 框架背景
 
-18 年初，我们决定从 `Java+MongoDB` 的单体架构迁移到微服务架构，经过仔细思考和对比，我们决定：
+18 年初,我们决定从 `Java+MongoDB` 的单体架构迁移到微服务架构,选择:
 
-* 基于 Go 语言
-  * 高效的性能
-  * 简洁的语法
-  * 广泛验证的工程效率
-  * 极致的部署体验
-  * 极低的服务端资源成本
-* 自研微服务框架
-  * 有过很多微服务框架自研经验
-  * 需要有更快速的问题定位能力
-  * 更便捷的增加新特性
+* **基于 Go 语言** - 高效性能、简洁语法、极致部署体验、极低资源成本
+* **自研微服务框架** - 更快速的问题定位、更便捷的新特性增加
 
-## 2. go-zero 框架设计思考
+## go-zero 框架设计思考
 
-对于微服务框架的设计，我们期望保障微服务稳定性的同时，也要特别注重研发效率。所以设计之初，我们就有如下一些准则：
+go-zero 遵循以下核心设计准则:
 
-* 保持简单，第一原则
-* 弹性设计，面向故障编程
-* 工具大于约定和文档
-* 高可用、高并发、易扩展
-* 对业务开发友好，封装复杂度
-* 约束做一件事只有一种方式
+* **保持简单** - 简单是第一原则
+* **高可用** - 高并发、易扩展
+* **弹性设计** - 面向故障编程
+* **工具驱动** - 工具大于约定和文档
+* **业务友好** - 封装复杂度、一事一法
 
-我们经历不到半年时间，彻底完成了从 `Java+MongoDB` 到 `Golang+MySQL` 为主的微服务体系迁移，并于 18 年 8 月底完全上线，稳定保障了业务后续迅速增长，确保了整个服务的高可用。
+## go-zero 项目实现和特点
 
-## 3. go-zero 项目实现和特点
+go-zero 集成各种工程实践,主要特点:
 
-go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有如下主要特点：
+* **强大工具支持** - 尽可能少的代码编写
+* **极简接口** - 完全兼容 net/http
+* **高性能** - 优化的速度和效率
+* **弹性设计** - 内建限流、熔断、降载,自动触发、自动恢复
+* **服务治理** - 内建服务发现、负载均衡、链路跟踪
+* **开发工具** - API 参数自动校验、超时级联控制、自动缓存控制
 
-* 强大的工具支持，尽可能少的代码编写
-* 极简的接口
-* 完全兼容 net/http
-* 支持中间件，方便扩展
-* 高性能
-* 面向故障编程，弹性设计
-* 内建服务发现、负载均衡
-* 内建限流、熔断、降载，且自动触发，自动恢复
-* API 参数自动校验
-* 超时级联控制
-* 自动缓存控制
-* 链路跟踪、统计报警等
-* 高并发支撑，稳定保障了疫情期间每天的流量洪峰
-
-如下图，我们从多个层面保障了整体服务的高可用：
 
 ![弹性设计](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience.jpg)
 
-## 4. 我们使用 go-zero 的基本架构图
+## 我们使用 go-zero 的基本架构图
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880582-11a86658-41c3-466c-95e7-7b1220eecc52.png">
 
 觉得不错的话，别忘 **star** 👏
 
-## 5. Installation
+## Installation
 
 在项目目录下通过如下命令安装：
 
@@ -98,7 +77,57 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero
 ```
 
-## 6. Quick Start
+## AI 原生开发
+
+go-zero 团队构建了完整的 AI 工具生态,让 Claude、GitHub Copilot、Cursor 生成符合 go-zero 规范的代码。
+
+### 三大核心项目
+
+**[ai-context](https://github.com/zeromicro/ai-context)** - AI 的工作流程指南
+
+**[zero-skills](https://github.com/zeromicro/zero-skills)** - 模式库和示例
+
+**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - 基于 MCP 的代码生成工具
+
+### 快速配置
+
+#### GitHub Copilot
+```bash
+git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context
+ln -s ai-context/00-instructions.md .github/copilot-instructions.md  # macOS/Linux
+# Windows: mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
+git submodule update --remote .github/ai-context  # 更新
+```
+
+#### Cursor
+```bash
+git submodule add https://github.com/zeromicro/ai-context.git .cursorrules
+git submodule update --remote .cursorrules  # 更新
+```
+
+#### Windsurf
+```bash
+git submodule add https://github.com/zeromicro/ai-context.git .windsurfrules
+git submodule update --remote .windsurfrules  # 更新
+```
+
+#### Claude Desktop
+```bash
+git clone https://github.com/zeromicro/mcp-zero.git && cd mcp-zero && go build
+# 配置: ~/Library/Application Support/Claude/claude_desktop_config.json
+# 或: claude mcp add --transport stdio mcp-zero --env GOCTL_PATH=/path/to/goctl -- /path/to/mcp-zero
+```
+
+### 协同工作原理
+
+AI 助手通过三个工具协同配合:
+1. **ai-context** - 工作流程指导
+2. **zero-skills** - 实现模式
+3. **mcp-zero** - 实时代码生成
+
+**示例**:创建新的 REST API → AI 读取 **ai-context** 了解工作流 → 调用 **mcp-zero** 生成代码 → 参考 **zero-skills** 实现模式 → 生成符合规范的代码 ✅
+
+## Quick Start
 
 0. 完整示例请查看
 
@@ -108,23 +137,22 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 1. 安装 goctl 工具
 
-    `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
 
     ```shell
     # Go
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-    
+
     # For Mac
     brew install goctl
-    
+
     # docker for all platforms
     docker pull kevinwan/goctl
     # run goctl
     docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
     ```
-    
-    确保 goctl 可执行，并且在 $PATH 环境变量里。
-    
+
+    确保 goctl 可执行并在 $PATH 环境变量里。
+
 2. 快速生成 api 服务
 
     ```shell
@@ -157,7 +185,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
       * 可以在 `servicecontext.go` 里面传递依赖给 logic，比如 mysql, redis 等
       * 在 api 定义的 `get/post/put/delete` 等请求对应的 logic 里增加业务处理逻辑
 
-3. 可以根据 api 文件生成前端需要的 Java, TypeScript, Dart, JavaScript 代码
+3. 生成多语言客户端代码
 
     ```shell
     goctl api java -api greet.api -dir greet
@@ -165,13 +193,13 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     ...
     ```
 
-## 7. Benchmark
+## Benchmark
 
 ![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 8. 文档
+## 文档
 
 * API 文档
 
@@ -192,9 +220,9 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
   | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
   | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
 
-## 9. go-zero 用户
+## go-zero 用户
 
-go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
+go-zero 已被众多公司用于生产部署,场景涵盖在线教育、电商、游戏、区块链等。目前使用 go-zero 的公司包括但不限于:
 
 >1. 好未来
 >2. 上海晓信信息科技有限公司（晓黑板）
@@ -311,7 +339,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
-## 10. CNCF 云原生技术全景图
+## CNCF 云原生技术全景图
 
 <p float="left">
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
@@ -320,13 +348,13 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
 
-## 11. 微信公众号
+## 微信公众号
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zeromicro.jpg" alt="wechat" width="600" />
 
-## 12. 微信交流群
+## 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
@@ -337,9 +365,3 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力！🤝
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
-
-## 13. 知识星球
-
-官方团队运营的知识星球
-
-<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zsxq.jpg" alt="知识星球" width="300" />

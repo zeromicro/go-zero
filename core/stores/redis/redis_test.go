@@ -1104,6 +1104,45 @@ func TestRedis_GetDel(t *testing.T) {
 	})
 }
 
+func TestRedis_GetEx(t *testing.T) {
+	t.Run("get_ex", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			val, err := client.GetEx("getex_key", 10)
+			assert.Equal(t, "", val)
+			assert.Nil(t, err)
+
+			err = client.Set("getex_key", "getex_value")
+			assert.Nil(t, err)
+
+			val, err = client.GetEx("getex_key", 10)
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+			val, err = client.Get("getex_key")
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+
+			ttl, err := client.Ttl("getex_key")
+			assert.Nil(t, err)
+			assert.True(t, ttl > 0 && ttl <= 10)
+
+			val, err = client.GetEx("getex_key", 5)
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+
+			ttl, err = client.Ttl("getex_key")
+			assert.Nil(t, err)
+			assert.True(t, ttl > 0 && ttl <= 5)
+		})
+	})
+
+	t.Run("get_ex_with_error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := newRedis(client.Addr, badType()).GetEx("hello", 10)
+			assert.Error(t, err)
+		})
+	})
+}
+
 func TestRedis_GetSet(t *testing.T) {
 	t.Run("set_get", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
