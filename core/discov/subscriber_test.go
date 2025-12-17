@@ -170,7 +170,7 @@ func TestContainer(t *testing.T) {
 		for _, exclusive := range exclusives {
 			t.Run(test.name, func(t *testing.T) {
 				var changed bool
-				c := newContainer(exclusive).(*container)
+				c := newContainer(exclusive)
 				c.addListener(func() {
 					changed = true
 				})
@@ -198,132 +198,6 @@ func TestContainer(t *testing.T) {
 				assert.ElementsMatch(t, test.expect, c.getValues())
 			})
 		}
-	}
-}
-
-func TestConfigCenterContainer(t *testing.T) {
-	type action struct {
-		act int
-		key string
-		val string
-	}
-	tests := []struct {
-		name   string
-		do     []action
-		expect []string
-	}{
-		{
-			name: "add one",
-			do: []action{
-				{
-					act: actionAdd,
-					key: "first",
-					val: "a",
-				},
-			},
-			expect: []string{
-				"a",
-			},
-		},
-		{
-			name: "add two",
-			do: []action{
-				{
-					act: actionAdd,
-					key: "first",
-					val: "a",
-				},
-				{
-					act: actionAdd,
-					key: "second",
-					val: "b",
-				},
-			},
-			expect: []string{
-				"b",
-			},
-		},
-		{
-			name: "delete",
-			do: []action{
-				{
-					act: actionAdd,
-					key: "first",
-					val: "a",
-				},
-				{
-					act: actionDel,
-					key: "first",
-				},
-			},
-			expect: []string{},
-		},
-		{
-			name: "add dup values",
-			do: []action{
-				{
-					act: actionAdd,
-					key: "first",
-					val: "a",
-				},
-				{
-					act: actionAdd,
-					key: "first",
-					val: "b",
-				},
-			},
-			expect: []string{"b"},
-		},
-		{
-			name: "add dup values,delete one",
-			do: []action{
-				{
-					act: actionAdd,
-					key: "first",
-					val: "a",
-				},
-				{
-					act: actionAdd,
-					key: "first",
-					val: "b",
-				},
-				{
-					act: actionDel,
-					key: "first",
-				},
-			},
-			expect: []string{},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var changed bool
-			c := newConfigCenterContainer().(*configCenterContainer)
-			c.addListener(func() {
-				changed = true
-			})
-			assert.Nil(t, c.getValues())
-			assert.False(t, changed)
-
-			for _, order := range test.do {
-				if order.act == actionAdd {
-					c.OnAdd(internal.KV{
-						Key: order.key,
-						Val: order.val,
-					})
-				} else {
-					c.OnDelete(internal.KV{
-						Key: order.key,
-						Val: order.val,
-					})
-				}
-			}
-
-			assert.True(t, changed)
-			assert.ElementsMatch(t, test.expect, c.getValues())
-			assert.ElementsMatch(t, test.expect, c.getValues())
-		})
 	}
 }
 

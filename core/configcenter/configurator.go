@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	Nil                       = errors.New("empty config value")
+	errEmptyConfig            = errors.New("empty config value")
 	errMissingUnmarshalerType = errors.New("missing unmarshaler type")
 )
 
@@ -83,10 +83,7 @@ func NewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) (Configu
 		return nil, err
 	}
 
-	_, err := cc.GetConfig()
-	switch {
-	case errors.Is(err, Nil), err == nil:
-	default:
+	if _, err := cc.GetConfig(); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +102,7 @@ func (c *configCenter[T]) GetConfig() (T, error) {
 	v := c.value()
 	if v == nil || len(v.data) == 0 {
 		var empty T
-		return empty, Nil
+		return empty, errEmptyConfig
 	}
 
 	return v.marshalData, v.err

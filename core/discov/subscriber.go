@@ -15,12 +15,11 @@ type (
 
 	// A Subscriber is used to subscribe the given key on an etcd cluster.
 	Subscriber struct {
-		endpoints    []string
-		exclusive    bool
-		key          string
-		exactMatch   bool
-		items        Container
-		configCenter bool
+		endpoints  []string
+		exclusive  bool
+		key        string
+		exactMatch bool
+		items      *container
 	}
 )
 
@@ -36,11 +35,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	for _, opt := range opts {
 		opt(sub)
 	}
-	if sub.configCenter {
-		sub.items = newConfigCenterContainer()
-	} else {
-		sub.items = newContainer(sub.exclusive)
-	}
+	sub.items = newContainer(sub.exclusive)
 
 	if err := internal.GetRegistry().Monitor(endpoints, key, sub.exactMatch, sub.items); err != nil {
 		return nil, err
@@ -93,13 +88,6 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 	}
 }
 
-// WithConfigCenter indicates that the subscriber is used in config center.
-func WithConfigCenter() SubOption {
-	return func(sub *Subscriber) {
-		sub.configCenter = true
-	}
-}
-
 type container struct {
 	exclusive bool
 	values    map[string][]string
@@ -110,7 +98,7 @@ type container struct {
 	lock      sync.Mutex
 }
 
-func newContainer(exclusive bool) Container {
+func newContainer(exclusive bool) *container {
 	return &container{
 		exclusive: exclusive,
 		values:    make(map[string][]string),
@@ -217,48 +205,4 @@ func (c *container) removeKey(key string) {
 
 	c.dirty.Set(true)
 	c.doRemoveKey(key)
-}
-
-type configCenterContainer struct {
-	snapshot  atomic.Value
-	listeners []func()
-	lock      sync.Mutex
-}
-
-func newConfigCenterContainer() Container {
-	return &configCenterContainer{}
-}
-
-func (c *configCenterContainer) OnAdd(kv internal.KV) {
-	c.snapshot.Store([]string{kv.Val})
-	c.notifyChange()
-}
-
-func (c *configCenterContainer) OnDelete(_ internal.KV) {
-	c.snapshot.Store([]string(nil))
-	c.notifyChange()
-}
-
-func (c *configCenterContainer) addListener(listener func()) {
-	c.lock.Lock()
-	c.listeners = append(c.listeners, listener)
-	c.lock.Unlock()
-}
-
-func (c *configCenterContainer) getValues() []string {
-	vals, ok := c.snapshot.Load().([]string)
-	if !ok {
-		return []string(nil)
-	}
-	return vals
-}
-
-func (c *configCenterContainer) notifyChange() {
-	c.lock.Lock()
-	listeners := append(([]func())(nil), c.listeners...)
-	c.lock.Unlock()
-
-	for _, listener := range listeners {
-		listener()
-	}
 }
