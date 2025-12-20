@@ -386,8 +386,9 @@ func (c *cluster) watch(cli EtcdClient, key watchKey, rev int64) {
 			rev = c.load(cli, key)
 		}
 
-		// log the error and retry
+		// log the error and retry with cooldown to prevent CPU/disk exhaustion
 		logc.Error(cli.Ctx(), err)
+		time.Sleep(coolDownUnstable.AroundDuration(coolDownInterval))
 	}
 }
 
