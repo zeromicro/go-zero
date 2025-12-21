@@ -15,11 +15,12 @@ type (
 
 	// A Subscriber is used to subscribe the given key on an etcd cluster.
 	Subscriber struct {
-		endpoints  []string
-		exclusive  bool
-		key        string
-		exactMatch bool
-		items      *container
+		endpoints    []string
+		exclusive    bool
+		key          string
+		exactMatch   bool
+		configCenter bool
+		items        Container
 	}
 )
 
@@ -35,7 +36,11 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	for _, opt := range opts {
 		opt(sub)
 	}
-	sub.items = newContainer(sub.exclusive)
+	if sub.configCenter {
+		sub.items = newConfigCenterContainer()
+	} else {
+		sub.items = newContainer(sub.exclusive)
+	}
 
 	if err := internal.GetRegistry().Monitor(endpoints, key, sub.exactMatch, sub.items); err != nil {
 		return nil, err
@@ -88,17 +93,33 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 	}
 }
 
-type container struct {
-	exclusive bool
-	values    map[string][]string
-	mapping   map[string]string
-	snapshot  atomic.Value
-	dirty     *syncx.AtomicBool
-	listeners []func()
-	lock      sync.Mutex
+// WithConfigCenter indicates whether the subscriber is used in config center.
+func WithConfigCenter() SubOption {
+	return func(sub *Subscriber) {
+		sub.configCenter = true
+	}
 }
 
-func newContainer(exclusive bool) *container {
+type (
+	Container interface {
+		OnAdd(kv internal.KV)
+		OnDelete(kv internal.KV)
+		addListener(listener func())
+		getValues() []string
+		notifyChange()
+	}
+	container struct {
+		exclusive bool
+		values    map[string][]string
+		mapping   map[string]string
+		snapshot  atomic.Value
+		dirty     *syncx.AtomicBool
+		listeners []func()
+		lock      sync.Mutex
+	}
+)
+
+func newContainer(exclusive bool) Container {
 	return &container{
 		exclusive: exclusive,
 		values:    make(map[string][]string),
@@ -205,4 +226,48 @@ func (c *container) removeKey(key string) {
 
 	c.dirty.Set(true)
 	c.doRemoveKey(key)
+}
+
+type configCenterContainer struct {
+	value     atomic.Value
+	lock      sync.Mutex
+	listeners []func()
+}
+
+func newConfigCenterContainer() Container {
+	return &configCenterContainer{}
+}
+
+func (c *configCenterContainer) OnAdd(kv internal.KV) {
+	c.value.Store([]string{kv.Val})
+	c.notifyChange()
+}
+
+func (c *configCenterContainer) OnDelete(_ internal.KV) {
+	c.value.Store([]string(nil))
+	c.notifyChange()
+}
+
+func (c *configCenterContainer) addListener(listener func()) {
+	c.lock.Lock()
+	c.listeners = append(c.listeners, listener)
+	c.lock.Unlock()
+}
+
+func (c *configCenterContainer) getValues() []string {
+	vals, ok := c.value.Load().([]string)
+	if !ok {
+		return []string(nil)
+	}
+	return vals
+}
+
+func (c *configCenterContainer) notifyChange() {
+	c.lock.Lock()
+	listeners := append(([]func())(nil), c.listeners...)
+	c.lock.Unlock()
+
+	for _, listener := range listeners {
+		listener()
+	}
 }

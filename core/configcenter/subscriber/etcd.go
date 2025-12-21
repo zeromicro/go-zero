@@ -37,6 +37,7 @@ func NewEtcdSubscriber(conf EtcdConf) (Subscriber, error) {
 func buildSubOptions(conf EtcdConf) []discov.SubOption {
 	opts := []discov.SubOption{
 		discov.WithExactMatch(),
+		discov.WithConfigCenter(),
 	}
 
 	if len(conf.User) > 0 {
