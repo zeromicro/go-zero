@@ -91,7 +91,7 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 	}
 }
 
-//WithContainer provides a custom container to the subscriber.
+// WithContainer provides a custom container to the subscriber.
 func WithContainer(container Container) SubOption {
 	return func(sub *Subscriber) {
 		sub.items = container
