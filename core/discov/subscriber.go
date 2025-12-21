@@ -15,13 +15,13 @@ type (
 
 	// A Subscriber is used to subscribe the given key on an etcd cluster.
 	Subscriber struct {
-		endpoints    []string
-		exclusive    bool
-		key          string
-		exactMatch   bool
-		configCenter bool
-		items        Container
+		endpoints  []string
+		exclusive  bool
+		key        string
+		exactMatch bool
+		items      Container
 	}
+	KV = internal.KV
 )
 
 // NewSubscriber returns a Subscriber.
@@ -36,9 +36,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	for _, opt := range opts {
 		opt(sub)
 	}
-	if sub.configCenter {
-		sub.items = newConfigCenterContainer()
-	} else {
+	if sub.items == nil {
 		sub.items = newContainer(sub.exclusive)
 	}
 
@@ -51,7 +49,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 
 // AddListener adds listener to s.
 func (s *Subscriber) AddListener(listener func()) {
-	s.items.addListener(listener)
+	s.items.AddListener(listener)
 }
 
 // Close closes the subscriber.
@@ -61,7 +59,7 @@ func (s *Subscriber) Close() {
 
 // Values returns all the subscription values.
 func (s *Subscriber) Values() []string {
-	return s.items.getValues()
+	return s.items.GetValues()
 }
 
 // Exclusive means that key value can only be 1:1,
@@ -94,9 +92,9 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 }
 
 // WithConfigCenter indicates whether the subscriber is used in config center.
-func WithConfigCenter() SubOption {
+func WithContainer(container Container) SubOption {
 	return func(sub *Subscriber) {
-		sub.configCenter = true
+		sub.items = container
 	}
 }
 
@@ -104,9 +102,8 @@ type (
 	Container interface {
 		OnAdd(kv internal.KV)
 		OnDelete(kv internal.KV)
-		addListener(listener func())
-		getValues() []string
-		notifyChange()
+		AddListener(listener func())
+		GetValues() []string
 	}
 	container struct {
 		exclusive bool
@@ -119,7 +116,7 @@ type (
 	}
 )
 
-func newContainer(exclusive bool) Container {
+func newContainer(exclusive bool) *container {
 	return &container{
 		exclusive: exclusive,
 		values:    make(map[string][]string),
@@ -162,7 +159,7 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	return nil, false
 }
 
-func (c *container) addListener(listener func()) {
+func (c *container) AddListener(listener func()) {
 	c.lock.Lock()
 	c.listeners = append(c.listeners, listener)
 	c.lock.Unlock()
@@ -191,7 +188,7 @@ func (c *container) doRemoveKey(key string) {
 	}
 }
 
-func (c *container) getValues() []string {
+func (c *container) GetValues() []string {
 	if !c.dirty.True() {
 		return c.snapshot.Load().([]string)
 	}
@@ -226,48 +223,4 @@ func (c *container) removeKey(key string) {
 
 	c.dirty.Set(true)
 	c.doRemoveKey(key)
-}
-
-type configCenterContainer struct {
-	value     atomic.Value
-	lock      sync.Mutex
-	listeners []func()
-}
-
-func newConfigCenterContainer() Container {
-	return &configCenterContainer{}
-}
-
-func (c *configCenterContainer) OnAdd(kv internal.KV) {
-	c.value.Store([]string{kv.Val})
-	c.notifyChange()
-}
-
-func (c *configCenterContainer) OnDelete(_ internal.KV) {
-	c.value.Store([]string(nil))
-	c.notifyChange()
-}
-
-func (c *configCenterContainer) addListener(listener func()) {
-	c.lock.Lock()
-	c.listeners = append(c.listeners, listener)
-	c.lock.Unlock()
-}
-
-func (c *configCenterContainer) getValues() []string {
-	vals, ok := c.value.Load().([]string)
-	if !ok {
-		return []string(nil)
-	}
-	return vals
-}
-
-func (c *configCenterContainer) notifyChange() {
-	c.lock.Lock()
-	listeners := append(([]func())(nil), c.listeners...)
-	c.lock.Unlock()
-
-	for _, listener := range listeners {
-		listener()
-	}
 }

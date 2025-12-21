@@ -3,6 +3,8 @@ package subscriber
 import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
+	"sync"
+	"sync/atomic"
 )
 
 type (
@@ -37,7 +39,7 @@ func NewEtcdSubscriber(conf EtcdConf) (Subscriber, error) {
 func buildSubOptions(conf EtcdConf) []discov.SubOption {
 	opts := []discov.SubOption{
 		discov.WithExactMatch(),
-		discov.WithConfigCenter(),
+		discov.WithContainer(newConfigCenterContainer()),
 	}
 
 	if len(conf.User) > 0 {
@@ -65,4 +67,48 @@ func (s *etcdSubscriber) Value() (string, error) {
 	}
 
 	return "", nil
+}
+
+type configCenterContainer struct {
+	value     atomic.Value
+	lock      sync.Mutex
+	listeners []func()
+}
+
+func newConfigCenterContainer() *configCenterContainer {
+	return &configCenterContainer{}
+}
+
+func (c *configCenterContainer) OnAdd(kv discov.KV) {
+	c.value.Store([]string{kv.Val})
+	c.notifyChange()
+}
+
+func (c *configCenterContainer) OnDelete(_ discov.KV) {
+	c.value.Store([]string(nil))
+	c.notifyChange()
+}
+
+func (c *configCenterContainer) AddListener(listener func()) {
+	c.lock.Lock()
+	c.listeners = append(c.listeners, listener)
+	c.lock.Unlock()
+}
+
+func (c *configCenterContainer) GetValues() []string {
+	vals, ok := c.value.Load().([]string)
+	if !ok {
+		return []string(nil)
+	}
+	return vals
+}
+
+func (c *configCenterContainer) notifyChange() {
+	c.lock.Lock()
+	listeners := append(([]func())(nil), c.listeners...)
+	c.lock.Unlock()
+
+	for _, listener := range listeners {
+		listener()
+	}
 }
