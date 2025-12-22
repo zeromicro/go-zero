@@ -40,6 +40,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 	findOneMethod, err := util.With("findOneMethod").
 		Parse(text).
 		Execute(map[string]any{
+			"withCache":                 withCache,
 			"upperStartCamelObject":     camel,
 			"lowerStartCamelPrimaryKey": util.EscapeGolangKeyword(stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle()),
 			"dataType":                  table.PrimaryKey.DataType,
