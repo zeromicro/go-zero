@@ -34,7 +34,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 
 ## go-zero 框架背景
 
-18 年初,我们决定从 `Java+MongoDB` 的单体架构迁移到微服务架构,选择:
+18 年初，我们决定从 `Java+MongoDB` 的单体架构迁移到微服务架构，选择:
 
 * **基于 Go 语言** - 高效性能、简洁语法、极致部署体验、极低资源成本
 * **自研微服务框架** - 更快速的问题定位、更便捷的新特性增加
@@ -51,15 +51,14 @@ go-zero 遵循以下核心设计准则:
 
 ## go-zero 项目实现和特点
 
-go-zero 集成各种工程实践,主要特点:
+go-zero 集成各种工程实践，主要特点:
 
 * **强大工具支持** - 尽可能少的代码编写
 * **极简接口** - 完全兼容 net/http
 * **高性能** - 优化的速度和效率
-* **弹性设计** - 内建限流、熔断、降载,自动触发、自动恢复
+* **弹性设计** - 内建限流、熔断、降载，自动触发、自动恢复
 * **服务治理** - 内建服务发现、负载均衡、链路跟踪
 * **开发工具** - API 参数自动校验、超时级联控制、自动缓存控制
-
 
 ![弹性设计](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience.jpg)
 
@@ -79,7 +78,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 ## AI 原生开发
 
-go-zero 团队构建了完整的 AI 工具生态,让 Claude、GitHub Copilot、Cursor 生成符合 go-zero 规范的代码。
+go-zero 团队构建了完整的 AI 工具生态，让 Claude、GitHub Copilot、Cursor 生成符合 go-zero 规范的代码。
 
 ### 三大核心项目
 
@@ -222,7 +221,7 @@ AI 助手通过三个工具协同配合:
 
 ## go-zero 用户
 
-go-zero 已被众多公司用于生产部署,场景涵盖在线教育、电商、游戏、区块链等。目前使用 go-zero 的公司包括但不限于:
+go-zero 已被众多公司用于生产部署，场景涵盖在线教育、电商、游戏、区块链等。目前使用 go-zero 的公司包括但不限于:
 
 >1. 好未来
 >2. 上海晓信信息科技有限公司（晓黑板）
