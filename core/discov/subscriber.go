@@ -105,6 +105,7 @@ type (
 		AddListener(listener func())
 		GetValues() []string
 	}
+
 	container struct {
 		exclusive bool
 		values    map[string][]string
