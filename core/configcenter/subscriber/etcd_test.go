@@ -158,7 +158,7 @@ func TestConfigCenterContainer(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var changed bool
-			c := newConfigCenterContainer()
+			c := newContainer()
 			c.AddListener(func() {
 				changed = true
 			})

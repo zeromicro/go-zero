@@ -205,6 +205,7 @@ func TestSubscriber(t *testing.T) {
 	sub := new(Subscriber)
 	Exclusive()(sub)
 	c := newContainer(sub.exclusive)
+	WithContainer(c)(sub)
 	sub.items = c
 	var count int32
 	sub.AddListener(func() {
