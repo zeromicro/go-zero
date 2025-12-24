@@ -63,8 +63,12 @@ func UnaryStatInterceptor(metrics *stat.Metrics, conf StatConf) grpc.UnaryServer
 }
 
 func isSlow(duration, durationThreshold time.Duration) bool {
-	return duration > slowThreshold.Load() ||
-		(durationThreshold > 0 && duration > durationThreshold)
+	// Prioritize explicit config over global setting
+	if durationThreshold > 0 {
+		return duration > durationThreshold
+	}
+
+	return duration > slowThreshold.Load()
 }
 
 func logDuration(ctx context.Context, method string, req any, duration time.Duration,
