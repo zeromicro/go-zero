@@ -90,5 +90,8 @@ type ResourceHandler func(
 //
 //	mcp.AddTool(server, tool, handler)
 func AddTool[In, Out any](server McpServer, tool *Tool, handler func(context.Context, *CallToolRequest, In) (*CallToolResult, Out, error)) {
-	sdkmcp.AddTool(server.Server(), tool, handler)
+	// Access internal server - only works with mcpServerImpl
+	if impl, ok := server.(*mcpServerImpl); ok {
+		sdkmcp.AddTool(impl.mcpServer, tool, handler)
+	}
 }

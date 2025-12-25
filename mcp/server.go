@@ -14,9 +14,6 @@ type McpServer interface {
 	Start()
 	// Stop stops the HTTP server
 	Stop()
-	// Server returns the underlying MCP SDK server for direct tool/prompt/resource registration
-	// Use sdkmcp.AddTool(server.Server(), tool, handler) to register tools
-	Server() *sdkmcp.Server
 }
 
 type mcpServerImpl struct {
@@ -67,6 +64,19 @@ func NewMcpServer(c McpConf) McpServer {
 	return s
 }
 
+// Start implements McpServer.
+func (s *mcpServerImpl) Start() {
+	logx.Infof("Starting MCP server %s v%s on %s:%d",
+		s.conf.Mcp.Name, s.conf.Mcp.Version, s.conf.Host, s.conf.Port)
+	s.httpServer.Start()
+}
+
+// Stop implements McpServer.
+func (s *mcpServerImpl) Stop() {
+	logx.Info("Stopping MCP server")
+	s.httpServer.Stop()
+}
+
 // setupSSETransport configures the server to use SSE transport (2024-11-05 spec)
 func (s *mcpServerImpl) setupSSETransport() {
 	// Create SSE handler that returns our MCP server for each connection
@@ -111,22 +121,4 @@ func (s *mcpServerImpl) setupStreamableTransport() {
 		Path:    s.conf.Mcp.MessageEndpoint,
 		Handler: handler.ServeHTTP,
 	}, rest.WithTimeout(s.conf.Mcp.MessageTimeout))
-}
-
-// Start implements McpServer.
-func (s *mcpServerImpl) Start() {
-	logx.Infof("Starting MCP server %s v%s on %s:%d",
-		s.conf.Mcp.Name, s.conf.Mcp.Version, s.conf.Host, s.conf.Port)
-	s.httpServer.Start()
-}
-
-// Stop implements McpServer.
-func (s *mcpServerImpl) Stop() {
-	logx.Info("Stopping MCP server")
-	s.httpServer.Stop()
-}
-
-// Server implements McpServer.
-func (s *mcpServerImpl) Server() *sdkmcp.Server {
-	return s.mcpServer
 }
