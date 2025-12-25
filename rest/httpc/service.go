@@ -2,7 +2,10 @@ package httpc
 
 import (
 	"context"
+	"errors"
+	"net"
 	"net/http"
+	"net/url"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 )
@@ -67,8 +70,44 @@ func (s namedService) do(r *http.Request) (resp *http.Response, err error) {
 		resp, err = s.cli.Do(r)
 		return err
 	}, func(err error) bool {
-		return err == nil && resp.StatusCode < http.StatusInternalServerError
+		return acceptable(resp, err)
 	})
 
 	return
+}
+
+// acceptable determines whether the HTTP request/response should be considered
+// successful for circuit breaker purposes.
+//
+// Returns true (acceptable) for:
+//   - HTTP status codes < 500 (2xx, 3xx, 4xx)
+//   - Context cancellation (user-initiated)
+//   - Non-network errors (application-level errors)
+//
+// Returns false (not acceptable, triggers breaker) for:
+//   - HTTP status codes >= 500 (server errors)
+//   - context.DeadlineExceeded (timeout)
+//   - Network errors (connection refused, DNS failures, etc.)
+func acceptable(resp *http.Response, err error) bool {
+	if err == nil {
+		return resp.StatusCode < http.StatusInternalServerError
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+
+	if errors.Is(err, context.Canceled) {
+		return true
+	}
+
+	// Unwrap url.Error if present
+	var ue *url.Error
+	if errors.As(err, &ue) {
+		err = ue.Unwrap()
+	}
+
+	// Network errors are not acceptable
+	var ne net.Error
+	return !errors.As(err, &ne)
 }
