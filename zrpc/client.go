@@ -9,6 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/breaker"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
@@ -76,7 +77,11 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		})))
 	}
 
-	svcCfg := makeLBServiceConfig(c.BalancerName)
+	balancerName := c.BalancerName
+	if c.Middlewares.Breaker {
+		balancerName = breaker.GetName(c.BalancerName, c.BreakerStrategy)
+	}
+	svcCfg := makeLBServiceConfig(balancerName)
 	opts = append(opts, WithDialOption(grpc.WithDefaultServiceConfig(svcCfg)))
 
 	opts = append(opts, options...)
