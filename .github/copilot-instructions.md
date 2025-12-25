@@ -172,6 +172,109 @@ err := c.QueryRowCtx(ctx, &dest, key, func(ctx context.Context, conn sqlx.SqlCon
 3. **API documentation**: Maintain API documentation in sync
 4. **README updates**: Update README for significant changes
 
+## GitHub Issue Management
+
+### Understanding and Categorizing Issues
+
+When analyzing GitHub issues, consider these common categories:
+
+1. **Bug Reports**: Stack traces, version info, reproduction steps
+2. **Feature Requests**: Use case, proposed solution, alternatives
+3. **Questions**: Usage, configuration, or architecture
+4. **Documentation Issues**: Missing, unclear, or incorrect docs
+5. **Performance Issues**: Benchmarks, profiling data, resource usage
+
+### Issue Analysis Checklist
+
+- Identify affected component (REST, RPC, Gateway, MCP, Core utilities, goctl)
+- Check versions (go-zero, Go)
+- Look for reproduction steps or code examples
+- Review code snippets, logs, or stack traces
+- Check if related to resilience features (breaker, load shedding, rate limiting)
+- Determine production impact
+
+### Responding to Issues
+
+Be helpful and professional. Ask clarifying questions when needed. Reference relevant documentation and code files. Provide code examples following project conventions. Suggest workarounds when applicable.
+
+### Chinese to English Translation
+
+go-zero has an international user base. When encountering issues or comments written in Chinese, translate them to English to ensure all contributors can participate in discussions.
+
+#### Translation Guidelines
+
+1. **Update issue titles**: Edit the issue title to include English translation only
+2. **Translate comments in place**: Add a comment with the English translation, followed by the original Chinese text
+3. **Keep original Chinese**: After translating, include the original Chinese text in a blockquote for verification
+4. **Encourage English communication**: Politely suggest users write in English for better collaboration
+5. **Maintain technical accuracy**: Preserve technical terms, component names, and code exactly
+6. **Translate naturally**: Avoid literal word-by-word translation; use idiomatic English
+7. **Preserve formatting**: Keep markdown formatting, code blocks, and links intact
+8. **Keep URLs unchanged**: Don't translate URLs or file paths
+
+#### Common Technical Terms (Chinese → English)
+
+- 框架 → **Framework** | 中间件 → **Middleware** | 负载均衡 → **Load Balancing**
+- 熔断器 → **Circuit Breaker** | 限流 → **Rate Limiting** | 降载/过载保护 → **Load Shedding**
+- 服务发现 → **Service Discovery** | 配置 → **Configuration** | 弹性/容错 → **Resilience** | 微服务 → **Microservices**
+
+#### Translation Example
+
+**Original Chinese Title:** `goctl 执行环境问题`
+**Updated Title:** `goctl Execution Environment Issue`
+
+**Original Chinese Comment:** `我在项目中遇到熔断器配置问题`
+**Translation in Comment:**
+```markdown
+I encountered a circuit breaker configuration issue in my project.
+
+> Original (原文): 我在项目中遇到熔断器配置问题
+```
+
+### Common Issue Patterns and Solutions
+
+#### Configuration Issues
+- Check `service.ServiceConf` embedding and struct tags
+- Verify YAML syntax, defaults, and validation rules
+- Reference: [rest/config.go](rest/config.go), [zrpc/config.go](zrpc/config.go)
+
+#### Code Generation (goctl) Issues
+- Verify `.api` or `.proto` file syntax and goctl version
+- Reference: `tools/goctl/` directory
+
+#### RPC Connection Issues
+- Check etcd configuration, service discovery, and endpoints
+- Verify load balancing settings (p2c_ewma)
+
+#### Database/Cache Issues
+- Verify `sqlx.SqlConn` usage with context
+- Check cache key generation, invalidation, and connection pools
+- Use test helpers (`redistest`, `mongtest`)
+
+#### Performance Issues
+- Check if load shedding is enabled (mode: `pre`/`pro`)
+- Review circuit breaker thresholds, rate limiting, and context timeouts
+
+### Referencing Codebase
+
+When explaining issues, reference specific files and patterns:
+- REST API: `rest/`, `rest/handler/`, `rest/httpx/`
+- RPC: `zrpc/`, `zrpc/internal/`
+- Core utilities: `core/breaker/`, `core/limit/`, `core/load/`, etc.
+- Gateway: `gateway/`
+- MCP: `mcp/`
+- Code generation: `tools/goctl/`
+- Examples: `adhoc/` directory contains various examples
+
+### Encouraging Best Practices
+
+When responding to issues, gently guide users toward:
+- Proper error handling with context
+- Using resilience features (breakers, rate limiters)
+- Following testing patterns with table-driven tests
+- Implementing proper resource cleanup
+- Reading existing documentation in `docs/` and `readme.md`
+
 ## Common Patterns to Follow
 
 ### Service Configuration
@@ -203,7 +306,7 @@ Always implement proper resource cleanup using defer and context cancellation.
 ## Build and Test Commands
 
 - Build: `go build ./...`
-- Test: `go test ./...`  
+- Test: `go test ./...`
 - Test with race detection: `go test -race ./...`
 - Format: `gofmt -w .`
 - Code generation:
