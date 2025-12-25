@@ -444,6 +444,8 @@ func wrapLevelWithColor(level string) string {
 		colour = color.FgRed
 	case levelError:
 		colour = color.FgRed
+	case levelSevere:
+		colour = color.FgRed
 	case levelFatal:
 		colour = color.FgRed
 	case levelInfo:

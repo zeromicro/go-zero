@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	// TraceOption defines the method to customize an traceOptions.
+	// TraceOption defines the method to customize a traceOptions.
 	TraceOption func(options *traceOptions)
 
 	// traceOptions is TraceHandler options.
