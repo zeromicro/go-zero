@@ -105,6 +105,7 @@ Flags:
       --style string      The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md] (default "gozero")
   -v, --verbose           Enable log output
       --zrpc_out string   The zrpc output directory
+      --name string   Rpc service name. Setting the rpc service name prevents it from defaulting to the proto file name. This enables the use of multiple proto files within the same service for code generation.
 ```
 
 ### 参数说明
@@ -115,6 +116,7 @@ Flags:
 * --style 指定文件输出格式
 * -v, --verbose 显示日志
 * --zrpc_out 指定zrpc输出目录
+* --name 指定rpc服务名，如果如果不设置就使用proto文件名作为rpc服务名称，同时也允许在同一个rpc服务中使用多个proto文件来生成代码
 
 > ## --multiple
 > 是否开启多个 rpc service 生成，如果开启，则满足一下新特性
@@ -200,4 +202,160 @@ hello
     └── hello
         ├── hello.pb.go
         └── hello_grpc.pb.go
+```
+
+### --name
+分别执行以下命令
+```shell
+goctl.exe rpc protoc app/pb/user.proto --go_out=./app/pb --go-grpc_out=./app/pb --zrpc_out=./app --style=go_zero -m --name app
+goctl.exe rpc protoc app/pb/role.proto --go_out=./app/pb --go-grpc_out=./app/pb --zrpc_out=./app --style=go_zero -m --name app
+```
+生成目录结构如下：
+```text
+app/
+├── app.go
+├── client/
+│   ├── roleservice/
+│   │   └── role_service.go
+│   └── userservice/
+│       └── user_service.go
+├── etc/
+│   └── app.yaml
+├── internal/
+│   ├── config/
+│   │   └── config.go
+│   ├── logic/
+│   │   ├── roleservice/
+│   │   │   ├── create_role_logic.go
+│   │   │   └── update_role_logic.go
+│   │   └── userservice/
+│   │       ├── create_user_logic.go
+│   │       └── user_detail_logic.go
+│   ├── server/
+│   │   ├── roleservice/
+│   │   │   └── role_service_server.go
+│   │   └── userservice/
+│   │       └── user_service_server.go
+│   └── svc/
+│       └── service_context.go
+└── pb/
+    ├── role/
+    │   ├── role.pb.go
+    │   └── role_grpc.pb.go
+    ├── user/
+    │     ├── user.pb.go
+    │     └── user_grpc.pb.go
+    ├── user.proto
+    └── role.proto
+```
+
+## 使用多个proto生成rpc服务，并且允许导入其他proto文件
+目录结构如下：
+```text
+root/
+├── app/
+│   └──pb/
+│      ├── subpb/
+│      ├── common.proto
+│      ├── role.proto
+│      └── user.proto 
+└── third_party/
+    └── google/
+```
+commom.proto
+```protobuf
+syntax = "proto3";
+
+package common;
+
+option go_package = "github/xxx/project/app/pb/common";
+
+message EmptyRequest {
+}
+
+message EmptyResponse {
+}
+```
+role.proto
+```protobuf
+syntax = "proto3";
+
+package role;
+option go_package = "github/xxx/project/app/pb/role";
+
+import "common.proto";
+import "google/protobuf/any.proto";
+import "subpb/sub.proto";
+
+message GetRoleRequest {
+  string id = 1;
+}
+
+message GetRoleResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+
+service role {
+//  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  rpc Empty(common.EmptyRequest) returns (subpb.sub.SubMessage);
+  rpc GetRole(google.protobuf.Any) returns (GetRoleResponse);
+  rpc GetStream(stream GetRoleRequest) returns (stream subpb.sub.SubResponse);
+  rpc GetStream2(GetRoleRequest) returns (stream subpb.sub.SubResponse);
+  rpc GetStream3(stream GetRoleRequest) returns (subpb.sub.SubResponse);
+}
+```
+user.proto
+```protobuf
+syntax = "proto3";
+
+package user;
+option go_package = "github/xxx/project/app/pb/user";
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  string id = 1;
+  string name = 2;
+}
+service user {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+```
+sub.proto
+```protobuf
+syntax = "proto3";
+
+package subpb.sub;
+
+option go_package = "github/xxx/project/app/pb/subpb/sub;sub";
+
+message SubMessage {
+  string name = 1;
+}
+
+message SubResponse {
+  SubMessage message = 1;
+}
+```
+执行命令生成rpc服务(需要配合go_package一起使用)
+```shell
+goctl rpc protoc \
+app/pb/role.proto \
+app/pb/user.proto \
+app/pb/common.proto \
+app/pb/subpb/sub.proto \
+--go_out=./app/pb \
+--go_opt=module=github/xxx/project/app/pb \
+--go-grpc_out=./app/pb \
+--go-grpc_opt=module=github/xxx/project/app/pb \
+--zrpc_out=./app \
+--style go_zero \
+-I ./app/pb \
+-I ./third_party \
+-m --name=myapp 
 ```

@@ -4,12 +4,15 @@ import (
 	"errors"
 	"go/token"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/emicklei/proto"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 type (
@@ -24,9 +27,22 @@ func NewDefaultProtoParser() *DefaultProtoParser {
 	return &DefaultProtoParser{}
 }
 
+func (p *DefaultProtoParser) ParseAll(sources []string, protoPath []string, multiple ...bool) ([]Proto, error) {
+	var protos []Proto
+	for _, source := range sources {
+		parsed, err := p.Parse(source, protoPath, multiple...)
+		if err != nil {
+			return nil, err
+		}
+		protos = append(protos, parsed)
+	}
+	return protos, nil
+
+}
+
 // Parse provides to parse the proto file into a golang structure,
 // which is convenient for subsequent rpc generation and use
-func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) {
+func (p *DefaultProtoParser) Parse(src string, protoPath []string, multiple ...bool) (Proto, error) {
 	var ret Proto
 
 	abs, err := filepath.Abs(src)
@@ -50,7 +66,11 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 	proto.Walk(
 		set,
 		proto.WithImport(func(i *proto.Import) {
-			ret.Import = append(ret.Import, Import{Import: i})
+			importProto := Import{
+				Import: i,
+				Proto:  p.parseImportProto(i.Filename, protoPath, multiple...),
+			}
+			ret.Import = append(ret.Import, importProto)
 		}),
 		proto.WithMessage(func(message *proto.Message) {
 			ret.Message = append(ret.Message, Message{Message: message})
@@ -73,10 +93,13 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 		}),
 		proto.WithOption(func(option *proto.Option) {
 			if option.Name == "go_package" {
-				ret.GoPackage = option.Constant.Source
+				goPackage := option.Constant.Source
+				goPackageArr := strings.Split(goPackage, ";")
+				ret.GoPackage = goPackageArr[0]
 			}
 		}),
 	)
+
 	if err = serviceList.validate(abs, multiple...); err != nil {
 		return ret, err
 	}
@@ -92,8 +115,26 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 	ret.Src = abs
 	ret.Name = filepath.Base(abs)
 	ret.Service = serviceList
+	ret.generateImportMessageMap()
 
 	return ret, nil
+}
+
+// parseImportProto provides to parse the import proto file
+func (p *DefaultProtoParser) parseImportProto(importFileName string, protoPath []string, multiple ...bool) Proto {
+	var importProto Proto
+	var err error
+	for index := range protoPath {
+		protoFilePath := path.Join(protoPath[index], importFileName)
+		if !pathx.FileExists(protoFilePath) {
+			continue
+		}
+		importProto, err = p.Parse(protoFilePath, protoPath, multiple...)
+		if err == nil {
+			break
+		}
+	}
+	return importProto
 }
 
 // GoSanitized copy from protobuf, for more information, please see google.golang.org/protobuf@v1.25.0/internal/strs/strings.go:71

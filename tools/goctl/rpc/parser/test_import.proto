@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package stream;
+
+import "common/common.proto";
+
+message placeholder {}
+
+service greet {
+  rpc hello (placeholder) returns (common.CommonMessage);
+}

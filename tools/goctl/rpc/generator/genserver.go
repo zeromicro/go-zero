@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/collection"
+
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -69,9 +70,17 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 		imports := collection.NewSet[string]()
 		imports.Add(logicImport, svcImport, pbImport)
 
+		for _, rpc := range service.RPC {
+			funcImports, err := getImports(ctx, proto, rpc)
+			if err != nil {
+				return err
+			}
+			imports.Add(funcImports...)
+		}
+
 		head := util.GetHead(proto.Name)
 
-		funcList, err := g.genFunctions(proto.PbPackage, service, true)
+		funcList, err := g.genFunctions(proto.PbPackage, service, proto, true)
 		if err != nil {
 			return err
 		}
@@ -114,6 +123,14 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 	imports := collection.NewSet[string]()
 	imports.Add(logicImport, svcImport, pbImport)
 
+	for _, rpc := range proto.Service[0].RPC {
+		funcImports, err := getImports(ctx, proto, rpc)
+		if err != nil {
+			return err
+		}
+		imports.Add(funcImports...)
+	}
+
 	head := util.GetHead(proto.Name)
 	service := proto.Service[0]
 	serverFilename, err := format.FileNamingFormat(cfg.NamingFormat, service.Name+"_server")
@@ -122,7 +139,7 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 	}
 
 	serverFile := filepath.Join(dir.Filename, serverFilename+".go")
-	funcList, err := g.genFunctions(proto.PbPackage, service, false)
+	funcList, err := g.genFunctions(proto.PbPackage, service, proto, false)
 	if err != nil {
 		return err
 	}
@@ -151,7 +168,7 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 	}, serverFile, true)
 }
 
-func (g *Generator) genFunctions(goPackage string, service parser.Service, multiple bool) ([]string, error) {
+func (g *Generator) genFunctions(goPackage string, service parser.Service, proto parser.Proto, multiple bool) ([]string, error) {
 	var (
 		functionList []string
 		logicPkg     string
@@ -173,14 +190,25 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, multi
 		}
 
 		comment := parser.GetComment(rpc.Doc())
-		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name),
-			parser.CamelCase(rpc.Name), "Server")
+		requestMsg, existed := proto.GetImportMessage(rpc.RequestType)
+		if !existed {
+			err = fmt.Errorf("request type %s is invalid", rpc.RequestType)
+			return nil, err
+		}
+		responseMsg, existed := proto.GetImportMessage(rpc.ReturnsType)
+		if !existed {
+			err = fmt.Errorf("response type %s is invalid", rpc.ReturnsType)
+			return nil, err
+		}
+		// streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name),
+		// 	parser.CamelCase(rpc.Name), "Server")
+		streamServer := buildPackageArg(goPackage, fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Server"), false)
 		buffer, err := util.With("func").Parse(text).Execute(map[string]any{
 			"server":     stringx.From(service.Name).ToCamel(),
 			"logicName":  logicName,
 			"method":     parser.CamelCase(rpc.Name),
-			"request":    fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.RequestType)),
-			"response":   fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),
+			"request":    buildPackageArg(requestMsg.PbPackage, requestMsg.Name, true),
+			"response":   buildPackageArg(responseMsg.PbPackage, responseMsg.Name, true),
 			"hasComment": len(comment) > 0,
 			"comment":    comment,
 			"hasReq":     !rpc.StreamsRequest,

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
@@ -17,7 +18,7 @@ var (
 	}))
 
 	newCmd    = cobrax.NewCommand("new", cobrax.WithRunE(cli.RPCNew), cobrax.WithArgs(cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs)))
-	protocCmd = cobrax.NewCommand("protoc", cobrax.WithRunE(cli.ZRPC), cobrax.WithArgs(cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs)))
+	protocCmd = cobrax.NewCommand("protoc", cobrax.WithRunE(cli.ZRPC), cobrax.WithArgs(cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs)))
 )
 
 func init() {
@@ -59,6 +60,7 @@ func init() {
 	protocCmdFlags.StringVar(&cli.VarStringRemote, "remote")
 	protocCmdFlags.StringVar(&cli.VarStringBranch, "branch")
 	protocCmdFlags.StringVar(&cli.VarStringModule, "module")
+	protocCmdFlags.StringVar(&cli.VarStringName, "name")
 	protocCmdFlags.BoolVarP(&cli.VarBoolVerbose, "verbose", "v")
 	protocCmdFlags.MarkHidden("go_out")
 	protocCmdFlags.MarkHidden("go-grpc_out")
