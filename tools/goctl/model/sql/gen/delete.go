@@ -58,6 +58,7 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 	deleteMethodOut, err := util.With("deleteMethod").
 		Parse(text).
 		Execute(map[string]any{
+			"withCache":                 withCache,
 			"lowerStartCamelPrimaryKey": util.EscapeGolangKeyword(stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle()),
 			"dataType":                  table.PrimaryKey.DataType,
 			"data":                      table,
