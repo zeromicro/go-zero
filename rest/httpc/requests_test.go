@@ -21,10 +21,11 @@ import (
 
 func TestDoRequest(t *testing.T) {
 	ztrace.StartAgent(ztrace.Config{
-		Name:     "go-zero-test",
-		Endpoint: "http://localhost:14268/api/traces",
-		Batcher:  "jaeger",
-		Sampler:  1.0,
+		Name:         "go-zero-test",
+		Endpoint:     "http://localhost:14268",
+		OtlpHttpPath: "/v1/traces",
+		Batcher:      "otlphttp",
+		Sampler:      1.0,
 	})
 	defer ztrace.StopAgent()
 
