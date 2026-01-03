@@ -8,7 +8,7 @@ type Config struct {
 	Name     string  `json:",optional"`
 	Endpoint string  `json:",optional"`
 	Sampler  float64 `json:",default=1.0"`
-	Batcher  string  `json:",default=jaeger,options=jaeger|zipkin|otlpgrpc|otlphttp|file"`
+	Batcher  string  `json:",default=otlpgrpc,options=zipkin|otlpgrpc|otlphttp|file"`
 	// OtlpHeaders represents the headers for OTLP gRPC or HTTP transport.
 	// For example:
 	//  uptrace-dsn: 'http://project2_secret_token@localhost:14317/2'

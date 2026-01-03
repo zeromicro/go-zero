@@ -18,17 +18,16 @@ type McpConf struct {
 		// Version is the server version reported in initialize responses
 		Version string `json:",default=1.0.0"`
 
-		// ProtocolVersion is the MCP protocol version implemented
-		ProtocolVersion string `json:",default=2024-11-05"`
-
-		// BaseUrl is the base URL for the server, used in SSE endpoint messages
-		// If not set, defaults to http://localhost:{Port}
-		BaseUrl string `json:",optional"`
+		// UseStreamable when true uses Streamable HTTP transport (2025-03-26 spec),
+		// otherwise uses SSE transport (2024-11-05 spec)
+		UseStreamable bool `json:",default=false"`
 
 		// SseEndpoint is the path for Server-Sent Events connections
+		// Used for SSE transport mode
 		SseEndpoint string `json:",default=/sse"`
 
 		// MessageEndpoint is the path for JSON-RPC requests
+		// Used for Streamable HTTP transport mode
 		MessageEndpoint string `json:",default=/message"`
 
 		// Cors contains allowed CORS origins
