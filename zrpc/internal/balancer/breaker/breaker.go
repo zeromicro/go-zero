@@ -5,7 +5,8 @@ import (
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash"
+	"github.com/zeromicro/go-zero/core/logx"
+	_ "github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash" // ensure consistenthash is registered
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/codes"
 	"google.golang.org/grpc/balancer"
@@ -15,10 +16,6 @@ import (
 const (
 	// BalancerSuffix is the suffix for breaker-enabled balancer.
 	BalancerSuffix = "_breaker"
-	// noRetry means only one attempt without retry
-	noRetry = 1
-	// defaultRetryTimes is the default retry times when instance breaker is triggered
-	defaultRetryTimes = 3
 
 	// strategyService uses target/method as breaker name (all instances share one breaker)
 	strategyService = "service"
@@ -26,18 +23,16 @@ const (
 	strategyInstance = "instance"
 )
 
-var emptyPickResult balancer.PickResult
+var (
+	emptyPickResult balancer.PickResult
+	registerLock    sync.Mutex
+)
 
-func init() {
-	// Register breaker-enabled balancers for both strategies
-	Register(p2c.Name, strategyService)
-	Register(p2c.Name, strategyInstance)
-	Register(consistenthash.Name, strategyService)
-	Register(consistenthash.Name, strategyInstance)
-}
-
-// GetName returns the balancer name for the given base name and strategy.
-func GetName(baseName, strategy string) string {
+// GetBalancerName returns the balancer name for the given base name and strategy.
+func GetBalancerName(baseName, strategy string) string {
+	if baseName == "" {
+		baseName = p2c.Name
+	}
 	if strategy == strategyInstance {
 		return baseName + BalancerSuffix + "_" + strategyInstance
 	}
@@ -45,20 +40,32 @@ func GetName(baseName, strategy string) string {
 }
 
 // Register registers a breaker-enabled balancer that wraps the base balancer.
-func Register(baseName, strategy string) {
-	baseBuilder := balancer.Get(baseName)
-	if baseBuilder == nil {
+// It's safe to call multiple times - if already registered, it returns immediately.
+func Register(baseName, strategy string, retryTimes int) {
+	registerLock.Lock()
+	defer registerLock.Unlock()
+
+	if len(baseName) == 0 {
+		baseName = p2c.Name
+	}
+	if retryTimes < 0 {
+		retryTimes = 0
+	}
+
+	name := GetBalancerName(baseName, strategy)
+	if balancer.Get(name) != nil {
 		return
 	}
 
-	retryTimes := defaultRetryTimes
-	if baseName == consistenthash.Name {
-		retryTimes = noRetry
+	baseBuilder := balancer.Get(baseName)
+	if baseBuilder == nil {
+		logx.Errorf("balancer %q not found, make sure it's registered before creating client", baseName)
+		return
 	}
 
 	balancer.Register(&breakerBuilder{
 		baseBuilder: baseBuilder,
-		name:        GetName(baseName, strategy),
+		name:        name,
 		strategy:    strategy,
 		retryTimes:  retryTimes,
 	})
@@ -87,6 +94,8 @@ func (b *breakerBuilder) Build(cc balancer.ClientConn, opts balancer.BuildOption
 	return b.baseBuilder.Build(wrappedCC, opts)
 }
 
+// extractTarget extracts the target name from BuildOptions.
+// It first tries to use the URL path, falling back to the endpoint if empty.
 func extractTarget(opts balancer.BuildOptions) string {
 	target := opts.Target.URL.Path
 	if len(target) > 0 && target[0] == '/' {
@@ -108,6 +117,7 @@ type breakerClientConn struct {
 	retryTimes int
 }
 
+// NewSubConn creates a new SubConn and tracks its address for breaker naming.
 func (cc *breakerClientConn) NewSubConn(addrs []resolver.Address, opts balancer.NewSubConnOptions) (balancer.SubConn, error) {
 	sc, err := cc.ClientConn.NewSubConn(addrs, opts)
 	if err != nil {
@@ -123,6 +133,7 @@ func (cc *breakerClientConn) NewSubConn(addrs []resolver.Address, opts balancer.
 	return sc, nil
 }
 
+// RemoveSubConn removes the SubConn from tracking and delegates to the underlying ClientConn.
 func (cc *breakerClientConn) RemoveSubConn(sc balancer.SubConn) {
 	cc.lock.Lock()
 	delete(cc.conns, sc)
@@ -131,6 +142,7 @@ func (cc *breakerClientConn) RemoveSubConn(sc balancer.SubConn) {
 	cc.ClientConn.RemoveSubConn(sc)
 }
 
+// UpdateState wraps the picker with breaker logic and updates the state.
 func (cc *breakerClientConn) UpdateState(state balancer.State) {
 	cc.lock.RLock()
 	conns := make(map[balancer.SubConn]string, len(cc.conns))
@@ -159,6 +171,8 @@ type breakerPicker struct {
 	retryTimes int
 }
 
+// Pick selects a SubConn with circuit breaker protection.
+// It delegates to pickWithServiceBreaker or pickWithInstanceBreaker based on strategy.
 func (p *breakerPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	if p.strategy == strategyService {
 		return p.pickWithServiceBreaker(info)
@@ -166,16 +180,18 @@ func (p *breakerPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error
 	return p.pickWithInstanceBreaker(info)
 }
 
+// pickWithServiceBreaker uses target/method as breaker name.
+// All instances share one breaker for the same target/method combination.
 func (p *breakerPicker) pickWithServiceBreaker(info balancer.PickInfo) (balancer.PickResult, error) {
 	breakerName := path.Join(p.target, info.FullMethodName)
-	promise, err := breaker.GetBreaker(breakerName).Allow()
+	promise, err := breaker.GetBreaker(breakerName).AllowCtx(info.Ctx)
 	if err != nil {
 		return emptyPickResult, err
 	}
 
 	result, err := p.picker.Pick(info)
 	if err != nil {
-		promise.Reject(err.Error())
+		promise.Accept()
 		return result, err
 	}
 
@@ -183,9 +199,31 @@ func (p *breakerPicker) pickWithServiceBreaker(info balancer.PickInfo) (balancer
 	return result, nil
 }
 
+// pickWithInstanceBreaker uses addr/method as breaker name.
+// Each instance has its own breaker, allowing retry on different instances when one is broken.
 func (p *breakerPicker) pickWithInstanceBreaker(info balancer.PickInfo) (balancer.PickResult, error) {
-	triedAddrs := make(map[string]struct{})
-	var lastBreakerErr error
+	// First attempt
+	result, err := p.picker.Pick(info)
+	if err != nil {
+		return result, err
+	}
+
+	addr := p.conns[result.SubConn]
+	if addr == "" {
+		return result, nil
+	}
+
+	promise, err := breaker.GetBreaker(path.Join(addr, info.FullMethodName)).AllowCtx(info.Ctx)
+	if err == nil {
+		// First instance is available, return directly
+		result.Done = p.buildDoneFunc(result.Done, promise)
+		return result, nil
+	}
+
+	// First instance is broken, try other instances
+	metricInstanceBreakerTriggered.Inc(addr, info.FullMethodName)
+	triedAddrs := map[string]struct{}{addr: {}}
+	lastBreakerErr := err
 
 	for i := 0; i < p.retryTimes; i++ {
 		result, err := p.picker.Pick(info)
@@ -202,7 +240,7 @@ func (p *breakerPicker) pickWithInstanceBreaker(info balancer.PickInfo) (balance
 		}
 		triedAddrs[addr] = struct{}{}
 
-		promise, err := breaker.GetBreaker(path.Join(addr, info.FullMethodName)).Allow()
+		promise, err := breaker.GetBreaker(path.Join(addr, info.FullMethodName)).AllowCtx(info.Ctx)
 		if err != nil {
 			lastBreakerErr = err
 			metricInstanceBreakerTriggered.Inc(addr, info.FullMethodName)
@@ -216,6 +254,8 @@ func (p *breakerPicker) pickWithInstanceBreaker(info balancer.PickInfo) (balance
 	return emptyPickResult, lastBreakerErr
 }
 
+// buildDoneFunc wraps the original Done callback with breaker result reporting.
+// It calls Accept for successful requests or acceptable errors, Reject otherwise.
 func (p *breakerPicker) buildDoneFunc(
 	originalDone func(balancer.DoneInfo),
 	promise breaker.Promise,

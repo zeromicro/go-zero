@@ -79,7 +79,8 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 	balancerName := c.BalancerName
 	if c.Middlewares.Breaker {
-		balancerName = breaker.GetName(c.BalancerName, c.BreakerStrategy)
+		breaker.Register(c.BalancerName, c.BreakerStrategy, c.BreakerRetryTimes)
+		balancerName = breaker.GetBalancerName(c.BalancerName, c.BreakerStrategy)
 	}
 	svcCfg := makeLBServiceConfig(balancerName)
 	opts = append(opts, WithDialOption(grpc.WithDefaultServiceConfig(svcCfg)))
