@@ -74,12 +74,18 @@ func Action(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
+	pkg := file.SafeString(filepath.Base(a))
+	if len(pkg) == 0 || strings.HasPrefix(pkg, "_") {
+		pkg = "model"
+	}
+
 	return generate.Do(&generate.Context{
 		Types:  tp,
 		Cache:  c,
 		Prefix: p,
 		Easy:   easy,
 		Output: a,
+		Pkg:    pkg,
 		Cfg:    cfg,
 	})
 }
