@@ -23,61 +23,125 @@ var (
 	sseHandlerTemplate string
 )
 
-func genHandler(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
-	handler := getHandlerName(route)
-	handlerPath := getHandlerFolderPath(group, route)
-	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
-	logicName := defaultLogicPackage
-	if handlerPath != handlerDir {
-		handler = strings.Title(handler)
-		logicName = pkgName
-	}
-	filename, err := format.FileNamingFormat(cfg.NamingFormat, handler)
-	if err != nil {
-		return err
-	}
-
-	var builtinTemplate = handlerTemplate
-	var templateFile = handlerTemplateFile
-	sse := group.GetAnnotation("sse")
-	if sse == "true" {
-		builtinTemplate = sseHandlerTemplate
-		templateFile = sseHandlerTemplateFile
-	}
-
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          getHandlerFolderPath(group, route),
-		filename:        filename + ".go",
-		templateName:    "handlerTemplate",
-		category:        category,
-		templateFile:    templateFile,
-		builtinTemplate: builtinTemplate,
-		data: map[string]any{
-			"PkgName":        pkgName,
-			"ImportPackages": genHandlerImports(group, route, rootPkg),
-			"HandlerName":    handler,
-			"RequestType":    util.Title(route.RequestTypeName()),
-			"ResponseType":   responseGoTypeName(route, typesPacket),
-			"LogicName":      logicName,
-			"LogicType":      strings.Title(getLogicName(route)),
-			"Call":           strings.Title(strings.TrimSuffix(handler, "Handler")),
-			"HasResp":        len(route.ResponseTypeName()) > 0,
-			"HasRequest":     len(route.RequestTypeName()) > 0,
-			"HasDoc":         len(route.JoinedDoc()) > 0,
-			"Doc":            getDoc(route.JoinedDoc()),
-			"projectPkg":     projectPkg,
-			"version":        version.BuildVersion,
-		},
-	})
-}
-
 func genHandlers(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+	type fileKey struct {
+		subdir   string
+		filename string
+	}
+
+	type handlerFile struct {
+		pkgName   string
+		imports   []string
+		handlers  []map[string]any
+		sseEnable bool
+	}
+
+	files := make(map[fileKey]*handlerFile)
+
 	for _, group := range api.Service.Groups {
+		sse := group.GetAnnotation("sse") == "true"
 		for _, route := range group.Routes {
-			if err := genHandler(dir, rootPkg, projectPkg, cfg, group, route); err != nil {
+			handlerName := getHandlerName(route)
+			handlerPath := getHandlerFolderPath(group, route)
+			pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
+			logicName := defaultLogicPackage
+			if handlerPath != handlerDir {
+				handlerName = strings.Title(handlerName)
+				logicName = pkgName
+			}
+
+			fileBase := route.GetAnnotation(filenameProperty)
+			if len(fileBase) == 0 {
+				fileBase = group.GetAnnotation(filenameProperty)
+			}
+			if len(fileBase) == 0 {
+				fileBase = handlerName
+			}
+
+			fileBase, err := format.FileNamingFormat(cfg.NamingFormat, fileBase)
+			if err != nil {
 				return err
 			}
+
+			subdir := getHandlerFolderPath(group, route)
+			key := fileKey{
+				subdir:   subdir,
+				filename: fileBase + ".go",
+			}
+
+			f, ok := files[key]
+			if !ok {
+				f = &handlerFile{
+					pkgName:   pkgName,
+					imports:   nil,
+					handlers:  nil,
+					sseEnable: sse,
+				}
+				files[key] = f
+			}
+
+			importsStr := genHandlerImports(group, route, rootPkg)
+			for _, imp := range strings.Split(importsStr, "\n\t") {
+				imp = strings.TrimSpace(imp)
+				if len(imp) == 0 {
+					continue
+				}
+				found := false
+				for _, existing := range f.imports {
+					if existing == imp {
+						found = true
+						break
+					}
+				}
+				if !found {
+					f.imports = append(f.imports, imp)
+				}
+			}
+
+			handlerData := map[string]any{
+				"HandlerName":  handlerName,
+				"RequestType":  util.Title(route.RequestTypeName()),
+				"ResponseType": responseGoTypeName(route, typesPacket),
+				"LogicName":    logicName,
+				"LogicType":    strings.Title(getLogicName(route)),
+				"Call":         strings.Title(strings.TrimSuffix(handlerName, "Handler")),
+				"HasResp":      len(route.ResponseTypeName()) > 0,
+				"HasRequest":   len(route.RequestTypeName()) > 0,
+				"HasDoc":       len(route.JoinedDoc()) > 0,
+				"Doc":          getDoc(route.JoinedDoc()),
+			}
+
+			f.handlers = append(f.handlers, handlerData)
+		}
+	}
+
+	for key, f := range files {
+		importsJoined := strings.Join(f.imports, "\n\t")
+
+		builtinTemplate := handlerTemplate
+		templateFile := handlerTemplateFile
+		if f.sseEnable {
+			builtinTemplate = sseHandlerTemplate
+			templateFile = sseHandlerTemplateFile
+		}
+
+		if err := genFile(fileGenConfig{
+			dir:             dir,
+			subdir:          key.subdir,
+			filename:        key.filename,
+			templateName:    "handlerTemplate",
+			category:        category,
+			templateFile:    templateFile,
+			builtinTemplate: builtinTemplate,
+			data: map[string]any{
+				"PkgName":        f.pkgName,
+				"ImportPackages": importsJoined,
+				"Handlers":       f.handlers,
+				"projectPkg":     projectPkg,
+				"version":        version.BuildVersion,
+			},
+		}); err != nil {
+			return err
 		}
 	}
 
