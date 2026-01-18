@@ -75,7 +75,7 @@ func Action(_ *cobra.Command, _ []string) error {
 	}
 
 	pkg := file.SafeString(filepath.Base(a))
-	if len(pkg) == 0 || strings.HasPrefix(pkg, "_") {
+	if strings.HasPrefix(pkg, "_") {
 		pkg = "model"
 	}
 
