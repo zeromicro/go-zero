@@ -1,0 +1,190 @@
+syntax = "v1"
+
+info (
+	title:   "filename feature demo"
+	desc:    "Demonstrate the necessity of filename annotation"
+	version: "1.0"
+)
+
+type (
+	// Product - 商品资源
+	ProductReq {
+		ProductId int64 `path:"productId"`
+	}
+	ProductResp {
+		Id          int64   `json:"id"`
+		Name        string  `json:"name"`
+		Price       float64 `json:"price"`
+		Stock       int     `json:"stock"`
+		Description string  `json:"description"`
+	}
+	ProductListReq {
+		Page     int `form:"page,default=1"`
+		PageSize int `form:"page_size,default=10"`
+	}
+	ProductListResp {
+		List  []ProductResp `json:"list"`
+		Total int64         `json:"total"`
+	}
+	CreateProductReq {
+		Name        string  `json:"name"`
+		Price       float64 `json:"price"`
+		Stock       int     `json:"stock"`
+		Description string  `json:"description"`
+	}
+	UpdateProductReq {
+		ProductId   int64   `path:"productId"`
+		Name        string  `json:"name,optional"`
+		Price       float64 `json:"price,optional"`
+		Stock       int     `json:"stock,optional"`
+		Description string  `json:"description,optional"`
+	}
+	DeleteProductReq {
+		ProductId int64 `path:"productId"`
+	}
+
+	// Order - 订单流程
+	CreateOrderReq {
+		ProductId int64 `json:"product_id"`
+		Quantity  int   `json:"quantity"`
+	}
+	OrderResp {
+		OrderId   string  `json:"order_id"`
+		ProductId int64   `json:"product_id"`
+		Quantity  int     `json:"quantity"`
+		Amount    float64 `json:"amount"`
+		Status    string  `json:"status"`
+	}
+	PayOrderReq {
+		OrderId     string `path:"orderId"`
+		PaymentType string `json:"payment_type"` // wechat/alipay/card
+	}
+	ConfirmOrderReq {
+		OrderId string `path:"orderId"`
+	}
+	CancelOrderReq {
+		OrderId string `path:"orderId"`
+		Reason  string `json:"reason"`
+	}
+
+	// User - 用户认证（碎片化对比）
+	LoginReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	LoginResp {
+		Token string `json:"token"`
+	}
+	RegisterReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+	LogoutReq {
+		Token string `header:"Authorization"`
+	}
+	RefreshTokenReq {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	// Common
+	CommonResp {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+)
+
+// ========================================
+// 场景1: RESTful 资源 - 商品完整 CRUD
+// 价值：一个资源的所有操作在同一个文件，符合 RESTful 设计理念
+// 对比：不用 filename 会生成 5 个文件（get/list/create/update/delete）
+// ========================================
+
+@server (
+	group:    product
+	prefix:   /api/v1/product
+	filename: product // 商品的所有 CRUD 操作在一个文件
+)
+service demo {
+	@doc "创建商品"
+	@handler createProduct
+	post / (CreateProductReq) returns (ProductResp)
+
+	@doc "获取商品详情"
+	@handler getProduct
+	get /:productId (ProductReq) returns (ProductResp)
+
+	@doc "获取商品列表"
+	@handler listProducts
+	get /list (ProductListReq) returns (ProductListResp)
+
+	@doc "更新商品"
+	@handler updateProduct
+	put /:productId (UpdateProductReq) returns (ProductResp)
+
+	@doc "删除商品"
+	@handler deleteProduct
+	delete /:productId (DeleteProductReq) returns (CommonResp)
+}
+
+// ========================================
+// 场景2: 业务流程 - 订单生命周期
+// 价值：强关联的业务步骤在同一个文件，便于理解完整流程
+// 对比：不用 filename 会生成 4 个文件，业务逻辑被割裂
+// ========================================
+
+@server (
+	group:    order
+	prefix:   /api/v1/order
+	filename: order_flow // 订单完整流程：创建→支付→确认→取消
+)
+service demo {
+	@doc "创建订单"
+	@handler createOrder
+	post / (CreateOrderReq) returns (OrderResp)
+
+	@doc "支付订单"
+	@handler payOrder
+	post /:orderId/pay (PayOrderReq) returns (OrderResp)
+
+	@doc "确认订单"
+	@handler confirmOrder
+	post /:orderId/confirm (ConfirmOrderReq) returns (OrderResp)
+
+	@doc "取消订单"
+	@handler cancelOrder
+	post /:orderId/cancel (CancelOrderReq) returns (CommonResp)
+}
+
+// ========================================
+// 场景3: 传统方式（不使用 filename）
+// 对比：用户认证的 4 个操作会生成 4 个独立文件
+// 问题：login/register/logout/refresh 逻辑相关却分散在不同文件
+// ========================================
+
+@server (
+	group:  auth
+	prefix: /api/v1/auth
+	// 注意：这里没有 filename，会生成 4 个文件：
+	// - loginhandler.go
+	// - registerhandler.go
+	// - logouthandler.go
+	// - refreshtokenhandler.go
+)
+service demo {
+	@doc "用户登录"
+	@handler login
+	post /login (LoginReq) returns (LoginResp)
+
+	@doc "用户注册"
+	@handler register
+	post /register (RegisterReq) returns (CommonResp)
+
+	@doc "用户登出"
+	@handler logout
+	post /logout (LogoutReq) returns (CommonResp)
+
+	@doc "刷新令牌"
+	@handler refreshToken
+	post /refresh (RefreshTokenReq) returns (LoginResp)
+}
