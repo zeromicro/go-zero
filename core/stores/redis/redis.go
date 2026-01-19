@@ -2710,6 +2710,20 @@ func WithMinIdleConns(minIdleConns int) Option {
 	}
 }
 
+// WithDB customizes the given Redis with given database.
+func WithDB(db int) Option {
+	return func(r *Redis) {
+		r.db = db
+	}
+}
+
+// WithPoolSize customizes the given Redis with given pool size.
+func WithPoolSize(poolSize int) Option {
+	return func(r *Redis) {
+		r.poolSize = poolSize
+	}
+}
+
 // WithTLS customizes the given Redis with TLS enabled.
 func WithTLS() Option {
 	return func(r *Redis) {
