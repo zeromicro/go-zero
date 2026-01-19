@@ -57,9 +57,17 @@ type (
 		Type  string
 		User  string
 		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		tls          bool
+		brk          breaker.Breaker
+		hooks        []red.Hook
+		// db is the redis database number.
+		db int
+		// poolSize is the pool size for redis connection.
+		poolSize int
+		// maxRetries is the maximum number of retries for redis operations.
+		maxRetries int
+		// minIdleConns is the minimum number of idle connections.
+		minIdleConns int
 	}
 
 	// RedisNode interface represents a redis node.
@@ -136,7 +144,16 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 		opts = append([]Option{WithTLS()}, opts...)
 	}
 
+	if conf.MaxRetries != 0 {
+		opts = append([]Option{WithMaxRetries(conf.MaxRetries)}, opts...)
+	}
+	if conf.MinIdleConns > 0 {
+		opts = append([]Option{WithMinIdleConns(conf.MinIdleConns)}, opts...)
+	}
+
 	rds := newRedis(conf.Host, opts...)
+	rds.db = conf.DB
+	rds.poolSize = conf.PoolSize
 	if !conf.NonBlock {
 		if err := rds.checkConnection(conf.PingTimeout); err != nil {
 			return nil, errorx.Wrap(err, fmt.Sprintf("redis connect error, addr: %s", conf.Host))
@@ -148,9 +165,11 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 
 func newRedis(addr string, opts ...Option) *Redis {
 	r := &Redis{
-		Addr: addr,
-		Type: NodeType,
-		brk:  breaker.NewBreaker(),
+		Addr:         addr,
+		Type:         NodeType,
+		brk:          breaker.NewBreaker(),
+		maxRetries:   maxRetries,
+		minIdleConns: idleConns,
 	}
 
 	for _, opt := range opts {
@@ -2674,6 +2693,20 @@ func WithHook(hook Hook) Option {
 func WithPass(pass string) Option {
 	return func(r *Redis) {
 		r.Pass = pass
+	}
+}
+
+// WithMaxRetries customizes the given Redis with given max retries.
+func WithMaxRetries(maxRetries int) Option {
+	return func(r *Redis) {
+		r.maxRetries = maxRetries
+	}
+}
+
+// WithMinIdleConns customizes the given Redis with given min idle connections.
+func WithMinIdleConns(minIdleConns int) Option {
+	return func(r *Redis) {
+		r.minIdleConns = minIdleConns
 	}
 }
 
