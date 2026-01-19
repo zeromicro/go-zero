@@ -85,20 +85,7 @@ func (s *mcpServerImpl) setupSSETransport() {
 		return s.mcpServer
 	}, nil)
 
-	// Register the SSE endpoint
-	s.httpServer.AddRoute(rest.Route{
-		Method:  http.MethodGet,
-		Path:    s.conf.Mcp.SseEndpoint,
-		Handler: handler.ServeHTTP,
-	}, rest.WithSSE(), rest.WithTimeout(s.conf.Mcp.SseTimeout))
-
-	// The SSE handler also handles POST requests to message endpoints
-	// We need to route those as well
-	s.httpServer.AddRoute(rest.Route{
-		Method:  http.MethodPost,
-		Path:    s.conf.Mcp.SseEndpoint,
-		Handler: handler.ServeHTTP,
-	}, rest.WithTimeout(s.conf.Mcp.MessageTimeout))
+	s.registerRoutes(handler, s.conf.Mcp.SseEndpoint)
 }
 
 // setupStreamableTransport configures the server to use Streamable HTTP transport (2025-03-26 spec)
@@ -109,16 +96,20 @@ func (s *mcpServerImpl) setupStreamableTransport() {
 		return s.mcpServer
 	}, nil)
 
-	// Register the message endpoint (handles both GET for SSE and POST for messages)
+	s.registerRoutes(handler, s.conf.Mcp.MessageEndpoint)
+}
+
+func (s *mcpServerImpl) registerRoutes(handler http.Handler, endpoint string) {
+	// Register the endpoint (handles both GET for SSE and POST for messages)
 	s.httpServer.AddRoute(rest.Route{
 		Method:  http.MethodGet,
-		Path:    s.conf.Mcp.MessageEndpoint,
+		Path:    endpoint,
 		Handler: handler.ServeHTTP,
 	}, rest.WithSSE(), rest.WithTimeout(s.conf.Mcp.SseTimeout))
 
 	s.httpServer.AddRoute(rest.Route{
 		Method:  http.MethodPost,
-		Path:    s.conf.Mcp.MessageEndpoint,
+		Path:    endpoint,
 		Handler: handler.ServeHTTP,
 	}, rest.WithTimeout(s.conf.Mcp.MessageTimeout))
 }

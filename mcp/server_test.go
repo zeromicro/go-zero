@@ -372,3 +372,22 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, "/sse", c.Mcp.SseEndpoint)
 	assert.Equal(t, "/message", c.Mcp.MessageEndpoint)
 }
+
+type mockMcpServer struct{}
+
+func (m *mockMcpServer) Start() {}
+func (m *mockMcpServer) Stop()  {}
+
+func TestAddToolWithCustomServer(t *testing.T) {
+	server := &mockMcpServer{}
+	// Should not panic, but log error
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("AddTool panicked with custom server: %v", r)
+		}
+	}()
+
+	AddTool(server, &Tool{Name: "test"}, func(ctx context.Context, req *CallToolRequest, args struct{}) (*CallToolResult, any, error) {
+		return nil, nil, nil
+	})
+}
