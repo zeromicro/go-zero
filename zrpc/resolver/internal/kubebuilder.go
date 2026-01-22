@@ -4,7 +4,10 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -15,6 +18,7 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -51,7 +55,17 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, err
+		home, errHome := os.UserHomeDir()
+		if errHome != nil {
+			return nil, errors.Join(err, errHome)
+		}
+
+		kubeconfig := filepath.Join(home, ".kube", "config")
+		localConfig, errLocal := clientcmd.BuildConfigFromFlags("", kubeconfig)
+		if errLocal != nil {
+			return nil, fmt.Errorf("k8s config load failed: %w", errors.Join(err, errLocal))
+		}
+		config = localConfig
 	}
 
 	cs, err := kubernetes.NewForConfig(config)
