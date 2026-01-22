@@ -22,7 +22,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	go.etcd.io/etcd/api/v3 v3.5.15
 	go.etcd.io/etcd/client/v3 v3.5.15
-	go.mongodb.org/mongo-driver/v2 v2.4.1
+	go.mongodb.org/mongo-driver/v2 v2.4.2
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.24.0
