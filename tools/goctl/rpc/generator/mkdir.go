@@ -199,7 +199,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 			return nil, err
 		}
 	}
-	serviceName := strings.TrimSuffix(proto.Name, filepath.Ext(proto.Name))
+	serviceName := proto.Package.Name
 	return &defaultDirContext{
 		ctx:         ctx,
 		inner:       inner,
