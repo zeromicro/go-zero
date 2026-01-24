@@ -199,7 +199,18 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 			return nil, err
 		}
 	}
-	serviceName := proto.Package.Name
+
+	// Determine service name: use package name by default (supports multi-proto files),
+	// or fall back to filename if --name-from-filename flag is set or package name is empty.
+	var serviceName string
+	if c != nil && c.NameFromFilename {
+		serviceName = strings.TrimSuffix(proto.Name, filepath.Ext(proto.Name))
+	} else if proto.Package.Package != nil && len(proto.Package.Name) > 0 {
+		serviceName = proto.Package.Name
+	} else {
+		serviceName = strings.TrimSuffix(proto.Name, filepath.Ext(proto.Name))
+	}
+
 	return &defaultDirContext{
 		ctx:         ctx,
 		inner:       inner,

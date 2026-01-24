@@ -32,6 +32,9 @@ type ZRpcContext struct {
 	IsGenClient bool
 	// Module is the custom module name for go.mod
 	Module string
+	// NameFromFilename uses proto filename instead of package name for service naming.
+	// Default is false (uses package name, which supports multi-proto files).
+	NameFromFilename bool
 }
 
 // Generate generates a rpc service, through the proto file,
