@@ -1558,7 +1558,6 @@ func TestLoadValidation_WithEnv(t *testing.T) {
 // TestLoadValidation_Consistency verifies validation behavior is consistent between paths
 func TestLoadValidation_Consistency(t *testing.T) {
 	// Test that both paths (with and without UseEnv) produce the same validation results
-	const invalidValue = 5
 	const validValue = 15
 
 	formats := []struct {
