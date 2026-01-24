@@ -1397,3 +1397,222 @@ func TestGetFullName(t *testing.T) {
 		})
 	}
 }
+
+// validatorConfig is a test config that implements Validate() for testing validation behavior
+type validatorConfig struct {
+	Value int `json:"value"`
+}
+
+func (v *validatorConfig) Validate() error {
+	if v.Value < 10 {
+		return errors.New("value must be >= 10")
+	}
+	return nil
+}
+
+// TestLoadValidation_WithoutEnv tests that validation is called correctly in normal loading path
+func TestLoadValidation_WithoutEnv(t *testing.T) {
+	tests := []struct {
+		name      string
+		extension string
+		content   string
+		wantErr   bool
+		errMsg    string
+	}{
+		{
+			name:      "json valid value",
+			extension: ".json",
+			content:   `{"value": 15}`,
+			wantErr:   false,
+		},
+		{
+			name:      "json invalid value",
+			extension: ".json",
+			content:   `{"value": 5}`,
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "yaml valid value",
+			extension: ".yaml",
+			content:   "value: 20\n",
+			wantErr:   false,
+		},
+		{
+			name:      "yaml invalid value",
+			extension: ".yaml",
+			content:   "value: 3\n",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "toml valid value",
+			extension: ".toml",
+			content:   "value = 100\n",
+			wantErr:   false,
+		},
+		{
+			name:      "toml invalid value",
+			extension: ".toml",
+			content:   "value = 1\n",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpfile, err := createTempFile(t, tt.extension, tt.content)
+			assert.Nil(t, err)
+
+			var cfg validatorConfig
+			err = Load(tmpfile, &cfg)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestLoadValidation_WithEnv tests that validation is called correctly with UseEnv() option
+func TestLoadValidation_WithEnv(t *testing.T) {
+	tests := []struct {
+		name      string
+		extension string
+		content   string
+		envValue  string
+		wantErr   bool
+		errMsg    string
+	}{
+		{
+			name:      "json valid value with env",
+			extension: ".json",
+			content:   `{"value": ${TEST_VALUE}}`,
+			envValue:  "25",
+			wantErr:   false,
+		},
+		{
+			name:      "json invalid value with env",
+			extension: ".json",
+			content:   `{"value": ${TEST_VALUE}}`,
+			envValue:  "7",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "yaml valid value with env",
+			extension: ".yaml",
+			content:   "value: ${TEST_VALUE}\n",
+			envValue:  "50",
+			wantErr:   false,
+		},
+		{
+			name:      "yaml invalid value with env",
+			extension: ".yaml",
+			content:   "value: ${TEST_VALUE}\n",
+			envValue:  "2",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "toml valid value with env",
+			extension: ".toml",
+			content:   "value = ${TEST_VALUE}\n",
+			envValue:  "99",
+			wantErr:   false,
+		},
+		{
+			name:      "toml invalid value with env",
+			extension: ".toml",
+			content:   "value = ${TEST_VALUE}\n",
+			envValue:  "8",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("TEST_VALUE", tt.envValue)
+
+			tmpfile, err := createTempFile(t, tt.extension, tt.content)
+			assert.Nil(t, err)
+
+			var cfg validatorConfig
+			err = Load(tmpfile, &cfg, UseEnv())
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestLoadValidation_Consistency verifies validation behavior is consistent between paths
+func TestLoadValidation_Consistency(t *testing.T) {
+	// Test that both paths (with and without UseEnv) produce the same validation results
+	const validValue = 15
+
+	formats := []struct {
+		ext     string
+		invalid string
+		valid   string
+	}{
+		{".json", `{"value": 5}`, `{"value": 15}`},
+		{".yaml", "value: 5\n", "value: 15\n"},
+		{".toml", "value = 5\n", "value = 15\n"},
+	}
+
+	for _, format := range formats {
+		t.Run("invalid_"+format.ext, func(t *testing.T) {
+			// Test without UseEnv()
+			tmpfile1, err := createTempFile(t, format.ext, format.invalid)
+			assert.Nil(t, err)
+
+			var cfg1 validatorConfig
+			err1 := Load(tmpfile1, &cfg1)
+
+			// Test with UseEnv()
+			tmpfile2, err := createTempFile(t, format.ext, format.invalid)
+			assert.Nil(t, err)
+
+			var cfg2 validatorConfig
+			err2 := Load(tmpfile2, &cfg2, UseEnv())
+
+			// Both should fail validation
+			assert.Error(t, err1, "validation should fail without UseEnv()")
+			assert.Error(t, err2, "validation should fail with UseEnv()")
+			assert.Contains(t, err1.Error(), "value must be >= 10")
+			assert.Contains(t, err2.Error(), "value must be >= 10")
+		})
+
+		t.Run("valid_"+format.ext, func(t *testing.T) {
+			// Test without UseEnv()
+			tmpfile1, err := createTempFile(t, format.ext, format.valid)
+			assert.Nil(t, err)
+
+			var cfg1 validatorConfig
+			err1 := Load(tmpfile1, &cfg1)
+
+			// Test with UseEnv()
+			tmpfile2, err := createTempFile(t, format.ext, format.valid)
+			assert.Nil(t, err)
+
+			var cfg2 validatorConfig
+			err2 := Load(tmpfile2, &cfg2, UseEnv())
+
+			// Both should pass validation
+			assert.NoError(t, err1, "validation should pass without UseEnv()")
+			assert.NoError(t, err2, "validation should pass with UseEnv()")
+			assert.Equal(t, validValue, cfg1.Value)
+			assert.Equal(t, validValue, cfg2.Value)
+		})
+	}
+}
