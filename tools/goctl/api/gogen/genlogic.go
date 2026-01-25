@@ -75,19 +75,14 @@ func genLogic(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.Api
 			}
 
 			imports := genLogicImports(route, rootPkg)
+			importMap := make(map[string]bool)
+			for _, existing := range f.imports {
+				importMap[existing] = true
+			}
 			for _, imp := range strings.Split(imports, "\n\t") {
 				imp = strings.TrimSpace(imp)
-				if len(imp) == 0 {
-					continue
-				}
-				found := false
-				for _, existing := range f.imports {
-					if existing == imp {
-						found = true
-						break
-					}
-				}
-				if !found {
+				if len(imp) > 0 && !importMap[imp] {
+					importMap[imp] = true
 					f.imports = append(f.imports, imp)
 				}
 			}
