@@ -7,7 +7,7 @@ info (
 )
 
 type (
-	// Product - 商品资源
+	// Product - Product Resource
 	ProductReq {
 		ProductId int64 `path:"productId"`
 	}
@@ -43,7 +43,7 @@ type (
 		ProductId int64 `path:"productId"`
 	}
 
-	// Order - 订单流程
+	// Order - Order Workflow
 	CreateOrderReq {
 		ProductId int64 `json:"product_id"`
 		Quantity  int   `json:"quantity"`
@@ -67,7 +67,7 @@ type (
 		Reason  string `json:"reason"`
 	}
 
-	// User - 用户认证（碎片化对比）
+	// User - User Authentication (fragmentation comparison)
 	LoginReq {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -87,7 +87,7 @@ type (
 		RefreshToken string `json:"refresh_token"`
 	}
 
-	// Common
+	// Common Response
 	CommonResp {
 		Code    int    `json:"code"`
 		Message string `json:"message"`
@@ -95,96 +95,96 @@ type (
 )
 
 // ========================================
-// 场景1: RESTful 资源 - 商品完整 CRUD
-// 价值：一个资源的所有操作在同一个文件，符合 RESTful 设计理念
-// 对比：不用 filename 会生成 5 个文件（get/list/create/update/delete）
+// Scenario 1: RESTful Resource - Complete Product CRUD
+// Value: All operations for one resource in a single file, following RESTful design principles
+// Comparison: Without filename, it generates 5 separate files (get/list/create/update/delete)
 // ========================================
 
 @server (
 	group:    product
 	prefix:   /api/v1/product
-	filename: product // 商品的所有 CRUD 操作在一个文件
+	filename: product // All product CRUD operations in one file
 )
 service demo {
-	@doc "创建商品"
+	@doc "Create product"
 	@handler createProduct
 	post / (CreateProductReq) returns (ProductResp)
 
-	@doc "获取商品详情"
+	@doc "Get product details"
 	@handler getProduct
 	get /:productId (ProductReq) returns (ProductResp)
 
-	@doc "获取商品列表"
+	@doc "Get product list"
 	@handler listProducts
 	get /list (ProductListReq) returns (ProductListResp)
 
-	@doc "更新商品"
+	@doc "Update product"
 	@handler updateProduct
 	put /:productId (UpdateProductReq) returns (ProductResp)
 
-	@doc "删除商品"
+	@doc "Delete product"
 	@handler deleteProduct
 	delete /:productId (DeleteProductReq) returns (CommonResp)
 }
 
 // ========================================
-// 场景2: 业务流程 - 订单生命周期
-// 价值：强关联的业务步骤在同一个文件，便于理解完整流程
-// 对比：不用 filename 会生成 4 个文件，业务逻辑被割裂
+// Scenario 2: Business Flow - Order Lifecycle
+// Value: Strongly related business steps in one file, easy to understand the complete flow
+// Comparison: Without filename, it generates 4 separate files, fragmenting business logic
 // ========================================
 
 @server (
 	group:    order
 	prefix:   /api/v1/order
-	filename: order_flow // 订单完整流程：创建→支付→确认→取消
+	filename: order_flow // Complete order flow: create → pay → confirm → cancel
 )
 service demo {
-	@doc "创建订单"
+	@doc "Create order"
 	@handler createOrder
 	post / (CreateOrderReq) returns (OrderResp)
 
-	@doc "支付订单"
+	@doc "Pay order"
 	@handler payOrder
 	post /:orderId/pay (PayOrderReq) returns (OrderResp)
 
-	@doc "确认订单"
+	@doc "Confirm order"
 	@handler confirmOrder
 	post /:orderId/confirm (ConfirmOrderReq) returns (OrderResp)
 
-	@doc "取消订单"
+	@doc "Cancel order"
 	@handler cancelOrder
 	post /:orderId/cancel (CancelOrderReq) returns (CommonResp)
 }
 
 // ========================================
-// 场景3: 传统方式（不使用 filename）
-// 对比：用户认证的 4 个操作会生成 4 个独立文件
-// 问题：login/register/logout/refresh 逻辑相关却分散在不同文件
+// Scenario 3: Traditional Approach (without filename)
+// Comparison: 4 user authentication operations generate 4 separate files
+// Problem: Related logic (login/register/logout/refresh) scattered across different files
 // ========================================
 
 @server (
 	group:  auth
 	prefix: /api/v1/auth
-	// 注意：这里没有 filename，会生成 4 个文件：
+	// Note: No filename specified here, will generate 4 separate files:
 	// - loginhandler.go
 	// - registerhandler.go
 	// - logouthandler.go
 	// - refreshtokenhandler.go
 )
 service demo {
-	@doc "用户登录"
+	@doc "User login"
 	@handler login
 	post /login (LoginReq) returns (LoginResp)
 
-	@doc "用户注册"
+	@doc "User registration"
 	@handler register
 	post /register (RegisterReq) returns (CommonResp)
 
-	@doc "用户登出"
+	@doc "User logout"
 	@handler logout
 	post /logout (LogoutReq) returns (CommonResp)
 
-	@doc "刷新令牌"
+	@doc "Refresh token"
 	@handler refreshToken
 	post /refresh (RefreshTokenReq) returns (LoginResp)
 }
