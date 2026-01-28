@@ -48,6 +48,9 @@ var (
 	VarBoolClient bool
 	// VarStringModule describes the module name for go.mod.
 	VarStringModule string
+	// VarBoolNameFromFilename describes whether to derive service name from proto filename
+	// instead of the proto package name. Default is false (uses package name).
+	VarBoolNameFromFilename bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -94,6 +97,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
+	ctx.NameFromFilename = VarBoolNameFromFilename
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
