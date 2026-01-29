@@ -2354,3 +2354,68 @@ func TestRedisXReadGroup(t *testing.T) {
 		assert.Equal(t, 0, len(streamRes2[0].Messages))
 	})
 }
+
+func TestRedisOptions(t *testing.T) {
+	tests := []struct {
+		name         string
+		conf         RedisConf
+		wantRetries  int
+		wantIdle     int
+		wantDB       int
+		wantPoolSize int
+	}{
+		{
+			name: "default values",
+			conf: RedisConf{
+				Host:     "localhost:6379",
+				Type:     NodeType,
+				NonBlock: true,
+			},
+			// If not set in RedisConf (0), NewRedis won't add the options.
+			// newRedis will use defaults (3 and 8).
+			wantRetries:  3,
+			wantIdle:     8,
+			wantDB:       0,
+			wantPoolSize: 0,
+		},
+		{
+			name: "custom values",
+			conf: RedisConf{
+				Host:         "localhost:6379",
+				Type:         NodeType,
+				NonBlock:     true,
+				MaxRetries:   5,
+				MinIdleConns: 10,
+				DB:           2,
+				PoolSize:     20,
+			},
+			wantRetries:  5,
+			wantIdle:     10,
+			wantDB:       2,
+			wantPoolSize: 20,
+		},
+		{
+			name: "disable retries",
+			conf: RedisConf{
+				Host:       "localhost:6379",
+				Type:       NodeType,
+				NonBlock:   true,
+				MaxRetries: -1,
+			},
+			wantRetries:  -1,
+			wantIdle:     8,
+			wantDB:       0,
+			wantPoolSize: 0,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			r := MustNewRedis(test.conf)
+			assert.Equal(t, test.wantRetries, r.maxRetries)
+			assert.Equal(t, test.wantIdle, r.minIdleConns)
+			assert.Equal(t, test.wantDB, r.db)
+			assert.Equal(t, test.wantPoolSize, r.poolSize)
+		})
+	}
+}
