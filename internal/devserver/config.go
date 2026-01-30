@@ -10,4 +10,7 @@ type Config struct {
 	EnableMetrics  bool   `json:",default=true"`
 	EnablePprof    bool   `json:",default=true"`
 	HealthResponse string `json:",default=OK"`
+	// EnableOpenMetrics expose promhttp.HandlerOpts.EnableOpenMetrics option to add the experimental OpenMetrics encoding,
+	// which is the only way to transmit exemplars.
+	EnableOpenMetrics bool `json:",optional"`
 }
