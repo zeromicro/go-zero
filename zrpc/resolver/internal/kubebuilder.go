@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -22,8 +23,10 @@ import (
 )
 
 const (
-	resyncInterval  = 5 * time.Minute
-	serviceSelector = "kubernetes.io/service-name="
+	resyncInterval            = 5 * time.Minute
+	serviceSelector           = "kubernetes.io/service-name="
+	localFallbackEnvKey       = "GOZERO_K8S_LOCAL_FALLBACK"
+	localFallbackEnvValueTrue = "true"
 )
 
 type kubeResolver struct {
@@ -55,15 +58,26 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		home, errHome := os.UserHomeDir()
-		if errHome != nil {
-			return nil, errors.Join(err, errHome)
+		// Check if local fallback is enabled via environment variable
+		if !strings.EqualFold(os.Getenv(localFallbackEnvKey), localFallbackEnvValueTrue) {
+			return nil, fmt.Errorf("not running in cluster and %s is not set to true: %w",
+				localFallbackEnvKey, err)
 		}
 
-		kubeconfig := filepath.Join(home, ".kube", "config")
+		// Try to load kubeconfig from KUBECONFIG env or default path
+		kubeconfig := os.Getenv("KUBECONFIG")
+		if kubeconfig == "" {
+			home, errHome := os.UserHomeDir()
+			if errHome != nil {
+				return nil, errors.Join(err, errHome)
+			}
+			kubeconfig = filepath.Join(home, ".kube", "config")
+		}
+
 		localConfig, errLocal := clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if errLocal != nil {
-			return nil, fmt.Errorf("k8s config load failed: %w", errors.Join(err, errLocal))
+			return nil, fmt.Errorf("k8s config load failed from %s: %w", kubeconfig,
+				errors.Join(err, errLocal))
 		}
 		config = localConfig
 	}
