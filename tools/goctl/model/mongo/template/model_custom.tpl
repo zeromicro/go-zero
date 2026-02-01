@@ -1,4 +1,4 @@
-package model
+package {{.pkg}}
 
 {{if .Cache}}import (
     "github.com/zeromicro/go-zero/core/stores/cache"
