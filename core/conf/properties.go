@@ -45,7 +45,7 @@ func LoadProperties(filename string, opts ...Option) (Properties, error) {
 
 	raw := make(map[string]string)
 	for i := range lines {
-		pair := strings.Split(lines[i], "=")
+		pair := strings.SplitN(lines[i], "=", 2)
 		if len(pair) != 2 {
 			// invalid property format
 			return nil, &PropertyError{
