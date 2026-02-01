@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"errors"
 	"math/rand"
-	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -15,16 +14,10 @@ import (
 )
 
 const (
-	randomLen       = 16
-	tolerance       = 500 // milliseconds
-	millisPerSecond = 1000
+	randomLen = 16
 )
 
 var (
-	//go:embed lockscript.lua
-	lockLuaScript string
-	lockScript    = NewScript(lockLuaScript)
-
 	//go:embed delscript.lua
 	delLuaScript string
 	delScript    = NewScript(delLuaScript)
@@ -58,26 +51,27 @@ func (rl *RedisLock) Acquire() (bool, error) {
 
 // AcquireCtx acquires the lock with the given ctx.
 func (rl *RedisLock) AcquireCtx(ctx context.Context) (bool, error) {
-	seconds := atomic.LoadUint32(&rl.seconds)
-	resp, err := rl.store.ScriptRunCtx(ctx, lockScript, []string{rl.key}, []string{
-		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
-	})
+
+	var (
+		seconds = atomic.LoadUint32(&rl.seconds)
+		res     bool
+		err     error
+	)
+
+	if seconds == 0 {
+		res, err = rl.store.SetnxCtx(ctx, rl.key, rl.id)
+	} else {
+		res, err = rl.store.SetnxExCtx(ctx, rl.key, rl.id, int(seconds))
+	}
+
 	if errors.Is(err, red.Nil) {
 		return false, nil
 	} else if err != nil {
 		logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
 		return false, err
-	} else if resp == nil {
-		return false, nil
 	}
 
-	reply, ok := resp.(string)
-	if ok && reply == "OK" {
-		return true, nil
-	}
-
-	logx.Errorf("Unknown reply when acquiring lock for %s: %v", rl.key, resp)
-	return false, nil
+	return res, nil
 }
 
 // Release releases the lock.
