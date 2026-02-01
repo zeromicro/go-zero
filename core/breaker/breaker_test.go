@@ -388,6 +388,21 @@ func BenchmarkGoogleBreaker(b *testing.B) {
 	}
 }
 
+func TestWithTimeout(t *testing.T) {
+	timeout := 100 * time.Millisecond
+	b := NewBreaker(WithTimeout(timeout))
+	cb, ok := b.(*circuitBreaker)
+	assert.True(t, ok)
+	assert.Equal(t, timeout, cb.timeout)
+}
+
+func TestNopPromise(t *testing.T) {
+	var p nopPromise
+	// These methods should not panic and do nothing
+	p.Accept()
+	p.Reject("test reason")
+}
+
 type mockedPromise struct{}
 
 func (m *mockedPromise) Accept() {
