@@ -69,6 +69,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			in = inJoin.With(", ").Source()
 		}
 		output, err := t.Execute(map[string]any{
+			"withCache":             withCache,
 			"upperStartCamelObject": camelTableName,
 			"upperField":            key.FieldNameJoin.Camel().With("").Source(),
 			"in":                    in,
@@ -89,6 +90,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 		}
 
 		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]any{
+			"withCache":             withCache,
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.PrimaryCacheKey.VarLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
