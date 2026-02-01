@@ -90,6 +90,8 @@ type (
 	StringCmd = red.StringCmd
 	// Script is an alias of redis.Script.
 	Script = red.Script
+	// CommandsInfoCmd is an alias of redis.CommandsInfoCmd.
+	CommandsInfoCmd = red.CommandsInfoCmd
 
 	// Hook is an alias of redis.Hook.
 	Hook = red.Hook
@@ -241,6 +243,16 @@ func (s *Redis) BitOpXorCtx(ctx context.Context, destKey string, keys ...string)
 	}
 
 	return conn.BitOpXor(ctx, destKey, keys...).Result()
+}
+
+// Command is the implementation of redis command command.
+func (s *Redis) Command(ctx context.Context) *CommandsInfoCmd {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil
+	}
+
+	return conn.Command(ctx)
 }
 
 // BitPos is redis bitpos command implementation.
@@ -1455,6 +1467,26 @@ func (s *Redis) ScriptLoadCtx(ctx context.Context, script string) (string, error
 	}
 
 	return conn.ScriptLoad(ctx, script).Result()
+}
+
+// TxPipelined is the implementation of redis txpipelined command.
+func (s *Redis) TxPipelined(ctx context.Context, fn func(Pipeliner) error) ([]Cmder, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.TxPipelined(ctx, fn)
+}
+
+// Pipeline is the implementation of redis pipeline command.
+func (s *Redis) Pipeline() Pipeliner {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil
+	}
+
+	return conn.Pipeline()
 }
 
 // ScriptRun is the implementation of *redis.Script run command.
