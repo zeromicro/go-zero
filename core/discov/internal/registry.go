@@ -466,6 +466,9 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 		RejectOldCluster:    true,
 		PermitWithoutStream: true,
 	}
+	if logx.DefaultZapLogger != nil && logx.DefaultZapLogger.Logger != nil {
+		cfg.Logger = logx.DefaultZapLogger.Logger
+	}
 	if account, ok := GetAccount(endpoints); ok {
 		cfg.Username = account.User
 		cfg.Password = account.Pass
