@@ -39,7 +39,7 @@ type (
 service test-api {
 	@handler GetUser
 	get /user (AgeStruct) returns (AgeStruct)
-	
+
 	@handler GetProfile
 	get /profile (FullProfile) returns (FullProfile)
 }
