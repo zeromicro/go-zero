@@ -343,31 +343,67 @@ func (a *Analyzer) fillTypes() error {
 		}
 	}
 
-	var types []spec.Type
-	for _, item := range a.spec.Types {
-		switch v := (item).(type) {
-		case spec.DefineStruct:
-			var members []spec.Member
-			for _, member := range v.Members {
-				switch v := member.Type.(type) {
-				case spec.DefineStruct:
-					tp, err := a.findDefinedType(v.RawName)
-					if err != nil {
-						return err
-					}
+	// Resolve embedded struct types iteratively until all references are fully resolved.
+	// This handles multi-level struct embedding where a struct embeds another struct
+	// that itself embeds yet another struct.
+	maxIterations := len(a.spec.Types)
+	for i := 0; i < maxIterations; i++ {
+		changed := false
+		var types []spec.Type
+		for _, item := range a.spec.Types {
+			switch v := (item).(type) {
+			case spec.DefineStruct:
+				var members []spec.Member
+				for _, member := range v.Members {
+					switch v := member.Type.(type) {
+					case spec.DefineStruct:
+						// First try to find in the currently resolved types (this iteration)
+						tp := a.findTypeInList(v.RawName, types)
+						if tp == nil {
+							// Fall back to original a.spec.Types
+							var err error
+							tp, err = a.findDefinedType(v.RawName)
+							if err != nil {
+								return err
+							}
+						}
 
-					member.Type = tp
+						// Check if the type changed (was resolved further)
+						if resolvedType, ok := tp.(spec.DefineStruct); ok {
+							if len(resolvedType.Members) != len(v.Members) {
+								changed = true
+							}
+						}
+						member.Type = tp
+					}
+					members = append(members, member)
 				}
-				members = append(members, member)
+				v.Members = members
+				types = append(types, v)
+			default:
+				return fmt.Errorf("unknown type %+v", v)
 			}
-			v.Members = members
-			types = append(types, v)
-		default:
-			return fmt.Errorf("unknown type %+v", v)
+		}
+		a.spec.Types = types
+
+		// If no changes were made in this iteration, we're done
+		if !changed {
+			break
 		}
 	}
-	a.spec.Types = types
 
+	return nil
+}
+
+// findTypeInList searches for a type by name in the provided list
+func (a *Analyzer) findTypeInList(name string, types []spec.Type) spec.Type {
+	for _, item := range types {
+		if _, ok := item.(spec.DefineStruct); ok {
+			if item.Name() == name {
+				return item
+			}
+		}
+	}
 	return nil
 }
 
