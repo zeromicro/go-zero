@@ -54,7 +54,7 @@ func TestMustNewServer(t *testing.T) {
 	c.Host = "localhost"
 	c.Port = 18881
 
-	s := MustNewServer(c, withDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
+	s := MustNewServer(c, WithDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
 		return zrpc.MustNewClient(conf, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
 	}), WithHeaderProcessor(func(header http.Header) []string {
 		return []string{"foo"}

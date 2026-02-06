@@ -329,8 +329,9 @@ func createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.DescriptorSou
 	return source, nil
 }
 
-// withDialer sets a dialer to create a gRPC client.
-func withDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
+// WithDialer sets a dialer to create a gRPC client.
+// This allows customization of gRPC client options, such as message size limits.
+func WithDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
 	return func(s *Server) {
 		s.dialer = dialer
 	}
