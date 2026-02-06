@@ -433,16 +433,16 @@ func (c *cluster) setupWatch(cli EtcdClient, key watchKey, rev int64) (context.C
 	}
 
 	ctx, cancel := context.WithCancel(cli.Ctx())
+	
+	c.lock.Lock()
 	if watcher, ok := c.watchers[key]; ok {
 		watcher.cancel = cancel
 	} else {
 		val := newWatchValue()
 		val.cancel = cancel
-
-		c.lock.Lock()
 		c.watchers[key] = val
-		c.lock.Unlock()
 	}
+	c.lock.Unlock()
 
 	rch = cli.Watch(clientv3.WithRequireLeader(ctx), wkey, ops...)
 
