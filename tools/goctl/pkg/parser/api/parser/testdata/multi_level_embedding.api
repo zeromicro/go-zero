@@ -1,0 +1,45 @@
+syntax = "v1"
+
+type (
+	IdStruct {
+		Id int64 `json:"id"`
+	}
+	NameStruct {
+		IdStruct
+		Name string `json:"name"`
+	}
+	AgeStruct {
+		NameStruct
+		Age int `json:"age"`
+	}
+)
+
+type (
+	BaseUser {
+		UserId int64 `json:"user_id"`
+		Email  string `json:"email"`
+	}
+	UserProfile {
+		BaseUser
+		Avatar   string `json:"avatar"`
+		Nickname string `json:"nickname"`
+	}
+	ExtendedProfile {
+		UserProfile
+		Phone   string `json:"phone"`
+		Address string `json:"address"`
+	}
+	FullProfile {
+		ExtendedProfile
+		Bio       string `json:"bio"`
+		CreatedAt int64  `json:"created_at"`
+	}
+)
+
+service test-api {
+	@handler GetUser
+	get /user (AgeStruct) returns (AgeStruct)
+	
+	@handler GetProfile
+	get /profile (FullProfile) returns (FullProfile)
+}
