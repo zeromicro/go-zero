@@ -90,6 +90,72 @@ func TestAuthHandler_NilError(t *testing.T) {
 	})
 }
 
+func TestAuthHandlerWithMultipartFormData(t *testing.T) {
+	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	
+	// Create a multipart form-data request
+	// We don't need actual body content since we're testing that
+	// the body is NOT read when Content-Type is multipart/form-data
+	req := httptest.NewRequest(http.MethodPost, "http://localhost/upload", 
+		http.NoBody)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary")
+	// Missing authorization header to trigger the unauthorized path
+	
+	handler := Authorize(key)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+	
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	
+	// Should return unauthorized
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+}
+
+func TestIsMultipartFormData(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		expected    bool
+	}{
+		{
+			name:        "multipart/form-data",
+			contentType: "multipart/form-data",
+			expected:    true,
+		},
+		{
+			name:        "multipart/form-data with boundary",
+			contentType: "multipart/form-data; boundary=----WebKitFormBoundary",
+			expected:    true,
+		},
+		{
+			name:        "application/json",
+			contentType: "application/json",
+			expected:    false,
+		},
+		{
+			name:        "application/x-www-form-urlencoded",
+			contentType: "application/x-www-form-urlencoded",
+			expected:    false,
+		},
+		{
+			name:        "empty content type",
+			contentType: "",
+			expected:    false,
+		},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "http://localhost", http.NoBody)
+			req.Header.Set("Content-Type", tt.contentType)
+			result := isMultipartFormData(req)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func buildToken(secretKey string, payloads map[string]any, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
