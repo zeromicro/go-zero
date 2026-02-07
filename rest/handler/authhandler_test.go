@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -88,6 +89,28 @@ func TestAuthHandler_NilError(t *testing.T) {
 	assert.NotPanics(t, func() {
 		unauthorized(resp, req, nil, nil)
 	})
+}
+
+func TestAuthHandlerWithJSONBody(t *testing.T) {
+	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	
+	// Create a request with JSON body
+	jsonBody := `{"username":"test","password":"secret"}`
+	req := httptest.NewRequest(http.MethodPost, "http://localhost/login", 
+		strings.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	// Missing authorization header to trigger the unauthorized path
+	
+	handler := Authorize(key)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+	
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	
+	// Should return unauthorized
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
 }
 
 func TestAuthHandlerWithMultipartFormData(t *testing.T) {
