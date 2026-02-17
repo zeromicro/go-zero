@@ -75,6 +75,118 @@ func TestLoadFromJsonBytesArray(t *testing.T) {
 	assert.EqualValues(t, []string{"foo", "bar"}, expect)
 }
 
+func TestConfigJson5(t *testing.T) {
+	// JSON5 with comments, trailing commas, and unquoted keys
+	text := `{
+	// This is a comment
+	a: 'foo',  // single quotes
+	b: 1,
+	c: "${FOO}",
+	d: "abcd!@#$112",  // trailing comma
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "${FOO}", val.C)
+	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJsonWithJson5Parser(t *testing.T) {
+	// Standard JSON should still work with JSON5 parser (backward compatibility)
+	text := `{
+	"a": "foo",
+	"b": 1,
+	"c": "${FOO}",
+	"d": "abcd!@#$112"
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "${FOO}", val.C)
+	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJson5Env(t *testing.T) {
+	text := `{
+	// Comment with env variable
+	a: "foo",
+	b: 1,
+	c: "${FOO}",
+	d: "abcd!@#$a12 3",
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val, UseEnv())
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "2", val.C)
+	assert.Equal(t, "abcd!@# 3", val.D)
+}
+
+func TestLoadFromJson5Bytes(t *testing.T) {
+	// Test JSON5 features: comments, trailing commas, single quotes, unquoted keys
+	input := []byte(`{
+		// This is a comment
+		users: [
+			{name: 'foo'},  // trailing comma
+			{Name: "bar"},
+		],
+	}`)
+	var val struct {
+		Users []struct {
+			Name string
+		}
+	}
+
+	assert.NoError(t, LoadFromJson5Bytes(input, &val))
+	var expect []string
+	for _, user := range val.Users {
+		expect = append(expect, user.Name)
+	}
+	assert.EqualValues(t, []string{"foo", "bar"}, expect)
+}
+
+func TestLoadFromJson5BytesError(t *testing.T) {
+	// Invalid JSON5 syntax
+	input := []byte(`{a: foo}`) // unquoted string value (invalid)
+	var val struct {
+		A string
+	}
+
+	assert.Error(t, LoadFromJson5Bytes(input, &val))
+}
+
 func TestConfigToml(t *testing.T) {
 	text := `a = "foo"
 b = 1

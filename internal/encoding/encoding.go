@@ -5,9 +5,20 @@ import (
 	"encoding/json"
 
 	"github.com/pelletier/go-toml/v2"
+	"github.com/titanous/json5"
 	"github.com/zeromicro/go-zero/core/lang"
 	"gopkg.in/yaml.v2"
 )
+
+// Json5ToJson converts JSON5 data into its JSON representation.
+func Json5ToJson(data []byte) ([]byte, error) {
+	var val any
+	if err := json5.Unmarshal(data, &val); err != nil {
+		return nil, err
+	}
+
+	return encodeToJSON(val)
+}
 
 // TomlToJson converts TOML data into its JSON representation.
 func TomlToJson(data []byte) ([]byte, error) {

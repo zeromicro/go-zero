@@ -21,10 +21,11 @@ const (
 var (
 	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
 	loaders                = map[string]func([]byte, any) error{
-		".json": LoadFromJsonBytes,
-		".toml": LoadFromTomlBytes,
-		".yaml": LoadFromYamlBytes,
-		".yml":  LoadFromYamlBytes,
+		".json":  LoadFromJson5Bytes,
+		".json5": LoadFromJson5Bytes,
+		".toml":  LoadFromTomlBytes,
+		".yaml":  LoadFromYamlBytes,
+		".yml":   LoadFromYamlBytes,
 	}
 )
 
@@ -112,6 +113,16 @@ func LoadFromTomlBytes(content []byte, v any) error {
 // LoadFromYamlBytes loads config into v from content yaml bytes.
 func LoadFromYamlBytes(content []byte, v any) error {
 	b, err := encoding.YamlToJson(content)
+	if err != nil {
+		return err
+	}
+
+	return LoadFromJsonBytes(b, v)
+}
+
+// LoadFromJson5Bytes loads config into v from content json5 bytes.
+func LoadFromJson5Bytes(content []byte, v any) error {
+	b, err := encoding.Json5ToJson(content)
 	if err != nil {
 		return err
 	}
