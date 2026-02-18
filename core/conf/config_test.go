@@ -1328,7 +1328,7 @@ func Test_buildFieldsInfo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := buildFieldsInfo(tt.t, "")
+			_, err := buildFieldsInfo(tt.t, "", make(map[reflect.Type]*fieldInfo))
 			if tt.ok {
 				assert.NoError(t, err)
 			} else {
@@ -1337,6 +1337,32 @@ func Test_buildFieldsInfo(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLoadWithCycleReference(t *testing.T) {
+	type Node struct {
+		Name     string  `json:"name"`
+		Children []*Node `json:"children,optional"`
+	}
+
+	var c Node
+	input := []byte(`
+name: root
+children:
+  - name: child1
+    children:
+      - name: grandchild1
+  - name: child2
+`)
+	err := LoadFromYamlBytes(input, &c)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "root", c.Name)
+	assert.Len(t, c.Children, 2)
+	assert.Equal(t, "child1", c.Children[0].Name)
+	assert.Equal(t, "child2", c.Children[1].Name)
+	assert.Len(t, c.Children[0].Children, 1)
+	assert.Equal(t, "grandchild1", c.Children[0].Children[0].Name)
 }
 
 func createTempFile(t *testing.T, ext, text string) (string, error) {
