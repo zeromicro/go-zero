@@ -130,6 +130,25 @@ func TestNewRedis(t *testing.T) {
 			ok:       true,
 			redisErr: true,
 		},
+		{
+			name: "sentinel error",
+			RedisConf: RedisConf{
+				Host:       r2.Addr(),
+				Type:       SentinelType,
+				MasterName: "mymaster",
+			},
+			ok:       true,
+			redisErr: true,
+		},
+		{
+			name: "sentinel missing master name",
+			RedisConf: RedisConf{
+				Host:       r1.Addr(),
+				Type:       SentinelType,
+				MasterName: "",
+			},
+			ok: false,
+		},
 	}
 
 	for _, test := range tests {
