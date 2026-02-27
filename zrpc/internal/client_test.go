@@ -45,7 +45,8 @@ func TestWithStreamClientInterceptor(t *testing.T) {
 	var options ClientOptions
 	opt := WithStreamClientInterceptor(func(ctx context.Context, desc *grpc.StreamDesc,
 		cc *grpc.ClientConn, method string, streamer grpc.Streamer,
-		opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		opts ...grpc.CallOption,
+	) (grpc.ClientStream, error) {
 		return nil, nil
 	})
 	opt(&options)
@@ -62,7 +63,8 @@ func TestWithTransportCredentials(t *testing.T) {
 func TestWithUnaryClientInterceptor(t *testing.T) {
 	var options ClientOptions
 	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply any,
-		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption,
+	) error {
 		return nil
 	})
 	opt(&options)
@@ -80,7 +82,7 @@ func TestBuildDialOptions(t *testing.T) {
 		},
 	}
 	agent := grpc.WithUserAgent("chrome")
-	opts := c.buildDialOptions(WithDialOption(agent))
+	opts, _ := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
 }
 

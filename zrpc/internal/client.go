@@ -2,14 +2,13 @@ package internal
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -63,7 +62,7 @@ func (c *client) Conn() *grpc.ClientConn {
 	return c.conn
 }
 
-func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
+func (c *client) buildDialOptions(opts ...ClientOption) ([]grpc.DialOption, bool) {
 	var cliOpts ClientOptions
 	for _, opt := range opts {
 		opt(&cliOpts)
@@ -75,16 +74,12 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
-	if !cliOpts.NonBlock {
-		options = append(options, grpc.WithBlock())
-	}
-
 	options = append(options,
 		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts.Timeout)...),
 		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
 	)
 
-	return append(options, cliOpts.DialOptions...)
+	return append(options, cliOpts.DialOptions...), cliOpts.NonBlock
 }
 
 func (c *client) buildStreamInterceptors() []grpc.StreamClientInterceptor {
@@ -120,21 +115,26 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 }
 
 func (c *client) dial(server string, opts ...ClientOption) error {
-	options := c.buildDialOptions(opts...)
+	options, nonBlock := c.buildDialOptions(opts...)
 	timeCtx, cancel := context.WithTimeout(context.Background(), dialTimeout)
 	defer cancel()
-	conn, err := grpc.DialContext(timeCtx, server, options...)
+
+	conn, err := grpc.NewClient(server, options...)
 	if err != nil {
-		service := server
-		if errors.Is(err, context.DeadlineExceeded) {
-			pos := strings.LastIndexByte(server, separator)
-			// len(server) - 1 is the index of last char
-			if 0 < pos && pos < len(server)-1 {
-				service = server[pos+1:]
+		return err
+	}
+
+	if !nonBlock {
+		for {
+			state := conn.GetState()
+			if state == connectivity.Ready {
+				break
+			}
+
+			if !conn.WaitForStateChange(timeCtx, state) {
+				return fmt.Errorf("rpc dial: %s, wait for state change: %s", server, conn.GetState().String())
 			}
 		}
-		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is already started",
-			server, err.Error(), service)
 	}
 
 	c.conn = conn
