@@ -42,7 +42,7 @@ func FillDefault(v any) error {
 	return fillDefaultUnmarshaler.Unmarshal(map[string]any{}, v)
 }
 
-// Load loads config into v from file, .json, .yaml and .yml are acceptable.
+// Load loads config into v from file, .json, .json5, .yaml and .yml are acceptable.
 func Load(file string, v any, opts ...Option) error {
 	content, err := os.ReadFile(file)
 	if err != nil {
@@ -66,7 +66,7 @@ func Load(file string, v any, opts ...Option) error {
 	return loader(content, v)
 }
 
-// LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
+// LoadConfig loads config into v from file, .json, .json5, .yaml and .yml are acceptable.
 // Deprecated: use Load instead.
 func LoadConfig(file string, v any, opts ...Option) error {
 	return Load(file, v, opts...)

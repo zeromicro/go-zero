@@ -177,6 +177,35 @@ func TestJson5ToJsonError(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestJson5ToJsonInfinity(t *testing.T) {
+	// JSON5 allows Infinity but standard JSON does not
+	_, err := Json5ToJson([]byte(`{value: Infinity}`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Infinity")
+
+	// Negative infinity
+	_, err = Json5ToJson([]byte(`{value: -Infinity}`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Infinity")
+
+	// Infinity in array
+	_, err = Json5ToJson([]byte(`{values: [1, Infinity, 3]}`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Infinity")
+}
+
+func TestJson5ToJsonNaN(t *testing.T) {
+	// JSON5 allows NaN but standard JSON does not
+	_, err := Json5ToJson([]byte(`{value: NaN}`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "NaN")
+
+	// NaN in nested structure
+	_, err = Json5ToJson([]byte(`{nested: {value: NaN}}`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "NaN")
+}
+
 func TestJson5ToJsonSlice(t *testing.T) {
 	b, err := Json5ToJson([]byte(`{
 		// comment

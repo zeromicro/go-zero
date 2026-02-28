@@ -20,6 +20,7 @@ require (
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.11.1
+	github.com/titanous/json5 v1.0.0
 	go.etcd.io/etcd/api/v3 v3.5.15
 	go.etcd.io/etcd/client/v3 v3.5.15
 	go.mongodb.org/mongo-driver/v2 v2.5.0
@@ -98,7 +99,6 @@ require (
 	github.com/segmentio/asm v1.1.3 // indirect
 	github.com/segmentio/encoding v0.5.3 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/titanous/json5 v1.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.2.0 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
