@@ -65,6 +65,7 @@ type (
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
 		red.Cmdable
+		Do(ctx context.Context, args ...any) *red.Cmd
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -419,6 +420,25 @@ func (s *Redis) EvalCtx(ctx context.Context, script string, keys []string,
 	}
 
 	return conn.Eval(ctx, script, keys, args...).Result()
+}
+
+// Do executes a generic redis command with given arguments.
+func (s *Redis) Do(args ...any) (any, error) {
+	return s.DoCtx(context.Background(), args...)
+}
+
+// DoCtx executes a generic redis command with given arguments using the provided context.
+func (s *Redis) DoCtx(ctx context.Context, args ...any) (any, error) {
+	if len(args) == 0 {
+		return nil, errors.New("missing redis command")
+	}
+
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.Do(ctx, args...).Result()
 }
 
 // EvalSha is the implementation of redis evalsha command.
