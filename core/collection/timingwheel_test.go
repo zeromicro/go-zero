@@ -780,6 +780,33 @@ func TestTimingWheel_RunTasksRaceCondition(t *testing.T) {
 	}
 }
 
+func TestTimingWheel_MoveTimerImmediateExecution(t *testing.T) {
+	var executionCount int32
+	ticker := timex.NewFakeTicker()
+	tw, _ := NewTimingWheelWithTicker(testStep, 10, func(k, v any) {
+		atomic.AddInt32(&executionCount, 1)
+		assert.Equal(t, "test_key", k)
+		assert.Equal(t, "test_value", v)
+	}, ticker)
+	defer tw.Stop()
+
+	// Set initial task
+	tw.SetTimer("test_key", "test_value", testStep*5)
+
+	// Move to short delay (less than interval), should execute immediately
+	tw.MoveTimer("test_key", testStep>>1)
+
+	// Wait for a while to ensure no extra execution
+	time.Sleep(waitTime)
+
+	// Verify executed only once
+	assert.Equal(t, int32(1), atomic.LoadInt32(&executionCount))
+
+	// Verify the map has been cleaned up
+	_, exists := tw.timers.Get("test_key")
+	assert.False(t, exists, "The map should not retain entries for executed tasks")
+}
+
 func BenchmarkTimingWheel(b *testing.B) {
 	b.ReportAllocs()
 
