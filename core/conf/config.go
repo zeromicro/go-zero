@@ -21,7 +21,7 @@ const (
 var (
 	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
 	loaders                = map[string]func([]byte, any) error{
-		".json":  LoadFromJson5Bytes,
+		".json":  LoadFromJsonBytes,
 		".json5": LoadFromJson5Bytes,
 		".toml":  LoadFromTomlBytes,
 		".yaml":  LoadFromYamlBytes,

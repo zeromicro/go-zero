@@ -103,7 +103,7 @@ func TestConfigJson5(t *testing.T) {
 }
 
 func TestConfigJsonWithJson5Parser(t *testing.T) {
-	// Standard JSON should still work with JSON5 parser (backward compatibility)
+	// Standard JSON uses standard JSON parser (not JSON5) for backward compatibility
 	text := `{
 	"a": "foo",
 	"b": 1,
@@ -126,6 +126,25 @@ func TestConfigJsonWithJson5Parser(t *testing.T) {
 	assert.Equal(t, 1, val.B)
 	assert.Equal(t, "${FOO}", val.C)
 	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJsonLargeIntegers(t *testing.T) {
+	// Test that .json files preserve large integer precision (backward compatibility)
+	text := `{
+	"id": 1234567890123456789,
+	"timestamp": 9223372036854775807
+}`
+
+	tmpfile, err := createTempFile(t, ".json", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		ID        int64 `json:"id"`
+		Timestamp int64 `json:"timestamp"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, int64(1234567890123456789), val.ID)
+	assert.Equal(t, int64(9223372036854775807), val.Timestamp)
 }
 
 func TestConfigJson5Env(t *testing.T) {
@@ -185,6 +204,31 @@ func TestLoadFromJson5BytesError(t *testing.T) {
 	}
 
 	assert.Error(t, LoadFromJson5Bytes(input, &val))
+}
+
+func TestConfigJson5LargeIntegersLimitation(t *testing.T) {
+	// Document that JSON5 has precision limitations for large integers (>2^53)
+	// due to JavaScript number semantics. Users should use .json for configs with large IDs.
+	text := `{
+	// JSON5 converts numbers to float64, which loses precision for large integers
+	id: 1234567890123456789
+}`
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		ID int64 `json:"id"`
+	}
+	
+	// This will load, but the value will be rounded due to float64 precision
+	MustLoad(tmpfile, &val)
+	
+	// The actual value will be different from the original due to float64 rounding
+	// Original: 1234567890123456789
+	// Actual:   1234567890123456768 (or similar, rounded to nearest float64)
+	assert.NotEqual(t, int64(1234567890123456789), val.ID, 
+		"JSON5 loses precision for large integers - use .json for configs with large IDs")
 }
 
 func TestConfigToml(t *testing.T) {
