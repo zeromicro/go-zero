@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/zeromicro/go-zero/core/logc"
@@ -99,8 +100,15 @@ func WithUnauthorizedCallback(callback UnauthorizedCallback) AuthorizeOption {
 
 func detailAuthLog(r *http.Request, reason string) {
 	// discard dump error, only for debug purpose
-	details, _ := httputil.DumpRequest(r, true)
+	// Skip dumping request body for multipart/form-data to avoid reading large files
+	dumpBody := !isMultipartFormData(r)
+	details, _ := httputil.DumpRequest(r, dumpBody)
 	logc.Errorf(r.Context(), "authorize failed: %s\n=> %+v", reason, string(details))
+}
+
+func isMultipartFormData(r *http.Request) bool {
+	contentType := r.Header.Get("Content-Type")
+	return strings.Contains(contentType, "multipart/form-data")
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback UnauthorizedCallback) {
