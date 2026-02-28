@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -217,4 +218,47 @@ func TestJson5ToJsonSlice(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, `{"foo":["bar","baz"]}
 `, string(b))
+}
+
+func TestValidateJSONCompatible(t *testing.T) {
+	// Test float64 types
+	assert.NoError(t, validateJSONCompatible(float64(1.5)))
+	assert.Error(t, validateJSONCompatible(math.Inf(1)))
+	assert.Error(t, validateJSONCompatible(math.Inf(-1)))
+	assert.Error(t, validateJSONCompatible(math.NaN()))
+
+	// Test float32 types
+	assert.NoError(t, validateJSONCompatible(float32(1.5)))
+	assert.Error(t, validateJSONCompatible(float32(math.Inf(1))))
+	assert.Error(t, validateJSONCompatible(float32(math.Inf(-1))))
+	assert.Error(t, validateJSONCompatible(float32(math.NaN())))
+
+	// Test arrays with invalid values
+	assert.Error(t, validateJSONCompatible([]any{1, math.Inf(1), 3}))
+	assert.Error(t, validateJSONCompatible([]any{1, math.NaN(), 3}))
+	assert.NoError(t, validateJSONCompatible([]any{1, 2, 3}))
+
+	// Test map[string]any with invalid values
+	assert.Error(t, validateJSONCompatible(map[string]any{"value": math.Inf(1)}))
+	assert.Error(t, validateJSONCompatible(map[string]any{"value": math.NaN()}))
+	assert.NoError(t, validateJSONCompatible(map[string]any{"value": 1.5}))
+
+	// Test map[any]any with invalid values
+	assert.Error(t, validateJSONCompatible(map[any]any{"value": math.Inf(1)}))
+	assert.Error(t, validateJSONCompatible(map[any]any{"value": math.NaN()}))
+	assert.NoError(t, validateJSONCompatible(map[any]any{"value": 1.5}))
+
+	// Test nested structures
+	assert.Error(t, validateJSONCompatible(map[string]any{
+		"nested": map[string]any{"value": math.Inf(1)},
+	}))
+	assert.Error(t, validateJSONCompatible([]any{
+		map[string]any{"value": math.NaN()},
+	}))
+
+	// Test valid values of various types
+	assert.NoError(t, validateJSONCompatible("string"))
+	assert.NoError(t, validateJSONCompatible(42))
+	assert.NoError(t, validateJSONCompatible(true))
+	assert.NoError(t, validateJSONCompatible(nil))
 }
