@@ -48,6 +48,37 @@ Upstreams:
         RpcPath: world.World/Ping
 ```
 
+- config.yaml with Match
+
+```yaml
+Name: demo-gateway
+Host: localhost
+Port: 8888
+Upstreams:
+  - Grpc:
+      Etcd:
+        Hosts:
+          - localhost:2379
+        Key: hello.rpc
+    ProtoSets:
+      - hello.pb
+    Mappings:
+      - Match:
+          Method: get
+          Path: /pingHello/:ping
+        RpcPath: hello.Hello/Ping
+  - Http:
+      Target: localhost:8080
+      Timeout: 5000
+    Mappings:
+      - Match:
+          Method: GET
+          Path: /api/v1/users
+      - Match:
+          Method: POST
+          Path: /api/v1/users/create
+```
+
 ## Generate ProtoSet files
 
 - example command without external imports

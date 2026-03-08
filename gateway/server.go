@@ -179,8 +179,8 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 		}
 
 		writer.Write(rest.Route{
-			Method:  strings.ToUpper(m.Method),
-			Path:    m.Path,
+			Method:  strings.ToUpper(m.GetMethod()),
+			Path:    m.GetPath(),
 			Handler: s.buildGrpcHandler(source, resolver, cli, m.RpcPath),
 		})
 	}
@@ -229,8 +229,8 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route]) {
 	for _, m := range up.Mappings {
 		writer.Write(rest.Route{
-			Method:  strings.ToUpper(m.Method),
-			Path:    m.Path,
+			Method:  strings.ToUpper(m.GetMethod()),
+			Path:    m.GetPath(),
 			Handler: s.buildHttpHandler(up.Http),
 		})
 	}
