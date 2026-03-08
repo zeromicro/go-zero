@@ -56,6 +56,15 @@ func fileCopy(file *zip.File, destPath string) error {
 		return err
 	}
 	defer w.Close()
+
 	_, err = io.Copy(w, rc)
-	return err
+	if err != nil {
+		return err
+	}
+
+	if file.Mode().IsRegular() && file.Mode()&0111 != 0 {
+		return w.Chmod(file.Mode())
+	}
+
+	return nil
 }
