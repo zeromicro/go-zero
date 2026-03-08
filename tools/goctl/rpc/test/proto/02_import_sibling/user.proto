@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+// 场景02：主 proto，import 同目录下的 types.proto
+// 预期：goctl 应同时生成 types.pb.go 和 user.pb.go
+package usersvc;
+
+option go_package = "example.com/demo/s02_import_sibling/pb";
+
+import "types.proto";
+
+message GetUserReq {
+  string id = 1;
+}
+
+message GetUserReply {
+  types.User user = 1;
+}
+
+message CreateUserReq {
+  string name = 1;
+  int32  age  = 2;
+}
+
+message CreateUserReply {
+  types.User user = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserReq)       returns (GetUserReply);
+  rpc CreateUser(CreateUserReq) returns (CreateUserReply);
+}
