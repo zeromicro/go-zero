@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+// 场景08：外部 proto（不同 Go pkg）—— 请求/响应直接使用 common.ExtReq / common.ExtReply
+// types.proto go_package 与 service.proto 不同，生成的 Go 代码需要跨包 import。
+package svc;
+
+option go_package = "example.com/demo/s08_ext_diff_pkg/pb";
+
+import "common/types.proto";
+
+service DataService {
+  rpc Fetch(common.ExtReq) returns (common.ExtReply);
+}
+

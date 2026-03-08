@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package usersvc;
+
+option go_package = "example.com/demo/pb";
+
+import "types.proto";
+
+message GetUserReq {
+  string id = 1;
+}
+
+message GetUserReply {
+  types.User user = 1;
+}
+
+message CreateUserReq {
+  string name = 1;
+  int32  age  = 2;
+}
+
+message CreateUserReply {
+  types.User user = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserReq) returns (GetUserReply);
+  rpc CreateUser(CreateUserReq) returns (CreateUserReply);
+}
