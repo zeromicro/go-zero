@@ -223,7 +223,8 @@ func TestConfigJson5LargeIntegersLimitation(t *testing.T) {
 
 	// This will load; depending on the JSON5 implementation, large integers may lose precision.
 	// This test documents that behavior without requiring loss of precision as an invariant.
-	MustLoad(tmpfile, &val)
+	err = Load(tmpfile, &val)
+	assert.NoError(t, err)
 
 	t.Logf("loaded JSON5 large integer id=%d (original 1234567890123456789)", val.ID)
 }
