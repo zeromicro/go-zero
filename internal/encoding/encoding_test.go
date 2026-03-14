@@ -227,12 +227,6 @@ func TestValidateJSONCompatible(t *testing.T) {
 	assert.Error(t, validateJSONCompatible(math.Inf(-1)))
 	assert.Error(t, validateJSONCompatible(math.NaN()))
 
-	// Test float32 types
-	assert.NoError(t, validateJSONCompatible(float32(1.5)))
-	assert.Error(t, validateJSONCompatible(float32(math.Inf(1))))
-	assert.Error(t, validateJSONCompatible(float32(math.Inf(-1))))
-	assert.Error(t, validateJSONCompatible(float32(math.NaN())))
-
 	// Test arrays with invalid values
 	assert.Error(t, validateJSONCompatible([]any{1, math.Inf(1), 3}))
 	assert.Error(t, validateJSONCompatible([]any{1, math.NaN(), 3}))

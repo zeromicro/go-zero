@@ -38,13 +38,6 @@ func validateJSONCompatible(val any) error {
 		if math.IsNaN(v) {
 			return fmt.Errorf("JSON5 value NaN cannot be represented in standard JSON")
 		}
-	case float32:
-		if math.IsInf(float64(v), 0) {
-			return fmt.Errorf("JSON5 value Infinity cannot be represented in standard JSON")
-		}
-		if math.IsNaN(float64(v)) {
-			return fmt.Errorf("JSON5 value NaN cannot be represented in standard JSON")
-		}
 	case []any:
 		for _, item := range v {
 			if err := validateJSONCompatible(item); err != nil {
