@@ -53,13 +53,14 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		User  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr            string
+		Type            string
+		User            string
+		Pass            string
+		tls             bool
+		DisableIdentity bool
+		brk             breaker.Breaker
+		hooks           []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -134,6 +135,9 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
+	}
+	if conf.DisableIdentity {
+		opts = append([]Option{WithDisableIdentity(conf.DisableIdentity)}, opts...)
 	}
 
 	rds := newRedis(conf.Host, opts...)
@@ -2688,6 +2692,15 @@ func WithTLS() Option {
 func WithUser(user string) Option {
 	return func(r *Redis) {
 		r.User = user
+	}
+}
+
+// WithDisableIdentity disables the identity verification for Redis connection.
+// When set to true, the CLIENT SETINFO command will not be sent to Redis server.
+// This is useful for Redis servers that don't support CLIENT SETINFO (Redis < 7.2).
+func WithDisableIdentity(disableIdentity bool) Option {
+	return func(r *Redis) {
+		r.DisableIdentity = disableIdentity
 	}
 }
 
