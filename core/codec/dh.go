@@ -35,7 +35,7 @@ func ComputeKey(pubKey, priKey *big.Int) (*big.Int, error) {
 		return nil, ErrInvalidPubKey
 	}
 
-	if pubKey.Sign() <= 0 && p.Cmp(pubKey) <= 0 {
+	if pubKey.Sign() <= 0 || p.Cmp(pubKey) <= 0 {
 		return nil, ErrPubKeyOutOfBound
 	}
 

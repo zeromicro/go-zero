@@ -28,8 +28,8 @@ func TestAesEcb(t *testing.T) {
 	_, err = EcbDecrypt(badKey2, dst)
 	assert.NotNil(t, err)
 	_, err = EcbDecrypt(key, val)
-	// not enough block, just nil
-	assert.Nil(t, err)
+	// not a multiple of block size
+	assert.NotNil(t, err)
 	src, err := EcbDecrypt(key, dst)
 	assert.Nil(t, err)
 	assert.Equal(t, val, src)
@@ -41,33 +41,28 @@ func TestAesEcb(t *testing.T) {
 	assert.Equal(t, 16, decrypter.BlockSize())
 
 	dst = make([]byte, 8)
-	encrypter.CryptBlocks(dst, val)
-	for _, b := range dst {
-		assert.Equal(t, byte(0), b)
-	}
+	assert.Panics(t, func() {
+		encrypter.CryptBlocks(dst, val)
+	})
 
 	dst = make([]byte, 8)
-	encrypter.CryptBlocks(dst, valLong)
-	for _, b := range dst {
-		assert.Equal(t, byte(0), b)
-	}
+	assert.Panics(t, func() {
+		encrypter.CryptBlocks(dst, valLong)
+	})
 
 	dst = make([]byte, 8)
-	decrypter.CryptBlocks(dst, val)
-	for _, b := range dst {
-		assert.Equal(t, byte(0), b)
-	}
+	assert.Panics(t, func() {
+		decrypter.CryptBlocks(dst, val)
+	})
 
 	dst = make([]byte, 8)
-	decrypter.CryptBlocks(dst, valLong)
-	for _, b := range dst {
-		assert.Equal(t, byte(0), b)
-	}
+	assert.Panics(t, func() {
+		decrypter.CryptBlocks(dst, valLong)
+	})
 
 	_, err = EcbEncryptBase64("cTR0N3dDKkYtSmFOZFJnVWpYbjJyNXU4eC9BP0QK", "aGVsbG93b3JsZGxvbmcuLgo=")
 	assert.Error(t, err)
 }
-
 func TestAesEcbBase64(t *testing.T) {
 	const (
 		val     = "hello"
@@ -97,4 +92,45 @@ func TestAesEcbBase64(t *testing.T) {
 	b, err := base64.StdEncoding.DecodeString(src)
 	assert.Nil(t, err)
 	assert.Equal(t, val, string(b))
+}
+
+func TestPkcs5UnpaddingEmptyInput(t *testing.T) {
+	_, err := pkcs5Unpadding([]byte{}, 16)
+	assert.Equal(t, ErrPaddingSize, err)
+}
+
+func TestPkcs5UnpaddingMalformedPadding(t *testing.T) {
+	// Valid PKCS5 padding of 3: last 3 bytes should all be 0x03
+	// Here we corrupt one padding byte
+	malformed := []byte{0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
+		0x41, 0x41, 0x41, 0x41, 0x41, 0x02, 0x03, 0x03}
+	_, err := pkcs5Unpadding(malformed, 16)
+	assert.Equal(t, ErrPaddingSize, err)
+
+	// All padding bytes correct
+	valid := []byte{0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
+		0x41, 0x41, 0x41, 0x41, 0x41, 0x03, 0x03, 0x03}
+	result, err := pkcs5Unpadding(valid, 16)
+	assert.NoError(t, err)
+	assert.Equal(t, valid[:13], result)
+}
+
+func TestPkcs5UnpaddingInvalidPaddingValue(t *testing.T) {
+	// padding value = 0 (< 1)
+	_, err := pkcs5Unpadding([]byte{0x41, 0x00}, 16)
+	assert.Equal(t, ErrPaddingSize, err)
+
+	// padding value > blockSize
+	_, err = pkcs5Unpadding([]byte{0x41, 0x41, 0x41, 0x41, 17}, 4)
+	assert.Equal(t, ErrPaddingSize, err)
+
+	// padding value > length
+	_, err = pkcs5Unpadding([]byte{0x41, 0x03}, 16)
+	assert.Equal(t, ErrPaddingSize, err)
+}
+
+func TestEcbDecryptEmptyInput(t *testing.T) {
+	key := []byte("q4t7w!z%C*F-JaNdRgUjXn2r5u8x/A?D")
+	_, err := EcbDecrypt(key, []byte{})
+	assert.Equal(t, ErrPaddingSize, err)
 }
