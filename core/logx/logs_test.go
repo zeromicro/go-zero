@@ -702,6 +702,32 @@ func TestSetLevelWithDuration(t *testing.T) {
 	assert.Equal(t, 0, w.builder.Len())
 }
 
+func TestSetSlowLevel(t *testing.T) {
+	// shallSlowLog() = logLevel <= slowLogLevel.
+	// Default slowLogLevel == ErrorLevel preserves backward-compatible behavior.
+	// Setting slowLogLevel below the current logLevel suppresses slow logs independently.
+	oldSlowLevel := atomic.LoadUint32(&slowLogLevel)
+	defer atomic.StoreUint32(&slowLogLevel, oldSlowLevel)
+
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	SetLevel(ErrorLevel) // logLevel = 2
+	defer SetLevel(DebugLevel)
+
+	// Lower slowLogLevel below logLevel to suppress slow logs independently.
+	// logLevel(2) <= slowLogLevel(1) → false → suppressed.
+	SetSlowLevel(InfoLevel)
+	Slow("should be suppressed")
+	assert.Equal(t, 0, w.builder.Len())
+
+	// Restore: logLevel(2) <= slowLogLevel(2) → true → slow logs emitted again.
+	SetSlowLevel(ErrorLevel)
+	Slow("should appear")
+	assert.True(t, w.builder.Len() > 0)
+}
+
 func TestErrorfWithWrappedError(t *testing.T) {
 	SetLevel(ErrorLevel)
 	const message = "there"

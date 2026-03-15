@@ -3,7 +3,11 @@ package breaker
 import (
 	"context"
 	"sync"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
+
+const breakerLimit = 10000
 
 var (
 	lock     sync.RWMutex
@@ -70,6 +74,10 @@ func DoWithFallbackAcceptableCtx(ctx context.Context, name string, req func() er
 }
 
 // GetBreaker returns the Breaker with the given name.
+// When the global registry has reached breakerLimit entries, a new unregistered
+// Breaker is returned instead of storing it, preventing unbounded memory growth.
+// Breaker names should come from a static, finite set (e.g. service names or
+// fixed route patterns) rather than dynamic values such as user IDs or URLs.
 func GetBreaker(name string) Breaker {
 	lock.RLock()
 	b, ok := breakers[name]
@@ -81,6 +89,12 @@ func GetBreaker(name string) Breaker {
 	lock.Lock()
 	b, ok = breakers[name]
 	if !ok {
+		if len(breakers) >= breakerLimit {
+			logx.Errorf("breaker registry is full (%d entries), returning unregistered breaker for %q",
+				breakerLimit, name)
+			lock.Unlock()
+			return NewBreaker(WithName(name))
+		}
 		b = NewBreaker(WithName(name))
 		breakers[name] = b
 	}
