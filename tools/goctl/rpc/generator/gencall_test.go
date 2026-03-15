@@ -108,18 +108,18 @@ func TestGenCallGroup_OnlyUsedTypesAliased(t *testing.T) {
 	require.NoError(t, err)
 	aFile := string(aContent)
 
-	assert.Contains(t, aFile, "AReq", "ServiceA file should alias AReq")
-	assert.Contains(t, aFile, "AResp", "ServiceA file should alias AResp")
-	assert.NotContains(t, aFile, "BReq", "ServiceA file must not alias BReq")
-	assert.NotContains(t, aFile, "BResp", "ServiceA file must not alias BResp")
+	assert.Contains(t, aFile, "AReq = pb.AReq", "ServiceA file should alias AReq")
+	assert.Contains(t, aFile, "AResp = pb.AResp", "ServiceA file should alias AResp")
+	assert.NotContains(t, aFile, "BReq = pb.BReq", "ServiceA file must not alias BReq")
+	assert.NotContains(t, aFile, "BResp = pb.BResp", "ServiceA file must not alias BResp")
 
 	// serviceb/serviceb.go — aliases for BReq/BResp only
 	bContent, err := os.ReadFile(filepath.Join(callBase, "serviceb", "serviceb.go"))
 	require.NoError(t, err)
 	bFile := string(bContent)
 
-	assert.Contains(t, bFile, "BReq", "ServiceB file should alias BReq")
-	assert.Contains(t, bFile, "BResp", "ServiceB file should alias BResp")
-	assert.NotContains(t, bFile, "AReq", "ServiceB file must not alias AReq")
-	assert.NotContains(t, bFile, "AResp", "ServiceB file must not alias AResp")
+	assert.Contains(t, bFile, "BReq = pb.BReq", "ServiceB file should alias BReq")
+	assert.Contains(t, bFile, "BResp = pb.BResp", "ServiceB file should alias BResp")
+	assert.NotContains(t, bFile, "AReq = pb.AReq", "ServiceB file must not alias AReq")
+	assert.NotContains(t, bFile, "AResp = pb.AResp", "ServiceB file must not alias AResp")
 }
