@@ -275,6 +275,36 @@ func TestRedis_Eval(t *testing.T) {
 	})
 }
 
+func TestRedis_Do(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Do("PING")
+		assert.NotNil(t, err)
+
+		pong, err := client.Do("PING")
+		assert.Nil(t, err)
+		assert.Equal(t, "PONG", pong)
+
+		ok, err := client.Do("SET", "key1", "value1")
+		assert.Nil(t, err)
+		assert.Equal(t, "OK", ok)
+
+		val, err := client.Do("GET", "key1")
+		assert.Nil(t, err)
+		assert.Equal(t, "value1", val)
+
+		_, err = client.Do("GET", "not_exist")
+		assert.Equal(t, Nil, err)
+
+		_, err = client.Do()
+		assert.NotNil(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err = client.DoCtx(ctx, "PING")
+		assert.Equal(t, context.Canceled, err)
+	})
+}
+
 func TestRedis_ScriptRun(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		sc := NewScript(`redis.call("EXISTS", KEYS[1])`)
