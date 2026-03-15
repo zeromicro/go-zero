@@ -141,6 +141,7 @@ func Substr(str string, start, stop int) (string, error) {
 }
 
 // TakeOne returns valid string if not empty or later one.
+// Deprecated: use cmp.Or instead.
 func TakeOne(valid, or string) string {
 	if len(valid) > 0 {
 		return valid
