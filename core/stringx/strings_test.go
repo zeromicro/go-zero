@@ -29,6 +29,40 @@ func TestContainsString(t *testing.T) {
 	}
 }
 
+func TestHasEmpty(t *testing.T) {
+	cases := []struct {
+		args   []string
+		expect bool
+	}{
+		{
+			args:   []string{"a", "b", "c"},
+			expect: false,
+		},
+		{
+			args:   []string{"a", "", "c"},
+			expect: true,
+		},
+		{
+			args:   []string{""},
+			expect: true,
+		},
+		{
+			args:   []string{},
+			expect: false,
+		},
+		{
+			args:   nil,
+			expect: false,
+		},
+	}
+
+	for _, each := range cases {
+		t.Run(path.Join(each.args...), func(t *testing.T) {
+			assert.Equal(t, each.expect, HasEmpty(each.args...))
+		})
+	}
+}
+
 func TestNotEmpty(t *testing.T) {
 	cases := []struct {
 		args   []string
