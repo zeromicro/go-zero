@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/hash"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/breaker"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
@@ -42,7 +43,7 @@ func TestPickerBuilder_BuildAndRing(t *testing.T) {
 		},
 	}
 
-	p := b.Build(info).(*picker)
+	p := b.Build(info).(breaker.Unwrapper).Unwrap().(*picker)
 	assert.NotNil(t, p.hashRing)
 	assert.Len(t, p.conns, 2)
 }
@@ -58,7 +59,7 @@ func TestPicker_HashConsistency(t *testing.T) {
 			subConn2: {Address: resolver.Address{Addr: "127.0.0.1:8081"}},
 		},
 	}
-	p := pb.Build(info).(*picker)
+	p := pb.Build(info).(breaker.Unwrapper).Unwrap().(*picker)
 	ctx := SetHashKey(context.Background(), "user_123")
 	res1, err := p.Pick(balancer.PickInfo{Ctx: ctx})
 	assert.NoError(t, err)
@@ -81,7 +82,7 @@ func TestPicker_MissingKey(t *testing.T) {
 			subConn: {Address: resolver.Address{Addr: "127.0.0.1:8080"}},
 		},
 	}
-	p := pb.Build(info).(*picker)
+	p := pb.Build(info).(breaker.Unwrapper).Unwrap().(*picker)
 
 	// No hash key in context
 	_, err := p.Pick(balancer.PickInfo{Ctx: context.Background()})
@@ -157,7 +158,7 @@ func BenchmarkPicker_HashConsistency(b *testing.B) {
 			subConn2: {Address: resolver.Address{Addr: "127.0.0.1:8081"}},
 		},
 	}
-	p := pb.Build(info).(*picker)
+	p := pb.Build(info).(breaker.Unwrapper).Unwrap().(*picker)
 
 	ctx := SetHashKey(context.Background(), "hot_user_123")
 
