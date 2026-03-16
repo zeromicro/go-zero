@@ -22,7 +22,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 		return nil, err
 	}
 
-	t := util.With("findOneByField").Parse(text)
+	t := util.With("findOneByField").Parse(text).AddFunc("hasField", hasField(table))
 	var list []string
 	camelTableName := table.Name.ToCamel()
 	for _, key := range table.UniqueCacheKey {
@@ -54,7 +54,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 		return nil, err
 	}
 
-	t = util.With("findOneByFieldMethod").Parse(text)
+	t = util.With("findOneByFieldMethod").AddFunc("hasField", hasField(table)).Parse(text)
 	var listMethod []string
 	for _, key := range table.UniqueCacheKey {
 		var inJoin, paramJoin Join
@@ -88,7 +88,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			return nil, err
 		}
 
-		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]any{
+		out, err := util.With("findOneByFieldExtraMethod").AddFunc("hasField", hasField(table)).Parse(text).Execute(map[string]any{
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.PrimaryCacheKey.VarLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),

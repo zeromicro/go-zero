@@ -15,15 +15,17 @@ const regularPerm = 0o666
 
 // DefaultTemplate is a tool to provides the text/template operations
 type DefaultTemplate struct {
-	name  string
-	text  string
-	goFmt bool
+	name    string
+	text    string
+	goFmt   bool
+	funcMap template.FuncMap
 }
 
 // With returns an instance of DefaultTemplate
 func With(name string) *DefaultTemplate {
 	return &DefaultTemplate{
-		name: name,
+		name:    name,
+		funcMap: make(template.FuncMap),
 	}
 }
 
@@ -55,7 +57,11 @@ func (t *DefaultTemplate) SaveTo(data any, path string, forceUpdate bool) error 
 
 // Execute returns the codes after the template executed
 func (t *DefaultTemplate) Execute(data any) (*bytes.Buffer, error) {
-	tem, err := template.New(t.name).Parse(t.text)
+	tmp := template.New(t.name)
+	if len(t.funcMap) > 0 {
+		tmp.Funcs(t.funcMap)
+	}
+	tem, err := tmp.Parse(t.text)
 	if err != nil {
 		return nil, errorx.Wrap(err, "template parse error:", t.text)
 	}
@@ -77,6 +83,12 @@ func (t *DefaultTemplate) Execute(data any) (*bytes.Buffer, error) {
 	buf.Reset()
 	buf.Write(formatOutput)
 	return buf, nil
+}
+
+// AddFunc add template func
+func (t *DefaultTemplate) AddFunc(funcName string, function interface{}) *DefaultTemplate {
+	t.funcMap[funcName] = function
+	return t
 }
 
 // IsTemplateVariable returns true if the text is a template variable.
