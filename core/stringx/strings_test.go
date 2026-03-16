@@ -92,6 +92,24 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func BenchmarkFilter(b *testing.B) {
+	b.Run("true", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			Filter(`ab,cd,ef`, func(r rune) bool { return r == ',' })
+		}
+	})
+
+	b.Run("false", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			Filter(`ab,cd,ef`, func(r rune) bool { return r == '!' })
+		}
+	})
+}
+
 func TestFirstN(t *testing.T) {
 	tests := []struct {
 		name     string
