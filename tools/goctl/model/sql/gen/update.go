@@ -17,7 +17,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 	expressionValues := make([]string, 0)
 	pkg := "data."
 	if table.ContainsUniqueCacheKey {
-		//pkg = "newData."
+		pkg = "newData."
 	}
 	for _, field := range table.Fields {
 		camel := util.SafeString(field.Name.ToCamel())
