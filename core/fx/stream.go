@@ -168,7 +168,7 @@ func (s Stream) Count() (count int) {
 	return
 }
 
-// Distinct removes the duplicated items base on the given KeyFunc.
+// Distinct removes the duplicated items based on the given KeyFunc.
 func (s Stream) Distinct(fn KeyFunc) Stream {
 	source := make(chan any)
 
@@ -459,7 +459,7 @@ func (s Stream) Tail(n int64) Stream {
 	return Range(source)
 }
 
-// Walk lets the callers handle each item, the caller may write zero, one or more items base on the given item.
+// Walk lets the callers handle each item, the caller may write zero, one or more items based on the given item.
 func (s Stream) Walk(fn WalkFunc, opts ...Option) Stream {
 	option := buildOptions(opts...)
 	if option.unlimitedWorkers {

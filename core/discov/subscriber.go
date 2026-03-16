@@ -19,8 +19,9 @@ type (
 		exclusive  bool
 		key        string
 		exactMatch bool
-		items      *container
+		items      Container
 	}
+	KV = internal.KV
 )
 
 // NewSubscriber returns a Subscriber.
@@ -35,7 +36,9 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	for _, opt := range opts {
 		opt(sub)
 	}
-	sub.items = newContainer(sub.exclusive)
+	if sub.items == nil {
+		sub.items = newContainer(sub.exclusive)
+	}
 
 	if err := internal.GetRegistry().Monitor(endpoints, key, sub.exactMatch, sub.items); err != nil {
 		return nil, err
@@ -46,7 +49,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 
 // AddListener adds listener to s.
 func (s *Subscriber) AddListener(listener func()) {
-	s.items.addListener(listener)
+	s.items.AddListener(listener)
 }
 
 // Close closes the subscriber.
@@ -56,7 +59,7 @@ func (s *Subscriber) Close() {
 
 // Values returns all the subscription values.
 func (s *Subscriber) Values() []string {
-	return s.items.getValues()
+	return s.items.GetValues()
 }
 
 // Exclusive means that key value can only be 1:1,
@@ -88,15 +91,31 @@ func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 	}
 }
 
-type container struct {
-	exclusive bool
-	values    map[string][]string
-	mapping   map[string]string
-	snapshot  atomic.Value
-	dirty     *syncx.AtomicBool
-	listeners []func()
-	lock      sync.Mutex
+// WithContainer provides a custom container to the subscriber.
+func WithContainer(container Container) SubOption {
+	return func(sub *Subscriber) {
+		sub.items = container
+	}
 }
+
+type (
+	Container interface {
+		OnAdd(kv internal.KV)
+		OnDelete(kv internal.KV)
+		AddListener(listener func())
+		GetValues() []string
+	}
+
+	container struct {
+		exclusive bool
+		values    map[string][]string
+		mapping   map[string]string
+		snapshot  atomic.Value
+		dirty     *syncx.AtomicBool
+		listeners []func()
+		lock      sync.Mutex
+	}
+)
 
 func newContainer(exclusive bool) *container {
 	return &container{
@@ -141,7 +160,7 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	return nil, false
 }
 
-func (c *container) addListener(listener func()) {
+func (c *container) AddListener(listener func()) {
 	c.lock.Lock()
 	c.listeners = append(c.listeners, listener)
 	c.lock.Unlock()
@@ -170,7 +189,7 @@ func (c *container) doRemoveKey(key string) {
 	}
 }
 
-func (c *container) getValues() []string {
+func (c *container) GetValues() []string {
 	if !c.dirty.True() {
 		return c.snapshot.Load().([]string)
 	}

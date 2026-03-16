@@ -2,13 +2,13 @@ package httpx
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
 
+	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/internal/errcode"
@@ -173,7 +173,7 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 }
 
 func doWriteJson(w http.ResponseWriter, code int, v any) error {
-	bs, err := json.Marshal(v)
+	bs, err := jsonx.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return fmt.Errorf("marshal json failed, error: %w", err)

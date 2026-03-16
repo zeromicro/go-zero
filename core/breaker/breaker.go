@@ -8,16 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
-const (
-	numHistoryReasons = 5
-	timeFormat        = "15:04:05"
-)
+const numHistoryReasons = 5
 
 // ErrServiceUnavailable is returned when the Breaker state is open.
 var ErrServiceUnavailable = errors.New("circuit breaker is open")
@@ -262,9 +258,9 @@ type errorWindow struct {
 
 func (ew *errorWindow) add(reason string) {
 	ew.lock.Lock()
-	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(timeFormat), reason)
+	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(time.TimeOnly), reason)
 	ew.index = (ew.index + 1) % numHistoryReasons
-	ew.count = mathx.MinInt(ew.count+1, numHistoryReasons)
+	ew.count = min(ew.count+1, numHistoryReasons)
 	ew.lock.Unlock()
 }
 

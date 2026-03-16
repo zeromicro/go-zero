@@ -30,6 +30,11 @@ type ZRpcContext struct {
 	Multiple bool
 	// Whether to generate rpc client
 	IsGenClient bool
+	// Module is the custom module name for go.mod
+	Module string
+	// NameFromFilename uses proto filename instead of package name for service naming.
+	// Default is false (uses package name, which supports multi-proto files).
+	NameFromFilename bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -51,7 +56,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	projectCtx, err := ctx.Prepare(abs)
+	var projectCtx *ctx.ProjectContext
+	if len(zctx.Module) > 0 {
+		projectCtx, err = ctx.PrepareWithModule(abs, zctx.Module)
+	} else {
+		projectCtx, err = ctx.Prepare(abs)
+	}
 	if err != nil {
 		return err
 	}

@@ -47,30 +47,31 @@ func (ir *ImmutableResource) Get() (any, error) {
 		return resource, nil
 	}
 
-	ir.maybeRefresh(func() {
-		res, err := ir.fetch()
-		ir.lock.Lock()
-		if err != nil {
-			ir.err = err
-		} else {
-			ir.resource, ir.err = res, nil
-		}
-		ir.lock.Unlock()
-	})
+	ir.lock.Lock()
+	defer ir.lock.Unlock()
 
-	ir.lock.RLock()
-	resource, err := ir.resource, ir.err
-	ir.lock.RUnlock()
-	return resource, err
+	// double check
+	if ir.resource != nil {
+		return ir.resource, nil
+	}
+	if ir.err != nil && !ir.shouldRefresh() {
+		return ir.resource, ir.err
+	}
+
+	res, err := ir.fetch()
+	ir.lastTime.Set(timex.Now())
+	if err != nil {
+		ir.err = err
+		return nil, err
+	}
+
+	ir.resource, ir.err = res, nil
+	return res, nil
 }
 
-func (ir *ImmutableResource) maybeRefresh(execute func()) {
-	now := timex.Now()
+func (ir *ImmutableResource) shouldRefresh() bool {
 	lastTime := ir.lastTime.Load()
-	if lastTime == 0 || lastTime+ir.refreshInterval < now {
-		ir.lastTime.Set(now)
-		execute()
-	}
+	return lastTime == 0 || lastTime+ir.refreshInterval < timex.Now()
 }
 
 // WithRefreshIntervalOnFailure sets refresh interval on failure.

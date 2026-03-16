@@ -5,7 +5,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/discovery/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -28,9 +28,9 @@ func NewEventHandler(update func([]string)) *EventHandler {
 
 // OnAdd handles the endpoints add events.
 func (h *EventHandler) OnAdd(obj any, _ bool) {
-	endpoints, ok := obj.(*v1.Endpoints)
+	endpoints, ok := obj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *v1.Endpoints", obj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", obj)
 		return
 	}
 
@@ -38,10 +38,10 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 	defer h.lock.Unlock()
 
 	var changed bool
-	for _, sub := range endpoints.Subsets {
-		for _, point := range sub.Addresses {
-			if _, ok := h.endpoints[point.IP]; !ok {
-				h.endpoints[point.IP] = lang.Placeholder
+	for _, point := range endpoints.Endpoints {
+		for _, address := range point.Addresses {
+			if _, ok := h.endpoints[address]; !ok {
+				h.endpoints[address] = lang.Placeholder
 				changed = true
 			}
 		}
@@ -54,9 +54,9 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 
 // OnDelete handles the endpoints delete events.
 func (h *EventHandler) OnDelete(obj any) {
-	endpoints, ok := obj.(*v1.Endpoints)
+	endpoints, ok := obj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *v1.Endpoints", obj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", obj)
 		return
 	}
 
@@ -64,10 +64,10 @@ func (h *EventHandler) OnDelete(obj any) {
 	defer h.lock.Unlock()
 
 	var changed bool
-	for _, sub := range endpoints.Subsets {
-		for _, point := range sub.Addresses {
-			if _, ok := h.endpoints[point.IP]; ok {
-				delete(h.endpoints, point.IP)
+	for _, point := range endpoints.Endpoints {
+		for _, address := range point.Addresses {
+			if _, ok := h.endpoints[address]; ok {
+				delete(h.endpoints, address)
 				changed = true
 			}
 		}
@@ -80,35 +80,35 @@ func (h *EventHandler) OnDelete(obj any) {
 
 // OnUpdate handles the endpoints update events.
 func (h *EventHandler) OnUpdate(oldObj, newObj any) {
-	oldEndpoints, ok := oldObj.(*v1.Endpoints)
+	oldEndpointSlices, ok := oldObj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *v1.Endpoints", oldObj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", oldObj)
 		return
 	}
 
-	newEndpoints, ok := newObj.(*v1.Endpoints)
+	newEndpointSlices, ok := newObj.(*v1.EndpointSlice)
 	if !ok {
-		logx.Errorf("%v is not an object with type *v1.Endpoints", newObj)
+		logx.Errorf("%v is not an object with type *v1.EndpointSlice", newObj)
 		return
 	}
 
-	if oldEndpoints.ResourceVersion == newEndpoints.ResourceVersion {
+	if oldEndpointSlices.ResourceVersion == newEndpointSlices.ResourceVersion {
 		return
 	}
 
-	h.Update(newEndpoints)
+	h.Update(newEndpointSlices)
 }
 
 // Update updates the endpoints.
-func (h *EventHandler) Update(endpoints *v1.Endpoints) {
+func (h *EventHandler) Update(endpoints *v1.EndpointSlice) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
 	old := h.endpoints
 	h.endpoints = make(map[string]lang.PlaceholderType)
-	for _, sub := range endpoints.Subsets {
-		for _, point := range sub.Addresses {
-			h.endpoints[point.IP] = lang.Placeholder
+	for _, point := range endpoints.Endpoints {
+		for _, address := range point.Addresses {
+			h.endpoints[address] = lang.Placeholder
 		}
 	}
 

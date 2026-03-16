@@ -49,6 +49,9 @@ func Parse(tag string) (*Tags, error) {
 
 // Get gets tag value by specified key
 func (t *Tags) Get(key string) (*Tag, error) {
+	if t == nil {
+		return nil, errTagNotExist
+	}
 	for _, tag := range t.tags {
 		if tag.Key == key {
 			return tag, nil
@@ -60,7 +63,10 @@ func (t *Tags) Get(key string) (*Tag, error) {
 
 // Keys returns all keys in Tags
 func (t *Tags) Keys() []string {
-	var keys []string
+	if t == nil {
+		return []string{}
+	}
+	keys := make([]string, 0, len(t.tags))
 	for _, tag := range t.tags {
 		keys = append(keys, tag.Key)
 	}
@@ -69,5 +75,8 @@ func (t *Tags) Keys() []string {
 
 // Tags returns all tags in Tags
 func (t *Tags) Tags() []*Tag {
+	if t == nil {
+		return []*Tag{}
+	}
 	return t.tags
 }

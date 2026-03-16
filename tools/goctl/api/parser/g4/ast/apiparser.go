@@ -28,7 +28,7 @@ type (
 		syntax                   *SyntaxExpr
 	}
 
-	// ParserOption defines an function with argument Parser
+	// ParserOption defines a function with argument Parser
 	ParserOption func(p *Parser)
 )
 

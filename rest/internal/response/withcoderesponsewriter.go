@@ -49,6 +49,12 @@ func (w *WithCodeResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
+// Unwrap returns the underlying http.ResponseWriter.
+// This is used by http.ResponseController to unwrap the response writer.
+func (w *WithCodeResponseWriter) Unwrap() http.ResponseWriter {
+	return w.Writer
+}
+
 // Write writes bytes into w.
 func (w *WithCodeResponseWriter) Write(bytes []byte) (int, error) {
 	return w.Writer.Write(bytes)

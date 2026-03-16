@@ -96,7 +96,7 @@ func (h *ConsistentHash) AddWithWeight(node any, weight int) {
 	h.AddWithReplicas(node, replicas)
 }
 
-// Get returns the corresponding node from h base on the given v.
+// Get returns the corresponding node from h based on the given v.
 func (h *ConsistentHash) Get(v any) (any, bool) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()

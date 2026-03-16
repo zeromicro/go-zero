@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
@@ -776,15 +779,9 @@ func TestSetup(t *testing.T) {
 		MaxBackups:  3,
 		MaxSize:     1024 * 1024,
 	}))
-	setupLogLevel(LogConf{
-		Level: levelInfo,
-	})
-	setupLogLevel(LogConf{
-		Level: levelError,
-	})
-	setupLogLevel(LogConf{
-		Level: levelSevere,
-	})
+	setupLogLevel(levelInfo)
+	setupLogLevel(levelError)
+	setupLogLevel(levelSevere)
 	_, err := createOutput("")
 	assert.NotNil(t, err)
 	Disable()
@@ -854,6 +851,95 @@ func TestWithKeepDays(t *testing.T) {
 	var opt logOptions
 	fn(&opt)
 	assert.Equal(t, 1, opt.keepDays)
+}
+
+func TestWithField_LogLevel(t *testing.T) {
+	tests := []struct {
+		name  string
+		level uint32
+		fn    func(string, ...LogField)
+		count int32
+	}{
+		{
+			name:  "debug/info",
+			level: DebugLevel,
+			fn:    Infow,
+			count: 1,
+		},
+		{
+			name:  "info/error",
+			level: InfoLevel,
+			fn:    Errorw,
+			count: 1,
+		},
+		{
+			name:  "info/info",
+			level: InfoLevel,
+			fn:    Infow,
+			count: 1,
+		},
+		{
+			name:  "info/severe",
+			level: InfoLevel,
+			fn:    Errorw,
+			count: 1,
+		},
+		{
+			name:  "error/info",
+			level: ErrorLevel,
+			fn:    Infow,
+			count: 0,
+		},
+		{
+			name:  "error/debug",
+			level: ErrorLevel,
+			fn:    Debugw,
+			count: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			olevel := atomic.LoadUint32(&logLevel)
+			SetLevel(tt.level)
+			defer SetLevel(olevel)
+
+			var val countingStringer
+			tt.fn("hello there", Field("foo", &val))
+			assert.Equal(t, tt.count, val.Count())
+		})
+	}
+}
+
+func TestWithField_LogLevelWithContext(t *testing.T) {
+	t.Run("context more than once with info/info", func(t *testing.T) {
+		olevel := atomic.LoadUint32(&logLevel)
+		SetLevel(InfoLevel)
+		defer SetLevel(olevel)
+
+		var val countingStringer
+		ctx := ContextWithFields(context.Background(), Field("foo", &val))
+		logger := WithContext(ctx)
+		logger.Info("hello there")
+		logger.Info("hello there")
+		logger.Info("hello there")
+		assert.True(t, val.Count() > 0)
+	})
+
+	t.Run("context more than once with error/info", func(t *testing.T) {
+		olevel := atomic.LoadUint32(&logLevel)
+		SetLevel(ErrorLevel)
+		defer SetLevel(olevel)
+
+		var val countingStringer
+		ctx := ContextWithFields(context.Background(), Field("foo", &val))
+		logger := WithContext(ctx)
+		logger.Info("hello there")
+		logger.Info("hello there")
+		logger.Info("hello there")
+		assert.Equal(t, int32(0), val.Count())
+	})
 }
 
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
@@ -1053,4 +1139,80 @@ type panicStringer struct {
 
 func (s panicStringer) String() string {
 	panic("panic")
+}
+
+type countingStringer struct {
+	count int32
+}
+
+func (s *countingStringer) Count() int32 {
+	return atomic.LoadInt32(&s.count)
+}
+
+func (s *countingStringer) String() string {
+	atomic.AddInt32(&s.count, 1)
+	return "countingStringer"
+}
+
+func TestLogKey(t *testing.T) {
+	setupOnce = sync.Once{}
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "console",
+		Encoding:    "json",
+		TimeFormat:  timeFormat,
+		FieldKeys: fieldKeyConf{
+			CallerKey:    "_caller",
+			ContentKey:   "_content",
+			DurationKey:  "_duration",
+			LevelKey:     "_level",
+			SpanKey:      "_span",
+			TimestampKey: "_timestamp",
+			TraceKey:     "_trace",
+			TruncatedKey: "_truncated",
+		},
+	})
+
+	t.Cleanup(func() {
+		setupFieldKeys(fieldKeyConf{
+			CallerKey:    defaultCallerKey,
+			ContentKey:   defaultContentKey,
+			DurationKey:  defaultDurationKey,
+			LevelKey:     defaultLevelKey,
+			SpanKey:      defaultSpanKey,
+			TimestampKey: defaultTimestampKey,
+			TraceKey:     defaultTraceKey,
+			TruncatedKey: defaultTruncatedKey,
+		})
+	})
+
+	const message = "hello there"
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	otp := otel.GetTracerProvider()
+	tp := trace.NewTracerProvider(trace.WithSampler(trace.AlwaysSample()))
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(otp)
+
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
+	defer span.End()
+
+	WithContext(ctx).WithDuration(time.Second).Info(message)
+	now := time.Now()
+
+	var m map[string]string
+	if err := json.Unmarshal([]byte(w.String()), &m); err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "info", m["_level"])
+	assert.Equal(t, message, m["_content"])
+	assert.Equal(t, "1000.0ms", m["_duration"])
+	assert.Regexp(t, `logx/logs_test.go:\d+`, m["_caller"])
+	assert.NotEmpty(t, m["_trace"])
+	assert.NotEmpty(t, m["_span"])
+	parsedTime, err := time.Parse(timeFormat, m["_timestamp"])
+	assert.True(t, err == nil)
+	assert.Equal(t, now.Minute(), parsedTime.Minute())
 }

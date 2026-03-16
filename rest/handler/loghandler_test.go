@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
@@ -86,6 +87,116 @@ func TestLogHandlerSlow(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 	}
 }
+
+func TestLogHandlerSSE(t *testing.T) {
+	handlers := []func(handler http.Handler) http.Handler{
+		LogHandler,
+		DetailedLogHandler,
+	}
+
+	for _, logHandler := range handlers {
+		t.Run("SSE request with normal duration", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+			req.Header.Set(headerAccept, valueSSE)
+
+			handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(defaultSlowThreshold + time.Second)
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
+		})
+
+		t.Run("SSE request exceeding SSE threshold", func(t *testing.T) {
+			originalThreshold := sseSlowThreshold.Load()
+			SetSSESlowThreshold(time.Millisecond * 100)
+			defer SetSSESlowThreshold(originalThreshold)
+
+			req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+			req.Header.Set(headerAccept, valueSSE)
+
+			handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(time.Millisecond * 150)
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
+		})
+	}
+}
+
+func TestLogHandlerThresholdSelection(t *testing.T) {
+	tests := []struct {
+		name          string
+		acceptHeader  string
+		expectedIsSSE bool
+	}{
+		{
+			name:          "Regular HTTP request",
+			acceptHeader:  "text/html",
+			expectedIsSSE: false,
+		},
+		{
+			name:          "SSE request",
+			acceptHeader:  valueSSE,
+			expectedIsSSE: true,
+		},
+		{
+			name:          "No Accept header",
+			acceptHeader:  "",
+			expectedIsSSE: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+			if tt.acceptHeader != "" {
+				req.Header.Set(headerAccept, tt.acceptHeader)
+			}
+
+			SetSlowThreshold(time.Millisecond * 100)
+			SetSSESlowThreshold(time.Millisecond * 200)
+			defer func() {
+				SetSlowThreshold(defaultSlowThreshold)
+				SetSSESlowThreshold(defaultSSESlowThreshold)
+			}()
+
+			handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(time.Millisecond * 150)
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
+		})
+	}
+}
+
+func TestDetailedLogHandler_LargeBody(t *testing.T) {
+	lbuf := logtest.NewCollector(t)
+
+	var buf bytes.Buffer
+	for i := 0; i < limitDetailedBodyBytes<<2; i++ {
+		buf.WriteByte('a')
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "http://localhost", &buf)
+	h := DetailedLogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(io.Discard, r.Body)
+	}))
+	resp := httptest.NewRecorder()
+	h.ServeHTTP(resp, req)
+
+	// extra 200 for the length of POST request headers
+	assert.True(t, len(lbuf.Content()) < limitDetailedBodyBytes+200)
+}
+
 func TestDetailedLogHandler_Hijack(t *testing.T) {
 	resp := httptest.NewRecorder()
 	writer := &detailLoggedResponseWriter{
@@ -111,10 +222,17 @@ func TestDetailedLogHandler_Hijack(t *testing.T) {
 		_, _, _ = writer.Hijack()
 	})
 }
+
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
 	SetSlowThreshold(time.Second)
 	assert.Equal(t, time.Second, slowThreshold.Load())
+}
+
+func TestSetSSESlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSSESlowThreshold, sseSlowThreshold.Load())
+	SetSSESlowThreshold(time.Minute * 10)
+	assert.Equal(t, time.Minute*10, sseSlowThreshold.Load())
 }
 
 func TestWrapMethodWithColor(t *testing.T) {

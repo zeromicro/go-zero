@@ -207,7 +207,7 @@ func (c *cluster) getCurrent(key watchKey) []KV {
 		return nil
 	}
 
-	var kvs []KV
+	kvs := make([]KV, 0, len(watcher.values))
 	for k, v := range watcher.values {
 		kvs = append(kvs, KV{
 			Key: k,
@@ -308,7 +308,7 @@ func (c *cluster) load(cli EtcdClient, key watchKey) int64 {
 		time.Sleep(coolDownUnstable.AroundDuration(coolDownInterval))
 	}
 
-	var kvs []KV
+	kvs := make([]KV, 0, len(resp.Kvs))
 	for _, ev := range resp.Kvs {
 		kvs = append(kvs, KV{
 			Key: string(ev.Key),
@@ -352,7 +352,7 @@ func (c *cluster) reload(cli EtcdClient) {
 	// cancel the previous watches
 	close(c.done)
 	c.watchGroup.Wait()
-	var keys []watchKey
+	keys := make([]watchKey, 0, len(c.watchers))
 	for wk, wval := range c.watchers {
 		keys = append(keys, wk)
 		if wval.cancel != nil {
@@ -386,8 +386,9 @@ func (c *cluster) watch(cli EtcdClient, key watchKey, rev int64) {
 			rev = c.load(cli, key)
 		}
 
-		// log the error and retry
+		// log the error and retry with cooldown to prevent CPU/disk exhaustion
 		logc.Error(cli.Ctx(), err)
+		time.Sleep(coolDownUnstable.AroundDuration(coolDownInterval))
 	}
 }
 
@@ -432,16 +433,16 @@ func (c *cluster) setupWatch(cli EtcdClient, key watchKey, rev int64) (context.C
 	}
 
 	ctx, cancel := context.WithCancel(cli.Ctx())
+	
+	c.lock.Lock()
 	if watcher, ok := c.watchers[key]; ok {
 		watcher.cancel = cancel
 	} else {
 		val := newWatchValue()
 		val.cancel = cancel
-
-		c.lock.Lock()
 		c.watchers[key] = val
-		c.lock.Unlock()
 	}
+	c.lock.Unlock()
 
 	rch = cli.Watch(clientv3.WithRequireLeader(ctx), wkey, ops...)
 

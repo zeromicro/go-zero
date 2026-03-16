@@ -3,14 +3,11 @@ package trace
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"sync"
 
-	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -21,63 +18,47 @@ import (
 )
 
 const (
-	kindJaeger   = "jaeger"
 	kindZipkin   = "zipkin"
 	kindOtlpGrpc = "otlpgrpc"
 	kindOtlpHttp = "otlphttp"
 	kindFile     = "file"
-	protocolUdp  = "udp"
 )
 
 var (
-	agents = make(map[string]lang.PlaceholderType)
-	lock   sync.Mutex
-	tp     *sdktrace.TracerProvider
+	once           sync.Once
+	tp             *sdktrace.TracerProvider
+	shutdownOnceFn = sync.OnceFunc(func() {
+		if tp != nil {
+			_ = tp.Shutdown(context.Background())
+		}
+	})
 )
 
 // StartAgent starts an opentelemetry agent.
+// It uses sync.Once to ensure the agent is initialized only once,
+// similar to prometheus.StartAgent and logx.SetUp.
+// This prevents multiple ServiceConf.SetUp() calls from reinitializing
+// the global tracer provider when running multiple servers (e.g., REST + RPC)
+// in the same process.
 func StartAgent(c Config) {
 	if c.Disabled {
 		return
 	}
 
-	lock.Lock()
-	defer lock.Unlock()
-
-	_, ok := agents[c.Endpoint]
-	if ok {
-		return
-	}
-
-	// if error happens, let later calls run.
-	if err := startAgent(c); err != nil {
-		return
-	}
-
-	agents[c.Endpoint] = lang.Placeholder
+	once.Do(func() {
+		if err := startAgent(c); err != nil {
+			logx.Error(err)
+		}
+	})
 }
 
 // StopAgent shuts down the span processors in the order they were registered.
 func StopAgent() {
-	lock.Lock()
-	defer lock.Unlock()
-
-	if tp != nil {
-		_ = tp.Shutdown(context.Background())
-		tp = nil
-	}
+	shutdownOnceFn()
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
-	// Just support jaeger and zipkin now, more for later
 	switch c.Batcher {
-	case kindJaeger:
-		u, err := url.Parse(c.Endpoint)
-		if err == nil && u.Scheme == protocolUdp {
-			return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(u.Hostname()),
-				jaeger.WithAgentPort(u.Port())))
-		}
-		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindOtlpGrpc:

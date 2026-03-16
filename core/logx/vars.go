@@ -53,14 +53,14 @@ const (
 )
 
 const (
-	callerKey    = "caller"
-	contentKey   = "content"
-	durationKey  = "duration"
-	levelKey     = "level"
-	spanKey      = "span"
-	timestampKey = "@timestamp"
-	traceKey     = "trace"
-	truncatedKey = "truncated"
+	defaultCallerKey    = "caller"
+	defaultContentKey   = "content"
+	defaultDurationKey  = "duration"
+	defaultLevelKey     = "level"
+	defaultSpanKey      = "span"
+	defaultTimestampKey = "@timestamp"
+	defaultTraceKey     = "trace"
+	defaultTruncatedKey = "truncated"
 )
 
 var (
@@ -72,4 +72,15 @@ var (
 	ExitOnFatal = syncx.ForAtomicBool(true)
 
 	truncatedField = Field(truncatedKey, true)
+)
+
+var (
+	callerKey    = defaultCallerKey
+	contentKey   = defaultContentKey
+	durationKey  = defaultDurationKey
+	levelKey     = defaultLevelKey
+	spanKey      = defaultSpanKey
+	timestampKey = defaultTimestampKey
+	traceKey     = defaultTraceKey
+	truncatedKey = defaultTruncatedKey
 )

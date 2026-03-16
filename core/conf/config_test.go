@@ -75,6 +75,160 @@ func TestLoadFromJsonBytesArray(t *testing.T) {
 	assert.EqualValues(t, []string{"foo", "bar"}, expect)
 }
 
+func TestConfigJson5(t *testing.T) {
+	// JSON5 with comments, trailing commas, and unquoted keys
+	text := `{
+	// This is a comment
+	a: 'foo',  // single quotes
+	b: 1,
+	c: "${FOO}",
+	d: "abcd!@#$112",  // trailing comma
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "${FOO}", val.C)
+	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJsonStandardParser(t *testing.T) {
+	// Standard JSON uses standard JSON parser (not JSON5) for backward compatibility
+	text := `{
+	"a": "foo",
+	"b": 1,
+	"c": "${FOO}",
+	"d": "abcd!@#$112"
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "${FOO}", val.C)
+	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJsonLargeIntegers(t *testing.T) {
+	// Test that .json files preserve large integer precision (backward compatibility)
+	text := `{
+	"id": 1234567890123456789,
+	"timestamp": 9223372036854775807
+}`
+
+	tmpfile, err := createTempFile(t, ".json", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		ID        int64 `json:"id"`
+		Timestamp int64 `json:"timestamp"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, int64(1234567890123456789), val.ID)
+	assert.Equal(t, int64(9223372036854775807), val.Timestamp)
+}
+
+func TestConfigJson5Env(t *testing.T) {
+	text := `{
+	// Comment with env variable
+	a: "foo",
+	b: 1,
+	c: "${FOO}",
+	d: "abcd!@#$a12 3",
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val, UseEnv())
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "2", val.C)
+	assert.Equal(t, "abcd!@# 3", val.D)
+}
+
+func TestLoadFromJson5Bytes(t *testing.T) {
+	// Test JSON5 features: comments, trailing commas, single quotes, unquoted keys
+	input := []byte(`{
+		// This is a comment
+		users: [
+			{name: 'foo'},  // trailing comma
+			{Name: "bar"},
+		],
+	}`)
+	var val struct {
+		Users []struct {
+			Name string
+		}
+	}
+
+	assert.NoError(t, LoadFromJson5Bytes(input, &val))
+	var expect []string
+	for _, user := range val.Users {
+		expect = append(expect, user.Name)
+	}
+	assert.EqualValues(t, []string{"foo", "bar"}, expect)
+}
+
+func TestLoadFromJson5BytesError(t *testing.T) {
+	// Invalid JSON5 syntax
+	input := []byte(`{a: foo}`) // unquoted string value (invalid)
+	var val struct {
+		A string
+	}
+
+	assert.Error(t, LoadFromJson5Bytes(input, &val))
+}
+
+func TestConfigJson5LargeIntegersLimitation(t *testing.T) {
+	// Document that JSON5 has precision limitations for large integers (>2^53)
+	// due to JavaScript number semantics. Users should use .json for configs with large IDs.
+	text := `{
+	// JSON5 converts numbers to float64, which loses precision for large integers
+	id: 1234567890123456789
+}`
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		ID int64 `json:"id"`
+	}
+
+	// This will load; depending on the JSON5 implementation, large integers may lose precision.
+	// This test documents that behavior without requiring loss of precision as an invariant.
+	err = Load(tmpfile, &val)
+	assert.NoError(t, err)
+
+	t.Logf("loaded JSON5 large integer id=%d (original 1234567890123456789)", val.ID)
+}
+
 func TestConfigToml(t *testing.T) {
 	text := `a = "foo"
 b = 1
@@ -1376,4 +1530,243 @@ func (m mockConfig) Validate() error {
 	}
 
 	return nil
+}
+
+func TestGetFullName(t *testing.T) {
+	tests := []struct {
+		parent string
+		child  string
+		want   string
+	}{
+		{"", "child", "child"},
+		{"parent", "child", "parent.child"},
+		{"a.b", "c", "a.b.c"},
+		{"root", "nested.field", "root.nested.field"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.parent+"."+tt.child, func(t *testing.T) {
+			got := getFullName(tt.parent, tt.child)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+// validatorConfig is a test config that implements Validate() for testing validation behavior
+type validatorConfig struct {
+	Value int `json:"value"`
+}
+
+func (v *validatorConfig) Validate() error {
+	if v.Value < 10 {
+		return errors.New("value must be >= 10")
+	}
+	return nil
+}
+
+// TestLoadValidation_WithoutEnv tests that validation is called correctly in normal loading path
+func TestLoadValidation_WithoutEnv(t *testing.T) {
+	tests := []struct {
+		name      string
+		extension string
+		content   string
+		wantErr   bool
+		errMsg    string
+	}{
+		{
+			name:      "json valid value",
+			extension: ".json",
+			content:   `{"value": 15}`,
+			wantErr:   false,
+		},
+		{
+			name:      "json invalid value",
+			extension: ".json",
+			content:   `{"value": 5}`,
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "yaml valid value",
+			extension: ".yaml",
+			content:   "value: 20\n",
+			wantErr:   false,
+		},
+		{
+			name:      "yaml invalid value",
+			extension: ".yaml",
+			content:   "value: 3\n",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "toml valid value",
+			extension: ".toml",
+			content:   "value = 100\n",
+			wantErr:   false,
+		},
+		{
+			name:      "toml invalid value",
+			extension: ".toml",
+			content:   "value = 1\n",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpfile, err := createTempFile(t, tt.extension, tt.content)
+			assert.Nil(t, err)
+
+			var cfg validatorConfig
+			err = Load(tmpfile, &cfg)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestLoadValidation_WithEnv tests that validation is called correctly with UseEnv() option
+func TestLoadValidation_WithEnv(t *testing.T) {
+	tests := []struct {
+		name      string
+		extension string
+		content   string
+		envValue  string
+		wantErr   bool
+		errMsg    string
+	}{
+		{
+			name:      "json valid value with env",
+			extension: ".json",
+			content:   `{"value": ${TEST_VALUE}}`,
+			envValue:  "25",
+			wantErr:   false,
+		},
+		{
+			name:      "json invalid value with env",
+			extension: ".json",
+			content:   `{"value": ${TEST_VALUE}}`,
+			envValue:  "7",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "yaml valid value with env",
+			extension: ".yaml",
+			content:   "value: ${TEST_VALUE}\n",
+			envValue:  "50",
+			wantErr:   false,
+		},
+		{
+			name:      "yaml invalid value with env",
+			extension: ".yaml",
+			content:   "value: ${TEST_VALUE}\n",
+			envValue:  "2",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+		{
+			name:      "toml valid value with env",
+			extension: ".toml",
+			content:   "value = ${TEST_VALUE}\n",
+			envValue:  "99",
+			wantErr:   false,
+		},
+		{
+			name:      "toml invalid value with env",
+			extension: ".toml",
+			content:   "value = ${TEST_VALUE}\n",
+			envValue:  "8",
+			wantErr:   true,
+			errMsg:    "value must be >= 10",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("TEST_VALUE", tt.envValue)
+
+			tmpfile, err := createTempFile(t, tt.extension, tt.content)
+			assert.Nil(t, err)
+
+			var cfg validatorConfig
+			err = Load(tmpfile, &cfg, UseEnv())
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestLoadValidation_Consistency verifies validation behavior is consistent between paths
+func TestLoadValidation_Consistency(t *testing.T) {
+	// Test that both paths (with and without UseEnv) produce the same validation results
+	const validValue = 15
+
+	formats := []struct {
+		ext     string
+		invalid string
+		valid   string
+	}{
+		{".json", `{"value": 5}`, `{"value": 15}`},
+		{".yaml", "value: 5\n", "value: 15\n"},
+		{".toml", "value = 5\n", "value = 15\n"},
+	}
+
+	for _, format := range formats {
+		t.Run("invalid_"+format.ext, func(t *testing.T) {
+			// Test without UseEnv()
+			tmpfile1, err := createTempFile(t, format.ext, format.invalid)
+			assert.Nil(t, err)
+
+			var cfg1 validatorConfig
+			err1 := Load(tmpfile1, &cfg1)
+
+			// Test with UseEnv()
+			tmpfile2, err := createTempFile(t, format.ext, format.invalid)
+			assert.Nil(t, err)
+
+			var cfg2 validatorConfig
+			err2 := Load(tmpfile2, &cfg2, UseEnv())
+
+			// Both should fail validation
+			assert.Error(t, err1, "validation should fail without UseEnv()")
+			assert.Error(t, err2, "validation should fail with UseEnv()")
+			assert.Contains(t, err1.Error(), "value must be >= 10")
+			assert.Contains(t, err2.Error(), "value must be >= 10")
+		})
+
+		t.Run("valid_"+format.ext, func(t *testing.T) {
+			// Test without UseEnv()
+			tmpfile1, err := createTempFile(t, format.ext, format.valid)
+			assert.Nil(t, err)
+
+			var cfg1 validatorConfig
+			err1 := Load(tmpfile1, &cfg1)
+
+			// Test with UseEnv()
+			tmpfile2, err := createTempFile(t, format.ext, format.valid)
+			assert.Nil(t, err)
+
+			var cfg2 validatorConfig
+			err2 := Load(tmpfile2, &cfg2, UseEnv())
+
+			// Both should pass validation
+			assert.NoError(t, err1, "validation should pass without UseEnv()")
+			assert.NoError(t, err2, "validation should pass with UseEnv()")
+			assert.Equal(t, validValue, cfg1.Value)
+			assert.Equal(t, validValue, cfg2.Value)
+		})
+	}
 }

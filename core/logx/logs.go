@@ -10,7 +10,6 @@ import (
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/sysx"
 )
@@ -187,39 +186,9 @@ func Errorw(msg string, fields ...LogField) {
 
 // Field returns a LogField for the given key and value.
 func Field(key string, value any) LogField {
-	switch val := value.(type) {
-	case error:
-		return LogField{Key: key, Value: encodeError(val)}
-	case []error:
-		var errs []string
-		for _, err := range val {
-			errs = append(errs, encodeError(err))
-		}
-		return LogField{Key: key, Value: errs}
-	case time.Duration:
-		return LogField{Key: key, Value: fmt.Sprint(val)}
-	case []time.Duration:
-		var durs []string
-		for _, dur := range val {
-			durs = append(durs, fmt.Sprint(dur))
-		}
-		return LogField{Key: key, Value: durs}
-	case []time.Time:
-		var times []string
-		for _, t := range val {
-			times = append(times, fmt.Sprint(t))
-		}
-		return LogField{Key: key, Value: times}
-	case fmt.Stringer:
-		return LogField{Key: key, Value: encodeStringer(val)}
-	case []fmt.Stringer:
-		var strs []string
-		for _, str := range val {
-			strs = append(strs, encodeStringer(str))
-		}
-		return LogField{Key: key, Value: strs}
-	default:
-		return LogField{Key: key, Value: val}
+	return LogField{
+		Key:   key,
+		Value: value,
 	}
 }
 
@@ -307,7 +276,8 @@ func SetUp(c LogConf) (err error) {
 	// Because multiple services in one process might call SetUp respectively.
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
-		setupLogLevel(c)
+		setupLogLevel(c.Level)
+		setupFieldKeys(c.FieldKeys)
 
 		if !c.Stat {
 			DisableStat()
@@ -511,8 +481,35 @@ func handleOptions(opts []LogOption) {
 	}
 }
 
-func setupLogLevel(c LogConf) {
-	switch c.Level {
+func setupFieldKeys(c fieldKeyConf) {
+	if len(c.CallerKey) > 0 {
+		callerKey = c.CallerKey
+	}
+	if len(c.ContentKey) > 0 {
+		contentKey = c.ContentKey
+	}
+	if len(c.DurationKey) > 0 {
+		durationKey = c.DurationKey
+	}
+	if len(c.LevelKey) > 0 {
+		levelKey = c.LevelKey
+	}
+	if len(c.SpanKey) > 0 {
+		spanKey = c.SpanKey
+	}
+	if len(c.TimestampKey) > 0 {
+		timestampKey = c.TimestampKey
+	}
+	if len(c.TraceKey) > 0 {
+		traceKey = c.TraceKey
+	}
+	if len(c.TruncatedKey) > 0 {
+		truncatedKey = c.TruncatedKey
+	}
+}
+
+func setupLogLevel(level string) {
+	switch level {
 	case levelDebug:
 		SetLevel(DebugLevel)
 	case levelInfo:

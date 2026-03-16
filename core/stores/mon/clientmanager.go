@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/zeromicro/go-zero/core/syncx"
-	"go.mongodb.org/mongo-driver/mongo"
-	mopt "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var clientManager = syncx.NewResourceManager()
@@ -29,13 +29,13 @@ func Inject(key string, client *mongo.Client) {
 
 func getClient(url string, opts ...Option) (*mongo.Client, error) {
 	val, err := clientManager.GetResource(url, func() (io.Closer, error) {
-		o := mopt.Client().ApplyURI(url)
+		o := options.Client().ApplyURI(url)
 		opts = append([]Option{defaultTimeoutOption()}, opts...)
 		for _, opt := range opts {
 			opt(o)
 		}
 
-		cli, err := mongo.Connect(context.Background(), o)
+		cli, err := mongo.Connect(o)
 		if err != nil {
 			return nil, err
 		}

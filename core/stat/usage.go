@@ -1,7 +1,8 @@
 package stat
 
 import (
-	"runtime"
+	"runtime/debug"
+	"runtime/metrics"
 	"sync/atomic"
 	"time"
 
@@ -56,8 +57,28 @@ func bToMb(b uint64) float32 {
 }
 
 func printUsage() {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
+	var (
+		alloc, totalAlloc, sys uint64
+		samples                = []metrics.Sample{
+			{Name: "/memory/classes/heap/objects:bytes"},
+			{Name: "/gc/heap/allocs:bytes"},
+			{Name: "/memory/classes/total:bytes"},
+		}
+		stats debug.GCStats
+	)
+	metrics.Read(samples)
+
+	if samples[0].Value.Kind() == metrics.KindUint64 {
+		alloc = samples[0].Value.Uint64()
+	}
+	if samples[1].Value.Kind() == metrics.KindUint64 {
+		totalAlloc = samples[1].Value.Uint64()
+	}
+	if samples[2].Value.Kind() == metrics.KindUint64 {
+		sys = samples[2].Value.Uint64()
+	}
+	debug.ReadGCStats(&stats)
+
 	logx.Statf("CPU: %dm, MEMORY: Alloc=%.1fMi, TotalAlloc=%.1fMi, Sys=%.1fMi, NumGC=%d",
-		CpuUsage(), bToMb(m.Alloc), bToMb(m.TotalAlloc), bToMb(m.Sys), m.NumGC)
+		CpuUsage(), bToMb(alloc), bToMb(totalAlloc), bToMb(sys), stats.NumGC)
 }

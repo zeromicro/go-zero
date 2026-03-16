@@ -92,7 +92,7 @@ Port: 0
 			Path:    "/",
 			Handler: nil,
 		}, WithJwt("thesecret"), WithSignature(SignatureConf{}),
-			WithJwtTransition("preivous", "thenewone"))
+			WithJwtTransition("previous", "thenewone"))
 
 		func() {
 			defer func() {
@@ -345,7 +345,7 @@ func TestWithPriority(t *testing.T) {
 func TestWithTimeout(t *testing.T) {
 	var fr featuredRoutes
 	WithTimeout(time.Hour)(&fr)
-	assert.Equal(t, time.Hour, fr.timeout)
+	assert.Equal(t, time.Hour, *fr.timeout)
 }
 
 func TestWithTLSConfig(t *testing.T) {
@@ -819,6 +819,6 @@ func TestServerEmbedFileSystem(t *testing.T) {
 //	serve(server, w, r)
 //	// verify the response
 func serve(s *Server, w http.ResponseWriter, r *http.Request) {
-	s.ngin.bindRoutes(s.router)
-	s.router.ServeHTTP(w, r)
+	_ = s.build()
+	s.serve(w, r)
 }

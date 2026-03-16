@@ -916,6 +916,11 @@ func TestRedis_Ping(t *testing.T) {
 			ok := client.Ping()
 			assert.True(t, ok)
 		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			ok := client.Ping()
+			assert.False(t, ok)
+		})
 	})
 }
 
@@ -1094,6 +1099,45 @@ func TestRedis_GetDel(t *testing.T) {
 	t.Run("get_del_with_error", func(t *testing.T) {
 		runOnRedisWithError(t, func(client *Redis) {
 			_, err := newRedis(client.Addr, badType()).GetDel("hello")
+			assert.Error(t, err)
+		})
+	})
+}
+
+func TestRedis_GetEx(t *testing.T) {
+	t.Run("get_ex", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			val, err := client.GetEx("getex_key", 10)
+			assert.Equal(t, "", val)
+			assert.Nil(t, err)
+
+			err = client.Set("getex_key", "getex_value")
+			assert.Nil(t, err)
+
+			val, err = client.GetEx("getex_key", 10)
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+			val, err = client.Get("getex_key")
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+
+			ttl, err := client.Ttl("getex_key")
+			assert.Nil(t, err)
+			assert.True(t, ttl > 0 && ttl <= 10)
+
+			val, err = client.GetEx("getex_key", 5)
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+
+			ttl, err = client.Ttl("getex_key")
+			assert.Nil(t, err)
+			assert.True(t, ttl > 0 && ttl <= 5)
+		})
+	})
+
+	t.Run("get_ex_with_error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := newRedis(client.Addr, badType()).GetEx("hello", 10)
 			assert.Error(t, err)
 		})
 	})
@@ -2029,6 +2073,16 @@ func TestRedis_WithUserPass(t *testing.T) {
 		err := newRedis(client.Addr, WithUser("any"), WithPass("any")).Ping()
 		assert.NotNil(t, err)
 	})
+
+	runOnRedisWithAccount(t, "foo", "bar", func(client *Redis) {
+		err := client.Set("key1", "value1")
+		assert.Nil(t, err)
+		_, err = newRedis(client.Addr, badType()).Keys("*")
+		assert.NotNil(t, err)
+		keys, err := client.Keys("*")
+		assert.Nil(t, err)
+		assert.ElementsMatch(t, []string{"key1"}, keys)
+	})
 }
 
 func TestRedis_checkConnection(t *testing.T) {
@@ -2054,6 +2108,19 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	fn(MustNewRedis(RedisConf{
 		Host: s.Addr(),
 		Type: NodeType,
+	}))
+}
+
+func runOnRedisWithAccount(t *testing.T, user, pass string, fn func(client *Redis)) {
+	logx.Disable()
+
+	s := miniredis.RunT(t)
+	s.RequireUserAuth(user, pass)
+	fn(MustNewRedis(RedisConf{
+		Host: s.Addr(),
+		Type: NodeType,
+		User: user,
+		Pass: pass,
 	}))
 }
 
@@ -2173,5 +2240,117 @@ func TestRedisTxPipeline(t *testing.T) {
 		value, err := getCmd.Result()
 		assert.Nil(t, err)
 		assert.Equal(t, hashValue, value)
+	})
+}
+
+func TestRedisXGroupCreate(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XGroupCreate("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+
+		_, err = redisCli.XGroupCreate("aa", "bb", "0")
+		assert.NotNil(t, err)
+
+		_, err = newRedis(client.Addr, badType()).XGroupCreateMkStream("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
+		_, err = redisCli.XGroupCreateMkStream("aa", "bb", "0")
+		assert.Nil(t, err)
+
+		_, err = redisCli.XGroupCreate("aa", "cc", "0")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedisXInfo(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XInfoStream("Source")
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XInfoGroups("Source")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "$")
+		assert.Nil(t, err)
+
+		_, err = redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.Nil(t, err)
+
+		infoStream, err := redisCli.XInfoStream(stream)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), infoStream.Length)
+
+		infoGroups, err := redisCli.XInfoGroups(stream)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), infoGroups[0].Lag)
+		assert.Equal(t, group, infoGroups[0].Name)
+
+		node, err := getRedis(redisCli)
+		assert.NoError(t, err)
+		redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		streamRes, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, ">")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(streamRes))
+		assert.Equal(t, "value1", streamRes[0].Messages[0].Values["key1"])
+
+		infoConsumers, err := redisCli.XInfoConsumers(stream, group)
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(infoConsumers))
+
+		_, err = newRedis(client.Addr, badType()).XInfoConsumers(stream, group)
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisXReadGroup(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XAdd("bb", true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XAck("bb", "aa", "123")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "$")
+		assert.Nil(t, err)
+
+		_, err = redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.Nil(t, err)
+
+		node, err := getRedis(redisCli)
+		assert.NoError(t, err)
+		redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		_, err = redisCli.XReadGroup(nil, group, "consumer", 1, 2000, false, stream, ">")
+		assert.Error(t, err)
+		streamRes, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, ">")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(streamRes))
+		assert.Equal(t, "value1", streamRes[0].Messages[0].Values["key1"])
+
+		_, err = redisCli.XReadGroup(nil, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Error(t, err)
+		streamRes1, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(streamRes1))
+		assert.Equal(t, "value1", streamRes1[0].Messages[0].Values["key1"])
+
+		_, err = redisCli.XAck(stream, group, streamRes[0].Messages[0].ID)
+		assert.Nil(t, err)
+
+		_, err = redisCli.XReadGroup(nil, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Error(t, err)
+		streamRes2, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Nil(t, err)
+		assert.Greater(t, len(streamRes2), 0, "streamRes2 is empty")
+		assert.Equal(t, 0, len(streamRes2[0].Messages))
 	})
 }

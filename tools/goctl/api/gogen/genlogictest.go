@@ -7,6 +7,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -14,10 +15,10 @@ import (
 //go:embed logic_test.tpl
 var logicTestTemplate string
 
-func genLogicTest(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogicTest(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicTestByRoute(dir, rootPkg, cfg, g, r)
+			err := genLogicTestByRoute(dir, rootPkg, projectPkg, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -26,7 +27,7 @@ func genLogicTest(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) er
 	return nil
 }
 
-func genLogicTestByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicTestByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
@@ -73,6 +74,8 @@ func genLogicTestByRoute(dir, rootPkg string, cfg *config.Config, group spec.Gro
 			"requestType":  requestType,
 			"hasDoc":       len(route.JoinedDoc()) > 0,
 			"doc":          getDoc(route.JoinedDoc()),
+			"projectPkg":   projectPkg,
+			"version":      version.BuildVersion,
 		},
 	})
 }

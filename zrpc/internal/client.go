@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
@@ -53,9 +52,6 @@ func NewClient(target string, middlewares ClientMiddlewaresConf, opts ...ClientO
 		middlewares: middlewares,
 	}
 
-	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, p2c.Name)
-	balancerOpt := WithDialOption(grpc.WithDefaultServiceConfig(svcCfg))
-	opts = append([]ClientOption{balancerOpt}, opts...)
 	if err := cli.dial(target, opts...); err != nil {
 		return nil, err
 	}
@@ -143,6 +139,15 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 
 	c.conn = conn
 	return nil
+}
+
+// WithBlock sets the dialing to be blocking.
+// Deprecated: blocking dials are not recommended by gRPC.
+// See https://github.com/grpc/grpc-go/blob/master/Documentation/anti-patterns.md
+func WithBlock() ClientOption {
+	return func(options *ClientOptions) {
+		options.NonBlock = false
+	}
 }
 
 // WithDialOption returns a func to customize a ClientOptions with given dial option.

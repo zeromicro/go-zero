@@ -17,6 +17,7 @@
 **/logs
 **/adhoc
 **/coverage.txt
+**/WARP.md
 
 # for test purpose
 go.work

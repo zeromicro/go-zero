@@ -19,6 +19,8 @@ var (
 	VarStringDir string
 	// VarBoolCache describes whether cache is enabled.
 	VarBoolCache bool
+	// VarStringPrefix string describes the prefix for the cache key.
+	VarStringPrefix string
 	// VarBoolEasy  describes whether to generate Collection Name in the code for easy declare.
 	VarBoolEasy bool
 	// VarStringStyle describes the style.
@@ -35,6 +37,7 @@ var (
 func Action(_ *cobra.Command, _ []string) error {
 	tp := VarStringSliceType
 	c := VarBoolCache
+	p := VarStringPrefix
 	easy := VarBoolEasy
 	o := strings.TrimSpace(VarStringDir)
 	s := VarStringStyle
@@ -74,6 +77,7 @@ func Action(_ *cobra.Command, _ []string) error {
 	return generate.Do(&generate.Context{
 		Types:  tp,
 		Cache:  c,
+		Prefix: p,
 		Easy:   easy,
 		Output: a,
 		Cfg:    cfg,

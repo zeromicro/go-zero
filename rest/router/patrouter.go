@@ -19,7 +19,7 @@ const (
 var (
 	// ErrInvalidMethod is an error that indicates not a valid http method.
 	ErrInvalidMethod = errors.New("not a valid http method")
-	// ErrInvalidPath is an error that indicates path is not start with /.
+	// ErrInvalidPath is an error that indicates path does not start with /.
 	ErrInvalidPath = errors.New("path must begin with '/'")
 )
 

@@ -36,7 +36,7 @@ func DocCommand(_ *cobra.Command, _ []string) error {
 	}
 
 	if !pathx.FileExists(dir) {
-		return fmt.Errorf("dir %s not exsit", dir)
+		return fmt.Errorf("dir %s not exist", dir)
 	}
 
 	dir, err := filepath.Abs(dir)

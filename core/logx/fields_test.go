@@ -34,7 +34,7 @@ func TestAddGlobalFields(t *testing.T) {
 
 func TestContextWithFields(t *testing.T) {
 	ctx := ContextWithFields(context.Background(), Field("a", 1), Field("b", 2))
-	vals := ctx.Value(fieldsContextKey)
+	vals := ctx.Value(fieldsKey{})
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
 	assert.True(t, ok)
@@ -43,7 +43,7 @@ func TestContextWithFields(t *testing.T) {
 
 func TestWithFields(t *testing.T) {
 	ctx := WithFields(context.Background(), Field("a", 1), Field("b", 2))
-	vals := ctx.Value(fieldsContextKey)
+	vals := ctx.Value(fieldsKey{})
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
 	assert.True(t, ok)
@@ -55,7 +55,7 @@ func TestWithFieldsAppend(t *testing.T) {
 	ctx := context.WithValue(context.Background(), dummyKey, "dummy")
 	ctx = ContextWithFields(ctx, Field("a", 1), Field("b", 2))
 	ctx = ContextWithFields(ctx, Field("c", 3), Field("d", 4))
-	vals := ctx.Value(fieldsContextKey)
+	vals := ctx.Value(fieldsKey{})
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
 	assert.True(t, ok)
@@ -80,8 +80,8 @@ func TestWithFieldsAppendCopy(t *testing.T) {
 	ctxa := ContextWithFields(ctx, af)
 	ctxb := ContextWithFields(ctx, bf)
 
-	assert.EqualValues(t, af, ctxa.Value(fieldsContextKey).([]LogField)[count])
-	assert.EqualValues(t, bf, ctxb.Value(fieldsContextKey).([]LogField)[count])
+	assert.EqualValues(t, af, ctxa.Value(fieldsKey{}).([]LogField)[count])
+	assert.EqualValues(t, bf, ctxb.Value(fieldsKey{}).([]LogField)[count])
 }
 
 func BenchmarkAtomicValue(b *testing.B) {

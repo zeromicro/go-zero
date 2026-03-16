@@ -334,3 +334,43 @@ func TestValidateValueRange(t *testing.T) {
 func TestSetMatchedPrimitiveValue(t *testing.T) {
 	assert.Error(t, setMatchedPrimitiveValue(reflect.Func, reflect.ValueOf(2), "1"))
 }
+
+func TestConvertTypeFromString_Bool(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    bool
+		wantErr bool
+	}{
+		// true cases
+		{name: "1", input: "1", want: true, wantErr: false},
+		{name: "true lowercase", input: "true", want: true, wantErr: false},
+		{name: "True mixed", input: "True", want: true, wantErr: false},
+		{name: "TRUE uppercase", input: "TRUE", want: true, wantErr: false},
+		{name: "TrUe mixed", input: "TrUe", want: true, wantErr: false},
+		// false cases
+		{name: "0", input: "0", want: false, wantErr: false},
+		{name: "false lowercase", input: "false", want: false, wantErr: false},
+		{name: "False mixed", input: "False", want: false, wantErr: false},
+		{name: "FALSE uppercase", input: "FALSE", want: false, wantErr: false},
+		{name: "FaLsE mixed", input: "FaLsE", want: false, wantErr: false},
+		// error cases
+		{name: "invalid yes", input: "yes", want: false, wantErr: true},
+		{name: "invalid no", input: "no", want: false, wantErr: true},
+		{name: "invalid empty", input: "", want: false, wantErr: true},
+		{name: "invalid 2", input: "2", want: false, wantErr: true},
+		{name: "invalid truee", input: "truee", want: false, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := convertTypeFromString(reflect.Bool, tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}

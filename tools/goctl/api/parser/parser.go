@@ -18,7 +18,7 @@ type parser struct {
 }
 
 // Parse parses the api file.
-// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// Deprecated: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
 // it will be removed in the future.
 func Parse(filename string) (*spec.ApiSpec, error) {
 	if env.UseExperimental() {
@@ -63,14 +63,14 @@ func parseContent(content string, skipCheckTypeDeclaration bool, filename ...str
 	return apiSpec, nil
 }
 
-// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// Deprecated: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
 // it will be removed in the future.
 // ParseContent parses the api content
 func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
 	return parseContent(content, false, filename...)
 }
 
-// Depreacted: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
+// Deprecated: use tools/goctl/pkg/parser/api/parser/parser.go:18 instead,
 // it will be removed in the future.
 // ParseContentWithParserSkipCheckTypeDeclaration parses the api content with skip check type declaration
 func ParseContentWithParserSkipCheckTypeDeclaration(content string, filename ...string) (*spec.ApiSpec, error) {
@@ -125,7 +125,7 @@ func (p parser) fillTypes() error {
 	for _, item := range p.ast.Type {
 		switch v := (item).(type) {
 		case *ast.TypeStruct:
-			var members []spec.Member
+			members := make([]spec.Member, 0, len(v.Fields))
 			for _, item := range v.Fields {
 				members = append(members, p.fieldToMember(item))
 			}
@@ -227,7 +227,7 @@ func (p parser) astTypeToSpec(in ast.DataType) spec.Type {
 		return spec.PointerType{RawName: v.PointerExpr.Text(), Type: spec.DefineStruct{RawName: raw}}
 	}
 
-	panic(fmt.Sprintf("unspported type %+v", in))
+	panic(fmt.Sprintf("unsupported type %+v", in))
 }
 
 func (p parser) stringExprs(docs []ast.Expr) []string {

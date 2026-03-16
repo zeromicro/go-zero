@@ -53,7 +53,7 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 ```Bash
 $ goctl rpc template -o=user.proto
 ```
-  
+
 ```proto
 syntax = "proto3";
 
@@ -72,7 +72,7 @@ service User {
   rpc Ping(Request) returns(Response);
 }
 ```
-  
+
 
 * 生成rpc服务代码
 
@@ -96,15 +96,16 @@ Examples:
 goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.
 
 Flags:
-      --branch string     The branch of the remote repo, it does work with --remote
-  -h, --help              help for protoc
-      --home string       The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
-  -m, --multiple          Generated in multiple rpc service mode
-      --remote string     The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
-                          	The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
-      --style string      The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md] (default "gozero")
-  -v, --verbose           Enable log output
-      --zrpc_out string   The zrpc output directory
+      --branch string            The branch of the remote repo, it does work with --remote
+  -h, --help                     help for protoc
+      --home string              The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+  -m, --multiple                 Generated in multiple rpc service mode
+      --name-from-filename       Use proto filename instead of package name for service naming (legacy behavior)
+      --remote string            The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                                 	The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
+      --style string             The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md] (default "gozero")
+  -v, --verbose                  Enable log output
+      --zrpc_out string          The zrpc output directory
 ```
 
 ### 参数说明
@@ -112,18 +113,42 @@ Flags:
 * --branch 指定远程仓库模板分支
 * --home 指定goctl模板根目录
 * -m, --multiple 指定生成多个rpc服务模式, 默认为 false, 如果为  false, 则只支持生成一个rpc service, 如果为 true, 则支持生成多个 rpc service，且多个 rpc service 会分组。
+* --name-from-filename 使用proto文件名而非package名称来命名服务（旧版行为）。默认使用package名称，这样可以支持多个proto文件共享同一个package。
 * --style 指定文件输出格式
 * -v, --verbose 显示日志
 * --zrpc_out 指定zrpc输出目录
 
 > ## --multiple
 > 是否开启多个 rpc service 生成，如果开启，则满足一下新特性
-> 1. 支持 1 到多个 rpc service 
+> 1. 支持 1 到多个 rpc service
 > 2. 生成 rpc 服务会按照服务名称分组（尽管只有一个 rpc service）
 > 3. rpc client 的文件目录变更为固定名称 `client`
-> 
+>
 > 如果不开启，则和旧版本 rpc 生成逻辑一样（兼容）
 > 1. 有且只能有一个 rpc service
+
+> ## Service Naming (Multi-Proto File Support)
+>
+> By default, the service name is derived from the **proto package name** (e.g., `package user;` → service name `user`).
+> This enables splitting a large proto file into multiple smaller files that share the same package name,
+> which is particularly useful for AI-assisted development where smaller files are easier to process.
+>
+> **Example: Multiple proto files with same package**
+> ```
+> protos/
+> ├── user_base.proto      # package user;
+> ├── user_auth.proto      # package user;
+> └── user_profile.proto   # package user;
+> ```
+> All three files will generate into a single `user` service.
+>
+> **Legacy behavior (--name-from-filename)**
+>
+> If you need the old behavior where service name is derived from the proto filename,
+> use the `--name-from-filename` flag:
+> ```bash
+> goctl rpc protoc user.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=. --name-from-filename
+> ```
 
 
 ## rpc 服务生成 example

@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/lang"
-	"github.com/zeromicro/go-zero/core/mathx"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -47,7 +46,7 @@ func TestDirectBuilder_Build(t *testing.T) {
 			}, cc, resolver.BuildOptions{})
 			assert.NoError(t, err)
 
-			size := mathx.MinInt(test, subsetSize)
+			size := min(test, subsetSize)
 			assert.Equal(t, size, len(cc.state.Addresses))
 			m := make(map[string]lang.PlaceholderType)
 			for _, each := range cc.state.Addresses {

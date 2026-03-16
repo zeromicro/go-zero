@@ -9,7 +9,10 @@ import (
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 
-const tagName = "db"
+const (
+	tagIgnore = "-"
+	tagName   = "db"
+)
 
 var (
 	// ErrNotMatchDestination is an error that indicates not matching destination to scan.
@@ -67,25 +70,16 @@ func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 }
 
 func getValueInterface(value reflect.Value) (any, error) {
-	switch value.Kind() {
-	case reflect.Ptr:
-		if !value.CanInterface() {
-			return nil, ErrNotReadableValue
-		}
-
-		if value.IsNil() {
-			baseValueType := mapping.Deref(value.Type())
-			value.Set(reflect.New(baseValueType))
-		}
-
-		return value.Interface(), nil
-	default:
-		if !value.CanAddr() || !value.Addr().CanInterface() {
-			return nil, ErrNotReadableValue
-		}
-
-		return value.Addr().Interface(), nil
+	if !value.CanAddr() || !value.Addr().CanInterface() {
+		return nil, ErrNotReadableValue
 	}
+
+	if value.Kind() == reflect.Pointer && value.IsNil() {
+		baseValueType := mapping.Deref(value.Type())
+		value.Set(reflect.New(baseValueType))
+	}
+
+	return value.Addr().Interface(), nil
 }
 
 func isScanFailed(err error) bool {
@@ -269,13 +263,17 @@ func unwrapFields(v reflect.Value) []reflect.Value {
 			continue
 		}
 
+		childType := indirect.Type().Field(i)
+		if parseTagName(childType) == tagIgnore {
+			continue
+		}
+
 		if child.Kind() == reflect.Ptr && child.IsNil() {
 			baseValueType := mapping.Deref(child.Type())
 			child.Set(reflect.New(baseValueType))
 		}
 
 		child = reflect.Indirect(child)
-		childType := indirect.Type().Field(i)
 		if child.Kind() == reflect.Struct && childType.Anonymous {
 			fields = append(fields, unwrapFields(child)...)
 		} else {

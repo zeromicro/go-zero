@@ -64,18 +64,26 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 		isCallPkgSameToGrpcPkg := childDir == ctx.GetProtoGo().Filename
 
 		serviceName := stringx.From(service.Name).ToCamel()
-		alias := collection.NewSet()
-		var hasSameNameBetweenMessageAndService bool
-		for _, item := range service.RPC {
 
-			//if serviceName == msgName {
-			//	hasSameNameBetweenMessageAndService = true
-			//}
-			if !isCallPkgSameToPbPkg {
-				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.RequestType),
-					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.RequestType))))
-				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.ReturnsType),
-					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.ReturnsType))))
+		// Collect only the message types actually used by this service's RPCs,
+		// so that each client file only aliases its own request/response types.
+		usedTypes := collection.NewSet[string]()
+		for _, rpc := range service.RPC {
+			usedTypes.Add(parser.CamelCase(rpc.RequestType))
+			usedTypes.Add(parser.CamelCase(rpc.ReturnsType))
+		}
+
+		alias := collection.NewSet[string]()
+		var hasSameNameBetweenMessageAndService bool
+		for _, item := range proto.Message {
+			msgName := getMessageName(*item.Message)
+			camelMsgName := parser.CamelCase(msgName)
+			if serviceName == msgName {
+				hasSameNameBetweenMessageAndService = true
+			}
+			if !isCallPkgSameToPbPkg && usedTypes.Contains(camelMsgName) {
+				alias.Add(fmt.Sprintf("%s = %s", camelMsgName,
+					fmt.Sprintf("%s.%s", proto.PbPackage, camelMsgName)))
 			}
 		}
 		if hasSameNameBetweenMessageAndService {
@@ -104,7 +112,7 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			protoGoPackage = ""
 		}
 
-		aliasKeys := alias.KeysStr()
+		aliasKeys := alias.Keys()
 		sort.Strings(aliasKeys)
 		if err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]any{
 			"name":           callFilename,
@@ -137,7 +145,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 	}
 
 	serviceName := stringx.From(service.Name).ToCamel()
-	alias := collection.NewSet()
+	alias := collection.NewSet[string]()
 	var hasSameNameBetweenMessageAndService bool
 	for _, item := range proto.Message {
 		msgName := getMessageName(*item.Message)
@@ -145,7 +153,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 			hasSameNameBetweenMessageAndService = true
 		}
 		if !isCallPkgSameToPbPkg {
-			alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
+			alias.Add(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
 				fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
 		}
 	}
@@ -176,7 +184,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		pbPackage = ""
 		protoGoPackage = ""
 	}
-	aliasKeys := alias.KeysStr()
+	aliasKeys := alias.Keys()
 	sort.Strings(aliasKeys)
 	return util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"name":           callFilename,

@@ -639,7 +639,7 @@ line comments
 以下为对应语法块解析后细带doc和comment的写法
 ``` api
 // syntaxLit doc
-syntax = "v1" // syntaxLit commnet
+syntax = "v1" // syntaxLit comment
 
 info(
   // kvLit doc

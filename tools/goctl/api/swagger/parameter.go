@@ -8,31 +8,57 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
+func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
+	// Support HTTP methods that commonly use request bodies with JSON
+	// POST, PUT, PATCH are standard methods with bodies
+	// DELETE can also have a body (though less common)
+	method = strings.ToUpper(method)
+	if method != http.MethodPost && method != http.MethodPut &&
+		method != http.MethodPatch && method != http.MethodDelete {
+		return "", false
+	}
+
+	structType, ok := tp.(apiSpec.DefineStruct)
+	if !ok {
+		return "", false
+	}
+
+	var hasJsonField bool
+	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+		jsonTag, _ := tag.Get(tagJson)
+		if !hasJsonField {
+			hasJsonField = jsonTag != nil
+		}
+	})
+
+	return structType.RawName, hasJsonField
+}
+
+func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Parameter {
 	if tp == nil {
 		return []spec.Parameter{}
 	}
+
 	structType, ok := tp.(apiSpec.DefineStruct)
 	if !ok {
 		return []spec.Parameter{}
 	}
+
 	var (
 		resp           []spec.Parameter
 		properties     = map[string]spec.Schema{}
 		requiredFields []string
 	)
-	rangeMemberAndDo(structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
+	rangeMemberAndDo(ctx, structType, func(tag *apiSpec.Tags, required bool, member apiSpec.Member) {
 		headerTag, _ := tag.Get(tagHeader)
 		hasHeader := headerTag != nil
-
 		pathParameterTag, _ := tag.Get(tagPath)
 		hasPathParameter := pathParameterTag != nil
-
 		formTag, _ := tag.Get(tagForm)
 		hasForm := formTag != nil
-
 		jsonTag, _ := tag.Get(tagJson)
 		hasJson := jsonTag != nil
+
 		if hasHeader {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(headerTag.Options)
 			resp = append(resp, spec.Parameter{
@@ -44,10 +70,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					Enum:             enumsValueFromOptions(headerTag.Options),
 				},
 				SimpleSchema: spec.SimpleSchema{
-					Type:    sampleTypeFromGoType(member.Type),
-					Default: defValueFromOptions(headerTag.Options, member.Type),
-					Example: exampleValueFromOptions(headerTag.Options, member.Type),
-					Items:   sampleItemsFromGoType(member.Type),
+					Type:    sampleTypeFromGoType(ctx, member.Type),
+					Default: defValueFromOptions(ctx, headerTag.Options, member.Type),
+					Items:   sampleItemsFromGoType(ctx, member.Type),
 				},
 				ParamProps: spec.ParamProps{
 					In:          paramsInHeader,
@@ -57,6 +82,7 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 				},
 			})
 		}
+
 		if hasPathParameter {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(pathParameterTag.Options)
 			resp = append(resp, spec.Parameter{
@@ -68,10 +94,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					Enum:             enumsValueFromOptions(pathParameterTag.Options),
 				},
 				SimpleSchema: spec.SimpleSchema{
-					Type:    sampleTypeFromGoType(member.Type),
-					Default: defValueFromOptions(pathParameterTag.Options, member.Type),
-					Example: exampleValueFromOptions(pathParameterTag.Options, member.Type),
-					Items:   sampleItemsFromGoType(member.Type),
+					Type:    sampleTypeFromGoType(ctx, member.Type),
+					Default: defValueFromOptions(ctx, pathParameterTag.Options, member.Type),
+					Items:   sampleItemsFromGoType(ctx, member.Type),
 				},
 				ParamProps: spec.ParamProps{
 					In:          paramsInPath,
@@ -81,6 +106,7 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 				},
 			})
 		}
+
 		if hasForm {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(formTag.Options)
 			if strings.EqualFold(method, http.MethodGet) {
@@ -93,10 +119,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 						Enum:             enumsValueFromOptions(formTag.Options),
 					},
 					SimpleSchema: spec.SimpleSchema{
-						Type:    sampleTypeFromGoType(member.Type),
-						Default: defValueFromOptions(formTag.Options, member.Type),
-						Example: exampleValueFromOptions(formTag.Options, member.Type),
-						Items:   sampleItemsFromGoType(member.Type),
+						Type:    sampleTypeFromGoType(ctx, member.Type),
+						Default: defValueFromOptions(ctx, formTag.Options, member.Type),
+						Items:   sampleItemsFromGoType(ctx, member.Type),
 					},
 					ParamProps: spec.ParamProps{
 						In:              paramsInQuery,
@@ -116,10 +141,9 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 						Enum:             enumsValueFromOptions(formTag.Options),
 					},
 					SimpleSchema: spec.SimpleSchema{
-						Type:    sampleTypeFromGoType(member.Type),
-						Default: defValueFromOptions(formTag.Options, member.Type),
-						Example: exampleValueFromOptions(formTag.Options, member.Type),
-						Items:   sampleItemsFromGoType(member.Type),
+						Type:    sampleTypeFromGoType(ctx, member.Type),
+						Default: defValueFromOptions(ctx, formTag.Options, member.Type),
+						Items:   sampleItemsFromGoType(ctx, member.Type),
 					},
 					ParamProps: spec.ParamProps{
 						In:              paramsInForm,
@@ -130,8 +154,8 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 					},
 				})
 			}
-
 		}
+
 		if hasJson {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(jsonTag.Options)
 			if required {
@@ -139,46 +163,66 @@ func parametersFromType(method string, tp apiSpec.Type) []spec.Parameter {
 			}
 			var schema = spec.Schema{
 				SwaggerSchemaProps: spec.SwaggerSchemaProps{
-					Example: exampleValueFromOptions(jsonTag.Options, member.Type),
+					Example: exampleValueFromOptions(ctx, jsonTag.Options, member.Type),
 				},
 				SchemaProps: spec.SchemaProps{
 					Description:          formatComment(member.Comment),
-					Type:                 typeFromGoType(member.Type),
-					Default:              defValueFromOptions(jsonTag.Options, member.Type),
+					Type:                 typeFromGoType(ctx, member.Type),
+					Default:              defValueFromOptions(ctx, jsonTag.Options, member.Type),
 					Maximum:              maximum,
 					ExclusiveMaximum:     exclusiveMaximum,
 					Minimum:              minimum,
 					ExclusiveMinimum:     exclusiveMinimum,
 					Enum:                 enumsValueFromOptions(jsonTag.Options),
-					AdditionalProperties: mapFromGoType(member.Type),
+					AdditionalProperties: mapFromGoType(ctx, member.Type),
 				},
 			}
-			switch sampleTypeFromGoType(member.Type) {
+			switch sampleTypeFromGoType(ctx, member.Type) {
 			case swaggerTypeArray:
-				schema.Items = itemsFromGoType(member.Type)
+				schema.Items = itemsFromGoType(ctx, member.Type)
 			case swaggerTypeObject:
-				p, r := propertiesFromType(member.Type)
+				p, r := propertiesFromType(ctx, member.Type)
 				schema.Properties = p
 				schema.Required = r
 			}
 			properties[jsonTag.Name] = schema
 		}
 	})
+
 	if len(properties) > 0 {
-		resp = append(resp, spec.Parameter{
-			ParamProps: spec.ParamProps{
-				In:       paramsInBody,
-				Name:     paramsInBody,
-				Required: true,
-				Schema: &spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Type:       typeFromGoType(structType),
-						Properties: properties,
-						Required:   requiredFields,
+		if ctx.UseDefinitions {
+			structName, ok := isRequestBodyJson(ctx, method, tp)
+			if ok {
+				resp = append(resp, spec.Parameter{
+					ParamProps: spec.ParamProps{
+						In:       paramsInBody,
+						Name:     paramsInBody,
+						Required: true,
+						Schema: &spec.Schema{
+							SchemaProps: spec.SchemaProps{
+								Ref: spec.MustCreateRef(getRefName(structName)),
+							},
+						},
+					},
+				})
+			}
+		} else {
+			resp = append(resp, spec.Parameter{
+				ParamProps: spec.ParamProps{
+					In:       paramsInBody,
+					Name:     paramsInBody,
+					Required: true,
+					Schema: &spec.Schema{
+						SchemaProps: spec.SchemaProps{
+							Type:       typeFromGoType(ctx, structType),
+							Properties: properties,
+							Required:   requiredFields,
+						},
 					},
 				},
-			},
-		})
+			})
+		}
 	}
+
 	return resp
 }
