@@ -21,10 +21,11 @@ const (
 var (
 	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
 	loaders                = map[string]func([]byte, any) error{
-		".json": LoadFromJsonBytes,
-		".toml": LoadFromTomlBytes,
-		".yaml": LoadFromYamlBytes,
-		".yml":  LoadFromYamlBytes,
+		".json":  LoadFromJsonBytes,
+		".json5": LoadFromJson5Bytes,
+		".toml":  LoadFromTomlBytes,
+		".yaml":  LoadFromYamlBytes,
+		".yml":   LoadFromYamlBytes,
 	}
 )
 
@@ -41,7 +42,7 @@ func FillDefault(v any) error {
 	return fillDefaultUnmarshaler.Unmarshal(map[string]any{}, v)
 }
 
-// Load loads config into v from file, .json, .yaml and .yml are acceptable.
+// Load loads config into v from file, .json, .json5, .toml, .yaml and .yml are acceptable.
 func Load(file string, v any, opts ...Option) error {
 	content, err := os.ReadFile(file)
 	if err != nil {
@@ -65,7 +66,7 @@ func Load(file string, v any, opts ...Option) error {
 	return loader(content, v)
 }
 
-// LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
+// LoadConfig loads config into v from file, .json, .json5, .toml, .yaml and .yml are acceptable.
 // Deprecated: use Load instead.
 func LoadConfig(file string, v any, opts ...Option) error {
 	return Load(file, v, opts...)
@@ -112,6 +113,16 @@ func LoadFromTomlBytes(content []byte, v any) error {
 // LoadFromYamlBytes loads config into v from content yaml bytes.
 func LoadFromYamlBytes(content []byte, v any) error {
 	b, err := encoding.YamlToJson(content)
+	if err != nil {
+		return err
+	}
+
+	return LoadFromJsonBytes(b, v)
+}
+
+// LoadFromJson5Bytes loads config into v from content json5 bytes.
+func LoadFromJson5Bytes(content []byte, v any) error {
+	b, err := encoding.Json5ToJson(content)
 	if err != nil {
 		return err
 	}
