@@ -83,6 +83,41 @@ func TestParametersFromType_EdgeCases(t *testing.T) {
 	assert.Empty(t, params)
 }
 
+// TestParametersFromType_ExampleField reproduces issue #5496:
+// example= in path/form tags was not emitted in the generated swagger JSON.
+func TestParametersFromType_ExampleField(t *testing.T) {
+	ctx := testingContext(t)
+
+	testStruct := apiSpec.DefineStruct{
+		RawName: "Request",
+		Members: []apiSpec.Member{
+			{
+				Name: "Name",
+				Type: apiSpec.PrimitiveType{RawName: "string"},
+				Tag:  `path:"name,options=you|me,example=nihao"`,
+			},
+			{
+				Name: "Age",
+				Type: apiSpec.PrimitiveType{RawName: "int"},
+				Tag:  `form:"age,optional,range=[1:200],example=18"`,
+			},
+		},
+	}
+
+	params := parametersFromType(ctx, http.MethodGet, testStruct)
+	assert.Len(t, params, 2)
+
+	// path param should have example
+	pathParam := params[0]
+	assert.Equal(t, paramsInPath, pathParam.In)
+	assert.Equal(t, "nihao", pathParam.SimpleSchema.Example, "path param example should be set")
+
+	// form/query param should have example
+	queryParam := params[1]
+	assert.Equal(t, paramsInQuery, queryParam.In)
+	assert.EqualValues(t, int64(18), queryParam.SimpleSchema.Example, "form param example should be set")
+}
+
 func createTestStruct(name string, hasJson bool) apiSpec.DefineStruct {
 	tag := `form:"username"`
 	if hasJson {
