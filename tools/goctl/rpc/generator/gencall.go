@@ -64,16 +64,26 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 		isCallPkgSameToGrpcPkg := childDir == ctx.GetProtoGo().Filename
 
 		serviceName := stringx.From(service.Name).ToCamel()
+
+		// Collect only the message types actually used by this service's RPCs,
+		// so that each client file only aliases its own request/response types.
+		usedTypes := collection.NewSet[string]()
+		for _, rpc := range service.RPC {
+			usedTypes.Add(parser.CamelCase(rpc.RequestType))
+			usedTypes.Add(parser.CamelCase(rpc.ReturnsType))
+		}
+
 		alias := collection.NewSet[string]()
 		var hasSameNameBetweenMessageAndService bool
 		for _, item := range proto.Message {
 			msgName := getMessageName(*item.Message)
+			camelMsgName := parser.CamelCase(msgName)
 			if serviceName == msgName {
 				hasSameNameBetweenMessageAndService = true
 			}
-			if !isCallPkgSameToPbPkg {
-				alias.Add(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
-					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+			if !isCallPkgSameToPbPkg && usedTypes.Contains(camelMsgName) {
+				alias.Add(fmt.Sprintf("%s = %s", camelMsgName,
+					fmt.Sprintf("%s.%s", proto.PbPackage, camelMsgName)))
 			}
 		}
 		if hasSameNameBetweenMessageAndService {
