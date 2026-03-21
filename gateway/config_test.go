@@ -127,3 +127,85 @@ func TestRouteMapping_GetPath(t *testing.T) {
 		})
 	}
 }
+
+func TestRouteMapping_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		mapping RouteMapping
+		wantErr bool
+	}{
+		{
+			name: "valid top-level fields",
+			mapping: RouteMapping{
+				Method: "GET",
+				Path:   "/users",
+			},
+		},
+		{
+			name: "valid match fields",
+			mapping: RouteMapping{
+				Match: &Match{
+					Method: "POST",
+					Path:   "/api/users",
+				},
+			},
+		},
+		{
+			name: "valid mixed: match path + top-level method",
+			mapping: RouteMapping{
+				Method: "GET",
+				Match: &Match{
+					Path: "/api/users",
+				},
+			},
+		},
+		{
+			name:    "empty mapping",
+			mapping: RouteMapping{},
+			wantErr: true,
+		},
+		{
+			name: "missing method",
+			mapping: RouteMapping{
+				Path: "/users",
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing path",
+			mapping: RouteMapping{
+				Method: "GET",
+			},
+			wantErr: true,
+		},
+		{
+			name: "match with method only, no path anywhere",
+			mapping: RouteMapping{
+				Match: &Match{
+					Method: "GET",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "match with path only, no method anywhere",
+			mapping: RouteMapping{
+				Match: &Match{
+					Path: "/users",
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.mapping.Validate()
+			if tt.wantErr {
+				assert.ErrorIs(t, err, errMissingMethodPath)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

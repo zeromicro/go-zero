@@ -95,7 +95,7 @@ func (s *Server) build() error {
 		if up.Grpc != nil {
 			s.buildGrpcRoute(up, writer, cancel)
 		} else if up.Http != nil {
-			s.buildHttpRoute(up, writer)
+			s.buildHttpRoute(up, writer, cancel)
 		}
 	}, func(pipe <-chan rest.Route, cancel func(error)) {
 		for route := range pipe {
@@ -173,6 +173,11 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 		methodSet[m.RpcPath] = struct{}{}
 	}
 	for _, m := range up.Mappings {
+		if err := m.Validate(); err != nil {
+			cancel(fmt.Errorf("%s: %w", up.Name, err))
+			return
+		}
+
 		if _, ok := methodSet[m.RpcPath]; !ok {
 			cancel(fmt.Errorf("%s: rpc method %s not found", up.Name, m.RpcPath))
 			return
@@ -226,8 +231,13 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 	return s.buildChainHandler(handler)
 }
 
-func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route]) {
+func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
 	for _, m := range up.Mappings {
+		if err := m.Validate(); err != nil {
+			cancel(fmt.Errorf("%s: %w", up.Name, err))
+			return
+		}
+
 		writer.Write(rest.Route{
 			Method:  strings.ToUpper(m.GetMethod()),
 			Path:    m.GetPath(),

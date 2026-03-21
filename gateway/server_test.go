@@ -326,6 +326,29 @@ func (w *badResponseWriter) Write([]byte) (int, error) {
 	return 0, errors.New("bad writer")
 }
 
+func TestHttpToHttpEmptyMapping(t *testing.T) {
+	var c GatewayConf
+	assert.NoError(t, conf.FillDefault(&c))
+	c.DevServer.Host = "localhost"
+	c.Host = "localhost"
+	c.Port = 18886
+
+	s := MustNewServer(c)
+	s.upstreams = []Upstream{
+		{
+			Name: "test-empty",
+			Mappings: []RouteMapping{
+				{}, // empty mapping, no Method/Path
+			},
+			Http: &HttpClientConf{
+				Target: "localhost:45678",
+			},
+		},
+	}
+
+	assert.Error(t, s.build())
+}
+
 func TestHttpToHttpWithMatch(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/ping", pingHandler)

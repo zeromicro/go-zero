@@ -1,9 +1,14 @@
 package gateway
 
 import (
+	"errors"
+
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 )
+
+var errMissingMethodPath = errors.New("gateway: RouteMapping is missing Method or Path, " +
+	"set top-level fields or use Match block")
 
 type (
 	// GatewayConf is the configuration for gateway.
@@ -77,4 +82,13 @@ func (m RouteMapping) GetPath() string {
 		return m.Match.Path
 	}
 	return m.Path
+}
+
+// Validate checks that the route mapping has a non-empty Method and Path,
+// resolved from either the Match block or the top-level fields.
+func (m RouteMapping) Validate() error {
+	if len(m.GetMethod()) == 0 || len(m.GetPath()) == 0 {
+		return errMissingMethodPath
+	}
+	return nil
 }
