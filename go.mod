@@ -12,7 +12,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
-	github.com/jackc/pgx/v5 v5.7.4
+	github.com/jackc/pgx/v5 v5.8.0
 	github.com/jhump/protoreflect v1.18.0
 	github.com/modelcontextprotocol/go-sdk v1.4.0
 	github.com/pelletier/go-toml/v2 v2.2.4
