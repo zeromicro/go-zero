@@ -247,7 +247,7 @@ func TestStructedLogDebugf(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLog(t, levelDebug, w, func(v ...any) {
-		Debugf(fmt.Sprint(v...))
+		Debugf("%s", fmt.Sprint(v...))
 	})
 }
 
@@ -559,7 +559,7 @@ func TestStructedLogSlowf(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLog(t, levelSlow, w, func(v ...any) {
-		Slowf(fmt.Sprint(v...))
+		Slowf("%s", fmt.Sprint(v...))
 	})
 }
 
@@ -625,7 +625,7 @@ func TestStructedLogStatf(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLog(t, levelStat, w, func(v ...any) {
-		Statf(fmt.Sprint(v...))
+		Statf("%s", fmt.Sprint(v...))
 	})
 }
 
@@ -645,7 +645,7 @@ func TestStructedLogSeveref(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLog(t, levelSevere, w, func(v ...any) {
-		Severef(fmt.Sprint(v...))
+		Severef("%s", fmt.Sprint(v...))
 	})
 }
 
