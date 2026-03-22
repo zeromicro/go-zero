@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/lang"
-	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 const (
@@ -278,7 +278,7 @@ func parseKeyAndOptions(tagName string, field reflect.StructField) (string, *fie
 	cache, ok := optionsCache[value]
 	cacheLock.RUnlock()
 	if ok {
-		return stringx.TakeOne(cache.key, field.Name), cache.options, cache.err
+		return cmp.Or(cache.key, field.Name), cache.options, cache.err
 	}
 
 	key, options, err := doParseKeyAndOptions(field, value)
@@ -290,7 +290,7 @@ func parseKeyAndOptions(tagName string, field reflect.StructField) (string, *fie
 	}
 	cacheLock.Unlock()
 
-	return stringx.TakeOne(key, field.Name), options, err
+	return cmp.Or(key, field.Name), options, err
 }
 
 // support below notations:
