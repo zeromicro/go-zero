@@ -406,22 +406,6 @@ func (s *Redis) DelCtx(ctx context.Context, keys ...string) (int, error) {
 	return int(v), nil
 }
 
-// Eval is the implementation of redis eval command.
-func (s *Redis) Eval(script string, keys []string, args ...any) (any, error) {
-	return s.EvalCtx(context.Background(), script, keys, args...)
-}
-
-// EvalCtx is the implementation of redis eval command.
-func (s *Redis) EvalCtx(ctx context.Context, script string, keys []string,
-	args ...any) (any, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return nil, err
-	}
-
-	return conn.Eval(ctx, script, keys, args...).Result()
-}
-
 // Do executes a generic redis command with given arguments.
 func (s *Redis) Do(args ...any) (any, error) {
 	return s.DoCtx(context.Background(), args...)
@@ -439,6 +423,22 @@ func (s *Redis) DoCtx(ctx context.Context, args ...any) (any, error) {
 	}
 
 	return conn.Do(ctx, args...).Result()
+}
+
+// Eval is the implementation of redis eval command.
+func (s *Redis) Eval(script string, keys []string, args ...any) (any, error) {
+	return s.EvalCtx(context.Background(), script, keys, args...)
+}
+
+// EvalCtx is the implementation of redis eval command.
+func (s *Redis) EvalCtx(ctx context.Context, script string, keys []string,
+	args ...any) (any, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.Eval(ctx, script, keys, args...).Result()
 }
 
 // EvalSha is the implementation of redis evalsha command.
