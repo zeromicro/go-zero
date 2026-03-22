@@ -16,6 +16,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 
 	output, err := util.With("findOne").
 		Parse(text).
+		AddFunc("hasField", hasField(table)).
 		Execute(map[string]any{
 			"withCache":                 withCache,
 			"upperStartCamelObject":     camel,
