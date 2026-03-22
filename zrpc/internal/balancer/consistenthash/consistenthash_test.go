@@ -16,10 +16,10 @@ type fakeSubConn struct {
 	id int
 }
 
-func (f *fakeSubConn) Connect()                                            {}
-func (f *fakeSubConn) UpdateAddresses(_ []resolver.Address)                {}
-func (f *fakeSubConn) Shutdown()                                            {}
-func (f *fakeSubConn) RegisterHealthListener(func(balancer.SubConnState))  {}
+func (f *fakeSubConn) Connect()                                           {}
+func (f *fakeSubConn) UpdateAddresses(_ []resolver.Address)               {}
+func (f *fakeSubConn) Shutdown()                                          {}
+func (f *fakeSubConn) RegisterHealthListener(func(balancer.SubConnState)) {}
 func (f *fakeSubConn) GetOrBuildProducer(b balancer.ProducerBuilder) (balancer.Producer, func()) {
 	return nil, func() {}
 }
