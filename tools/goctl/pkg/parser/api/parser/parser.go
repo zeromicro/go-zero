@@ -1676,7 +1676,7 @@ func (p *Parser) CheckErrors() error {
 		errors = append(errors, e.Error())
 	}
 
-	return fmt.Errorf(strings.Join(errors, "\n"))
+	return fmt.Errorf("%s", strings.Join(errors, "\n"))
 }
 
 func (p *Parser) appendStmt(stmt ...ast.Stmt) {
