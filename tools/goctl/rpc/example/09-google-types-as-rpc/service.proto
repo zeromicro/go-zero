@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package healthsvc;
+
+option go_package = "example.com/demo/pb";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message HealthCheckReq {
+  string service = 1;
+}
+
+service HealthService {
+  // Ping returns empty — useful for health checks with no response body.
+  rpc Ping(HealthCheckReq) returns (google.protobuf.Empty);
+  // GetTime returns a Timestamp directly as the response type.
+  rpc GetTime(HealthCheckReq) returns (google.protobuf.Timestamp);
+}

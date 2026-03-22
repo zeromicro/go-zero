@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -35,6 +36,9 @@ type ZRpcContext struct {
 	// NameFromFilename uses proto filename instead of package name for service naming.
 	// Default is false (uses package name, which supports multi-proto files).
 	NameFromFilename bool
+	// ProtoPaths are the directories to search for imported proto files,
+	// equivalent to protoc -I flags. When empty the directory of Src is used.
+	ProtoPaths []string
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -68,6 +72,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 
 	p := parser.NewDefaultProtoParser()
 	proto, err := p.Parse(zctx.Src, zctx.Multiple)
+	if err != nil {
+		return err
+	}
+
+	// Populate ImportedProtos so that generators can resolve dotted type references.
+	proto.ImportedProtos, err = resolveImportedProtos(zctx)
 	if err != nil {
 		return err
 	}
@@ -119,4 +129,28 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	console.NewColorConsole().MarkDone()
 
 	return err
+}
+
+// resolveImportedProtos builds the full list of transitively imported proto
+// files for zctx and returns their parsed metadata. This mirrors the proto
+// path computation in genpb.go so both use the same search paths.
+func resolveImportedProtos(zctx *ZRpcContext) ([]parser.ImportedProto, error) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	protoPaths := make([]string, 0, len(zctx.ProtoPaths)+1)
+	srcDir := filepath.Dir(zctx.Src)
+	if !filepath.IsAbs(srcDir) {
+		srcDir = filepath.Join(pwd, srcDir)
+	}
+	protoPaths = append(protoPaths, srcDir)
+	for _, p := range zctx.ProtoPaths {
+		if !filepath.IsAbs(p) {
+			p = filepath.Join(pwd, p)
+		}
+		protoPaths = append(protoPaths, p)
+	}
+	return parser.ParseImportedProtos(zctx.Src, protoPaths)
 }
