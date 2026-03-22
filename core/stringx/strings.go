@@ -3,6 +3,7 @@ package stringx
 import (
 	"errors"
 	"slices"
+	"strings"
 	"unicode"
 
 	"github.com/zeromicro/go-zero/core/lang"
@@ -21,20 +22,14 @@ func Contains(list []string, str string) bool {
 	return slices.Contains(list, str)
 }
 
-// Filter filters chars from s with given filter function.
-func Filter(s string, filter func(r rune) bool) string {
-	var n int
-	chars := []rune(s)
-	for i, x := range chars {
-		if n < i {
-			chars[n] = x
+// Filter filters chars from s with given remove function.
+func Filter(s string, remove func(r rune) bool) string {
+	return strings.Map(func(r rune) rune {
+		if remove(r) {
+			return -1
 		}
-		if !filter(x) {
-			n++
-		}
-	}
-
-	return string(chars[:n])
+		return r
+	}, s)
 }
 
 // FirstN returns first n runes from s.
@@ -141,6 +136,7 @@ func Substr(str string, start, stop int) (string, error) {
 }
 
 // TakeOne returns valid string if not empty or later one.
+// Deprecated: use cmp.Or instead.
 func TakeOne(valid, or string) string {
 	if len(valid) > 0 {
 		return valid

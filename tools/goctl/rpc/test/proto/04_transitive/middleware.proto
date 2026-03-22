@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+// 场景04：中间层（B 层），import base.proto
+package middleware;
+
+option go_package = "example.com/demo/s04_transitive/pb";
+
+import "base.proto";
+
+message RequestMeta {
+  string           trace_id = 1;
+  base.BaseResp    base     = 2;
+}

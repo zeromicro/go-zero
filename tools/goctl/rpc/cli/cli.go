@@ -98,6 +98,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.IsGenClient = VarBoolClient
 	ctx.Module = VarStringModule
 	ctx.NameFromFilename = VarBoolNameFromFilename
+	ctx.ProtoPaths = []string{filepath.Dir(src)}
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
