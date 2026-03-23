@@ -34,7 +34,7 @@ func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, boo
 	return structType.RawName, hasJsonField
 }
 
-func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Parameter {
+func parametersFromType(ctx Context, method string, tp apiSpec.Type, routePath string) []spec.Parameter {
 	if tp == nil {
 		return []spec.Parameter{}
 	}
@@ -43,6 +43,9 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 	if !ok {
 		return []spec.Parameter{}
 	}
+
+	// Extract valid path parameter names from the route path
+	pathPlaceholders := extractPathPlaceholders(routePath)
 
 	var (
 		resp           []spec.Parameter
@@ -84,8 +87,17 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		}
 
 		if hasPathParameter {
+			// Validate path parameter: only generate if the route path contains a matching placeholder
+			if !pathPlaceholders[pathParameterTag.Name] {
+				// Warn about unmatched path parameter - this is a potential API design error
+				// TODO: Consider adding a logging/warning mechanism for this
+				// For now, we simply skip this parameter to avoid invalid swagger generation
+			}
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(pathParameterTag.Options)
-			resp = append(resp, spec.Parameter{
+
+			// Only add the path parameter if it matches a placeholder in the route path
+			if pathPlaceholders[pathParameterTag.Name] {
+				resp = append(resp, spec.Parameter{
 				CommonValidations: spec.CommonValidations{
 					Maximum:          maximum,
 					ExclusiveMaximum: exclusiveMaximum,
@@ -104,8 +116,9 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 					Description: formatComment(member.Comment),
 					Required:    required,
 				},
-			})
-		}
+				})
+			}
+		} // End of if hasPathParameter
 
 		if hasForm {
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(formTag.Options)
