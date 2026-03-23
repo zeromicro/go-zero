@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+// 场景03：被 import 的子目录公共类型
+package common;
+
+option go_package = "example.com/demo/s03_import_subdir/pb/common";
+
+message PageInfo {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message SortInfo {
+  string field = 1;
+  string order = 2;
+}

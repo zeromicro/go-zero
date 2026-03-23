@@ -106,7 +106,7 @@ func TestGenCallGroup_OnlyUsedTypesAliased(t *testing.T) {
 	// servicea/servicea.go — aliases for AReq/AResp only
 	aContent, err := os.ReadFile(filepath.Join(callBase, "servicea", "servicea.go"))
 	require.NoError(t, err)
-	aFile := string(aContent)
+	aFile := normalizeWS(string(aContent))
 
 	assert.Contains(t, aFile, "AReq = pb.AReq", "ServiceA file should alias AReq")
 	assert.Contains(t, aFile, "AResp = pb.AResp", "ServiceA file should alias AResp")
@@ -116,10 +116,15 @@ func TestGenCallGroup_OnlyUsedTypesAliased(t *testing.T) {
 	// serviceb/serviceb.go — aliases for BReq/BResp only
 	bContent, err := os.ReadFile(filepath.Join(callBase, "serviceb", "serviceb.go"))
 	require.NoError(t, err)
-	bFile := string(bContent)
+	bFile := normalizeWS(string(bContent))
 
 	assert.Contains(t, bFile, "BReq = pb.BReq", "ServiceB file should alias BReq")
 	assert.Contains(t, bFile, "BResp = pb.BResp", "ServiceB file should alias BResp")
 	assert.NotContains(t, bFile, "AReq = pb.AReq", "ServiceB file must not alias AReq")
 	assert.NotContains(t, bFile, "AResp = pb.AResp", "ServiceB file must not alias AResp")
+}
+
+// normalizeWS replaces runs of whitespace with a single space.
+func normalizeWS(s string) string {
+	return strings.Join(strings.Fields(strings.ReplaceAll(s, "\n", " \n ")), " ")
 }
