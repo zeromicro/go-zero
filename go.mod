@@ -15,7 +15,7 @@ require (
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/jhump/protoreflect v1.18.0
 	github.com/modelcontextprotocol/go-sdk v1.4.0
-	github.com/pelletier/go-toml/v2 v2.2.4
+	github.com/pelletier/go-toml/v2 v2.3.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/spaolacci/murmur3 v1.1.0
