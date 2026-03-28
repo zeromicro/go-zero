@@ -53,10 +53,23 @@ server := mcp.NewMcpServerWithOptions(c,
     mcp.WithServerHook(func(s *mcp.Server) {
         // middleware, prompts, resources, dynamic tool changes, etc.
     }),
+    mcp.WithRequestMetadataExtractor(func(r *http.Request) mcp.RequestMetadata {
+        return mcp.RequestMetadata{
+            Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")},
+        }
+    }),
     mcp.WithServerSelector(func(r *http.Request) *mcp.Server {
         return nil // fallback to the default SDK server
     }),
 )
+```
+
+Handlers can then read selected metadata from `context.Context` without changing existing handler signatures:
+
+```go
+tenant := mcp.HeaderFromContext(ctx, "x-tenant")
+variant := mcp.QueryFromContext(ctx, "variant")
+pathID := mcp.PathFromContext(ctx, "id")
 ```
 
 ### Configuration

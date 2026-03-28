@@ -17,6 +17,7 @@ This package provides a go-zero integration for the [Model Context Protocol (MCP
 - **SDK Access Helpers**: Expose the underlying official SDK server for advanced use cases
 - **Dynamic Tool List Support**: Use runtime tool registration/removal via the official SDK server
 - **Request-Based Server Selection**: Route different requests to different MCP server instances
+- **Request Metadata Context**: Extract selected HTTP headers/query/path values into handler context
 
 ## Quick Start
 
@@ -106,6 +107,12 @@ server := mcp.NewMcpServerWithOptions(c,
 	mcp.WithServerHook(func(s *mcp.Server) {
 		// Register middleware, dynamic tools, prompts, resources, etc.
 	}),
+	mcp.WithRequestMetadataExtractor(func(r *http.Request) mcp.RequestMetadata {
+		return mcp.RequestMetadata{
+			Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")},
+			Query:   map[string]string{"variant": r.URL.Query().Get("variant")},
+		}
+	}),
 	mcp.WithServerSelector(func(r *http.Request) *mcp.Server {
 		if strings.HasPrefix(r.URL.Path, "/mcp/b") {
 			return otherServer
@@ -114,6 +121,24 @@ server := mcp.NewMcpServerWithOptions(c,
 		return nil // fallback to the default server
 	}),
 )
+```
+
+### Request metadata in handlers
+
+When `WithRequestMetadataExtractor(...)` is configured, tool/prompt/resource handlers can read the extracted values from context:
+
+```go
+mcp.AddTool(server, tool, func(ctx context.Context, req *mcp.CallToolRequest, args Input) (*mcp.CallToolResult, Output, error) {
+	tenant := mcp.HeaderFromContext(ctx, "x-tenant")
+	variant := mcp.QueryFromContext(ctx, "variant")
+	pathID := mcp.PathFromContext(ctx, "id")
+
+	_ = tenant
+	_ = variant
+	_ = pathID
+
+	return &mcp.CallToolResult{}, Output{}, nil
+})
 ```
 
 ## Adding Tools
