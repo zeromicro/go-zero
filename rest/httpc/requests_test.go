@@ -229,3 +229,106 @@ func TestDo_WithClientHttpTrace(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, enter)
 }
+
+func TestBuildRequestWithBody(t *testing.T) {
+	testBody := struct {
+		Key   string `json:"key"`
+		Value int    `json:"value"`
+	}{
+		Key:   "foo",
+		Value: 10,
+	}
+
+	testcases := []struct {
+		testName  string
+		method    string
+		url       string
+		body      any
+		wantedErr error
+	}{
+		{
+			testName:  "GET Request with Body",
+			method:    http.MethodGet,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: ErrGetWithBody,
+		},
+		{
+			testName:  "GET Request without Body",
+			method:    http.MethodGet,
+			url:       "/ping",
+			body:      nil,
+			wantedErr: nil,
+		},
+		{
+			testName:  "HEAD Request with Body",
+			method:    http.MethodHead,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: ErrHeadWithBody,
+		},
+		{
+			testName:  "HEAD Request without Body",
+			method:    http.MethodHead,
+			url:       "/ping",
+			body:      nil,
+			wantedErr: nil,
+		},
+		{
+			testName:  "POST Request with Body",
+			method:    http.MethodPost,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+		{
+			testName:  "PUT Request with Body",
+			method:    http.MethodPut,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+		{
+			testName:  "PATCH Request with Body",
+			method:    http.MethodPatch,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+		{
+			testName:  "DELETE Request with Body",
+			method:    http.MethodDelete,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+		{
+			testName:  "CONNECT Request with Body",
+			method:    http.MethodConnect,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+		{
+			testName:  "OPTIONS Request with Body",
+			method:    http.MethodOptions,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+		{
+			testName:  "TRACE Request with Body",
+			method:    http.MethodTrace,
+			url:       "/ping",
+			body:      testBody,
+			wantedErr: nil,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.testName, func(t *testing.T) {
+			_, err := buildRequest(context.Background(), tc.method, tc.url, tc.body)
+			assert.Equal(t, tc.wantedErr, err)
+		})
+	}
+}
