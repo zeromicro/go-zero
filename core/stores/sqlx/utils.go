@@ -14,6 +14,8 @@ import (
 
 var errUnbalancedEscape = errors.New("no char after escape char")
 
+const timeFormat = "2006-01-02 15:04:05.999999"
+
 func desensitize(datasource string) string {
 	// remove account
 	pos := strings.LastIndex(datasource, "@")
@@ -162,12 +164,16 @@ func writeValue(buf *strings.Builder, arg any) {
 		buf.WriteByte('\'')
 	case time.Time:
 		buf.WriteByte('\'')
-		buf.WriteString(v.Format(time.DateTime))
+		buf.WriteString(v.Format(timeFormat))
 		buf.WriteByte('\'')
 	case *time.Time:
-		buf.WriteByte('\'')
-		buf.WriteString(v.Format(time.DateTime))
-		buf.WriteByte('\'')
+		if v != nil {
+			buf.WriteByte('\'')
+			buf.WriteString(v.Format(timeFormat))
+			buf.WriteByte('\'')
+		} else {
+			buf.WriteString("null")
+		}
 	default:
 		buf.WriteString(mapping.Repr(v))
 	}
