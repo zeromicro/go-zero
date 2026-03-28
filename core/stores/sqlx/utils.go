@@ -162,11 +162,11 @@ func writeValue(buf *strings.Builder, arg any) {
 		buf.WriteByte('\'')
 	case time.Time:
 		buf.WriteByte('\'')
-		buf.WriteString(v.Format(time.RFC3339))
+		buf.WriteString(v.Format(time.DateTime))
 		buf.WriteByte('\'')
 	case *time.Time:
 		buf.WriteByte('\'')
-		buf.WriteString(v.Format(time.RFC3339))
+		buf.WriteString(v.Format(time.DateTime))
 		buf.WriteByte('\'')
 	default:
 		buf.WriteString(mapping.Repr(v))
