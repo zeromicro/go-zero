@@ -144,9 +144,9 @@ func TestWriteValue(t *testing.T) {
 	var buf strings.Builder
 	tm := time.Now()
 	writeValue(&buf, &tm)
-	assert.Equal(t, "'"+tm.String()+"'", buf.String())
+	assert.Equal(t, "'"+tm.Format(time.RFC3339)+"'", buf.String())
 
 	buf.Reset()
 	writeValue(&buf, tm)
-	assert.Equal(t, "'"+tm.String()+"'", buf.String())
+	assert.Equal(t, "'"+tm.Format(time.RFC3339)+"'", buf.String())
 }
