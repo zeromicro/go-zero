@@ -5,13 +5,16 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 func TestNewMcpServer(t *testing.T) {
@@ -224,6 +227,152 @@ func TestServerSelectorUsesCustomServer(t *testing.T) {
 
 	assert.Same(t, selected, impl.selectServer(reqSelected))
 	assert.Same(t, impl.mcpServer, impl.selectServer(reqDefault))
+}
+
+func TestRequestMetadataHelpers(t *testing.T) {
+	ctx := context.WithValue(context.Background(), requestMetadataContextKey{}, RequestMetadata{
+		Headers: map[string]string{"x-tenant": "acme"},
+		Query:   map[string]string{"variant": "beta"},
+		Path:    map[string]string{"tenant": "blue"},
+	})
+
+	metadata := RequestMetadataFromContext(ctx)
+	assert.Equal(t, RequestMetadata{
+		Headers: map[string]string{"x-tenant": "acme"},
+		Query:   map[string]string{"variant": "beta"},
+		Path:    map[string]string{"tenant": "blue"},
+	}, metadata)
+	assert.Equal(t, "acme", HeaderFromContext(ctx, "x-tenant"))
+	assert.Equal(t, "beta", QueryFromContext(ctx, "variant"))
+	assert.Equal(t, "blue", PathFromContext(ctx, "tenant"))
+	assert.Equal(t, "", HeaderFromContext(ctx, "missing"))
+
+	metadata.Headers["x-tenant"] = "changed"
+	assert.Equal(t, "acme", HeaderFromContext(ctx, "x-tenant"))
+}
+
+func TestWithRequestMetadataExtractor(t *testing.T) {
+	var options serverOptions
+	extractor := func(r *http.Request) RequestMetadata {
+		return RequestMetadata{Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")}}
+	}
+
+	WithRequestMetadataExtractor(extractor)(&options)
+	require.NotNil(t, options.metadata)
+	req := httptest.NewRequest(http.MethodGet, "/sse", nil)
+	req.Header.Set("X-Tenant", "acme")
+	assert.Equal(t, "acme", options.metadata(req).Headers["x-tenant"])
+}
+
+func TestRequestMetadataHelpersWithNilContext(t *testing.T) {
+	assert.True(t, isEmptyRequestMetadata(RequestMetadataFromContext(nil)))
+	assert.Equal(t, "", HeaderFromContext(nil, "x-tenant"))
+	assert.Equal(t, "", QueryFromContext(nil, "variant"))
+	assert.Equal(t, "", PathFromContext(nil, "tenant"))
+}
+
+func TestRequestMetadataHelpersWithEmptyContext(t *testing.T) {
+	ctx := context.Background()
+	assert.True(t, isEmptyRequestMetadata(RequestMetadataFromContext(ctx)))
+	assert.Equal(t, "", HeaderFromContext(ctx, "x-tenant"))
+	assert.Equal(t, "", QueryFromContext(ctx, "variant"))
+	assert.Equal(t, "", PathFromContext(ctx, "tenant"))
+}
+
+func TestWrapHandlerInjectsMetadata(t *testing.T) {
+	s := &mcpServerImpl{
+		metadata: func(r *http.Request) RequestMetadata {
+			return RequestMetadata{
+				Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")},
+				Query:   map[string]string{"variant": r.URL.Query().Get("variant")},
+			}
+		},
+	}
+
+	called := false
+	wrapped := s.wrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		assert.Equal(t, "acme", HeaderFromContext(r.Context(), "x-tenant"))
+		assert.Equal(t, "beta", QueryFromContext(r.Context(), "variant"))
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/message?variant=beta", nil)
+	req.Header.Set("X-Tenant", "acme")
+	wrapped.ServeHTTP(httptest.NewRecorder(), req)
+
+	assert.True(t, called)
+}
+
+func TestWrapHandlerWithoutExtractorPreservesContext(t *testing.T) {
+	s := &mcpServerImpl{}
+	wrapped := s.wrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.True(t, isEmptyRequestMetadata(RequestMetadataFromContext(r.Context())))
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/sse", nil)
+	wrapped.ServeHTTP(httptest.NewRecorder(), req)
+}
+
+func TestCloneRequestMetadata(t *testing.T) {
+	original := RequestMetadata{Headers: map[string]string{"x-tenant": "acme"}}
+	cloned := cloneRequestMetadata(original)
+
+	assert.True(t, reflect.DeepEqual(original, cloned))
+	cloned.Headers["x-tenant"] = "changed"
+	assert.Equal(t, "acme", original.Headers["x-tenant"])
+}
+
+func TestWrapHandlerAddsPathVarsWhenExtractorOmitsThem(t *testing.T) {
+	s := &mcpServerImpl{
+		metadata: func(r *http.Request) RequestMetadata {
+			return RequestMetadata{Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")}}
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/mcp/blue", nil)
+	req = pathvar.WithVars(req, map[string]string{"tenant": "blue"})
+	req.Header.Set("X-Tenant", "acme")
+
+	wrapped := s.wrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "acme", HeaderFromContext(r.Context(), "x-tenant"))
+		assert.Equal(t, "blue", PathFromContext(r.Context(), "tenant"))
+	}))
+
+	wrapped.ServeHTTP(httptest.NewRecorder(), req)
+}
+
+func TestWrapHandlerPreservesExplicitPathMetadata(t *testing.T) {
+	s := &mcpServerImpl{
+		metadata: func(r *http.Request) RequestMetadata {
+			return RequestMetadata{Path: map[string]string{"tenant": "explicit"}}
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/mcp/blue", nil)
+	req = pathvar.WithVars(req, map[string]string{"tenant": "blue"})
+
+	wrapped := s.wrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "explicit", PathFromContext(r.Context(), "tenant"))
+	}))
+
+	wrapped.ServeHTTP(httptest.NewRecorder(), req)
+}
+
+func TestWrapHandlerWithEmptyExtractorMetadata(t *testing.T) {
+	s := &mcpServerImpl{
+		metadata: func(r *http.Request) RequestMetadata {
+			return RequestMetadata{}
+		},
+	}
+
+	called := false
+	wrapped := s.wrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		assert.True(t, isEmptyRequestMetadata(RequestMetadataFromContext(r.Context())))
+	}))
+
+	wrapped.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/sse", nil))
+	assert.True(t, called)
 }
 
 func TestStreamableServerUsesSelector(t *testing.T) {

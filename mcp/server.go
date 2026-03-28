@@ -1,11 +1,13 @@
 package mcp
 
 import (
+	"context"
 	"net/http"
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 // McpServer defines the interface for Model Context Protocol servers using the official SDK
@@ -21,6 +23,7 @@ type mcpServerImpl struct {
 	httpServer *rest.Server
 	mcpServer  *sdkmcp.Server
 	selector   ServerSelector
+	metadata   RequestMetadataExtractor
 }
 
 // NewMcpServer creates a new MCP server using the official SDK
@@ -70,6 +73,7 @@ func NewMcpServerWithOptions(c McpConf, opts ...Option) McpServer {
 		httpServer: httpServer,
 		mcpServer:  mcpServer,
 		selector:   options.serverSelector,
+		metadata:   options.metadata,
 	}
 
 	// Choose transport based on configuration
@@ -132,6 +136,8 @@ func (s *mcpServerImpl) setupStreamableTransport() {
 }
 
 func (s *mcpServerImpl) registerRoutes(handler http.Handler, endpoint string) {
+	handler = s.wrapHandler(handler)
+
 	// Register the endpoint (handles both GET for SSE and POST for messages)
 	s.httpServer.AddRoute(rest.Route{
 		Method:  http.MethodGet,
@@ -144,4 +150,50 @@ func (s *mcpServerImpl) registerRoutes(handler http.Handler, endpoint string) {
 		Path:    endpoint,
 		Handler: handler.ServeHTTP,
 	}, rest.WithTimeout(s.conf.Mcp.MessageTimeout))
+}
+
+func (s *mcpServerImpl) wrapHandler(next http.Handler) http.Handler {
+	if s.metadata == nil {
+		return next
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		metadata := s.metadata(r)
+		if len(metadata.Path) == 0 {
+			metadata.Path = cloneStringMap(pathvar.Vars(r))
+		}
+
+		if isEmptyRequestMetadata(metadata) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), requestMetadataContextKey{}, cloneRequestMetadata(metadata))
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func cloneRequestMetadata(metadata RequestMetadata) RequestMetadata {
+	return RequestMetadata{
+		Headers: cloneStringMap(metadata.Headers),
+		Query:   cloneStringMap(metadata.Query),
+		Path:    cloneStringMap(metadata.Path),
+	}
+}
+
+func cloneStringMap(values map[string]string) map[string]string {
+	if len(values) == 0 {
+		return nil
+	}
+
+	cloned := make(map[string]string, len(values))
+	for key, value := range values {
+		cloned[key] = value
+	}
+
+	return cloned
+}
+
+func isEmptyRequestMetadata(metadata RequestMetadata) bool {
+	return len(metadata.Headers) == 0 && len(metadata.Query) == 0 && len(metadata.Path) == 0
 }
