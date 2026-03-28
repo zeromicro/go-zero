@@ -4,7 +4,6 @@ import (
 	"context"
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 // Re-export commonly used SDK types for convenience
@@ -91,10 +90,7 @@ type ResourceHandler func(
 //
 //	mcp.AddTool(server, tool, handler)
 func AddTool[In, Out any](server McpServer, tool *Tool, handler func(context.Context, *CallToolRequest, In) (*CallToolResult, Out, error)) {
-	// Access internal server - only works with mcpServerImpl
-	if impl, ok := server.(*mcpServerImpl); ok {
-		sdkmcp.AddTool(impl.mcpServer, tool, handler)
-	} else {
-		logx.Error("AddTool: server must be of type *mcpServerImpl to use this helper")
+	if sdkServer := SDKServer(server); sdkServer != nil {
+		sdkmcp.AddTool(sdkServer, tool, handler)
 	}
 }

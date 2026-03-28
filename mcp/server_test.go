@@ -5,9 +5,11 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
 )
@@ -35,6 +37,29 @@ func TestNewMcpServerWithDefaults(t *testing.T) {
 	// Check defaults are set
 	assert.Equal(t, "default-server", impl.conf.Mcp.Name)
 	assert.Equal(t, "1.0.0", impl.conf.Mcp.Version)
+}
+
+func TestNewMcpServerWithOptions(t *testing.T) {
+	var hookCalls atomic.Int32
+
+	c := McpConf{}
+	c.Name = "options-server"
+	c.Host = "localhost"
+	c.Port = 8088
+
+	server := NewMcpServerWithOptions(c,
+		WithServerOptions(&sdkmcp.ServerOptions{HasTools: true}),
+		WithServerHook(func(server *sdkmcp.Server) {
+			hookCalls.Add(1)
+			server.RemoveTools("missing")
+		}),
+	)
+
+	impl := server.(*mcpServerImpl)
+	assert.NotNil(t, impl)
+	assert.Equal(t, int32(1), hookCalls.Load())
+	assert.NotNil(t, SDKServer(server))
+	assert.Same(t, impl.mcpServer, SDKServer(server))
 }
 
 func TestNewMcpServerWithCORS(t *testing.T) {
@@ -152,6 +177,77 @@ func TestAddToolWithStructuredOutput(t *testing.T) {
 	}
 
 	AddTool(server, tool, handler)
+}
+
+func TestRemoveToolsWithSdkServerAccess(t *testing.T) {
+	c := McpConf{}
+	c.Host = "localhost"
+	c.Port = 8089
+	c.Mcp.Name = "dynamic-tools"
+
+	server := NewMcpServer(c)
+
+	type Args struct {
+		Name string `json:"name"`
+	}
+
+	AddTool(server, &Tool{Name: "greet", Description: "Say hello"}, func(ctx context.Context, req *CallToolRequest, args Args) (*CallToolResult, any, error) {
+		return &CallToolResult{}, nil, nil
+	})
+
+	RemoveTools(server, "greet")
+	assert.NotNil(t, SDKServer(server))
+}
+
+func TestSDKServerWithCustomServer(t *testing.T) {
+	assert.Nil(t, SDKServer(&mockMcpServer{}))
+}
+
+func TestServerSelectorUsesCustomServer(t *testing.T) {
+	c := McpConf{}
+	c.Host = "localhost"
+	c.Port = 8090
+	c.Mcp.Name = "selector-test"
+
+	selected := sdkmcp.NewServer(&sdkmcp.Implementation{Name: "selected", Version: "1.0.0"}, nil)
+	server := NewMcpServerWithOptions(c, WithServerSelector(func(r *http.Request) *sdkmcp.Server {
+		if r.URL.Path == "/mcp/b" {
+			return selected
+		}
+
+		return nil
+	}))
+
+	impl := server.(*mcpServerImpl)
+	reqSelected := httptest.NewRequest(http.MethodGet, "/mcp/b", nil)
+	reqDefault := httptest.NewRequest(http.MethodGet, "/mcp/a", nil)
+
+	assert.Same(t, selected, impl.selectServer(reqSelected))
+	assert.Same(t, impl.mcpServer, impl.selectServer(reqDefault))
+}
+
+func TestStreamableServerUsesSelector(t *testing.T) {
+	c := McpConf{}
+	c.Host = "localhost"
+	c.Port = 8091
+	c.Mcp.Name = "streamable-selector-test"
+	c.Mcp.UseStreamable = true
+
+	selected := sdkmcp.NewServer(&sdkmcp.Implementation{Name: "selected-streamable", Version: "1.0.0"}, nil)
+	server := NewMcpServerWithOptions(c, WithServerSelector(func(r *http.Request) *sdkmcp.Server {
+		if r.URL.Path == "/message" {
+			return selected
+		}
+
+		return nil
+	}))
+
+	impl := server.(*mcpServerImpl)
+	reqSelected := httptest.NewRequest(http.MethodPost, "/message", bytes.NewBufferString(`{}`))
+	reqDefault := httptest.NewRequest(http.MethodPost, "/other", bytes.NewBufferString(`{}`))
+
+	assert.Same(t, selected, impl.streamableServer(reqSelected))
+	assert.Same(t, impl.mcpServer, impl.streamableServer(reqDefault))
 }
 
 func TestServerLifecycle(t *testing.T) {

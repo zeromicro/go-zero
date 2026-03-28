@@ -20,10 +20,24 @@ type mcpServerImpl struct {
 	conf       McpConf
 	httpServer *rest.Server
 	mcpServer  *sdkmcp.Server
+	selector   ServerSelector
 }
 
 // NewMcpServer creates a new MCP server using the official SDK
 func NewMcpServer(c McpConf) McpServer {
+	return NewMcpServerWithOptions(c)
+}
+
+// NewMcpServerWithOptions creates a new MCP server with optional SDK hooks,
+// SDK server options, and request-based server selection.
+func NewMcpServerWithOptions(c McpConf, opts ...Option) McpServer {
+	var options serverOptions
+	for _, opt := range opts {
+		if opt != nil {
+			opt(&options)
+		}
+	}
+
 	// Create the underlying rest HTTP server
 	var httpServer *rest.Server
 	if len(c.Mcp.Cors) == 0 {
@@ -46,12 +60,16 @@ func NewMcpServer(c McpConf) McpServer {
 		Version: c.Mcp.Version,
 	}
 
-	mcpServer := sdkmcp.NewServer(impl, nil)
+	mcpServer := sdkmcp.NewServer(impl, options.sdkOptions)
+	for _, hook := range options.serverHooks {
+		hook(mcpServer)
+	}
 
 	s := &mcpServerImpl{
 		conf:       c,
 		httpServer: httpServer,
 		mcpServer:  mcpServer,
+		selector:   options.serverSelector,
 	}
 
 	// Choose transport based on configuration
@@ -77,13 +95,30 @@ func (s *mcpServerImpl) Stop() {
 	s.httpServer.Stop()
 }
 
+func (s *mcpServerImpl) selectServer(r *http.Request) *sdkmcp.Server {
+	if s.selector != nil {
+		if server := s.selector(r); server != nil {
+			return server
+		}
+	}
+
+	return s.mcpServer
+}
+
+func (s *mcpServerImpl) sseServer(r *http.Request) *sdkmcp.Server {
+	logx.Infof("New SSE connection from %s", r.RemoteAddr)
+	return s.selectServer(r)
+}
+
+func (s *mcpServerImpl) streamableServer(r *http.Request) *sdkmcp.Server {
+	logx.Infof("New streamable connection from %s", r.RemoteAddr)
+	return s.selectServer(r)
+}
+
 // setupSSETransport configures the server to use SSE transport (2024-11-05 spec)
 func (s *mcpServerImpl) setupSSETransport() {
 	// Create SSE handler that returns our MCP server for each connection
-	handler := sdkmcp.NewSSEHandler(func(r *http.Request) *sdkmcp.Server {
-		logx.Infof("New SSE connection from %s", r.RemoteAddr)
-		return s.mcpServer
-	}, nil)
+	handler := sdkmcp.NewSSEHandler(s.sseServer, nil)
 
 	s.registerRoutes(handler, s.conf.Mcp.SseEndpoint)
 }
@@ -91,10 +126,7 @@ func (s *mcpServerImpl) setupSSETransport() {
 // setupStreamableTransport configures the server to use Streamable HTTP transport (2025-03-26 spec)
 func (s *mcpServerImpl) setupStreamableTransport() {
 	// Create Streamable HTTP handler
-	handler := sdkmcp.NewStreamableHTTPHandler(func(r *http.Request) *sdkmcp.Server {
-		logx.Infof("New streamable connection from %s", r.RemoteAddr)
-		return s.mcpServer
-	}, nil)
+	handler := sdkmcp.NewStreamableHTTPHandler(s.streamableServer, nil)
 
 	s.registerRoutes(handler, s.conf.Mcp.MessageEndpoint)
 }
