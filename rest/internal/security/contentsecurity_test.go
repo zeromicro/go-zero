@@ -220,6 +220,70 @@ func TestContentSecurityBase64WithNewlines(t *testing.T) {
 	assert.Equal(t, httpx.CodeSignaturePass, VerifySignature(r, header, time.Minute))
 }
 
+// TestVerifySignatureBase64WithNewlines tests signature verification when
+// the signature field contains Base64 with newlines (e.g., from Android clients).
+func TestVerifySignatureBase64WithNewlines(t *testing.T) {
+	r, err := http.NewRequest(http.MethodPost, "http://localhost:3333/a/b?c=first&d=second",
+		strings.NewReader(body))
+	assert.Nil(t, err)
+
+	timestamp := time.Now().Unix()
+	sha := sha256.New()
+	sha.Write([]byte(body))
+	bodySign := fmt.Sprintf("%x", sha.Sum(nil))
+	contentOfSign := strings.Join([]string{
+		strconv.FormatInt(timestamp, 10),
+		http.MethodPost,
+		r.URL.Path,
+		r.URL.RawQuery,
+		bodySign,
+	}, "\n")
+	sign := hs256(key, contentOfSign)
+
+	// Simulate Android Base64.encodeToString() with newlines in signature.
+	// Add newline at position 10 to test handling.
+	signWithNewlines := sign[:10] + "\n" + sign[10:]
+
+	content := strings.Join([]string{
+		"version=v1",
+		"type=1",
+		"key=" + base64.StdEncoding.EncodeToString(key),
+		"time=" + strconv.FormatInt(timestamp, 10),
+	}, "; ")
+
+	encrypter, err := codec.NewRsaEncrypter([]byte(pubKey))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	output, err := encrypter.Encrypt([]byte(content))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	encryptedContent := base64.StdEncoding.EncodeToString(output)
+	r.Header.Set("X-Content-Security", strings.Join([]string{
+		fmt.Sprintf("key=%s", fingerprint(pubKey)),
+		"secret=" + encryptedContent,
+		"signature=" + signWithNewlines,
+	}, "; "))
+
+	file, err := fs.TempFilenameWithText(priKey)
+	assert.Nil(t, err)
+	defer os.Remove(file)
+
+	dec, err := codec.NewRsaDecrypter(file)
+	assert.Nil(t, err)
+
+	header, err := ParseContentSecurity(map[string]codec.RsaDecrypter{
+		fingerprint(pubKey): dec,
+	}, r)
+	assert.Nil(t, err)
+	assert.True(t, header.Encrypted())
+	// Signature should be stripped of newlines and verified correctly
+	assert.Equal(t, httpx.CodeSignaturePass, VerifySignature(r, header, time.Minute))
+}
+
 func fingerprint(key string) string {
 	h := md5.New()
 	io.WriteString(h, key)

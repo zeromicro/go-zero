@@ -91,6 +91,10 @@ func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Requ
 		return nil, ErrInvalidContentType
 	}
 
+	// Strip newlines from signature for cross-platform Base64 compatibility.
+	// Some platforms (e.g. Android) produce Base64 with line breaks by default.
+	signature = strings.NewReplacer("\n", "", "\r", "").Replace(signature)
+
 	return &ContentSecurityHeader{
 		Key:         key,
 		Timestamp:   timestamp,
