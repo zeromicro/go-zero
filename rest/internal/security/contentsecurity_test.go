@@ -158,6 +158,68 @@ func TestContentSecurity(t *testing.T) {
 	}
 }
 
+func TestContentSecurityBase64WithNewlines(t *testing.T) {
+	r, err := http.NewRequest(http.MethodPost, "http://localhost:3333/a/b?c=first&d=second",
+		strings.NewReader(body))
+	assert.Nil(t, err)
+
+	timestamp := time.Now().Unix()
+	sha := sha256.New()
+	sha.Write([]byte(body))
+	bodySign := fmt.Sprintf("%x", sha.Sum(nil))
+	contentOfSign := strings.Join([]string{
+		strconv.FormatInt(timestamp, 10),
+		http.MethodPost,
+		r.URL.Path,
+		r.URL.RawQuery,
+		bodySign,
+	}, "\n")
+	sign := hs256(key, contentOfSign)
+
+	// Simulate Android Base64.encodeToString() default behavior:
+	// insert newlines every 76 characters, mimicking MIME-style encoding.
+	base64Key := base64.StdEncoding.EncodeToString(key)
+	base64KeyWithNewlines := base64Key[:4] + "\n" + base64Key[4:]
+
+	content := strings.Join([]string{
+		"version=v1",
+		"type=1",
+		"key=" + base64KeyWithNewlines,
+		"time=" + strconv.FormatInt(timestamp, 10),
+	}, "; ")
+
+	encrypter, err := codec.NewRsaEncrypter([]byte(pubKey))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	output, err := encrypter.Encrypt([]byte(content))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	encryptedContent := base64.StdEncoding.EncodeToString(output)
+	r.Header.Set("X-Content-Security", strings.Join([]string{
+		fmt.Sprintf("key=%s", fingerprint(pubKey)),
+		"secret=" + encryptedContent,
+		"signature=" + sign,
+	}, "; "))
+
+	file, err := fs.TempFilenameWithText(priKey)
+	assert.Nil(t, err)
+	defer os.Remove(file)
+
+	dec, err := codec.NewRsaDecrypter(file)
+	assert.Nil(t, err)
+
+	header, err := ParseContentSecurity(map[string]codec.RsaDecrypter{
+		fingerprint(pubKey): dec,
+	}, r)
+	assert.Nil(t, err)
+	assert.True(t, header.Encrypted())
+	assert.Equal(t, httpx.CodeSignaturePass, VerifySignature(r, header, time.Minute))
+}
+
 func fingerprint(key string) string {
 	h := md5.New()
 	io.WriteString(h, key)
