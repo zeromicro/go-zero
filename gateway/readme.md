@@ -35,7 +35,7 @@ Upstreams:
       - hello.pb
     # Mappings can also be written in proto options
     Mappings:
-      - Method: get
+      - Method: GET
         Path: /pingHello/:ping
         RpcPath: hello.Hello/Ping
   - Grpc:
@@ -43,7 +43,7 @@ Upstreams:
         - localhost:8081
     # reflection mode, no ProtoSet settings
     Mappings:
-      - Method: post
+      - Method: POST
         Path: /pingWorld
         RpcPath: world.World/Ping
 ```
@@ -64,7 +64,7 @@ Upstreams:
       - hello.pb
     Mappings:
       - Match:
-          Method: get
+          Method: GET
           Path: /pingHello/:ping
         RpcPath: hello.Hello/Ping
   - Http:

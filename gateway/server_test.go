@@ -413,6 +413,7 @@ func TestHttpToHttpWithMatch(t *testing.T) {
 		resp, err := httpc.Do(context.Background(), http.MethodGet,
 			"http://localhost:18885/api/ping", nil)
 		assert.NoError(t, err)
+		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		body, err := io.ReadAll(resp.Body)
 		if assert.NoError(t, err) {
@@ -424,6 +425,7 @@ func TestHttpToHttpWithMatch(t *testing.T) {
 		resp, err := httpc.Do(context.Background(), http.MethodGet,
 			"http://localhost:18885/ping", nil)
 		assert.NoError(t, err)
+		defer resp.Body.Close()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		body, err := io.ReadAll(resp.Body)
 		if assert.NoError(t, err) {
@@ -435,6 +437,7 @@ func TestHttpToHttpWithMatch(t *testing.T) {
 		resp, err := httpc.Do(context.Background(), http.MethodPost,
 			"http://localhost:18885/api/ping", nil)
 		assert.NoError(t, err)
+		defer resp.Body.Close()
 		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 	})
 }
