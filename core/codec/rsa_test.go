@@ -3,6 +3,7 @@ package codec
 import (
 	"encoding/base64"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -52,6 +53,55 @@ func TestCryption(t *testing.T) {
 	actual, err = dec.DecryptBase64(base64.StdEncoding.EncodeToString(ret))
 	assert.Nil(t, err)
 	assert.Equal(t, testBody, string(actual))
+}
+
+func TestBase64WithNewlines(t *testing.T) {
+	enc, err := NewRsaEncrypter([]byte(pubKey))
+	assert.Nil(t, err)
+	ret, err := enc.Encrypt([]byte(testBody))
+	assert.Nil(t, err)
+
+	// Simulate Android Base64.encodeToString() behavior that adds newlines
+	base64Str := base64.StdEncoding.EncodeToString(ret)
+	base64StrWithNewlines := insertNewlines(base64Str, 76) // Android default line length
+
+	file, err := fs.TempFilenameWithText(priKey)
+	assert.Nil(t, err)
+	defer os.Remove(file)
+	dec, err := NewRsaDecrypter(file)
+	assert.Nil(t, err)
+
+	// Should work with newlines
+	actual, err := dec.DecryptBase64(base64StrWithNewlines)
+	assert.Nil(t, err)
+	assert.Equal(t, testBody, string(actual))
+
+	// Should work with just carriage returns
+	base64StrWithCR := strings.ReplaceAll(base64Str, "\n", "\r")
+	actual, err = dec.DecryptBase64(base64StrWithCR)
+	assert.Nil(t, err)
+	assert.Equal(t, testBody, string(actual))
+
+	// Should work with extra whitespace
+	base64StrWithSpace := "\n  " + base64Str + "  \n"
+	actual, err = dec.DecryptBase64(base64StrWithSpace)
+	assert.Nil(t, err)
+	assert.Equal(t, testBody, string(actual))
+}
+
+func insertNewlines(s string, interval int) string {
+	var result strings.Builder
+	for i := 0; i < len(s); i += interval {
+		end := i + interval
+		if end > len(s) {
+			end = len(s)
+		}
+		result.WriteString(s[i:end])
+		if end < len(s) {
+			result.WriteString("\n")
+		}
+	}
+	return result.String()
 }
 
 func TestBadPubKey(t *testing.T) {

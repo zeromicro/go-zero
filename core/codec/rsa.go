@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"os"
+	"strings"
 )
 
 var (
@@ -82,7 +83,13 @@ func (r *rsaDecrypter) DecryptBase64(input string) ([]byte, error) {
 		return nil, nil
 	}
 
-	base64Decoded, err := base64.StdEncoding.DecodeString(input)
+	// Remove newlines and whitespace from Base64 string for compatibility
+	// with clients that may add line breaks (e.g., Android Base64.encodeToString)
+	cleanedInput := strings.ReplaceAll(input, "\n", "")
+	cleanedInput = strings.ReplaceAll(cleanedInput, "\r", "")
+	cleanedInput = strings.TrimSpace(cleanedInput)
+
+	base64Decoded, err := base64.StdEncoding.DecodeString(cleanedInput)
 	if err != nil {
 		return nil, err
 	}
