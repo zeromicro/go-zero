@@ -159,7 +159,7 @@ func (s *mcpServerImpl) wrapHandler(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		metadata := s.metadata(r)
-		if len(metadata.Path) == 0 {
+		if metadata.Path == nil {
 			metadata.Path = cloneStringMap(pathvar.Vars(r))
 		}
 

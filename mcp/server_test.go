@@ -360,6 +360,28 @@ func TestWrapHandlerPreservesExplicitPathMetadata(t *testing.T) {
 	wrapped.ServeHTTP(httptest.NewRecorder(), req)
 }
 
+func TestWrapHandlerPreservesExplicitEmptyPathMetadata(t *testing.T) {
+	s := &mcpServerImpl{
+		metadata: func(r *http.Request) RequestMetadata {
+			return RequestMetadata{
+				Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")},
+				Path:    map[string]string{},
+			}
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/mcp/blue", nil)
+	req = pathvar.WithVars(req, map[string]string{"tenant": "blue"})
+	req.Header.Set("X-Tenant", "acme")
+
+	wrapped := s.wrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "acme", HeaderFromContext(r.Context(), "x-tenant"))
+		assert.Equal(t, "", PathFromContext(r.Context(), "tenant"))
+	}))
+
+	wrapped.ServeHTTP(httptest.NewRecorder(), req)
+}
+
 func TestWrapHandlerWithEmptyExtractorMetadata(t *testing.T) {
 	s := &mcpServerImpl{
 		metadata: func(r *http.Request) RequestMetadata {
