@@ -265,10 +265,12 @@ func TestWithRequestMetadataExtractor(t *testing.T) {
 }
 
 func TestRequestMetadataHelpersWithNilContext(t *testing.T) {
-	assert.True(t, isEmptyRequestMetadata(RequestMetadataFromContext(nil)))
-	assert.Equal(t, "", HeaderFromContext(nil, "x-tenant"))
-	assert.Equal(t, "", QueryFromContext(nil, "variant"))
-	assert.Equal(t, "", PathFromContext(nil, "tenant"))
+	var nilCtx context.Context
+
+	assert.True(t, isEmptyRequestMetadata(RequestMetadataFromContext(nilCtx)))
+	assert.Equal(t, "", HeaderFromContext(nilCtx, "x-tenant"))
+	assert.Equal(t, "", QueryFromContext(nilCtx, "variant"))
+	assert.Equal(t, "", PathFromContext(nilCtx, "tenant"))
 }
 
 func TestRequestMetadataHelpersWithEmptyContext(t *testing.T) {
