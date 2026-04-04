@@ -8,7 +8,7 @@ This document describes the migration from the custom MCP implementation to the 
 
 Added the official MCP SDK:
 ```bash
-go get github.com/modelcontextprotocol/go-sdk@latest
+go get github.com/modelcontextprotocol/go-sdk@v1.4.0
 ```
 
 ### Type System

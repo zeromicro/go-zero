@@ -70,6 +70,7 @@ type ResourceHandler func(
 
 // AddTool registers a tool with the MCP server using type-safe generics.
 // The SDK automatically generates JSON schema from the Args struct tags.
+// If server is not backed by the go-zero MCP implementation, AddTool is a no-op.
 //
 // Example:
 //
