@@ -30,8 +30,9 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			Addrs:        splitClusterAddrs(r.Addr),
 			Username:     r.User,
 			Password:     r.Pass,
-			MaxRetries:   maxRetries,
-			MinIdleConns: idleConns,
+			MaxRetries:   r.maxRetries,
+			MinIdleConns: r.minIdleConns,
+			PoolSize:     r.poolSize,
 			TLSConfig:    tlsConfig,
 		})
 
@@ -42,10 +43,15 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			store.AddHook(hook)
 		}
 
+		poolSize := clusterPoolSize
+		if r.poolSize > 0 {
+			poolSize = r.poolSize
+		}
+
 		connCollector.registerClient(&statGetter{
 			clientType: ClusterType,
 			key:        r.Addr,
-			poolSize:   clusterPoolSize,
+			poolSize:   poolSize,
 			poolStats: func() *red.PoolStats {
 				return store.PoolStats()
 			},
