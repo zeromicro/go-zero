@@ -39,6 +39,9 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 
 			jsonTag, _ := tag.Get(tagJson)
 			if jsonTag != nil {
+				if shouldIgnoreTag(jsonTag) {
+					return
+				}
 				jsonTagString = jsonTag.Name
 				minimum, maximum, exclusiveMinimum, exclusiveMaximum = rangeValueFromOptions(jsonTag.Options)
 				example = exampleValueFromOptions(ctx, jsonTag.Options, member.Type)
