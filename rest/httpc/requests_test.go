@@ -134,6 +134,19 @@ func TestDo_Ptr(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+func TestDo_RejectsSlashInPathVariables(t *testing.T) {
+	type Data struct {
+		Key string `path:"key"`
+	}
+
+	_, err := Do(context.Background(), http.MethodGet, "http://example.com/nodes/:key", Data{
+		Key: "foo/bar baz?qux#frag%zap",
+	})
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "path variable")
+	}
+}
+
 func TestDo_BadRequest(t *testing.T) {
 	_, err := Do(context.Background(), http.MethodPost, ":/nodes/:key", nil)
 	assert.NotNil(t, err)
@@ -331,4 +344,34 @@ func TestBuildRequestWithBody(t *testing.T) {
 			assert.Equal(t, tc.wantedErr, err)
 		})
 	}
+}
+
+func TestBuildRequest_EscapesReservedPathCharacters(t *testing.T) {
+	type payload struct {
+		Key string `path:"key"`
+	}
+
+	httpReq, err := buildRequest(context.Background(), http.MethodGet,
+		"http://example.com/nodes/:key", payload{Key: "foo bar?baz#qux%zap"})
+	if assert.NoError(t, err) {
+		assert.Equal(t, "/nodes/foo bar?baz#qux%zap", httpReq.URL.Path)
+		assert.Equal(t, "/nodes/foo%20bar%3Fbaz%23qux%25zap", httpReq.URL.EscapedPath())
+		assert.Equal(t, "http://example.com/nodes/foo%20bar%3Fbaz%23qux%25zap", httpReq.URL.String())
+	}
+}
+
+func TestBuildRequest_AllowsEncodedSlashInLiteralPath(t *testing.T) {
+	type payload struct {
+		Key string `path:"key"`
+	}
+
+	assert.NotPanics(t, func() {
+		httpReq, err := buildRequest(context.Background(), http.MethodGet,
+			"http://example.com/a%2Fb/:key", payload{Key: "ok"})
+		if assert.NoError(t, err) {
+			assert.Equal(t, "/a/b/ok", httpReq.URL.Path)
+			assert.Equal(t, "/a%2Fb/ok", httpReq.URL.EscapedPath())
+			assert.Equal(t, "http://example.com/a%2Fb/ok", httpReq.URL.String())
+		}
+	})
 }

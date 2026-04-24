@@ -14,6 +14,7 @@ import (
 // Parse parses the response.
 func Parse(resp *http.Response, val any) error {
 	if err := ParseHeaders(resp, val); err != nil {
+		_ = resp.Body.Close()
 		return err
 	}
 
