@@ -151,6 +151,24 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 					if evt.Type == clientv3.EventTypeDelete {
 						logc.Infof(cli.Ctx(), "etcd publisher watch: %s, event: %v",
 							evt.Kv.Key, evt.Type)
+
+						// Make sure the lease is still valid before re-putting the key.
+						// Otherwise the Put may happen with an already-expired or zero
+						// LeaseID (e.g. when the DELETE event is caused by lease expiry
+						// and races with KeepAlive channel close), which makes the key
+						// permanent in etcd (no TTL) and leaks forever.
+						ttlResp, ttlErr := cli.TimeToLive(cli.Ctx(), p.lease)
+						if ttlErr != nil || ttlResp == nil || ttlResp.TTL <= 0 {
+							logc.Errorf(cli.Ctx(),
+								"etcd publisher lease expired, skip re-put and restart keepalive: leaseID=%d, err=%v",
+								p.lease, ttlErr)
+							p.revoke(cli)
+							if err := p.doKeepAlive(); err != nil {
+								logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
+							}
+							return
+						}
+
 						_, err := cli.Put(cli.Ctx(), p.fullKey, p.value, clientv3.WithLease(p.lease))
 						if err != nil {
 							logc.Errorf(cli.Ctx(), "etcd publisher re-put key: %v", err)
