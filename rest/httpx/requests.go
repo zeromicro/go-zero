@@ -117,6 +117,18 @@ func ParseHeader(headerValue string) map[string]string {
 func ParseJsonBody(r *http.Request, v any) error {
 	if withJsonBody(r) {
 		reader := io.LimitReader(r.Body, maxBodyLen)
+		if r.ContentLength < 0 {
+			data, err := io.ReadAll(reader)
+			if err != nil {
+				return err
+			}
+			if len(data) == 0 {
+				return mapping.UnmarshalJsonMap(nil, v)
+			}
+
+			return mapping.UnmarshalJsonBytes(data, v)
+		}
+
 		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
@@ -151,5 +163,5 @@ func getValidator() Validator {
 }
 
 func withJsonBody(r *http.Request) bool {
-	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
+	return r.ContentLength != 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
 }
