@@ -104,6 +104,33 @@ func TestWrapRequestMetadataNoExtractor(t *testing.T) {
 	assert.True(t, called)
 }
 
+func TestWrapRequestMetadataCanonicalizesCustomHeaders(t *testing.T) {
+	s := &mcpServerImpl{
+		options: serverOptions{
+			requestMetadataExtractor: func(*http.Request) RequestMetadata {
+				return RequestMetadata{
+					Headers: map[string][]string{
+						"x-tenant-id": {"tenant-lower"},
+					},
+				}
+			},
+		},
+	}
+
+	called := false
+	handler := s.wrapRequestMetadata(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		called = true
+		header, ok := HeaderFromContext(r.Context(), "X-Tenant-Id")
+		assert.True(t, ok)
+		assert.Equal(t, "tenant-lower", header)
+	}))
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/sse", nil))
+
+	assert.True(t, called)
+}
+
 func TestRequestMetadataFromContextReturnsCopy(t *testing.T) {
 	ctx := context.WithValue(context.Background(), requestMetadataCtxKey{}, RequestMetadata{
 		Headers: map[string][]string{"X-Trace-Id": {"trace-1"}},

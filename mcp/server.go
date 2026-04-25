@@ -25,7 +25,12 @@ type mcpServerImpl struct {
 }
 
 // NewMcpServer creates a new MCP server using the official SDK
-func NewMcpServer(c McpConf, opts ...McpOption) McpServer {
+func NewMcpServer(c McpConf) McpServer {
+	return NewMcpServerWithOptions(c)
+}
+
+// NewMcpServerWithOptions creates a new MCP server with optional customizations.
+func NewMcpServerWithOptions(c McpConf, opts ...McpOption) McpServer {
 	serverOpts := defaultServerOptions()
 	for _, opt := range opts {
 		if opt != nil {

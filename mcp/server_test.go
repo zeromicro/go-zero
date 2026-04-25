@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -395,16 +396,18 @@ func TestAddToolWithCustomServer(t *testing.T) {
 }
 
 func TestRequestMetadataIntegrationSSEToolCall(t *testing.T) {
+	port := getFreePort(t)
+
 	c := McpConf{}
 	c.Host = "127.0.0.1"
-	c.Port = 19082
+	c.Port = port
 	c.Mcp.Name = "metadata-integration-test"
 	c.Mcp.UseStreamable = false
 	c.Mcp.SseEndpoint = "/sse/:scope"
 	c.Mcp.MessageTimeout = 2 * time.Second
 	c.Mcp.SseTimeout = 2 * time.Second
 
-	server := NewMcpServer(c, WithRequestMetadataExtractor(DefaultRequestMetadataExtractor))
+	server := NewMcpServerWithOptions(c, WithRequestMetadataExtractor(DefaultRequestMetadataExtractor))
 
 	tool := &Tool{
 		Name:        "inspect_metadata",
@@ -437,7 +440,8 @@ func TestRequestMetadataIntegrationSSEToolCall(t *testing.T) {
 	go server.Start()
 	t.Cleanup(server.Stop)
 
-	time.Sleep(300 * time.Millisecond)
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d/sse/prod?tenant=tenant-query", port)
+	waitForServerReady(t, baseURL, 2*time.Second)
 
 	client := sdkmcp.NewClient(&sdkmcp.Implementation{
 		Name:    "metadata-client",
@@ -452,7 +456,7 @@ func TestRequestMetadataIntegrationSSEToolCall(t *testing.T) {
 	}
 
 	transport := &sdkmcp.SSEClientTransport{
-		Endpoint:   "http://127.0.0.1:19082/sse/prod?tenant=tenant-query",
+		Endpoint:   baseURL,
 		HTTPClient: httpClient,
 	}
 
@@ -491,4 +495,47 @@ func (r metadataHeaderRoundTripper) RoundTrip(req *http.Request) (*http.Response
 	clone := req.Clone(req.Context())
 	clone.Header.Set("X-Tenant-Id", "tenant-header")
 	return next.RoundTrip(clone)
+}
+
+func getFreePort(t *testing.T) int {
+	t.Helper()
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if !assert.NoError(t, err) {
+		return 0
+	}
+	defer listener.Close()
+
+	addr, ok := listener.Addr().(*net.TCPAddr)
+	if !assert.True(t, ok) {
+		return 0
+	}
+
+	return addr.Port
+}
+
+func waitForServerReady(t *testing.T, endpoint string, timeout time.Duration) {
+	t.Helper()
+
+	client := &http.Client{Timeout: 200 * time.Millisecond}
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+		if err != nil {
+			t.Fatalf("failed to build readiness request: %v", err)
+		}
+		req.Header.Set("Accept", "text/event-stream")
+
+		resp, err := client.Do(req)
+		if err == nil {
+			_ = resp.Body.Close()
+			if resp.StatusCode > 0 {
+				return
+			}
+		}
+
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	t.Fatalf("server did not become ready for %s within %s", endpoint, timeout)
 }

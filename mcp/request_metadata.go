@@ -18,7 +18,7 @@ type requestMetadataCtxKey struct{}
 
 // RequestMetadataFromContext returns metadata extracted at the transport boundary.
 func RequestMetadataFromContext(ctx context.Context) (RequestMetadata, bool) {
-	metadata, ok := ctx.Value(requestMetadataCtxKey{}).(RequestMetadata)
+	metadata, ok := requestMetadataFromContext(ctx)
 	if !ok {
 		return RequestMetadata{}, false
 	}
@@ -28,7 +28,7 @@ func RequestMetadataFromContext(ctx context.Context) (RequestMetadata, bool) {
 
 // HeaderFromContext returns the first header value for key.
 func HeaderFromContext(ctx context.Context, key string) (string, bool) {
-	metadata, ok := RequestMetadataFromContext(ctx)
+	metadata, ok := requestMetadataFromContext(ctx)
 	if !ok {
 		return "", false
 	}
@@ -43,7 +43,7 @@ func HeaderFromContext(ctx context.Context, key string) (string, bool) {
 
 // QueryFromContext returns the first query value for key.
 func QueryFromContext(ctx context.Context, key string) (string, bool) {
-	metadata, ok := RequestMetadataFromContext(ctx)
+	metadata, ok := requestMetadataFromContext(ctx)
 	if !ok {
 		return "", false
 	}
@@ -58,7 +58,7 @@ func QueryFromContext(ctx context.Context, key string) (string, bool) {
 
 // PathFromContext returns the path variable value for key.
 func PathFromContext(ctx context.Context, key string) (string, bool) {
-	metadata, ok := RequestMetadataFromContext(ctx)
+	metadata, ok := requestMetadataFromContext(ctx)
 	if !ok {
 		return "", false
 	}
@@ -69,6 +69,15 @@ func PathFromContext(ctx context.Context, key string) (string, bool) {
 	}
 
 	return val, true
+}
+
+func requestMetadataFromContext(ctx context.Context) (RequestMetadata, bool) {
+	metadata, ok := ctx.Value(requestMetadataCtxKey{}).(RequestMetadata)
+	if !ok {
+		return RequestMetadata{}, false
+	}
+
+	return metadata, true
 }
 
 // DefaultRequestMetadataExtractor extracts headers, query values, and path variables.
@@ -94,7 +103,7 @@ func DefaultRequestMetadataExtractor(r *http.Request) RequestMetadata {
 
 func normalizeRequestMetadata(metadata RequestMetadata) RequestMetadata {
 	return RequestMetadata{
-		Headers: cloneHeaderValues(metadata.Headers),
+		Headers: cloneCanonicalHeaderValues(metadata.Headers),
 		Query:   cloneHeaderValues(metadata.Query),
 		Path:    clonePathVars(metadata.Path),
 	}
@@ -108,6 +117,20 @@ func cloneHeaderValues(values map[string][]string) map[string][]string {
 	cloned := make(map[string][]string, len(values))
 	for key, vals := range values {
 		cloned[key] = append([]string(nil), vals...)
+	}
+
+	return cloned
+}
+
+func cloneCanonicalHeaderValues(values map[string][]string) map[string][]string {
+	if len(values) == 0 {
+		return nil
+	}
+
+	cloned := make(map[string][]string, len(values))
+	for key, vals := range values {
+		canonical := http.CanonicalHeaderKey(key)
+		cloned[canonical] = append(cloned[canonical], vals...)
 	}
 
 	return cloned

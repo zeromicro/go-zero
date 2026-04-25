@@ -226,7 +226,7 @@ mcp:
 For multi-tenant or request-context-aware tools, you can extract selected HTTP request metadata once at the transport boundary and read it from `context.Context` in handlers.
 
 ```go
-server := mcp.NewMcpServer(c,
+server := mcp.NewMcpServerWithOptions(c,
 	mcp.WithRequestMetadataExtractor(mcp.DefaultRequestMetadataExtractor),
 )
 
