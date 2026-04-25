@@ -141,12 +141,26 @@ func TestFormat(t *testing.T) {
 }
 
 func TestWriteValue(t *testing.T) {
-	var buf strings.Builder
 	tm := time.Now()
-	writeValue(&buf, &tm)
-	assert.Equal(t, "'"+tm.String()+"'", buf.String())
+	t.Run("ptr to time.Time", func(t *testing.T) {
+		var buf strings.Builder
 
-	buf.Reset()
-	writeValue(&buf, tm)
-	assert.Equal(t, "'"+tm.String()+"'", buf.String())
+		writeValue(&buf, &tm)
+		assert.Equal(t, "'"+tm.Format(timeFormat)+"'", buf.String())
+	})
+
+	t.Run("time.Time", func(t *testing.T) {
+		var buf strings.Builder
+		writeValue(&buf, tm)
+
+		assert.Equal(t, "'"+tm.Format(timeFormat)+"'", buf.String())
+	})
+
+	t.Run("nil ptr to time.Time", func(t *testing.T) {
+		var p *time.Time
+		var buf strings.Builder
+		writeValue(&buf, p)
+
+		assert.Equal(t, "null", buf.String())
+	})
 }
