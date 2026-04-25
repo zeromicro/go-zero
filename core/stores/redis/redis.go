@@ -20,6 +20,8 @@ const (
 	ClusterType = "cluster"
 	// NodeType means redis node.
 	NodeType = "node"
+	// SentinelType means redis sentinel.
+	SentinelType = "sentinel"
 	// Nil is an alias of redis.Nil.
 	Nil = red.Nil
 
@@ -51,15 +53,16 @@ type (
 		Score float64
 	}
 
-	// Redis defines a redis node/cluster. It is thread-safe.
+	// Redis defines a redis node/cluster/sentinel. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		User  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr       string
+		Type       string
+		User       string
+		Pass       string
+		tls        bool
+		brk        breaker.Breaker
+		hooks      []red.Hook
+		MasterName string
 	}
 
 	// RedisNode interface represents a redis node.
@@ -123,9 +126,11 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
-
-	if conf.Type == ClusterType {
+	switch conf.Type {
+	case ClusterType:
 		opts = append([]Option{Cluster()}, opts...)
+	case SentinelType:
+		opts = append([]Option{Sentinel(), WithMasterName(conf.MasterName)}, opts...)
 	}
 	if len(conf.User) > 0 {
 		opts = append([]Option{WithUser(conf.User)}, opts...)
@@ -2678,6 +2683,13 @@ func Cluster() Option {
 	}
 }
 
+// Sentinel customizes the given Redis as monitored by sentinel
+func Sentinel() Option {
+	return func(r *Redis) {
+		r.Type = SentinelType
+	}
+}
+
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
@@ -2711,6 +2723,12 @@ func WithUser(user string) Option {
 	}
 }
 
+func WithMasterName(masterName string) Option {
+	return func(r *Redis) {
+		r.MasterName = masterName
+	}
+}
+
 func acceptable(err error) bool {
 	return err == nil || errorx.In(err, red.Nil, context.Canceled)
 }
@@ -2721,6 +2739,8 @@ func getRedis(r *Redis) (RedisNode, error) {
 		return getCluster(r)
 	case NodeType:
 		return getClient(r)
+	case SentinelType:
+		return getSentinel(r)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}

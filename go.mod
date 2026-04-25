@@ -3,6 +3,7 @@ module github.com/zeromicro/go-zero
 go 1.24.0
 
 require (
+	github.com/Bose/minisentinel v0.0.0-20200130220412-917c5a9223bb
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/alicebob/miniredis/v2 v2.37.0
 	github.com/fatih/color v1.18.0
