@@ -47,6 +47,23 @@ func TestRequestMetadataContextHelpers(t *testing.T) {
 	assert.Equal(t, "prod", path)
 }
 
+func TestRequestMetadataContextHelpersMissingKeys(t *testing.T) {
+	ctx := context.WithValue(context.Background(), requestMetadataCtxKey{}, RequestMetadata{
+		Headers: map[string][]string{"X-Trace-Id": {"trace-1"}},
+		Query:   map[string][]string{"tenant": {"foo"}},
+		Path:    map[string]string{"scope": "prod"},
+	})
+
+	_, ok := HeaderFromContext(ctx, "x-missing")
+	assert.False(t, ok)
+
+	_, ok = QueryFromContext(ctx, "missing")
+	assert.False(t, ok)
+
+	_, ok = PathFromContext(ctx, "missing")
+	assert.False(t, ok)
+}
+
 func TestRequestMetadataFromContextNotFound(t *testing.T) {
 	_, ok := RequestMetadataFromContext(context.Background())
 	assert.False(t, ok)
@@ -145,4 +162,24 @@ func TestRequestMetadataFromContextReturnsCopy(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, []string{"trace-1"}, fresh.Headers["X-Trace-Id"])
 	assert.Nil(t, fresh.Headers["X-New"])
+}
+
+func TestRequestMetadataFromContextWithEmptyAndCanonicalizedHeaders(t *testing.T) {
+	emptyCtx := context.WithValue(context.Background(), requestMetadataCtxKey{}, RequestMetadata{})
+	empty, ok := RequestMetadataFromContext(emptyCtx)
+	assert.True(t, ok)
+	assert.Nil(t, empty.Headers)
+	assert.Nil(t, empty.Query)
+	assert.Nil(t, empty.Path)
+
+	ctx := context.WithValue(context.Background(), requestMetadataCtxKey{}, RequestMetadata{
+		Headers: map[string][]string{
+			"x-tenant-id": {"a"},
+			"X-Tenant-Id": {"b"},
+		},
+	})
+
+	metadata, ok := RequestMetadataFromContext(ctx)
+	assert.True(t, ok)
+	assert.Equal(t, []string{"a", "b"}, metadata.Headers["X-Tenant-Id"])
 }
