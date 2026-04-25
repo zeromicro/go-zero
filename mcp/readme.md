@@ -15,6 +15,7 @@ This package provides a go-zero integration for the [Model Context Protocol (MCP
 - **CORS Support**: Configurable CORS settings for cross-origin requests
 - **Type-Safe Tool Handlers**: Generic tool handlers with automatic JSON schema generation
 - **Prompts and Resources**: Full support for MCP prompts and resources
+- **Request Metadata Bridge**: Optional request metadata extraction into handler context
 
 ## Quick Start
 
@@ -219,6 +220,35 @@ mcp:
   useStreamable: true
   messageEndpoint: /message
 ```
+
+## Request Metadata Bridge
+
+For multi-tenant or request-context-aware tools, you can extract selected HTTP request metadata once at the transport boundary and read it from `context.Context` in handlers.
+
+```go
+server := mcp.NewMcpServer(c,
+	mcp.WithRequestMetadataExtractor(mcp.DefaultRequestMetadataExtractor),
+)
+
+handler := func(ctx context.Context, req *mcp.CallToolRequest, args SomeArgs) (*mcp.CallToolResult, any, error) {
+	tenant, _ := mcp.HeaderFromContext(ctx, "X-Tenant-Id")
+	traceID, _ := mcp.QueryFromContext(ctx, "trace")
+	scope, _ := mcp.PathFromContext(ctx, "scope")
+
+	_ = tenant
+	_ = traceID
+	_ = scope
+
+	return &mcp.CallToolResult{}, nil, nil
+}
+```
+
+Available helpers:
+
+- `RequestMetadataFromContext(ctx)`
+- `HeaderFromContext(ctx, key)`
+- `QueryFromContext(ctx, key)`
+- `PathFromContext(ctx, key)`
 
 ## Configuration Options
 
