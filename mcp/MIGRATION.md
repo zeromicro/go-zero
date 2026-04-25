@@ -8,7 +8,7 @@ This document describes the migration from the custom MCP implementation to the 
 
 Added the official MCP SDK:
 ```bash
-go get github.com/modelcontextprotocol/go-sdk@v1.2.0
+go get github.com/modelcontextprotocol/go-sdk@v1.4.0
 ```
 
 ### Type System
@@ -28,18 +28,48 @@ The `McpServer` interface has been simplified:
 type McpServer interface {
     Start()
     Stop()
-    Server() *sdkmcp.Server  // Returns underlying SDK server
 }
 ```
 
-**Important**: The `AddTool`, `AddPrompt`, and `AddResource` methods have been removed. Use the SDK directly:
+**Important**: The `AddTool`, `AddPrompt`, and `AddResource` methods have been removed from the server interface. Use the helper functions or the underlying SDK server:
 
 ```go
 // Old (no longer supported)
 server.AddTool(tool, handler)
 
-// New (use SDK directly)
-sdkmcp.AddTool(server.Server(), tool, handler)
+// New (go-zero helper)
+mcp.AddTool(server, tool, handler)
+
+// Or use the underlying SDK server directly
+sdkServer := mcp.SDKServer(server)
+sdkmcp.AddTool(sdkServer, tool, handler)
+```
+
+For advanced use cases, use the additive constructor with options:
+
+```go
+server := mcp.NewMcpServerWithOptions(c,
+    mcp.WithServerOptions(&mcp.ServerOptions{HasTools: true}),
+    mcp.WithServerHook(func(s *mcp.Server) {
+        // middleware, prompts, resources, dynamic tool changes, etc.
+    }),
+    mcp.WithRequestMetadataExtractor(func(r *http.Request) mcp.RequestMetadata {
+        return mcp.RequestMetadata{
+            Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")},
+        }
+    }),
+    mcp.WithServerSelector(func(r *http.Request) *mcp.Server {
+        return nil // fallback to the default SDK server
+    }),
+)
+```
+
+Handlers can then read selected metadata from `context.Context` without changing existing handler signatures:
+
+```go
+tenant := mcp.HeaderFromContext(ctx, "x-tenant")
+variant := mcp.QueryFromContext(ctx, "variant")
+pathID := mcp.PathFromContext(ctx, "id")
 ```
 
 ### Configuration
@@ -85,8 +115,11 @@ handler := func(ctx context.Context, req *mcp.CallToolRequest, args MyArgs) (*mc
     }, nil, nil
 }
 
-// Register with explicit type parameters
-sdkmcp.AddTool(server.Server(), tool, handler)
+// Register with the go-zero helper
+mcp.AddTool(server, tool, handler)
+
+// Or use the underlying SDK server directly
+sdkmcp.AddTool(mcp.SDKServer(server), tool, handler)
 ```
 
 The SDK automatically generates JSON schemas from struct tags.
@@ -102,7 +135,7 @@ Two transports are supported:
 
 2. **Streamable HTTP**: 2025-03-26 MCP spec
    - Opt-in (`UseStreamable: true`)
-   - Endpoint: `/sse` (configurable)
+   - Endpoint: `/message` (configurable)
    - Newer protocol with improved streaming
 
 ### Example Migration
@@ -136,8 +169,11 @@ handler := func(ctx context.Context, req *mcp.CallToolRequest, args GreetArgs) (
     }, nil, nil
 }
 
-// Use SDK directly - no error return
-sdkmcp.AddTool(server.Server(), tool, handler)
+// Use the go-zero helper
+mcp.AddTool(server, tool, handler)
+
+// Or use the underlying SDK server directly
+sdkmcp.AddTool(mcp.SDKServer(server), tool, handler)
 ```
 
 ## Benefits
@@ -150,16 +186,17 @@ sdkmcp.AddTool(server.Server(), tool, handler)
 
 ## Breaking Changes
 
-1. `server.AddTool()` removed → use `sdkmcp.AddTool(server.Server(), ...)`
-2. `server.AddPrompt()` removed (SDK v1.2.0 limitation)
-3. `server.AddResource()` removed (SDK v1.2.0 limitation)
+1. `server.AddTool()` removed → use `mcp.AddTool(server, ...)` or `sdkmcp.AddTool(mcp.SDKServer(server), ...)`
+2. `server.AddPrompt()` removed → use `mcp.SDKServer(server).AddPrompt(...)`
+3. `server.AddResource()` removed → use `mcp.SDKServer(server).AddResource(...)`
 4. Config fields `ProtocolVersion` and `BaseUrl` removed
 5. All types now come from SDK (re-exported for convenience)
+6. Advanced runtime customization is now opt-in via `NewMcpServerWithOptions(...)`
 
 ## Migration Checklist
 
 - [ ] Update imports: add `sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"`
-- [ ] Replace `server.AddTool()` with `sdkmcp.AddTool(server.Server(), ...)`
+- [ ] Replace `server.AddTool()` with `mcp.AddTool(server, ...)` or `sdkmcp.AddTool(mcp.SDKServer(server), ...)`
 - [ ] Remove error handling for tool registration (SDK doesn't return errors)
 - [ ] Update config: remove `ProtocolVersion` and `BaseUrl`, add `UseStreamable`
 - [ ] Test with both SSE and Streamable transports

@@ -14,7 +14,10 @@ This package provides a go-zero integration for the [Model Context Protocol (MCP
   - Streamable HTTP transport for 2025-03-26 MCP spec
 - **CORS Support**: Configurable CORS settings for cross-origin requests
 - **Type-Safe Tool Handlers**: Generic tool handlers with automatic JSON schema generation
-- **Prompts and Resources**: Full support for MCP prompts and resources
+- **SDK Access Helpers**: Expose the underlying official SDK server for advanced use cases
+- **Dynamic Tool List Support**: Use runtime tool registration/removal via the official SDK server
+- **Request-Based Server Selection**: Route different requests to different MCP server instances
+- **Request Metadata Context**: Extract selected HTTP headers/query/path values into handler context
 
 ## Quick Start
 
@@ -94,9 +97,53 @@ func main() {
 }
 ```
 
+### 4. Optional advanced configuration
+
+For advanced use cases, use `NewMcpServerWithOptions(...)`:
+
+```go
+server := mcp.NewMcpServerWithOptions(c,
+	mcp.WithServerOptions(&mcp.ServerOptions{HasTools: true}),
+	mcp.WithServerHook(func(s *mcp.Server) {
+		// Register middleware, dynamic tools, prompts, resources, etc.
+	}),
+	mcp.WithRequestMetadataExtractor(func(r *http.Request) mcp.RequestMetadata {
+		return mcp.RequestMetadata{
+			Headers: map[string]string{"x-tenant": r.Header.Get("X-Tenant")},
+			Query:   map[string]string{"variant": r.URL.Query().Get("variant")},
+		}
+	}),
+	mcp.WithServerSelector(func(r *http.Request) *mcp.Server {
+		if strings.HasPrefix(r.URL.Path, "/mcp/b") {
+			return otherServer
+		}
+
+		return nil // fallback to the default server
+	}),
+)
+```
+
+### Request metadata in handlers
+
+When `WithRequestMetadataExtractor(...)` is configured, tool/prompt/resource handlers can read the extracted values from context:
+
+```go
+mcp.AddTool(server, tool, func(ctx context.Context, req *mcp.CallToolRequest, args Input) (*mcp.CallToolResult, Output, error) {
+	tenant := mcp.HeaderFromContext(ctx, "x-tenant")
+	variant := mcp.QueryFromContext(ctx, "variant")
+	pathID := mcp.PathFromContext(ctx, "id")
+
+	_ = tenant
+	_ = variant
+	_ = pathID
+
+	return &mcp.CallToolResult{}, Output{}, nil
+})
+```
+
 ## Adding Tools
 
-Tools are functions that the MCP client can call. The SDK automatically generates JSON schemas from your struct tags. Use `sdkmcp.AddTool` with the server's underlying SDK server:
+Tools are functions that the MCP client can call. The SDK automatically generates JSON schemas from your struct tags.
 
 ```go
 type CalculateArgs struct {
@@ -137,11 +184,25 @@ handler := func(ctx context.Context, req *mcp.CallToolRequest, args CalculateArg
 mcp.AddTool(server, tool, handler)
 ```
 
-## Adding Prompts
+### Dynamic tool updates
 
-Prompts provide reusable message templates:
+The package now exposes the underlying SDK server for advanced runtime operations:
 
 ```go
+sdkServer := mcp.SDKServer(server)
+sdkServer.RemoveTools("calculate")
+
+// or use the package helper
+mcp.RemoveTools(server, "calculate")
+```
+
+## Adding Prompts
+
+Prompts provide reusable message templates. Use the underlying SDK server for prompt registration:
+
+```go
+sdkServer := mcp.SDKServer(server)
+
 prompt := &mcp.Prompt{
 	Name:        "code-review",
 	Description: "Review code for best practices",
@@ -152,7 +213,7 @@ handler := func(ctx context.Context, req *sdkmcp.GetPromptRequest, args map[stri
 	language := args["language"]
 
 	return &mcp.GetPromptResult{
-		Messages: []mcp.PromptMessage{
+		Messages: []*mcp.PromptMessage{
 			{
 				Role: "user",
 				Content: &mcp.TextContent{
@@ -163,14 +224,16 @@ handler := func(ctx context.Context, req *sdkmcp.GetPromptRequest, args map[stri
 	}, nil
 }
 
-server.AddPrompt(prompt, handler)
+sdkServer.AddPrompt(prompt, handler)
 ```
 
 ## Adding Resources
 
-Resources provide access to data that the model can read:
+Resources provide access to data that the model can read. Use the underlying SDK server for resource registration:
 
 ```go
+sdkServer := mcp.SDKServer(server)
+
 resource := &mcp.Resource{
 	URI:         "file:///docs/readme.md",
 	Name:        "README",
@@ -185,7 +248,7 @@ handler := func(ctx context.Context, req *sdkmcp.ReadResourceRequest, uri string
 	}
 
 	return &mcp.ReadResourceResult{
-		Contents: []mcp.ResourceContents{
+		Contents: []*mcp.ResourceContents{
 			{
 				URI:      uri,
 				MimeType: "text/markdown",
@@ -195,7 +258,7 @@ handler := func(ctx context.Context, req *sdkmcp.ReadResourceRequest, uri string
 	}, nil
 }
 
-server.AddResource(resource, handler)
+sdkServer.AddResource(resource, handler)
 ```
 
 ## Transport Options
