@@ -104,6 +104,11 @@ func TestGetHosts(t *testing.T) {
 			url:  "etcd:///host1:2379,host2:2379,host3:2379?key=foo",
 			want: "host1:2379,host2:2379,host3:2379",
 		},
+		{
+			name: "legacy single host in authority",
+			url:  "etcd://localhost:2379/my-service",
+			want: "localhost:2379",
+		},
 	}
 
 	for _, test := range tests {
@@ -138,6 +143,16 @@ func TestGetKey(t *testing.T) {
 			name: "no key",
 			url:  "etcd:///localhost:2379",
 			want: "",
+		},
+		{
+			name: "legacy key in path",
+			url:  "etcd://localhost:2379/my-service",
+			want: "my-service",
+		},
+		{
+			name: "legacy key with leading slash",
+			url:  "etcd://localhost:2379/grpc/my-service",
+			want: "grpc/my-service",
 		},
 	}
 
