@@ -28,7 +28,7 @@ func TestDiscovBuilder_Build(t *testing.T) {
 	for _, server := range servers.Servers {
 		addrs = append(addrs, server.Address)
 	}
-	u, err := url.Parse(fmt.Sprintf("%s://%s", DiscovScheme, strings.Join(addrs, ",")))
+	u, err := url.Parse(fmt.Sprintf("%s:///%s?key=test", DiscovScheme, strings.Join(addrs, ",")))
 	assert.NoError(t, err)
 
 	var b discovBuilder

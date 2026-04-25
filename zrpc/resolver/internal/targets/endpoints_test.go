@@ -87,3 +87,83 @@ func TestGetEndpoints(t *testing.T) {
 		})
 	}
 }
+
+func TestGetHosts(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "single host",
+			url:  "etcd:///localhost:2379?key=foo",
+			want: "localhost:2379",
+		},
+		{
+			name: "multiple hosts",
+			url:  "etcd:///host1:2379,host2:2379,host3:2379?key=foo",
+			want: "host1:2379,host2:2379,host3:2379",
+		},
+		{
+			name: "legacy single host in authority",
+			url:  "etcd://localhost:2379/my-service",
+			want: "localhost:2379",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			uri, err := url.Parse(test.url)
+			assert.Nil(t, err)
+			target := resolver.Target{
+				URL: *uri,
+			}
+			assert.Equal(t, test.want, GetHosts(target))
+		})
+	}
+}
+
+func TestGetKey(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "simple key",
+			url:  "etcd:///localhost:2379?key=my-service",
+			want: "my-service",
+		},
+		{
+			name: "key with slashes",
+			url:  "etcd:///localhost:2379?key=%2Fgrpc%2Fmy-service",
+			want: "/grpc/my-service",
+		},
+		{
+			name: "no key",
+			url:  "etcd:///localhost:2379",
+			want: "",
+		},
+		{
+			name: "legacy key in path",
+			url:  "etcd://localhost:2379/my-service",
+			want: "my-service",
+		},
+		{
+			name: "legacy key with leading slash",
+			url:  "etcd://localhost:2379/grpc/my-service",
+			want: "grpc/my-service",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			uri, err := url.Parse(test.url)
+			assert.Nil(t, err)
+			target := resolver.Target{
+				URL: *uri,
+			}
+			assert.Equal(t, test.want, GetKey(target))
+		})
+	}
+}

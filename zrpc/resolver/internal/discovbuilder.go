@@ -13,10 +13,10 @@ type discovBuilder struct{}
 
 func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ resolver.BuildOptions) (
 	resolver.Resolver, error) {
-	hosts := strings.FieldsFunc(targets.GetAuthority(target), func(r rune) bool {
+	hosts := strings.FieldsFunc(targets.GetHosts(target), func(r rune) bool {
 		return r == EndpointSepChar
 	})
-	sub, err := discov.NewSubscriber(hosts, targets.GetEndpoints(target))
+	sub, err := discov.NewSubscriber(hosts, targets.GetKey(target))
 	if err != nil {
 		return nil, err
 	}
