@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"context"
 	"net/http"
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
@@ -20,10 +21,23 @@ type mcpServerImpl struct {
 	conf       McpConf
 	httpServer *rest.Server
 	mcpServer  *sdkmcp.Server
+	options    serverOptions
 }
 
 // NewMcpServer creates a new MCP server using the official SDK
 func NewMcpServer(c McpConf) McpServer {
+	return NewMcpServerWithOptions(c)
+}
+
+// NewMcpServerWithOptions creates a new MCP server with optional customizations.
+func NewMcpServerWithOptions(c McpConf, opts ...McpOption) McpServer {
+	serverOpts := defaultServerOptions()
+	for _, opt := range opts {
+		if opt != nil {
+			opt.apply(&serverOpts)
+		}
+	}
+
 	// Create the underlying rest HTTP server
 	var httpServer *rest.Server
 	if len(c.Mcp.Cors) == 0 {
@@ -52,6 +66,7 @@ func NewMcpServer(c McpConf) McpServer {
 		conf:       c,
 		httpServer: httpServer,
 		mcpServer:  mcpServer,
+		options:    serverOpts,
 	}
 
 	// Choose transport based on configuration
@@ -85,7 +100,7 @@ func (s *mcpServerImpl) setupSSETransport() {
 		return s.mcpServer
 	}, nil)
 
-	s.registerRoutes(handler, s.conf.Mcp.SseEndpoint)
+	s.registerRoutes(s.wrapRequestMetadata(handler), s.conf.Mcp.SseEndpoint)
 }
 
 // setupStreamableTransport configures the server to use Streamable HTTP transport (2025-03-26 spec)
@@ -96,7 +111,7 @@ func (s *mcpServerImpl) setupStreamableTransport() {
 		return s.mcpServer
 	}, nil)
 
-	s.registerRoutes(handler, s.conf.Mcp.MessageEndpoint)
+	s.registerRoutes(s.wrapRequestMetadata(handler), s.conf.Mcp.MessageEndpoint)
 }
 
 func (s *mcpServerImpl) registerRoutes(handler http.Handler, endpoint string) {
@@ -112,4 +127,17 @@ func (s *mcpServerImpl) registerRoutes(handler http.Handler, endpoint string) {
 		Path:    endpoint,
 		Handler: handler.ServeHTTP,
 	}, rest.WithTimeout(s.conf.Mcp.MessageTimeout))
+}
+
+func (s *mcpServerImpl) wrapRequestMetadata(next http.Handler) http.Handler {
+	extractor := s.options.requestMetadataExtractor
+	if extractor == nil {
+		return next
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		metadata := normalizeRequestMetadata(extractor(r))
+		ctx := context.WithValue(r.Context(), requestMetadataCtxKey{}, metadata)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
