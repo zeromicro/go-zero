@@ -1,11 +1,14 @@
 package generator
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/emicklei/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	ctxpkg "github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 )
 
 func TestServiceNameDetermination(t *testing.T) {
@@ -144,4 +147,44 @@ func TestServiceNameFallbackWithEmptyPackage(t *testing.T) {
 	// Should fall back to filename when package name is empty
 	serviceName := determineServiceName(p, ctx)
 	assert.Equal(t, "myservice", serviceName)
+}
+
+func TestResolveDirPackageWithinCurrentModule(t *testing.T) {
+	tmp := t.TempDir()
+	mainDir := filepath.Join(tmp, "sales-admin")
+
+	err := os.MkdirAll(filepath.Join(mainDir, "internal", "logic"), 0o755)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(mainDir, "go.mod"), []byte("module sales-admin\n\ngo 1.25.5\n"), 0o644)
+	assert.NoError(t, err)
+
+	project := &ctxpkg.ProjectContext{
+		Path: "sales-admin",
+		Dir:  mainDir,
+	}
+
+	got := resolveDirPackage(project, filepath.Join(mainDir, "internal", "logic"), "")
+	assert.Equal(t, "sales-admin/internal/logic", got)
+}
+
+func TestResolveDirPackageForSiblingModule(t *testing.T) {
+	tmp := t.TempDir()
+	mainDir := filepath.Join(tmp, "sales-admin")
+	pbDir := filepath.Join(tmp, "sales-center", "pb", "admin")
+
+	err := os.MkdirAll(filepath.Join(mainDir, "internal", "logic"), 0o755)
+	assert.NoError(t, err)
+	err = os.MkdirAll(pbDir, 0o755)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(mainDir, "go.mod"), []byte("module sales-admin\n\ngo 1.25.5\n"), 0o644)
+	assert.NoError(t, err)
+	err = os.WriteFile(filepath.Join(tmp, "sales-center", "go.mod"), []byte("module sales-center\n\ngo 1.25.5\n"), 0o644)
+	assert.NoError(t, err)
+	project := &ctxpkg.ProjectContext{
+		Path: "sales-admin",
+		Dir:  mainDir,
+	}
+
+	got := resolveDirPackage(project, pbDir, "")
+	assert.Equal(t, "sales-center/pb/admin", got)
 }

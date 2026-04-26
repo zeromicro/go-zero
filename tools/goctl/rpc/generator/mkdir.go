@@ -1,6 +1,9 @@
 package generator
 
 import (
+	"bufio"
+	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -126,7 +129,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	}
 	inner[etc] = Dir{
 		Filename: etcDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(etcDir, ctx.Dir))),
+		Package:  resolveDirPackage(ctx, etcDir, ""),
 		Base:     filepath.Base(etcDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(etcDir, childPath)
@@ -134,16 +137,15 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	}
 	inner[internal] = Dir{
 		Filename: internalDir,
-		Package: filepath.ToSlash(filepath.Join(ctx.Path,
-			strings.TrimPrefix(internalDir, ctx.Dir))),
-		Base: filepath.Base(internalDir),
+		Package:  resolveDirPackage(ctx, internalDir, ""),
+		Base:     filepath.Base(internalDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(internalDir, childPath)
 		},
 	}
 	inner[config] = Dir{
 		Filename: configDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(configDir, ctx.Dir))),
+		Package:  resolveDirPackage(ctx, configDir, ""),
 		Base:     filepath.Base(configDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(configDir, childPath)
@@ -151,7 +153,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	}
 	inner[logic] = Dir{
 		Filename: logicDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(logicDir, ctx.Dir))),
+		Package:  resolveDirPackage(ctx, logicDir, ""),
 		Base:     filepath.Base(logicDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(logicDir, childPath)
@@ -159,7 +161,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	}
 	inner[server] = Dir{
 		Filename: serverDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(serverDir, ctx.Dir))),
+		Package:  resolveDirPackage(ctx, serverDir, ""),
 		Base:     filepath.Base(serverDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(serverDir, childPath)
@@ -167,7 +169,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 	}
 	inner[svc] = Dir{
 		Filename: svcDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(svcDir, ctx.Dir))),
+		Package:  resolveDirPackage(ctx, svcDir, ""),
 		Base:     filepath.Base(svcDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(svcDir, childPath)
@@ -176,7 +178,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 
 	inner[pb] = Dir{
 		Filename: pbDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
+		Package:  resolveDirPackage(ctx, pbDir, proto.GoPackage),
 		Base:     filepath.Base(pbDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(pbDir, childPath)
@@ -185,9 +187,8 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 
 	inner[protoGo] = Dir{
 		Filename: protoGoDir,
-		Package: filepath.ToSlash(filepath.Join(ctx.Path,
-			strings.TrimPrefix(protoGoDir, ctx.Dir))),
-		Base: filepath.Base(protoGoDir),
+		Package:  resolveDirPackage(ctx, protoGoDir, proto.GoPackage),
+		Base:     filepath.Base(protoGoDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(protoGoDir, childPath)
 		},
@@ -212,16 +213,100 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 func (d *defaultDirContext) SetPbDir(pbDir, grpcDir string) {
 	d.inner[pb] = Dir{
 		Filename: pbDir,
-		Package:  filepath.ToSlash(filepath.Join(d.ctx.Path, strings.TrimPrefix(pbDir, d.ctx.Dir))),
+		Package:  resolveDirPackage(d.ctx, pbDir, ""),
 		Base:     filepath.Base(pbDir),
 	}
 
 	d.inner[protoGo] = Dir{
 		Filename: grpcDir,
-		Package: filepath.ToSlash(filepath.Join(d.ctx.Path,
-			strings.TrimPrefix(grpcDir, d.ctx.Dir))),
-		Base: filepath.Base(grpcDir),
+		Package:  resolveDirPackage(d.ctx, grpcDir, ""),
+		Base:     filepath.Base(grpcDir),
 	}
+}
+
+func resolveDirPackage(project *ctx.ProjectContext, dir, fallback string) string {
+	dir = filepath.Clean(dir)
+	projectDir := filepath.Clean(project.Dir)
+
+	if rel, ok := relativeImportPath(projectDir, dir); ok {
+		return joinImportPath(project.Path, rel)
+	}
+
+	if modulePath, moduleDir, ok := resolveModuleForDir(dir); ok {
+		if rel, ok := relativeImportPath(moduleDir, dir); ok {
+			return joinImportPath(modulePath, rel)
+		}
+	}
+
+	if isImportPath(fallback) {
+		return filepath.ToSlash(fallback)
+	}
+
+	return joinImportPath(project.Path, strings.TrimPrefix(dir, projectDir))
+}
+
+func relativeImportPath(baseDir, targetDir string) (string, bool) {
+	rel, err := filepath.Rel(baseDir, targetDir)
+	if err != nil {
+		return "", false
+	}
+	if rel == "." {
+		return "", true
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return "", false
+	}
+
+	return filepath.ToSlash(rel), true
+}
+
+func joinImportPath(basePath, rel string) string {
+	if rel == "" || rel == "." {
+		return filepath.ToSlash(basePath)
+	}
+
+	return path.Join(filepath.ToSlash(basePath), filepath.ToSlash(rel))
+}
+
+func isImportPath(value string) bool {
+	return value != "" && !strings.HasPrefix(value, ".") && !filepath.IsAbs(value)
+}
+
+func resolveModuleForDir(dir string) (modulePath, moduleDir string, ok bool) {
+	current := filepath.Clean(dir)
+	for {
+		goMod := filepath.Join(current, "go.mod")
+		if info, err := os.Stat(goMod); err == nil && !info.IsDir() {
+			modulePath, err := readModulePath(goMod)
+			if err == nil && modulePath != "" {
+				return modulePath, current, true
+			}
+		}
+
+		parent := filepath.Dir(current)
+		if parent == current {
+			return "", "", false
+		}
+		current = parent
+	}
+}
+
+func readModulePath(goMod string) (string, error) {
+	file, err := os.Open(goMod)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "module ") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "module ")), nil
+		}
+	}
+
+	return "", scanner.Err()
 }
 
 func (d *defaultDirContext) GetCall() Dir {
