@@ -152,18 +152,11 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 						logc.Infof(cli.Ctx(), "etcd publisher watch: %s, event: %v",
 							evt.Kv.Key, evt.Type)
 
-						// Make sure the lease is still valid before re-putting the key.
-						// Otherwise the Put may happen with an already-expired or zero
-						// LeaseID (e.g. when the DELETE event is caused by lease expiry
-						// and races with KeepAlive channel close), which makes the key
-						// permanent in etcd (no TTL) and leaks forever.
-						ttlResp, ttlErr := cli.TimeToLive(cli.Ctx(), p.lease)
-						if ttlErr != nil || ttlResp == nil || ttlResp.TTL <= 0 {
-							logc.Errorf(cli.Ctx(),
-								"etcd publisher lease expired, skip re-put and restart keepalive: leaseID=%d, err=%v",
-								p.lease, ttlErr)
-							p.revoke(cli)
-							if err := p.doKeepAlive(); err != nil {
+						// Keep the fast path for manually deleted keys, but revalidate both
+						// before and after the re-put so an already-expired lease can't leave
+						// a permanent orphaned key behind.
+						if !p.leaseAlive(cli) {
+							if err := p.restartKeepAlive(cli); err != nil {
 								logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
 							}
 							return
@@ -172,10 +165,18 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 						_, err := cli.Put(cli.Ctx(), p.fullKey, p.value, clientv3.WithLease(p.lease))
 						if err != nil {
 							logc.Errorf(cli.Ctx(), "etcd publisher re-put key: %v", err)
-						} else {
-							logc.Infof(cli.Ctx(), "etcd publisher re-put key: %s, value: %s",
-								p.fullKey, p.value)
+							continue
 						}
+
+						if !p.keyBoundToLease(cli) {
+							if err := p.restartKeepAlive(cli); err != nil {
+								logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
+							}
+							return
+						}
+
+						logc.Infof(cli.Ctx(), "etcd publisher re-put key: %s, value: %s",
+							p.fullKey, p.value)
 					}
 				}
 			case <-p.pauseChan:
@@ -221,6 +222,45 @@ func (p *Publisher) revoke(cli internal.EtcdClient) {
 	if _, err := cli.Revoke(cli.Ctx(), p.lease); err != nil {
 		logc.Errorf(cli.Ctx(), "etcd publisher revoke: %v", err)
 	}
+}
+
+func (p *Publisher) keyBoundToLease(cli internal.EtcdClient) bool {
+	resp, err := cli.Get(cli.Ctx(), p.fullKey)
+	if err != nil {
+		logc.Errorf(cli.Ctx(), "etcd publisher verify re-put lease: %v", err)
+		return false
+	}
+
+	if len(resp.Kvs) == 0 {
+		logc.Errorf(cli.Ctx(), "etcd publisher verify re-put lease: key missing after put, key=%s", p.fullKey)
+		return false
+	}
+
+	if resp.Kvs[0].Lease != int64(p.lease) {
+		logc.Errorf(cli.Ctx(),
+			"etcd publisher verify re-put lease: unexpected lease, key=%s, want=%d, got=%d",
+			p.fullKey, p.lease, resp.Kvs[0].Lease)
+		return false
+	}
+
+	return true
+}
+
+func (p *Publisher) leaseAlive(cli internal.EtcdClient) bool {
+	resp, err := cli.TimeToLive(cli.Ctx(), p.lease)
+	if err != nil || resp == nil || resp.TTL <= 0 {
+		logc.Errorf(cli.Ctx(),
+			"etcd publisher lease expired, skip re-put and restart keepalive: leaseID=%d, err=%v",
+			p.lease, err)
+		return false
+	}
+
+	return true
+}
+
+func (p *Publisher) restartKeepAlive(cli internal.EtcdClient) error {
+	p.revoke(cli)
+	return p.doKeepAlive()
 }
 
 // WithId customizes a Publisher with the id.
