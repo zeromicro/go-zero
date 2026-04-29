@@ -39,6 +39,7 @@ type (
 		IndexName  string `db:"INDEX_NAME"`
 		NonUnique  int    `db:"NON_UNIQUE"`
 		SeqInIndex int    `db:"SEQ_IN_INDEX"`
+		Predicate  string // partial index WHERE clause, e.g. "status = 1 AND deleted_at IS NULL"
 	}
 
 	// ColumnData describes the columns of table
@@ -54,9 +55,10 @@ type (
 		Table   string
 		Columns []*Column
 		// Primary key not included
-		UniqueIndex map[string][]*Column
-		PrimaryKey  *Column
-		NormalIndex map[string][]*Column
+		UniqueIndex          map[string][]*Column
+		PrimaryKey           *Column
+		NormalIndex          map[string][]*Column
+		UniqueIndexPredicate map[string]string
 	}
 
 	// IndexType describes an alias of string
@@ -150,6 +152,7 @@ func (c *ColumnData) Convert() (*Table, error) {
 	table.Columns = c.Columns
 	table.UniqueIndex = map[string][]*Column{}
 	table.NormalIndex = map[string][]*Column{}
+	table.UniqueIndexPredicate = map[string]string{}
 
 	m := make(map[string][]*Column)
 	for _, each := range c.Columns {
@@ -178,6 +181,9 @@ func (c *ColumnData) Convert() (*Table, error) {
 			if one.Index != nil {
 				if one.Index.NonUnique == 0 {
 					table.UniqueIndex[indexName] = columns
+					if one.Index.Predicate != "" {
+						table.UniqueIndexPredicate[indexName] = one.Index.Predicate
+					}
 				} else {
 					table.NormalIndex[indexName] = columns
 				}
