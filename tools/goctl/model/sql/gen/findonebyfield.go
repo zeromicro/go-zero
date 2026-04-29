@@ -28,6 +28,13 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	for _, key := range table.UniqueCacheKey {
 		in, paramJoinString, originalFieldString := convertJoin(key, postgreSql)
 
+		// Append partial index predicate (WHERE clause) for PostgreSQL partial unique indexes.
+		// pg_get_expr wraps the predicate in outer parentheses, so the result is correctly grouped.
+		// e.g. "sku = $1 and ((status = 1) AND (deleted_at IS NULL))"
+		if len(key.Predicate) > 0 {
+			originalFieldString = originalFieldString + " and " + key.Predicate
+		}
+
 		output, err := t.Execute(map[string]any{
 			"upperStartCamelObject":     camelTableName,
 			"upperField":                key.FieldNameJoin.Camel().With("").Source(),
