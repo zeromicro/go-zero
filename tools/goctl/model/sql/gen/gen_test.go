@@ -14,10 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/builder"
-	"github.com/zeromicro/go-zero/core/stringx"
+	corstringx "github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 //go:embed testdata/user.sql
@@ -158,8 +159,8 @@ func TestFields(t *testing.T) {
 	var (
 		studentFieldNames          = builder.RawFieldNames(&Student{})
 		studentRows                = strings.Join(studentFieldNames, ",")
-		studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
-		studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
+		studentRowsExpectAutoSet   = strings.Join(corstringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
+		studentRowsWithPlaceHolder = strings.Join(corstringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
 	)
 
 	assert.Equal(t, []string{"`id`", "`name`", "`age`", "`score`", "`create_time`", "`update_time`"}, studentFieldNames)
@@ -197,4 +198,77 @@ func Test_genPublicModel(t *testing.T) {
 	}`))
 	assert.True(t, strings.Contains(code, "customTestUserModel struct {\n\t\t*defaultTestUserModel\n\t}\n"))
 	assert.True(t, strings.Contains(code, "func NewTestUserModel(conn sqlx.SqlConn) TestUserModel {"))
+}
+
+func TestGenFindOneByFieldWithPartialIndex(t *testing.T) {
+	primaryField := &parser.Field{
+		Name:     stringx.From("id"),
+		DataType: "int64",
+		Comment:  "主键",
+	}
+	emailField := &parser.Field{
+		Name:     stringx.From("email"),
+		DataType: "string",
+		Comment:  "邮箱",
+	}
+	parsedTable := parser.Table{
+		Name: stringx.From("user"),
+		Db:   stringx.From("go_zero"),
+		PrimaryKey: parser.Primary{
+			Field: *primaryField,
+		},
+		UniqueIndex: map[string][]*parser.Field{
+			"idx_active_email": {emailField},
+		},
+		UniqueIndexPredicate: map[string]string{
+			"idx_active_email": "(status = 1) AND (deleted_at IS NULL)",
+		},
+		Fields: []*parser.Field{
+			primaryField,
+			emailField,
+		},
+	}
+
+	primaryKey, uniqueKeys := genCacheKeys("cache", parsedTable)
+
+	table := Table{
+		Table:                  parsedTable,
+		PrimaryCacheKey:        primaryKey,
+		UniqueCacheKey:         uniqueKeys,
+		ContainsUniqueCacheKey: len(uniqueKeys) > 0,
+	}
+
+	result, err := genFindOneByField(table, false, true)
+	assert.NoError(t, err)
+
+	assert.Contains(t, result.findOneMethod, "where email = $1 and (status = 1) AND (deleted_at IS NULL)")
+	assert.Contains(t, result.findOneMethod, "FindOneByEmail")
+
+	// Verify non-partial indexes do NOT append predicate
+	parsedTable2 := parser.Table{
+		Name: stringx.From("user"),
+		Db:   stringx.From("go_zero"),
+		PrimaryKey: parser.Primary{
+			Field: *primaryField,
+		},
+		UniqueIndex: map[string][]*parser.Field{
+			"email_unique": {emailField},
+		},
+		UniqueIndexPredicate: map[string]string{},
+		Fields: []*parser.Field{
+			primaryField,
+			emailField,
+		},
+	}
+	_, uniqueKeys2 := genCacheKeys("cache", parsedTable2)
+	table2 := Table{
+		Table:                  parsedTable2,
+		PrimaryCacheKey:        primaryKey,
+		UniqueCacheKey:         uniqueKeys2,
+		ContainsUniqueCacheKey: len(uniqueKeys2) > 0,
+	}
+	result2, err := genFindOneByField(table2, false, true)
+	assert.NoError(t, err)
+	assert.Contains(t, result2.findOneMethod, "where email = $1")
+	assert.NotContains(t, result2.findOneMethod, " and (")
 }
