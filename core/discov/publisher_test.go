@@ -358,17 +358,49 @@ func TestPublisher_keepAliveAsyncKeyDeletionPutError(t *testing.T) {
 	wg.Wait()
 }
 
+func TestPublisher_Pause(t *testing.T) {
+	publisher := new(Publisher)
+	publisher.pauseChan = make(chan lang.PlaceholderType, 1)
+	publisher.Pause()
+
+	select {
+	case <-publisher.pauseChan:
+	case <-time.After(time.Second):
+		t.Fatal("pause should not block")
+	}
+}
+
 func TestPublisher_Resume(t *testing.T) {
 	publisher := new(Publisher)
-	publisher.resumeChan = make(chan lang.PlaceholderType)
+	publisher.resumeChan = make(chan lang.PlaceholderType, 1)
+	publisher.Resume()
+
+	select {
+	case <-publisher.resumeChan:
+	case <-time.After(time.Second):
+		t.Fatal("resume should not block")
+	}
+}
+
+func TestPublisher_PauseResumeDoNotBlock(t *testing.T) {
+	publisher := &Publisher{
+		pauseChan:  make(chan lang.PlaceholderType, 1),
+		resumeChan: make(chan lang.PlaceholderType, 1),
+	}
+	done := make(chan struct{})
 	go func() {
-		publisher.Resume()
+		for i := 0; i < 100; i++ {
+			publisher.Pause()
+			publisher.Resume()
+		}
+		close(done)
 	}()
-	go func() {
-		time.Sleep(time.Minute)
-		t.Fail()
-	}()
-	<-publisher.resumeChan
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("pause/resume should not block")
+	}
 }
 
 func TestPublisher_keepAliveAsync(t *testing.T) {
