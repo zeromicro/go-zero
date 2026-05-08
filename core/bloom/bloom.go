@@ -82,9 +82,15 @@ func (f *Filter) ExistsCtx(ctx context.Context, data []byte) (bool, error) {
 
 func (f *Filter) getLocations(data []byte) []uint {
 	locations := make([]uint, maps)
+
+	hashVal := hash.Hash(data)
+
+	h1 := hashVal
+	h2 := (hashVal >> 33) | 1
+
 	for i := uint(0); i < maps; i++ {
-		hashValue := hash.Hash(append(data, byte(i)))
-		locations[i] = uint(hashValue % uint64(f.bits))
+		combined := h1 + uint64(i)*h2
+		locations[i] = uint(combined % uint64(f.bits))
 	}
 
 	return locations
