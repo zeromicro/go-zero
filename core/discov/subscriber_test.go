@@ -201,6 +201,32 @@ func TestContainer(t *testing.T) {
 	}
 }
 
+func TestContainer_AddKvRepeatedKey(t *testing.T) {
+	t.Run("same key and value only kept once", func(t *testing.T) {
+		c := newContainer(false)
+
+		c.OnAdd(internal.KV{Key: "first", Val: "a"})
+		c.OnAdd(internal.KV{Key: "first", Val: "a"})
+		c.OnAdd(internal.KV{Key: "first", Val: "a"})
+
+		assert.Equal(t, []string{"first"}, c.values["a"])
+		assert.Equal(t, "a", c.mapping["first"])
+		assert.ElementsMatch(t, []string{"a"}, c.GetValues())
+	})
+
+	t.Run("same key moved to new value", func(t *testing.T) {
+		c := newContainer(false)
+
+		c.OnAdd(internal.KV{Key: "first", Val: "a"})
+		c.OnAdd(internal.KV{Key: "first", Val: "b"})
+
+		assert.NotContains(t, c.values, "a")
+		assert.Equal(t, []string{"first"}, c.values["b"])
+		assert.Equal(t, "b", c.mapping["first"])
+		assert.ElementsMatch(t, []string{"b"}, c.GetValues())
+	})
+}
+
 func TestSubscriber(t *testing.T) {
 	sub := new(Subscriber)
 	Exclusive()(sub)

@@ -263,24 +263,55 @@ func (c *cluster) handleWatchEvents(ctx context.Context, key watchKey, events []
 	for _, ev := range events {
 		switch ev.Type {
 		case clientv3.EventTypePut:
+			var remove, add *KV
+			eventKey := string(ev.Kv.Key)
+			eventVal := string(ev.Kv.Value)
 			c.lock.Lock()
-			watcher.values[string(ev.Kv.Key)] = string(ev.Kv.Value)
+			oldVal, ok := watcher.values[eventKey]
+			switch {
+			case ok && oldVal == eventVal:
+				c.lock.Unlock()
+				continue
+			case ok:
+				remove = &KV{
+					Key: eventKey,
+					Val: oldVal,
+				}
+			}
+			watcher.values[eventKey] = eventVal
+			add = &KV{
+				Key: eventKey,
+				Val: eventVal,
+			}
 			c.lock.Unlock()
 			for _, l := range listeners {
-				l.OnAdd(KV{
-					Key: string(ev.Kv.Key),
-					Val: string(ev.Kv.Value),
-				})
+				if remove != nil {
+					l.OnDelete(*remove)
+				}
+				l.OnAdd(*add)
 			}
 		case clientv3.EventTypeDelete:
+			var remove *KV
+			eventKey := string(ev.Kv.Key)
 			c.lock.Lock()
-			delete(watcher.values, string(ev.Kv.Key))
-			c.lock.Unlock()
-			for _, l := range listeners {
-				l.OnDelete(KV{
-					Key: string(ev.Kv.Key),
+			if oldVal, ok := watcher.values[eventKey]; ok {
+				remove = &KV{
+					Key: eventKey,
+					Val: oldVal,
+				}
+				delete(watcher.values, eventKey)
+			} else if len(ev.Kv.Value) > 0 {
+				remove = &KV{
+					Key: eventKey,
 					Val: string(ev.Kv.Value),
-				})
+				}
+			}
+			c.lock.Unlock()
+			if remove == nil {
+				continue
+			}
+			for _, l := range listeners {
+				l.OnDelete(*remove)
 			}
 		default:
 			logc.Errorf(ctx, "Unknown event type: %v", ev.Type)
@@ -433,7 +464,7 @@ func (c *cluster) setupWatch(cli EtcdClient, key watchKey, rev int64) (context.C
 	}
 
 	ctx, cancel := context.WithCancel(cli.Ctx())
-	
+
 	c.lock.Lock()
 	if watcher, ok := c.watchers[key]; ok {
 		watcher.cancel = cancel

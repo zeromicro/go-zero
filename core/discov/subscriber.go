@@ -142,6 +142,17 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	defer c.lock.Unlock()
 
 	c.dirty.Set(true)
+	if old, ok := c.mapping[key]; ok {
+		if old == value {
+			for _, each := range c.values[value] {
+				if each == key {
+					return nil, false
+				}
+			}
+		}
+		c.doRemoveKey(key)
+	}
+
 	keys := c.values[value]
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
