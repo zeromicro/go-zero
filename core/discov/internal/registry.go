@@ -54,27 +54,24 @@ func (r *Registry) Monitor(endpoints []string, key string, exactMatch bool, l Up
 		exactMatch: exactMatch,
 	}
 
-	c, exists := r.getOrCreateCluster(endpoints)
-	// if exists, the existing values should be updated to the listener.
-	if exists {
-		c.lock.Lock()
-		watcher, ok := c.watchers[wkey]
-		if ok {
-			watcher.listeners = append(watcher.listeners, l)
+	c, _ := r.getOrCreateCluster(endpoints)
+	kvs, created := c.addListener(wkey, l)
+	if !created {
+		for _, kv := range kvs {
+			l.OnAdd(kv)
 		}
-		c.lock.Unlock()
 
-		if ok {
-			kvs := c.getCurrent(wkey)
-			for _, kv := range kvs {
-				l.OnAdd(kv)
-			}
-
-			return nil
-		}
+		return nil
 	}
 
-	return c.monitor(wkey, l)
+	cli, err := c.getClient()
+	if err != nil {
+		c.removeListener(wkey, l)
+		return err
+	}
+
+	c.monitor(cli, wkey)
+	return nil
 }
 
 func (r *Registry) Unmonitor(endpoints []string, key string, exactMatch bool, l UpdateListener) {
@@ -172,19 +169,51 @@ func newCluster(endpoints []string) *cluster {
 	}
 }
 
-func (c *cluster) addListener(key watchKey, l UpdateListener) {
+func (c *cluster) addListener(key watchKey, l UpdateListener) (current []KV, created bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	watcher, ok := c.watchers[key]
 	if ok {
 		watcher.listeners = append(watcher.listeners, l)
-		return
+		current = make([]KV, 0, len(watcher.values))
+		for k, v := range watcher.values {
+			current = append(current, KV{
+				Key: k,
+				Val: v,
+			})
+		}
+		return current, false
 	}
 
 	val := newWatchValue()
 	val.listeners = []UpdateListener{l}
 	c.watchers[key] = val
+	return nil, true
+}
+
+func (c *cluster) removeListener(key watchKey, l UpdateListener) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	watcher, ok := c.watchers[key]
+	if !ok {
+		return
+	}
+
+	for i, listener := range watcher.listeners {
+		if listener == l {
+			watcher.listeners = append(watcher.listeners[:i], watcher.listeners[i+1:]...)
+			break
+		}
+	}
+
+	if len(watcher.listeners) == 0 {
+		if watcher.cancel != nil {
+			watcher.cancel()
+		}
+		delete(c.watchers, key)
+	}
 }
 
 func (c *cluster) getClient() (EtcdClient, error) {
@@ -352,19 +381,11 @@ func (c *cluster) load(cli EtcdClient, key watchKey) int64 {
 	return resp.Header.Revision
 }
 
-func (c *cluster) monitor(key watchKey, l UpdateListener) error {
-	cli, err := c.getClient()
-	if err != nil {
-		return err
-	}
-
-	c.addListener(key, l)
+func (c *cluster) monitor(cli EtcdClient, key watchKey) {
 	rev := c.load(cli, key)
 	c.watchGroup.Run(func() {
 		c.watch(cli, key, rev)
 	})
-
-	return nil
 }
 
 func (c *cluster) newClient() (EtcdClient, error) {

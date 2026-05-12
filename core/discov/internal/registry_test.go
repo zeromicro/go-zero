@@ -548,6 +548,43 @@ func TestRegistry_Monitor(t *testing.T) {
 	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", false, new(mockListener)))
 }
 
+func TestRegistry_MonitorDuplicateKeyStartsOneWatch(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	ch := make(chan clientv3.WatchResponse)
+	watched := make(chan struct{})
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), "foo/", gomock.Any()).Return(&clientv3.GetResponse{
+		Header: &etcdserverpb.ResponseHeader{
+			Revision: 1,
+		},
+	}, nil).Times(1)
+	cli.EXPECT().Watch(gomock.Any(), "foo/", gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			close(watched)
+			return ch
+		}).Times(1)
+
+	endpoints := []string{stringx.Rand()}
+	connManager.Inject(getClusterKey(endpoints), cli)
+	reg := &Registry{
+		clusters: make(map[string]*cluster),
+	}
+	assert.NoError(t, reg.Monitor(endpoints, "foo", false, new(mockListener)))
+	assert.NoError(t, reg.Monitor(endpoints, "foo", false, new(mockListener)))
+	<-watched
+
+	c, ok := reg.getCluster(endpoints)
+	assert.True(t, ok)
+	wkey := watchKey{key: "foo"}
+	c.lock.RLock()
+	assert.Len(t, c.watchers[wkey].listeners, 2)
+	c.lock.RUnlock()
+	close(c.done)
+}
+
 func TestRegistry_Unmonitor(t *testing.T) {
 	svr, err := mockserver.StartMockServers(1)
 	assert.NoError(t, err)
