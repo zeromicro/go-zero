@@ -2,7 +2,7 @@
 
 # mapreduce
 
-English | [简体中文](readme-cn.md)
+English | [简体中文](readme-cn.md) | [한국어](readme-ko.md)
 
 ## Why MapReduce is needed
 

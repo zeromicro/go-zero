@@ -1,5 +1,7 @@
 # 示例 06：知名类型
 
+[English](README.md) | 中文 | [한국어](README-ko.md)
+
 本示例演示如何使用 Google protobuf 知名类型（`Timestamp`、`Duration`、`Any`）作为消息字段。
 
 ## Proto 定义

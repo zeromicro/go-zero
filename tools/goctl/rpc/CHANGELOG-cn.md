@@ -1,5 +1,7 @@
 # 变更日志
 
+[English](CHANGELOG.md) | 中文 | [한국어](CHANGELOG-ko.md)
+
 ## 未发布
 
 ### 新功能

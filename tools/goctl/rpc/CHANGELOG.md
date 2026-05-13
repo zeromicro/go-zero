@@ -1,5 +1,7 @@
 # Changelog
 
+English | [中文](CHANGELOG-cn.md) | [한국어](CHANGELOG-ko.md)
+
 ## Unreleased
 
 ### New Features

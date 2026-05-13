@@ -1,10 +1,12 @@
 # RPC Examples
 
+English / 中文 | [한국어](README-ko.md)
+
 This directory contains complete examples for all `goctl rpc` code generation scenarios.
 
 Each example includes:
 - `.proto` source files
-- `README.md` (English) and `README-cn.md` (中文) documentation
+- `README.md` (English), `README-cn.md` (中文), and `README-ko.md` (한국어) documentation
 
 ## Examples
 
@@ -52,7 +54,7 @@ goctl rpc protoc greeter.proto \
 
 每个示例包含：
 - `.proto` 源文件
-- `README.md`（英文）和 `README-cn.md`（中文）文档
+- `README.md`（英文）、`README-cn.md`（中文）和 `README-ko.md`（한국어）文档
 
 ## 示例列表
 

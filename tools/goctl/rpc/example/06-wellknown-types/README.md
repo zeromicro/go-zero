@@ -1,5 +1,7 @@
 # Example 06: Well-Known Types
 
+English | [中文](README-cn.md) | [한국어](README-ko.md)
+
 This example demonstrates using Google protobuf well-known types (`Timestamp`, `Duration`, `Any`) as message fields.
 
 ## Proto Definition

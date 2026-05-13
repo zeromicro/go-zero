@@ -1,5 +1,7 @@
 # 示例 07：外部 Proto — 相同 `go_package`
 
+[English](README.md) | 中文 | [한국어](README-ko.md)
+
 本示例演示从外部目录导入 proto 文件，且两个文件共享**相同**的 `go_package`。
 
 ## Proto 定义
@@ -18,7 +20,8 @@ option go_package = "example.com/demo/pb";
 │   └── ext.proto        # 外部 proto（go_package = "example.com/demo/pb"）
 ├── service.proto        # 服务定义（go_package = "example.com/demo/pb"）
 ├── README.md
-└── README-cn.md
+├── README-cn.md
+└── README-ko.md
 ```
 
 - `ext.proto` 位于独立目录（`ext_protos/`），但与 `service.proto` 有相同的 `go_package`。

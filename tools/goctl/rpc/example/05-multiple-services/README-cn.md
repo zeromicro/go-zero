@@ -1,5 +1,7 @@
 # 示例 05：多服务模式（`--multiple`）
 
+[English](README.md) | 中文 | [한국어](README-ko.md)
+
 本示例演示从一个 proto 文件生成多个 RPC 服务。
 
 ## Proto 定义

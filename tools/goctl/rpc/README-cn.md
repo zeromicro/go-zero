@@ -1,6 +1,6 @@
 # goctl rpc — RPC 代码生成
 
-[English](README.md) | 中文
+[English](README.md) | 中文 | [한국어](README-ko.md)
 
 goctl rpc 是 `goctl` 脚手架下的 RPC 服务代码生成模块，基于 `.proto` 文件生成完整的 zRPC 服务代码。你只需编写 proto 定义和业务逻辑，其余代码均由工具自动生成。
 

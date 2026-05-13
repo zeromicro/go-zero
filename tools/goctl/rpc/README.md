@@ -1,6 +1,6 @@
 # goctl rpc — RPC Code Generation
 
-English | [中文](README-cn.md)
+English | [中文](README-cn.md) | [한국어](README-ko.md)
 
 goctl rpc is the RPC service code generation module of the `goctl` scaffold. It generates a complete zRPC service from `.proto` files. You only need to write the proto definition and business logic — all boilerplate code is generated automatically.
 
