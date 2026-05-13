@@ -6,7 +6,7 @@ English | [简体中文](readme-cn.md) | [한국어](readme-ko.md)
 
 ## Why MapReduce is needed
 
-In practical business scenarios we often need to get the corresponding properties from different rpc services to assemble complex objects.
+In practical business scenarios we often need to get the corresponding properties from different RPC services to assemble complex objects.
 
 For example, to query product details.
 
@@ -15,9 +15,9 @@ For example, to query product details.
 3. price service - query price attributes
 4. marketing service - query marketing properties
 
-If it is a serial call, the response time will increase linearly with the number of rpc calls, so we will generally change serial to parallel to optimize response time.
+If it is a serial call, the response time will increase linearly with the number of RPC calls, so we will generally change serial to parallel to optimize response time.
 
-Simple scenarios using `WaitGroup` can also meet the needs, but what if we need to check the data returned by the rpc call, data processing, data aggregation? The official go library does not have such a tool (CompleteFuture is provided in java), so we implemented an in-process data batching MapReduce concurrent tool based on the MapReduce architecture.
+Simple scenarios using `WaitGroup` can also meet the needs, but what if we need to check the data returned by the RPC call, data processing, data aggregation? The official go library does not have such a tool (CompletableFuture is provided in java), so we implemented an in-process data batching MapReduce concurrent tool based on the MapReduce architecture.
 
 ## Design ideas
 

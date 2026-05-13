@@ -1,10 +1,10 @@
-# 예제 09: RPC 파라미터로 Google Types 사용
+# 예제 09: RPC 파라미터로 Google well-known types 사용
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
 이 예제는 Google protobuf well-known types를 메시지 필드뿐 아니라 RPC 요청 또는 응답 타입으로 **직접** 사용하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 `service.proto`는 `google.protobuf.Empty`와 `google.protobuf.Timestamp`를 RPC 요청/응답 타입으로 직접 사용합니다.
 

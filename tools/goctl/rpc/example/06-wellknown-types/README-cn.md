@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文 | [한국어](README-ko.md)
 
-本示例演示如何使用 Google protobuf 知名类型（`Timestamp`、`Duration`、`Any`）作为消息字段。
+本示例演示如何使用 Google protobuf 知名类型（`Timestamp`）作为消息字段。
 
 ## Proto 定义
 
@@ -62,6 +62,6 @@ output/
 
 ## 要点说明
 
-- 使用 Google 知名类型（`google.protobuf.Timestamp`、`google.protobuf.Duration`、`google.protobuf.Any`）作为消息字段。
-- goctl 自动将知名类型映射到 Go 导入包（`timestamppb`、`durationpb`、`anypb` 等）。
+- 使用 Google 知名类型 `google.protobuf.Timestamp` 作为消息字段。
+- goctl 自动将知名类型映射到 Go 导入包；在本示例中，`Timestamp` 会映射到 `timestamppb`。
 - 如果 protoc 已正确安装，知名类型无需额外的 `--proto_path`。

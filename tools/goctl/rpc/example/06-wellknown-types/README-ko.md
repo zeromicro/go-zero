@@ -2,9 +2,9 @@
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
-이 예제는 Google protobuf well-known types(`Timestamp`, `Duration`, `Any`)를 메시지 필드로 사용하는 방법을 보여줍니다.
+이 예제는 Google protobuf well-known type(`Timestamp`)을 메시지 필드로 사용하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 `events.proto`는 `google.protobuf.Timestamp`를 메시지 필드 타입으로 사용합니다.
 
@@ -62,6 +62,6 @@ output/
 
 ## 핵심 사항
 
-- Google well-known types(`google.protobuf.Timestamp`, `google.protobuf.Duration`, `google.protobuf.Any`)를 메시지 필드로 사용합니다.
-- goctl은 well-known types를 Go import(`timestamppb`, `durationpb`, `anypb` 등)로 자동 매핑합니다.
+- Google well-known type인 `google.protobuf.Timestamp`를 메시지 필드로 사용합니다.
+- goctl은 well-known types를 Go import로 자동 매핑합니다. 이 예제에서는 `Timestamp`가 `timestamppb`로 매핑됩니다.
 - protoc가 올바르게 설치되어 있다면 well-known types에는 추가 `--proto_path`가 필요하지 않습니다.

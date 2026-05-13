@@ -1,10 +1,10 @@
-# 예제 08: 외부 Proto — 다른 `go_package`
+# 예제 08: 외부 proto — 다른 `go_package`
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
 이 예제는 파일들이 **서로 다른** `go_package` 값을 가져 생성된 Go 코드에 교차 패키지 import가 필요한 외부 디렉터리의 proto 파일을 import하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 proto 파일들은 서로 다른 `go_package` 값을 사용합니다.
 
@@ -17,8 +17,8 @@ proto 파일들은 서로 다른 `go_package` 값을 사용합니다.
 08-external-proto-diff-pkg/
 ├── ext_protos
 │   └── common
-│       └── types.proto    # External proto (go_package = "example.com/demo/pb/common")
-├── service.proto          # Service definition (go_package = "example.com/demo/pb")
+│       └── types.proto    # 외부 proto (go_package = "example.com/demo/pb/common")
+├── service.proto          # 서비스 정의 (go_package = "example.com/demo/pb")
 ├── README.md
 ├── README-cn.md
 └── README-ko.md
@@ -77,5 +77,5 @@ output/
 ## 핵심 사항
 
 - 외부 proto가 **다른** `go_package`를 가지면 goctl은 교차 패키지 Go import를 자동으로 생성합니다.
-- goctl은 import된 proto의 `go_package` 옵션을 파싱하여 proto package 이름(예: `common`)을 올바른 Go import 경로로 해석합니다.
+- goctl은 import된 proto의 `go_package` 옵션을 파싱하여 proto `package` 이름(예: `common`)을 올바른 Go import 경로로 해석합니다.
 - `service.proto`는 `common.ExtReq` / `common.ExtReply`를 RPC 파라미터 타입으로 직접 사용합니다.

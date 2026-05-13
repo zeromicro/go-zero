@@ -311,5 +311,5 @@ goctl 自动识别并正确处理 Google protobuf 标准类型：
 | 06 | [标准类型](example/06-wellknown-types/) | 消息中使用 Timestamp 等 |
 | 07 | [外部 Proto（同包）](example/07-external-proto-same-pkg/) | 外部 proto，相同 go_package |
 | 08 | [外部 Proto（跨包）](example/08-external-proto-diff-pkg/) | 外部 proto，不同 go_package |
-| 09 | [标准类型作参数](example/09-google-types-as-rpc/) | Empty/Timestamp 作为 RPC 参数 |
+| 09 | [Google 标准类型作参数](example/09-google-types-as-rpc/) | Empty/Timestamp 作为 RPC 参数 |
 | 10 | [流式通信](example/10-streaming/) | 服务端/客户端/双向流 |

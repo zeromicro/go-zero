@@ -53,7 +53,7 @@ greeter/
         └── servicecontext.go
 ```
 
-### 방법 2: Proto 파일에서 생성하기
+### 방법 2: proto 파일에서 생성하기
 
 1. proto 템플릿을 생성합니다.
 
@@ -120,12 +120,12 @@ goctl rpc protoc service.proto \
 | `--go-grpc_out` | | string | **필수** | protoc gRPC 코드 출력 디렉터리 |
 | `--go_opt` | | string | | protoc-gen-go 옵션(예: `module=example.com/demo`) |
 | `--go-grpc_opt` | | string | | protoc-gen-go-grpc 옵션(예: `module=example.com/demo`) |
-| `--proto_path` | `-I` | string[] | | Proto import 검색 디렉터리(반복 지정 가능) |
+| `--proto_path` | `-I` | string[] | | proto import 검색 디렉터리(반복 지정 가능) |
 | `--multiple` | `-m` | bool | `false` | 다중 서비스 모드 |
 | `--client` | `-c` | bool | `true` | RPC 클라이언트 코드 생성 |
 | `--style` | | string | `gozero` | 파일 이름 스타일 |
 | `--module` | | string | | 사용자 지정 Go module 이름 |
-| `--name-from-filename` | | bool | `false` | 서비스 이름에 package 이름 대신 파일 이름 사용 |
+| `--name-from-filename` | | bool | `false` | 서비스 이름에 `package` 이름 대신 파일 이름 사용 |
 | `--verbose` | `-v` | bool | `false` | 상세 로그 활성화 |
 | `--home` | | string | | goctl 템플릿 디렉터리 |
 | `--remote` | | string | | 원격 템플릿 Git 저장소 URL |
@@ -148,7 +148,7 @@ goctl rpc new <service_name> [flags]
 | `--module` | | string | | 사용자 지정 Go module 이름 |
 | `--verbose` | `-v` | bool | `false` | 상세 로그 활성화 |
 | `--idea` | | bool | `false` | IDE 프로젝트 마커 생성 |
-| `--name-from-filename` | | bool | `false` | 서비스 이름에 package 이름 대신 파일 이름 사용 |
+| `--name-from-filename` | | bool | `false` | 서비스 이름에 `package` 이름 대신 파일 이름 사용 |
 | `--home` | | string | | goctl 템플릿 디렉터리 |
 | `--remote` | | string | | 원격 템플릿 Git 저장소 URL |
 | `--branch` | | string | | 원격 템플릿 브랜치 |
@@ -233,7 +233,7 @@ output/
 └── ...
 ```
 
-### 외부 Proto Import(`--proto_path`)
+### 외부 proto import(`--proto_path`)
 
 `-I` / `--proto_path`로 추가 proto 검색 디렉터리를 지정합니다. 지원되는 시나리오는 다음과 같습니다.
 
@@ -254,7 +254,7 @@ goctl rpc protoc service.proto \
 
 ### 서비스 이름 지정
 
-기본적으로 서비스 이름은 proto **package 이름**에서 파생됩니다(예: `package user;` → 서비스 이름 `user`). 이를 통해 여러 proto 파일이 같은 package를 공유할 수 있습니다.
+기본적으로 서비스 이름은 proto의 **`package` 이름**에서 파생됩니다(예: `package user;` → 서비스 이름 `user`). 이를 통해 여러 proto 파일이 같은 `package`를 공유할 수 있습니다.
 
 ```
 protos/
@@ -308,8 +308,8 @@ goctl은 Google protobuf well-known types를 자동으로 인식하고 처리합
 | 03 | [하위 디렉터리 import](example/03-import-subdir/) | 하위 디렉터리에서 import |
 | 04 | [전이 import](example/04-transitive-import/) | A → B → C 의존성 체인 |
 | 05 | [다중 서비스](example/05-multiple-services/) | `--multiple` 모드 |
-| 06 | [Well-known types](example/06-wellknown-types/) | 메시지에서 Timestamp 등 사용 |
+| 06 | [Well-known 타입](example/06-wellknown-types/) | 메시지에서 Timestamp 등 사용 |
 | 07 | [외부 proto(동일 패키지)](example/07-external-proto-same-pkg/) | 외부 proto, 같은 go_package |
 | 08 | [외부 proto(다른 패키지)](example/08-external-proto-diff-pkg/) | 외부 proto, 다른 go_package |
-| 09 | [Google types as params](example/09-google-types-as-rpc/) | Empty/Timestamp를 RPC 파라미터로 사용 |
+| 09 | [Google well-known types를 파라미터로 사용](example/09-google-types-as-rpc/) | Empty/Timestamp를 RPC 파라미터로 사용 |
 | 10 | [스트리밍](example/10-streaming/) | 서버/클라이언트/양방향 스트리밍 |

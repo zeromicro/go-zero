@@ -17,10 +17,10 @@ Each example includes:
 | 03 | [03-import-subdir](03-import-subdir/) | Import proto from subdirectory | `--proto_path=.` |
 | 04 | [04-transitive-import](04-transitive-import/) | Transitive imports (A → B → C) | `--proto_path=.` |
 | 05 | [05-multiple-services](05-multiple-services/) | Multiple services in one proto | `--multiple` |
-| 06 | [06-wellknown-types](06-wellknown-types/) | Google well-known types in messages | `--proto_path=$PROTOC_INCLUDE` |
+| 06 | [06-wellknown-types](06-wellknown-types/) | Google well-known types in messages | — |
 | 07 | [07-external-proto-same-pkg](07-external-proto-same-pkg/) | External proto, same `go_package` | `-I ./ext_protos` |
 | 08 | [08-external-proto-diff-pkg](08-external-proto-diff-pkg/) | External proto, different `go_package` | `-I ./ext_protos` |
-| 09 | [09-google-types-as-rpc](09-google-types-as-rpc/) | Google types as RPC parameters | `--proto_path=$PROTOC_INCLUDE` |
+| 09 | [09-google-types-as-rpc](09-google-types-as-rpc/) | Google well-known types as RPC parameters | — |
 | 10 | [10-streaming](10-streaming/) | Server/client/bidirectional streaming | — |
 
 ## Prerequisites
@@ -65,10 +65,10 @@ goctl rpc protoc greeter.proto \
 | 03 | [03-import-subdir](03-import-subdir/) | 导入子目录中的 proto | `--proto_path=.` |
 | 04 | [04-transitive-import](04-transitive-import/) | 传递性导入（A → B → C） | `--proto_path=.` |
 | 05 | [05-multiple-services](05-multiple-services/) | 单 proto 多服务 | `--multiple` |
-| 06 | [06-wellknown-types](06-wellknown-types/) | 消息中使用 Google 标准类型 | `--proto_path=$PROTOC_INCLUDE` |
+| 06 | [06-wellknown-types](06-wellknown-types/) | 消息中使用 Google 标准类型 | — |
 | 07 | [07-external-proto-same-pkg](07-external-proto-same-pkg/) | 外部 proto，相同 `go_package` | `-I ./ext_protos` |
 | 08 | [08-external-proto-diff-pkg](08-external-proto-diff-pkg/) | 外部 proto，不同 `go_package` | `-I ./ext_protos` |
-| 09 | [09-google-types-as-rpc](09-google-types-as-rpc/) | Google 类型作为 RPC 参数 | `--proto_path=$PROTOC_INCLUDE` |
+| 09 | [09-google-types-as-rpc](09-google-types-as-rpc/) | Google 标准类型作为 RPC 参数 | — |
 | 10 | [10-streaming](10-streaming/) | 服务端/客户端/双向流 | — |
 
 ## 前置条件

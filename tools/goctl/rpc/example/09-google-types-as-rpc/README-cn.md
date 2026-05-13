@@ -1,4 +1,4 @@
-# 示例 09：Google 类型作为 RPC 参数
+# 示例 09：Google 知名类型作为 RPC 参数
 
 [English](README.md) | 中文 | [한국어](README-ko.md)
 

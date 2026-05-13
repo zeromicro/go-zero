@@ -65,4 +65,4 @@ output/
 
 - Supports three streaming patterns: server streaming (`stream` on response), client streaming (`stream` on request), and bidirectional streaming (`stream` on both).
 - goctl generates separate logic files for each streaming RPC method.
-- Streaming client code is not auto-generated; use the gRPC client directly.
+- goctl generates streaming client wrapper methods; use the returned gRPC stream to send and receive messages.

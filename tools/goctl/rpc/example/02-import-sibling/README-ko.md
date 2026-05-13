@@ -1,10 +1,10 @@
-# 예제 02: 같은 디렉터리의 Proto 파일 Import
+# 예제 02: 같은 디렉터리의 proto 파일 import
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
 이 예제는 같은 디렉터리에 있는 proto 파일을 import하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 같은 디렉터리의 두 proto 파일이 동일한 `go_package`를 공유합니다.
 

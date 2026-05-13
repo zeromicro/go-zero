@@ -1,10 +1,10 @@
-# 예제 07: 외부 Proto — 동일한 `go_package`
+# 예제 07: 외부 proto — 동일한 `go_package`
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
 이 예제는 두 파일이 **동일한** `go_package`를 공유하는 외부 디렉터리의 proto 파일을 import하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 `service.proto`와 `ext.proto`는 모두 동일한 `go_package`를 사용합니다.
 
@@ -17,8 +17,8 @@ option go_package = "example.com/demo/pb";
 ```
 07-external-proto-same-pkg/
 ├── ext_protos
-│   └── ext.proto        # External proto (go_package = "example.com/demo/pb")
-├── service.proto        # Service definition (go_package = "example.com/demo/pb")
+│   └── ext.proto        # 외부 proto (go_package = "example.com/demo/pb")
+├── service.proto        # 서비스 정의 (go_package = "example.com/demo/pb")
 ├── README.md
 ├── README-cn.md
 └── README-ko.md

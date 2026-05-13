@@ -1,10 +1,10 @@
-# 예제 03: 하위 디렉터리의 Proto Import
+# 예제 03: 하위 디렉터리의 proto import
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
 이 예제는 하위 디렉터리에 있는 proto 파일을 import하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 두 proto 파일은 **서로 다른** `go_package` 값을 사용합니다.
 

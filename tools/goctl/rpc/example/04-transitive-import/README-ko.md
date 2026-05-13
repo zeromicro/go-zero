@@ -1,10 +1,10 @@
-# 예제 04: 전이 Import
+# 예제 04: 전이 import
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
 이 예제는 A가 B를 import하고 B가 C를 import하는 전이 proto import를 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 세 proto 파일이 전이 import 체인을 이루며, 모두 동일한 `go_package`를 공유합니다.
 
@@ -16,7 +16,7 @@ option go_package = "example.com/demo/pb";
 - `middleware.proto` — 계층 B: `base.proto`를 import하고 `RequestMeta`를 정의합니다.
 - `main.proto` — 계층 A: `middleware.proto`를 import하고 `PingService`(진입점)를 정의합니다.
 
-Import 체인: `main.proto` → `middleware.proto` → `base.proto`
+import 체인: `main.proto` → `middleware.proto` → `base.proto`
 
 ## 생성 명령
 
@@ -67,7 +67,7 @@ output/
 
 ## 핵심 사항
 
-- 세 proto 파일(`base.proto` → `middleware.proto` → `main.proto`)이 전이 import 체인을 이룹니다.
+- 세 proto 파일(`main.proto` → `middleware.proto` → `base.proto`)이 전이 import 체인을 이룹니다.
 - goctl은 모든 전이 import를 자동으로 재귀 해석합니다.
 - 세 파일 모두 동일한 `go_package = "example.com/demo/pb"`를 공유합니다.
 - 진입 proto 파일만 지정하면 됩니다. 나머지는 goctl과 protoc가 처리합니다.

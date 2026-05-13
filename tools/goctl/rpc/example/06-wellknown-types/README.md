@@ -2,7 +2,7 @@
 
 English | [中文](README-cn.md) | [한국어](README-ko.md)
 
-This example demonstrates using Google protobuf well-known types (`Timestamp`, `Duration`, `Any`) as message fields.
+This example demonstrates using a Google protobuf well-known type (`Timestamp`) as a message field.
 
 ## Proto Definition
 
@@ -62,6 +62,6 @@ output/
 
 ## Key Points
 
-- Uses Google well-known types (`google.protobuf.Timestamp`, `google.protobuf.Duration`, `google.protobuf.Any`) as message fields.
-- goctl automatically maps well-known types to Go imports (`timestamppb`, `durationpb`, `anypb`, etc.).
+- Uses the Google well-known type `google.protobuf.Timestamp` as a message field.
+- goctl automatically maps well-known types to Go imports; in this example, `Timestamp` maps to `timestamppb`.
 - No extra `--proto_path` needed for well-known types if protoc is properly installed.

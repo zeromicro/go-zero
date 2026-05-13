@@ -4,7 +4,7 @@
 
 이 예제는 하나의 proto 파일에서 여러 RPC 서비스를 생성하는 방법을 보여줍니다.
 
-## Proto 정의
+## proto 정의
 
 두 proto 파일이 동일한 `go_package`를 공유합니다.
 

@@ -17,10 +17,10 @@
 | 03 | [03-import-subdir](03-import-subdir/) | 하위 디렉터리의 proto import | `--proto_path=.` |
 | 04 | [04-transitive-import](04-transitive-import/) | 전이 import(A → B → C) | `--proto_path=.` |
 | 05 | [05-multiple-services](05-multiple-services/) | 하나의 proto에 여러 서비스 | `--multiple` |
-| 06 | [06-wellknown-types](06-wellknown-types/) | 메시지에서 Google well-known types 사용 | `--proto_path=$PROTOC_INCLUDE` |
+| 06 | [06-wellknown-types](06-wellknown-types/) | 메시지에서 Google well-known types 사용 | — |
 | 07 | [07-external-proto-same-pkg](07-external-proto-same-pkg/) | 외부 proto, 동일한 `go_package` | `-I ./ext_protos` |
 | 08 | [08-external-proto-diff-pkg](08-external-proto-diff-pkg/) | 외부 proto, 다른 `go_package` | `-I ./ext_protos` |
-| 09 | [09-google-types-as-rpc](09-google-types-as-rpc/) | RPC 파라미터로 Google types 사용 | `--proto_path=$PROTOC_INCLUDE` |
+| 09 | [09-google-types-as-rpc](09-google-types-as-rpc/) | RPC 파라미터로 Google well-known types 사용 | — |
 | 10 | [10-streaming](10-streaming/) | 서버/클라이언트/양방향 스트리밍 | — |
 
 ## 사전 요구 사항

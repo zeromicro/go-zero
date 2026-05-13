@@ -4,7 +4,7 @@
 
 이 예제는 goctl로 RPC 서비스를 생성하는 가장 간단한 예제입니다.
 
-## Proto 정의
+## proto 정의
 
 외부 import 없이 하나의 서비스와 하나의 RPC 메서드를 가진 `greeter.proto` 파일 하나를 사용합니다.
 
@@ -47,7 +47,7 @@ greeter/
         └── servicecontext.go
 ```
 
-### 방법 2: 기존 Proto에서 생성
+### 방법 2: 기존 proto에서 생성
 
 먼저 출력 디렉터리에 `go.mod`를 초기화합니다.
 

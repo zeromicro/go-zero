@@ -67,7 +67,7 @@ output/
 
 ## Key Points
 
-- Three proto files (`base.proto` → `middleware.proto` → `main.proto`) form a transitive import chain.
+- Three proto files (`main.proto` → `middleware.proto` → `base.proto`) form a transitive import chain.
 - goctl recursively resolves all transitive imports automatically.
 - All three files share the same `go_package = "example.com/demo/pb"`.
 - You only need to specify the entry proto file — goctl and protoc handle the rest.

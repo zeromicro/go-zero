@@ -67,7 +67,7 @@ output/
 
 ## 要点说明
 
-- 三个 proto 文件（`base.proto` → `middleware.proto` → `main.proto`）形成传递导入链。
+- 三个 proto 文件（`main.proto` → `middleware.proto` → `base.proto`）形成传递导入链。
 - goctl 自动递归解析所有传递导入。
 - 三个文件共享相同的 `go_package = "example.com/demo/pb"`。
 - 只需指定入口 proto 文件，goctl 和 protoc 会自动处理其余部分。
