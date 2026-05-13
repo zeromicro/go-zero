@@ -26,7 +26,7 @@
 ## 사전 요구 사항
 
 - [Go](https://go.dev/) 1.22+
-- [protoc](https://github.com/protocolbuffers/protobuf/releases)(Protocol Buffers 컴파일러)
+- [protoc](https://github.com/protocolbuffers/protobuf/releases) (Protocol Buffers 컴파일러)
 - [protoc-gen-go](https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go) 및 [protoc-gen-go-grpc](https://pkg.go.dev/google.golang.org/grpc/cmd/protoc-gen-go-grpc)
 - [goctl](https://github.com/zeromicro/go-zero/tree/master/tools/goctl)
 

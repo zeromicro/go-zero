@@ -77,4 +77,4 @@ output/
 
 - `ext.proto`는 별도 디렉터리(`ext_protos/`)에 있지만 `service.proto`와 동일한 `go_package`를 가집니다.
 - 외부 디렉터리를 proto 검색 경로에 추가하려면 `-I ./ext_protos`를 사용합니다.
-- 외부 proto가 **동일한** `go_package`를 가지면 모든 타입이 하나의 Go 패키지로 병합되므로 교차 패키지 import가 필요하지 않습니다.
+- 외부 proto가 **동일한** `go_package`를 가지면 모든 타입이 하나의 Go 패키지로 병합되므로 패키지 간 import가 필요하지 않습니다.

@@ -68,7 +68,7 @@ output/
 ## 핵심 사항
 
 - 세 proto 파일(`main.proto` → `middleware.proto` → `base.proto`)이 전이 import 체인을 이룹니다.
-- goctl은 모든 전이 import를 자동으로 재귀 해석합니다.
+- goctl은 모든 전이 import를 자동으로 재귀 해결합니다.
 - 세 파일 모두 동일한 `go_package = "example.com/demo/pb"`를 공유합니다.
 - 진입 proto 파일만 지정하면 됩니다. 나머지는 goctl과 protoc가 처리합니다.
 - 순환 import는 감지되며 오류가 발생합니다(protoc 동작과 동일).

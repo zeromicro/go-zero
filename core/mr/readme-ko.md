@@ -36,13 +36,13 @@
 
 데이터 생성은 필수 단계이고, 데이터 처리와 데이터 집계는 선택 단계입니다. 데이터 생성과 처리는 동시 호출을 지원하며, 데이터 집계는 기본적으로 순수 메모리 작업이므로 단일 고루틴으로 처리할 수 있습니다.
 
-서로 다른 데이터 처리 단계가 서로 다른 goroutine에서 수행되므로, goroutine 간 통신을 위해 channel을 사용하는 것이 자연스럽습니다.
+서로 다른 데이터 처리 단계가 서로 다른 고루틴에서 수행되므로, 고루틴 간 통신을 위해 채널을 사용하는 것이 자연스럽습니다.
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/mapreduce-en.png" width="500">
 
 언제든 프로세스를 종료하려면 어떻게 해야 할까요?
 
-간단합니다. goroutine에서 channel 또는 전달된 context를 수신하면 됩니다.
+간단합니다. 고루틴에서 채널 또는 전달된 context의 완료 신호를 감시하면 됩니다.
 
 ## 간단한 예시
 

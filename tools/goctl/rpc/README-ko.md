@@ -2,15 +2,15 @@
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 
-goctl rpc는 `goctl` 스캐폴드의 RPC 서비스 코드 생성 모듈입니다. `.proto` 파일에서 완전한 zRPC 서비스를 생성합니다. proto 정의와 비즈니스 로직만 작성하면 나머지 보일러플레이트 코드는 모두 자동으로 생성됩니다.
+goctl rpc는 `goctl` 스캐폴딩 도구의 RPC 서비스 코드 생성 모듈입니다. `.proto` 파일에서 완전한 zRPC 서비스를 생성합니다. proto 정의와 비즈니스 로직만 작성하면 나머지 보일러플레이트 코드는 모두 자동으로 생성됩니다.
 
 ## 기능
 
 - **protoc 호환**: protoc와 완전히 호환되며 모든 protoc 인수를 그대로 전달합니다.
-- **외부 proto import**: 디렉터리와 패키지를 넘나드는 proto import를 지원하고 전이 의존성을 자동으로 해석합니다.
+- **외부 proto import**: 디렉터리와 패키지를 넘나드는 proto import를 지원하고 전이 의존성을 자동으로 해결합니다.
 - **다중 서비스**: 하나의 proto 파일에 여러 서비스를 정의하고, 서비스 이름별로 자동 그룹화합니다.
 - **스트리밍 지원**: 서버 스트리밍, 클라이언트 스트리밍, 양방향 스트리밍을 지원합니다.
-- **Google well-known types**: `google.protobuf.*` 타입을 자동으로 인식하고 올바른 Go import를 생성합니다.
+- **Google well-known types**: 지원되는 `google.protobuf.*` 타입을 자동으로 인식하고 올바른 Go import를 생성합니다.
 - **클라이언트 생성**: 자동 생성된 RPC 클라이언트 래퍼 코드를 제공합니다.
 
 ## 사전 요구 사항
@@ -240,8 +240,8 @@ output/
 - **같은 디렉터리 import**: `import "types.proto";`
 - **하위 디렉터리 import**: `import "common/types.proto";`
 - **외부 디렉터리 import**: 프로젝트 외부에 있는 proto 파일
-- **전이 import**: A가 B를 import하고 B가 C를 import하는 경우 — goctl이 재귀적으로 해석합니다.
-- **교차 패키지 import**: 서로 다른 `go_package` 값을 가진 파일에 대해 올바른 Go import를 자동으로 생성합니다.
+- **전이 import**: A가 B를 import하고 B가 C를 import하는 경우 — goctl이 재귀적으로 해결합니다.
+- **패키지 간 import**: 서로 다른 `go_package` 값을 가진 파일에 대해 올바른 Go import를 자동으로 생성합니다.
 
 ```bash
 # 여러 디렉터리에서 proto 파일 검색
@@ -279,11 +279,11 @@ service StreamService {
 }
 ```
 
-### Google Well-Known Types
+### Google well-known types
 
-goctl은 Google protobuf well-known types를 자동으로 인식하고 처리합니다.
+goctl은 지원되는 Google protobuf well-known types를 자동으로 인식하고 처리합니다.
 
-| Proto Type | Go Type |
+| Proto 타입 | Go 타입 |
 |-----------|---------|
 | `google.protobuf.Empty` | `emptypb.Empty` |
 | `google.protobuf.Timestamp` | `timestamppb.Timestamp` |
@@ -308,7 +308,7 @@ goctl은 Google protobuf well-known types를 자동으로 인식하고 처리합
 | 03 | [하위 디렉터리 import](example/03-import-subdir/) | 하위 디렉터리에서 import |
 | 04 | [전이 import](example/04-transitive-import/) | A → B → C 의존성 체인 |
 | 05 | [다중 서비스](example/05-multiple-services/) | `--multiple` 모드 |
-| 06 | [Well-known 타입](example/06-wellknown-types/) | 메시지에서 Timestamp 등 사용 |
+| 06 | [Google well-known types](example/06-wellknown-types/) | 메시지에서 Timestamp 등 사용 |
 | 07 | [외부 proto(동일 패키지)](example/07-external-proto-same-pkg/) | 외부 proto, 같은 go_package |
 | 08 | [외부 proto(다른 패키지)](example/08-external-proto-diff-pkg/) | 외부 proto, 다른 go_package |
 | 09 | [Google well-known types를 파라미터로 사용](example/09-google-types-as-rpc/) | Empty/Timestamp를 RPC 파라미터로 사용 |

@@ -42,7 +42,7 @@ When an imported proto has a **different** `go_package` from the main proto, goc
 - `generator/typeref.go` — New file. Core type resolution engine:
   - `resolveRPCTypeRef()` — Resolves proto RPC types (simple, same-package dotted, cross-package dotted, Google WKT) to Go type references with correct import paths.
   - `resolveCallTypeRef()` — Variant for client code generation with type alias support.
-  - `googleWKTTable` — Mapping table for all 16 Google well-known types to their Go equivalents.
+  - `googleWKTTable` — Mapping table for supported Google well-known types to their Go equivalents.
 - `generator/genserver.go` — `genFunctions()` now calls `resolveRPCTypeRef()` for request/response types and collects extra import paths.
 - `generator/genlogic.go` — `genLogicFunction()` uses `resolveRPCTypeRef()`; added `addLogicImports()` to conditionally include main pb import and cross-package imports.
 - `generator/gencall.go` — `genFunction()` and `getInterfaceFuncs()` use `resolveCallTypeRef()` for type aliases and extra imports; added `buildExtraImportLines()` helper.
@@ -69,7 +69,7 @@ When an imported proto has a **different** `go_package` from the main proto, goc
 Google protobuf well-known types can now be used directly as RPC request/response types (not just as message fields).
 
 **Affected files:**
-- `generator/typeref.go` — `resolveGoogleWKT()` + `googleWKTTable` handles all standard types.
+- `generator/typeref.go` — `resolveGoogleWKT()` + `googleWKTTable` handles supported standard types.
 
 **Before vs After:**
 

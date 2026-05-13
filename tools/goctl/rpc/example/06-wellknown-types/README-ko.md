@@ -1,4 +1,4 @@
-# 예제 06: Well-Known Types
+# 예제 06: Google well-known types
 
 [English](README.md) | [中文](README-cn.md) | 한국어
 

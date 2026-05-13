@@ -10,7 +10,7 @@ goctl rpc is the RPC service code generation module of the `goctl` scaffold. It 
 - **External proto imports**: Cross-directory and cross-package proto imports with automatic transitive dependency resolution
 - **Multiple services**: Define multiple services in a single proto file, auto-grouped by service name
 - **Streaming support**: Server streaming, client streaming, and bidirectional streaming
-- **Google well-known types**: Automatic recognition of `google.protobuf.*` types with correct Go imports
+- **Google well-known types**: Automatic recognition of supported `google.protobuf.*` types with correct Go imports
 - **Client generation**: Auto-generated RPC client wrapper code
 
 ## Prerequisites

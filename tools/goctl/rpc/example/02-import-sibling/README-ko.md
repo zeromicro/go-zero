@@ -76,4 +76,4 @@ output/
 - `user.proto`는 `import "types.proto"`로 `types.proto`를 import합니다.
 - 여러 proto 파일이 동일한 `go_package`를 공유하면 하나의 Go 패키지로 컴파일됩니다.
 - `service` 정의를 포함한 proto 파일만 `goctl rpc protoc`에 전달하면 됩니다.
-- import된 proto는 protoc가 자동으로 컴파일하고 goctl이 해석합니다.
+- import된 proto는 protoc가 자동으로 컴파일하고 goctl이 해결합니다.

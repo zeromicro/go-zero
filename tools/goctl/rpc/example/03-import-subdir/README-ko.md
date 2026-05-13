@@ -80,5 +80,5 @@ output/
 
 - 두 proto 파일은 **서로 다른** `go_package` 값을 가지므로 별도의 Go 패키지(`pb/`와 `pb/common/`)로 컴파일됩니다.
 - `order.proto`는 하위 디렉터리에서 `common/types.proto`를 import합니다.
-- import된 proto의 `go_package`가 다르면 goctl은 교차 패키지 import를 자동으로 생성합니다.
+- import된 proto의 `go_package`가 다르면 goctl은 패키지 간 import를 자동으로 생성합니다.
 - `-I .` 플래그는 protoc에 현재 디렉터리부터 검색하라고 알려주어 `common/types.proto`를 찾을 수 있게 합니다.
