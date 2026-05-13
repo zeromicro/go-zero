@@ -201,6 +201,33 @@ func TestContainer(t *testing.T) {
 	}
 }
 
+func TestContainer_DuplicateAdd(t *testing.T) {
+	c := newContainer(false)
+	// Simulate 100 duplicate PUT events for the same key+value.
+	for i := 0; i < 100; i++ {
+		c.OnAdd(internal.KV{Key: "etcd-key", Val: "host:1234"})
+	}
+	assert.ElementsMatch(t, []string{"host:1234"}, c.GetValues())
+	// Internal slice must not have grown beyond one entry.
+	c.lock.Lock()
+	assert.Len(t, c.values["host:1234"], 1)
+	c.lock.Unlock()
+}
+
+func TestContainer_KeyValueChange(t *testing.T) {
+	c := newContainer(false)
+	c.OnAdd(internal.KV{Key: "etcd-key", Val: "host:1234"})
+	assert.ElementsMatch(t, []string{"host:1234"}, c.GetValues())
+
+	// Key moves to a different server value.
+	c.OnAdd(internal.KV{Key: "etcd-key", Val: "host:5678"})
+	assert.ElementsMatch(t, []string{"host:5678"}, c.GetValues())
+
+	// Old server must be fully removed; a subsequent delete must leave nothing.
+	c.OnDelete(internal.KV{Key: "etcd-key", Val: "host:5678"})
+	assert.Empty(t, c.GetValues())
+}
+
 func TestSubscriber(t *testing.T) {
 	sub := new(Subscriber)
 	Exclusive()(sub)

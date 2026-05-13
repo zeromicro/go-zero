@@ -517,7 +517,7 @@ func TestCluster_ConcurrentMonitor(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			key := keys[idx%len(keys)]
-			
+
 			if idx%2 == 0 {
 				// Half the goroutines add listeners (write operation)
 				c.addListener(key, &mockListener{})
@@ -541,6 +541,50 @@ func TestCluster_ConcurrentMonitor(t *testing.T) {
 
 	// Clean up
 	close(c.done)
+}
+
+func TestCluster_handleWatchEvents_DuplicatePut(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	listener := NewMockUpdateListener(ctrl)
+	// OnAdd must be called exactly once despite two PUT events with the same key+value.
+	listener.EXPECT().OnAdd(KV{Key: "hello", Val: "world"}).Times(1)
+
+	c := newCluster([]string{"any"})
+	key := watchKey{key: "any"}
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{listener},
+		values:    make(map[string]string),
+	}
+	events := []*clientv3.Event{
+		{Type: clientv3.EventTypePut, Kv: &mvccpb.KeyValue{Key: []byte("hello"), Value: []byte("world")}},
+		{Type: clientv3.EventTypePut, Kv: &mvccpb.KeyValue{Key: []byte("hello"), Value: []byte("world")}},
+	}
+	c.handleWatchEvents(context.Background(), key, events)
+}
+
+func TestCluster_handleWatchEvents_ValueChange(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	listener := NewMockUpdateListener(ctrl)
+	gomock.InOrder(
+		listener.EXPECT().OnAdd(KV{Key: "hello", Val: "world1"}),
+		listener.EXPECT().OnDelete(KV{Key: "hello", Val: "world1"}),
+		listener.EXPECT().OnAdd(KV{Key: "hello", Val: "world2"}),
+	)
+
+	c := newCluster([]string{"any"})
+	key := watchKey{key: "any"}
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{listener},
+		values:    make(map[string]string),
+	}
+	c.handleWatchEvents(context.Background(), key, []*clientv3.Event{
+		{Type: clientv3.EventTypePut, Kv: &mvccpb.KeyValue{Key: []byte("hello"), Value: []byte("world1")}},
+	})
+	c.handleWatchEvents(context.Background(), key, []*clientv3.Event{
+		{Type: clientv3.EventTypePut, Kv: &mvccpb.KeyValue{Key: []byte("hello"), Value: []byte("world2")}},
+	})
 }
 
 type mockListener struct {
