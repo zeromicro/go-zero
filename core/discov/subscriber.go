@@ -157,7 +157,7 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
 	if c.exclusive && early {
-		for _, each := range keys {
+		for _, each := range previous {
 			c.doRemoveKey(each)
 		}
 	}
