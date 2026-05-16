@@ -305,6 +305,116 @@ func TestCluster_handleWatchEvents(t *testing.T) {
 			}, nil)
 		})
 	})
+
+	t.Run("ignore duplicate put", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		l := NewMockUpdateListener(ctrl)
+		c := &cluster{
+			watchers: map[watchKey]*watchValue{
+				{
+					key: "any",
+				}: {
+					listeners: []UpdateListener{l},
+					values: map[string]string{
+						"any/1": "localhost:8080",
+					},
+				},
+			},
+		}
+
+		c.handleWatchEvents(context.Background(), watchKey{key: "any"}, []*clientv3.Event{
+			{
+				Type: clientv3.EventTypePut,
+				Kv: &mvccpb.KeyValue{
+					Key:   []byte("any/1"),
+					Value: []byte("localhost:8080"),
+				},
+			},
+		})
+
+		assert.Equal(t, map[string]string{
+			"any/1": "localhost:8080",
+		}, c.watchers[watchKey{key: "any"}].values)
+	})
+
+	t.Run("put changed value removes old before add", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		l := NewMockUpdateListener(ctrl)
+		gomock.InOrder(
+			l.EXPECT().OnDelete(KV{
+				Key: "any/1",
+				Val: "localhost:8080",
+			}),
+			l.EXPECT().OnAdd(KV{
+				Key: "any/1",
+				Val: "localhost:8081",
+			}),
+		)
+		c := &cluster{
+			watchers: map[watchKey]*watchValue{
+				{
+					key: "any",
+				}: {
+					listeners: []UpdateListener{l},
+					values: map[string]string{
+						"any/1": "localhost:8080",
+					},
+				},
+			},
+		}
+
+		c.handleWatchEvents(context.Background(), watchKey{key: "any"}, []*clientv3.Event{
+			{
+				Type: clientv3.EventTypePut,
+				Kv: &mvccpb.KeyValue{
+					Key:   []byte("any/1"),
+					Value: []byte("localhost:8081"),
+				},
+			},
+		})
+
+		assert.Equal(t, map[string]string{
+			"any/1": "localhost:8081",
+		}, c.watchers[watchKey{key: "any"}].values)
+	})
+
+	t.Run("delete uses previous value", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		l := NewMockUpdateListener(ctrl)
+		l.EXPECT().OnDelete(KV{
+			Key: "any/1",
+			Val: "localhost:8080",
+		})
+		c := &cluster{
+			watchers: map[watchKey]*watchValue{
+				{
+					key: "any",
+				}: {
+					listeners: []UpdateListener{l},
+					values: map[string]string{
+						"any/1": "localhost:8080",
+					},
+				},
+			},
+		}
+
+		c.handleWatchEvents(context.Background(), watchKey{key: "any"}, []*clientv3.Event{
+			{
+				Type: clientv3.EventTypeDelete,
+				Kv: &mvccpb.KeyValue{
+					Key: []byte("any/1"),
+				},
+			},
+		})
+
+		assert.Empty(t, c.watchers[watchKey{key: "any"}].values)
+	})
 }
 
 func TestCluster_addListener(t *testing.T) {
@@ -438,6 +548,43 @@ func TestRegistry_Monitor(t *testing.T) {
 	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", false, new(mockListener)))
 }
 
+func TestRegistry_MonitorDuplicateKeyStartsOneWatch(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	ch := make(chan clientv3.WatchResponse)
+	watched := make(chan struct{})
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), "foo/", gomock.Any()).Return(&clientv3.GetResponse{
+		Header: &etcdserverpb.ResponseHeader{
+			Revision: 1,
+		},
+	}, nil).Times(1)
+	cli.EXPECT().Watch(gomock.Any(), "foo/", gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			close(watched)
+			return ch
+		}).Times(1)
+
+	endpoints := []string{stringx.Rand()}
+	connManager.Inject(getClusterKey(endpoints), cli)
+	reg := &Registry{
+		clusters: make(map[string]*cluster),
+	}
+	assert.NoError(t, reg.Monitor(endpoints, "foo", false, new(mockListener)))
+	assert.NoError(t, reg.Monitor(endpoints, "foo", false, new(mockListener)))
+	<-watched
+
+	c, ok := reg.getCluster(endpoints)
+	assert.True(t, ok)
+	wkey := watchKey{key: "foo"}
+	c.lock.RLock()
+	assert.Len(t, c.watchers[wkey].listeners, 2)
+	c.lock.RUnlock()
+	close(c.done)
+}
+
 func TestRegistry_Unmonitor(t *testing.T) {
 	svr, err := mockserver.StartMockServers(1)
 	assert.NoError(t, err)
@@ -517,7 +664,7 @@ func TestCluster_ConcurrentMonitor(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			key := keys[idx%len(keys)]
-			
+
 			if idx%2 == 0 {
 				// Half the goroutines add listeners (write operation)
 				c.addListener(key, &mockListener{})
