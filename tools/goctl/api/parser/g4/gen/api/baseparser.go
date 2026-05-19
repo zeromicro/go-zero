@@ -115,6 +115,11 @@ func IsBasicType(text string) bool {
 	return ok
 }
 
+// IsFileType returns true if the input argument is the File type for multipart upload
+func IsFileType(text string) bool {
+	return text == "File"
+}
+
 // IsGolangKeyWord returns true if input argument is golang keyword, but it will be ignored which in excepts
 func IsGolangKeyWord(text string, excepts ...string) bool {
 	for _, each := range excepts {

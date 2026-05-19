@@ -203,6 +203,10 @@ func (p parser) astTypeToSpec(in ast.DataType) spec.Type {
 	switch v := (in).(type) {
 	case *ast.Literal:
 		raw := v.Literal.Text()
+		// Check for File type for multipart upload support
+		if raw == "File" {
+			return spec.FileType{RawName: raw}
+		}
 		if api.IsBasicType(raw) {
 			return spec.PrimitiveType{
 				RawName: raw,

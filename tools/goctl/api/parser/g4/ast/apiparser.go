@@ -469,6 +469,9 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 		if api.IsBasicType(name) {
 			return nil
 		}
+		if api.IsFileType(name) {
+			return nil
+		}
 		_, ok := types[name]
 		if !ok {
 			return fmt.Errorf("%s line %d:%d can not find declaration '%s' in context",
@@ -478,6 +481,9 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 	case *Pointer:
 		name := v.Name.Text()
 		if api.IsBasicType(name) {
+			return nil
+		}
+		if api.IsFileType(name) {
 			return nil
 		}
 		_, ok := types[name]

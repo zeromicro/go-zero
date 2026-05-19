@@ -199,9 +199,39 @@ func writeTypes(dir, baseFilename string, cfg *config.Config, types []spec.Type)
 		data: map[string]any{
 			"types":        val,
 			"containsTime": false,
+			"containsFile": containsFile(types),
 			"version":      version.BuildVersion,
 		},
 	})
+}
+
+// containsFile checks if any type contains a File type field
+func containsFile(types []spec.Type) bool {
+	for _, tp := range types {
+		structType, ok := tp.(spec.DefineStruct)
+		if !ok {
+			continue
+		}
+		if hasFileField(structType.Members) {
+			return true
+		}
+	}
+	return false
+}
+
+// hasFileField recursively checks if members contain File type
+func hasFileField(members []spec.Member) bool {
+	for _, member := range members {
+		switch v := member.Type.(type) {
+		case spec.FileType:
+			return true
+		case spec.ArrayType:
+			if _, ok := v.Value.(spec.FileType); ok {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {

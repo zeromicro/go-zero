@@ -98,13 +98,17 @@ func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, in
 			return err
 		}
 	} else {
+		tpExpr := golangExpr(tp)
+		if len(tpExpr) == 0 {
+			tpExpr = tp.Name()
+		}
 		if len(comment) > 0 {
-			_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tp.Name(), tag, comment)
+			_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tpExpr, tag, comment)
 			if err != nil {
 				return err
 			}
 		} else {
-			_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
+			_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tpExpr, tag)
 			if err != nil {
 				return err
 			}
@@ -178,6 +182,9 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 	switch v := ty.(type) {
 	case spec.PrimitiveType:
 		return v.RawName
+	case spec.FileType:
+		// File type maps to *multipart.FileHeader for single file upload
+		return "*multipart.FileHeader"
 	case spec.DefineStruct:
 		if len(pkg) > 1 {
 			panic("package cannot be more than 1")
@@ -191,6 +198,11 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 	case spec.ArrayType:
 		if len(pkg) > 1 {
 			panic("package cannot be more than 1")
+		}
+
+		// []File type maps to []*multipart.FileHeader for multiple file uploads
+		if _, ok := v.Value.(spec.FileType); ok {
+			return "[]*multipart.FileHeader"
 		}
 
 		if len(pkg) == 0 {

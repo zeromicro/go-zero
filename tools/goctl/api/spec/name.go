@@ -104,3 +104,18 @@ func (t InterfaceType) Comments() []string {
 func (t InterfaceType) Documents() []string {
 	return nil
 }
+
+// Name returns a file type string, such as File
+func (t FileType) Name() string {
+	return t.RawName
+}
+
+// Comments returns the comments of file type
+func (t FileType) Comments() []string {
+	return nil
+}
+
+// Documents returns the documents of file type
+func (t FileType) Documents() []string {
+	return nil
+}

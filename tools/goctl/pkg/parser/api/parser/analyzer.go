@@ -32,6 +32,10 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 	switch v := (in).(type) {
 	case *ast.BaseDataType:
 		raw := v.RawText()
+		// Check for File type for multipart upload support
+		if raw == "File" {
+			return spec.FileType{RawName: raw}, nil
+		}
 		if IsBaseType(raw) {
 			return spec.PrimitiveType{
 				RawName: raw,
@@ -511,4 +515,9 @@ var kind = map[string]placeholder.Type{
 func IsBaseType(text string) bool {
 	_, ok := kind[text]
 	return ok
+}
+
+// IsFileType returns true if the given type is the File type for multipart upload.
+func IsFileType(text string) bool {
+	return text == "File"
 }

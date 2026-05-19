@@ -207,6 +207,9 @@ func (api *API) checkTypeExprContext(declareContext map[string]placeholder.Type,
 		if IsBaseType(val.Base.Token.Text) {
 			return nil
 		}
+		if IsFileType(val.Base.Token.Text) {
+			return nil
+		}
 		_, ok := declareContext[val.Base.Token.Text]
 		if !ok {
 			return ast.SyntaxError(val.Base.Pos(), "unresolved type <%s>", val.Base.Token.Text)

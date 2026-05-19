@@ -148,6 +148,11 @@ type (
 		Type    Type
 	}
 
+	// FileType describes a file type for multipart form upload
+	FileType struct {
+		RawName string
+	}
+
 	// AtDoc describes a metadata for api grammar: @doc(...)
 	AtDoc struct {
 		Properties map[string]string
