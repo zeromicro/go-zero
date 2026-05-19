@@ -224,6 +224,10 @@ func (p parser) astTypeToSpec(in ast.DataType) spec.Type {
 		return spec.ArrayType{RawName: v.ArrayExpr.Text(), Value: p.astTypeToSpec(v.Literal)}
 	case *ast.Pointer:
 		raw := v.Name.Text()
+		// File type cannot be a pointer - it's already *multipart.FileHeader
+		if raw == "File" {
+			panic(fmt.Sprintf("File type cannot be used as pointer at line %d, use File instead of *File", v.Star.Line()))
+		}
 		if api.IsBasicType(raw) {
 			return spec.PointerType{RawName: v.PointerExpr.Text(), Type: spec.PrimitiveType{RawName: raw}}
 		}

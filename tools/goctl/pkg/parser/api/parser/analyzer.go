@@ -87,6 +87,10 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 		}, nil
 	case *ast.PointerDataType:
 		raw := v.DataType.RawText()
+		// File type cannot be a pointer - it's already *multipart.FileHeader
+		if IsFileType(raw) {
+			return nil, ast.SyntaxError(v.Pos(), "File type cannot be used as pointer, use File instead of *File")
+		}
 		if IsBaseType(raw) {
 			return spec.PointerType{RawName: v.RawText(), Type: spec.PrimitiveType{RawName: raw}}, nil
 		}

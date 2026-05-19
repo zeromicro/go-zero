@@ -30,6 +30,25 @@ func TestParseContent(t *testing.T) {
 }
 
 func TestParseContentWithFileType(t *testing.T) {
+	t.Run("pointer to File should be rejected", func(t *testing.T) {
+		content := `
+syntax = "v1"
+type UploadRequest {
+	File *File ` + "`form:\"file\"`" + `
+}
+service upload-api {
+	@handler upload
+	post /upload (UploadRequest)
+}`
+		// Legacy parser panics for *File
+		defer func() {
+			r := recover()
+			assert.NotNil(t, r)
+			assert.Contains(t, r.(string), "File type cannot be used as pointer")
+		}()
+		_, _ = ParseContent(content, "test.api")
+	})
+
 	t.Run("single File field", func(t *testing.T) {
 		content := `
 syntax = "v1"

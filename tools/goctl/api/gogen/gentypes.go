@@ -219,7 +219,8 @@ func containsFile(types []spec.Type) bool {
 	return false
 }
 
-// hasFileField recursively checks if members contain File type
+// hasFileField checks if members contain File type or []File type.
+// Note: This checks direct members only, not nested structures (API syntax doesn't support nested structs with File).
 func hasFileField(members []spec.Member) bool {
 	for _, member := range members {
 		switch v := member.Type.(type) {

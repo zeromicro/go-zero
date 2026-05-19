@@ -225,6 +225,12 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 			panic("package cannot be more than 1")
 		}
 
+		// PointerType(FileType) should not happen as File type is already a pointer
+		// But handle it gracefully just in case
+		if _, ok := v.Type.(spec.FileType); ok {
+			return "*multipart.FileHeader"
+		}
+
 		if len(pkg) == 0 {
 			return v.RawName
 		}
