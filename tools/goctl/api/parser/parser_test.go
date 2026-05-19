@@ -29,6 +29,75 @@ func TestParseContent(t *testing.T) {
 	}
 }
 
+func TestParseContentWithFileType(t *testing.T) {
+	t.Run("single File field", func(t *testing.T) {
+		content := `
+syntax = "v1"
+type UploadRequest {
+	Id   string ` + "`form:\"id\"`" + `
+	File File   ` + "`form:\"file\"`" + `
+}
+service upload-api {
+	@handler upload
+	post /upload (UploadRequest)
+}`
+		sp, err := ParseContent(content, "test.api")
+		assert.Nil(t, err)
+
+		var uploadReq spec.DefineStruct
+		for _, tp := range sp.Types {
+			if tp.Name() == "UploadRequest" {
+				uploadReq = tp.(spec.DefineStruct)
+			}
+		}
+		assert.Equal(t, "UploadRequest", uploadReq.Name())
+
+		// Find File member
+		var fileMember spec.Member
+		for _, m := range uploadReq.Members {
+			if m.Name == "File" {
+				fileMember = m
+			}
+		}
+		assert.Equal(t, "File", fileMember.Name)
+		_, ok := fileMember.Type.(spec.FileType)
+		assert.True(t, ok, "expected FileType, got %T", fileMember.Type)
+	})
+
+	t.Run("slice of File field", func(t *testing.T) {
+		content := `
+syntax = "v1"
+type MultiUploadRequest {
+	Id    string ` + "`form:\"id\"`" + `
+	Files []File ` + "`form:\"files\"`" + `
+}
+service upload-api {
+	@handler multiUpload
+	post /multi-upload (MultiUploadRequest)
+}`
+		sp, err := ParseContent(content, "test.api")
+		assert.Nil(t, err)
+
+		var multiReq spec.DefineStruct
+		for _, tp := range sp.Types {
+			if tp.Name() == "MultiUploadRequest" {
+				multiReq = tp.(spec.DefineStruct)
+			}
+		}
+
+		var filesMember spec.Member
+		for _, m := range multiReq.Members {
+			if m.Name == "Files" {
+				filesMember = m
+			}
+		}
+		arrType, ok := filesMember.Type.(spec.ArrayType)
+		assert.True(t, ok, "expected ArrayType, got %T", filesMember.Type)
+		_, ok = arrType.Value.(spec.FileType)
+		assert.True(t, ok, "expected FileType as array value, got %T", arrType.Value)
+	})
+}
+
 func TestMissingService(t *testing.T) {
 	sp, err := ParseContent("")
 	assert.Nil(t, err)

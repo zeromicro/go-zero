@@ -13,6 +13,109 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/assertx"
 )
 
+func Test_Parse_FileType(t *testing.T) {
+	t.Run("single File field", func(t *testing.T) {
+		content := `syntax = "v1"
+type UploadRequest {
+	Id   string ` + "`form:\"id\"`" + `
+	File File   ` + "`form:\"file\"`" + `
+}
+service upload-api {
+	@handler upload
+	post /upload (UploadRequest)
+}`
+		apiSpec, err := Parse("test.api", content)
+		assert.Nil(t, err)
+
+		var uploadReq spec.DefineStruct
+		for _, tp := range apiSpec.Types {
+			if tp.Name() == "UploadRequest" {
+				uploadReq = tp.(spec.DefineStruct)
+			}
+		}
+		assert.Equal(t, "UploadRequest", uploadReq.Name())
+		assert.Len(t, uploadReq.Members, 2)
+
+		// Check File field is FileType
+		fileMember := uploadReq.Members[1]
+		assert.Equal(t, "File", fileMember.Name)
+		_, ok := fileMember.Type.(spec.FileType)
+		assert.True(t, ok, "expected FileType, got %T", fileMember.Type)
+	})
+
+	t.Run("slice of File field", func(t *testing.T) {
+		content := `syntax = "v1"
+type MultiUploadRequest {
+	Id    string ` + "`form:\"id\"`" + `
+	Files []File ` + "`form:\"files\"`" + `
+}
+service upload-api {
+	@handler multiUpload
+	post /multi-upload (MultiUploadRequest)
+}`
+		apiSpec, err := Parse("test.api", content)
+		assert.Nil(t, err)
+
+		var multiReq spec.DefineStruct
+		for _, tp := range apiSpec.Types {
+			if tp.Name() == "MultiUploadRequest" {
+				multiReq = tp.(spec.DefineStruct)
+			}
+		}
+		assert.Equal(t, "MultiUploadRequest", multiReq.Name())
+
+		// Check []File field is ArrayType with FileType value
+		filesMember := multiReq.Members[1]
+		assert.Equal(t, "Files", filesMember.Name)
+		arrType, ok := filesMember.Type.(spec.ArrayType)
+		assert.True(t, ok, "expected ArrayType, got %T", filesMember.Type)
+		_, ok = arrType.Value.(spec.FileType)
+		assert.True(t, ok, "expected FileType as array value, got %T", arrType.Value)
+	})
+
+	t.Run("mixed struct with File and non-File", func(t *testing.T) {
+		content := `syntax = "v1"
+type MixedRequest {
+	Name   string ` + "`form:\"name\"`" + `
+	File   File   ` + "`form:\"file\"`" + `
+	Files  []File ` + "`form:\"files\"`" + `
+	Count  int    ` + "`form:\"count\"`" + `
+}
+service upload-api {
+	@handler mixed
+	post /mixed (MixedRequest)
+}`
+		apiSpec, err := Parse("test.api", content)
+		assert.Nil(t, err)
+
+		var mixedReq spec.DefineStruct
+		for _, tp := range apiSpec.Types {
+			if tp.Name() == "MixedRequest" {
+				mixedReq = tp.(spec.DefineStruct)
+			}
+		}
+		assert.Len(t, mixedReq.Members, 4)
+
+		// Name -> PrimitiveType
+		_, ok := mixedReq.Members[0].Type.(spec.PrimitiveType)
+		assert.True(t, ok)
+
+		// File -> FileType
+		_, ok = mixedReq.Members[1].Type.(spec.FileType)
+		assert.True(t, ok)
+
+		// Files -> ArrayType(FileType)
+		arrType, ok := mixedReq.Members[2].Type.(spec.ArrayType)
+		assert.True(t, ok)
+		_, ok = arrType.Value.(spec.FileType)
+		assert.True(t, ok)
+
+		// Count -> PrimitiveType
+		_, ok = mixedReq.Members[3].Type.(spec.PrimitiveType)
+		assert.True(t, ok)
+	})
+}
+
 func Test_Parse(t *testing.T) {
 	t.Run(
 		"valid", func(t *testing.T) {
