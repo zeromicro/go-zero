@@ -518,7 +518,7 @@ func makeKeyPrefix(key string) string {
 	return fmt.Sprintf("%s%c", key, Delimiter)
 }
 
-// NewClient returns a watchValue that make sure values are not nil.
+// newWatchValue returns a watchValue that make sure values are not nil.
 func newWatchValue() *watchValue {
 	return &watchValue{
 		values: make(map[string]string),
