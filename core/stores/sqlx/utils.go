@@ -164,12 +164,12 @@ func writeValue(buf *strings.Builder, arg any) {
 		buf.WriteByte('\'')
 	case time.Time:
 		buf.WriteByte('\'')
-		buf.WriteString(v.Format(timeFormat))
+		buf.WriteString(v.UTC().Format(timeFormat))
 		buf.WriteByte('\'')
 	case *time.Time:
 		if v != nil {
 			buf.WriteByte('\'')
-			buf.WriteString(v.Format(timeFormat))
+			buf.WriteString(v.UTC().Format(timeFormat))
 			buf.WriteByte('\'')
 		} else {
 			buf.WriteString("null")

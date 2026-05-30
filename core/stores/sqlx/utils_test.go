@@ -146,14 +146,14 @@ func TestWriteValue(t *testing.T) {
 		var buf strings.Builder
 
 		writeValue(&buf, &tm)
-		assert.Equal(t, "'"+tm.Format(timeFormat)+"'", buf.String())
+		assert.Equal(t, "'"+tm.UTC().Format(timeFormat)+"'", buf.String())
 	})
 
 	t.Run("time.Time", func(t *testing.T) {
 		var buf strings.Builder
 		writeValue(&buf, tm)
 
-		assert.Equal(t, "'"+tm.Format(timeFormat)+"'", buf.String())
+		assert.Equal(t, "'"+tm.UTC().Format(timeFormat)+"'", buf.String())
 	})
 
 	t.Run("nil ptr to time.Time", func(t *testing.T) {
