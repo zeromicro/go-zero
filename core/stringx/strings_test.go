@@ -356,6 +356,13 @@ func TestSubstr(t *testing.T) {
 			err:    ErrInvalidStopPosition,
 			expect: "",
 		},
+		{
+			input:  "hello",
+			start:  3,
+			stop:   2,
+			err:    ErrInvalidStopPosition,
+			expect: "",
+		},
 	}
 
 	for _, each := range cases {
