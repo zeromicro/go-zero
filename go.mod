@@ -17,7 +17,7 @@ require (
 	github.com/modelcontextprotocol/go-sdk v1.4.0
 	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/prometheus/client_golang v1.23.2
-	github.com/redis/go-redis/v9 v9.19.0
+	github.com/redis/go-redis/v9 v9.20.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.11.1
 	github.com/titanous/json5 v1.0.0
