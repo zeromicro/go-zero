@@ -77,7 +77,13 @@ func TestGenCallGroup_OnlyUsedTypesAliased(t *testing.T) {
 		PbPackage: "pb",
 		Message: []parser.Message{
 			{Message: &proto.Message{Name: "AReq"}},
-			{Message: &proto.Message{Name: "AResp"}},
+			{Message: &proto.Message{
+				Name: "AResp",
+				Elements: []proto.Visitee{
+					&proto.NormalField{Field: &proto.Field{Name: "items", Type: "AItem"}},
+				},
+			}},
+			{Message: &proto.Message{Name: "AItem"}},
 			{Message: &proto.Message{Name: "BReq"}},
 			{Message: &proto.Message{Name: "BResp"}},
 		},
@@ -110,6 +116,7 @@ func TestGenCallGroup_OnlyUsedTypesAliased(t *testing.T) {
 
 	assert.Contains(t, aFile, "AReq = pb.AReq", "ServiceA file should alias AReq")
 	assert.Contains(t, aFile, "AResp = pb.AResp", "ServiceA file should alias AResp")
+	assert.Contains(t, aFile, "AItem = pb.AItem", "ServiceA file should alias AResp field types")
 	assert.NotContains(t, aFile, "BReq = pb.BReq", "ServiceA file must not alias BReq")
 	assert.NotContains(t, aFile, "BResp = pb.BResp", "ServiceA file must not alias BResp")
 
@@ -122,6 +129,7 @@ func TestGenCallGroup_OnlyUsedTypesAliased(t *testing.T) {
 	assert.Contains(t, bFile, "BResp = pb.BResp", "ServiceB file should alias BResp")
 	assert.NotContains(t, bFile, "AReq = pb.AReq", "ServiceB file must not alias AReq")
 	assert.NotContains(t, bFile, "AResp = pb.AResp", "ServiceB file must not alias AResp")
+	assert.NotContains(t, bFile, "AItem = pb.AItem", "ServiceB file must not alias AItem")
 }
 
 // normalizeWS replaces runs of whitespace with a single space.
