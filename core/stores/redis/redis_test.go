@@ -2294,6 +2294,13 @@ func TestRedisXGroupCreate(t *testing.T) {
 	})
 }
 
+func TestRedisXGroupSetID(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XGroupSetID("Source", "Destination", "0")
+		assert.NotNil(t, err)
+	})
+}
+
 func TestRedisXInfo(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).XInfoStream("Source")
