@@ -141,12 +141,23 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
+	oldVal, alreadyMapped := c.mapping[key]
+	if alreadyMapped && oldVal == value {
+		// duplicate PUT with same key+value, nothing to do
+		return nil, false
+	}
+
 	c.dirty.Set(true)
+	if alreadyMapped {
+		// key moved to a new value; remove stale entry to prevent leak
+		c.doRemoveKey(key)
+	}
+
 	keys := c.values[value]
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
 	if c.exclusive && early {
-		for _, each := range keys {
+		for _, each := range previous {
 			c.doRemoveKey(each)
 		}
 	}
