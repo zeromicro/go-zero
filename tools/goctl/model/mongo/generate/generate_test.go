@@ -30,9 +30,29 @@ func TestDo(t *testing.T) {
 			Cache:  false,
 			Output: tempDir,
 			Cfg:    cfg,
+			Pkg:    "model",
 		})
 
 		assert.Nil(t, err)
+	})
+
+	t.Run("missing pkg", func(t *testing.T) {
+		cfg, err := config.NewConfig(config.DefaultFormat)
+		assert.Nil(t, err)
+
+		tempDir := pathx.MustTempDir()
+		typesfile := filepath.Join(tempDir, "types.go")
+		err = os.WriteFile(typesfile, []byte(testTypes), 0o666)
+		assert.Nil(t, err)
+
+		err = Do(&Context{
+			Types:  []string{"User", "Class"},
+			Cache:  false,
+			Output: tempDir,
+			Cfg:    cfg,
+		})
+
+		assert.Error(t, err)
 	})
 
 	t.Run("missing config", func(t *testing.T) {
@@ -46,6 +66,7 @@ func TestDo(t *testing.T) {
 			Cache:  false,
 			Output: tempDir,
 			Cfg:    nil,
+			Pkg:    "model",
 		})
 		assert.Error(t, err)
 	})
@@ -62,6 +83,7 @@ func TestDo(t *testing.T) {
 			Cache:  false,
 			Output: tempDir,
 			Cfg:    cfg,
+			Pkg:    "model",
 		})
 		assert.Error(t, err)
 	})

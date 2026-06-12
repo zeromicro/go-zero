@@ -20,6 +20,7 @@ type Context struct {
 	Prefix string
 	Easy   bool
 	Output string
+	Pkg    string
 	Cfg    *config.Config
 }
 
@@ -63,6 +64,7 @@ func generateModel(ctx *Context) error {
 			"Cache":     ctx.Cache,
 			"Prefix":    ctx.Prefix,
 			"version":   version.BuildVersion,
+			"pkg":       ctx.Pkg,
 		}, output, true); err != nil {
 			return err
 		}
@@ -90,6 +92,7 @@ func generateCustomModel(ctx *Context) error {
 			"snakeType": stringx.From(t).ToSnake(),
 			"Cache":     ctx.Cache,
 			"Easy":      ctx.Easy,
+			"pkg":       ctx.Pkg,
 		}, output, false)
 		if err != nil {
 			return err
@@ -113,6 +116,7 @@ func generateTypes(ctx *Context) error {
 
 		output := filepath.Join(ctx.Output, fn+".go")
 		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
+			"pkg":  ctx.Pkg,
 			"Type": stringx.From(t).Title(),
 		}, output, false); err != nil {
 			return err
@@ -130,5 +134,7 @@ func generateError(ctx *Context) error {
 
 	output := filepath.Join(ctx.Output, "error.go")
 
-	return util.With("error").Parse(text).GoFmt(true).SaveTo(ctx, output, false)
+	return util.With("error").Parse(text).GoFmt(true).SaveTo(map[string]any{
+		"pkg": ctx.Pkg,
+	}, output, false)
 }
