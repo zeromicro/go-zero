@@ -37,6 +37,7 @@ func init() {
 
 	datasourceCmdFlags.StringVar(&command.VarStringURL, "url")
 	datasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
+	datasourceCmdFlags.StringSliceVar(&command.VarStringSliceIgnoreTable, "ignore_tables")
 	datasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
 	datasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
 	datasourceCmdFlags.StringVar(&command.VarStringStyle, "style")
