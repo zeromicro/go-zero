@@ -17,12 +17,20 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host     string
-		Type     string `json:",default=node,options=node|cluster"`
-		User     string `json:",optional"`
-		Pass     string `json:",optional"`
-		Tls      bool   `json:",optional"`
-		NonBlock bool   `json:",default=true"`
+		Host string
+		Type string `json:",default=node,options=node|cluster"`
+		User string `json:",optional"`
+		Pass string `json:",optional"`
+		Tls  bool   `json:",optional"`
+		// DB is the redis database number.
+		DB int `json:",default=0"`
+		// PoolSize is the pool size for redis connection.
+		PoolSize int `json:",optional"`
+		// MaxRetries is the maximum number of retries for redis operations.
+		MaxRetries int `json:",default=3"`
+		// MinIdleConns is the minimum number of idle connections.
+		MinIdleConns int `json:",default=8"`
+		NonBlock     bool `json:",default=true"`
 		// PingTimeout is the timeout for ping redis.
 		PingTimeout time.Duration `json:",default=1s"`
 	}

@@ -33,9 +33,10 @@ func getClient(r *Redis) (*red.Client, error) {
 			Addr:         r.Addr,
 			Username:     r.User,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
-			MaxRetries:   maxRetries,
-			MinIdleConns: idleConns,
+			DB:           r.db,
+			MaxRetries:   r.maxRetries,
+			MinIdleConns: r.minIdleConns,
+			PoolSize:     r.poolSize,
 			TLSConfig:    tlsConfig,
 		})
 
@@ -46,10 +47,15 @@ func getClient(r *Redis) (*red.Client, error) {
 			store.AddHook(hook)
 		}
 
+		poolSize := nodePoolSize
+		if r.poolSize > 0 {
+			poolSize = r.poolSize
+		}
+
 		connCollector.registerClient(&statGetter{
 			clientType: NodeType,
 			key:        r.Addr,
-			poolSize:   nodePoolSize,
+			poolSize:   poolSize,
 			poolStats: func() *red.PoolStats {
 				return store.PoolStats()
 			},
