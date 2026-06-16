@@ -2,6 +2,7 @@ package zrpc
 
 import (
 	"context"
+	"net"
 	"testing"
 	"time"
 
@@ -53,6 +54,48 @@ func TestServer(t *testing.T) {
 	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
 	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
+	svr.Stop()
+}
+
+func TestServer_StartWithListener(t *testing.T) {
+	DontLogContentForMethod("foo")
+	SetServerSlowThreshold(time.Second)
+	svr := MustNewServer(RpcServerConf{
+		ServiceConf: service.ServiceConf{
+			Log: logx.LogConf{
+				ServiceName: "foo",
+				Mode:        "console",
+			},
+		},
+		ListenOn:      "localhost:8081",
+		Etcd:          discov.EtcdConf{},
+		Auth:          false,
+		Redis:         redis.RedisKeyConf{},
+		StrictControl: false,
+		Timeout:       0,
+		CpuThreshold:  0,
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
+		MethodTimeouts: []MethodTimeoutConf{
+			{
+				FullMethod: "/foo",
+				Timeout:    time.Second,
+			},
+		},
+	}, func(server *grpc.Server) {
+	})
+	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
+
+	listener, err := net.Listen("tcp", "localhost:8081")
+	assert.Nil(t, err)
+	go svr.StartWithListener(listener)
 	svr.Stop()
 }
 
@@ -156,6 +199,10 @@ func (m *mockedServer) SetName(_ string) {
 }
 
 func (m *mockedServer) Start(_ internal.RegisterFn) error {
+	return nil
+}
+
+func (m *mockedServer) StartWithListener(_ net.Listener, _ internal.RegisterFn) error {
 	return nil
 }
 

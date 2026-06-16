@@ -78,6 +78,36 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	return server.Serve(lis)
 }
 
+func (s *rpcServer) StartWithListener(listener net.Listener, register RegisterFn) error {
+
+	unaryInterceptorOption := grpc.ChainUnaryInterceptor(s.unaryInterceptors...)
+	streamInterceptorOption := grpc.ChainStreamInterceptor(s.streamInterceptors...)
+
+	options := append(s.options, unaryInterceptorOption, streamInterceptorOption)
+	server := grpc.NewServer(options...)
+	register(server)
+
+	// register the health check service
+	if s.health != nil {
+		grpc_health_v1.RegisterHealthServer(server, s.health)
+		s.health.Resume()
+	}
+	s.healthManager.MarkReady()
+	health.AddProbe(s.healthManager)
+
+	// we need to make sure all others are wrapped up,
+	// so we do graceful stop at shutdown phase instead of wrap up phase
+	waitForCalled := proc.AddShutdownListener(func() {
+		if s.health != nil {
+			s.health.Shutdown()
+		}
+		server.GracefulStop()
+	})
+	defer waitForCalled()
+
+	return server.Serve(listener)
+}
+
 // WithRpcHealth returns a func that sets rpc health switch to a Server.
 func WithRpcHealth(health bool) ServerOption {
 	return func(options *rpcServerOptions) {
