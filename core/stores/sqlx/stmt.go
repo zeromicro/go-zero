@@ -15,9 +15,10 @@ import (
 const defaultSlowThreshold = time.Millisecond * 500
 
 var (
-	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	logSql        = syncx.ForAtomicBool(true)
-	logSlowSql    = syncx.ForAtomicBool(true)
+	slowThreshold     = syncx.ForAtomicDuration(defaultSlowThreshold)
+	logSql            = syncx.ForAtomicBool(true)
+	logSlowSql        = syncx.ForAtomicBool(true)
+	concurrentQueries = newConcurrentReads()
 )
 
 type (
@@ -266,6 +267,7 @@ func (n nilGuard) finish(_ context.Context, _ error) {
 }
 
 func (e *realSqlGuard) finish(ctx context.Context, err error) {
+	concurrentQueries.remove(e.stmt)
 	duration := timex.Since(e.startTime)
 	if duration > slowThreshold.Load() {
 		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] %s: slowcall - %s", e.command, e.stmt)
@@ -289,6 +291,7 @@ func (e *realSqlGuard) start(q string, args ...any) error {
 
 	e.stmt = stmt
 	e.startTime = timex.Now()
+	concurrentQueries.add(stmt)
 
 	return nil
 }
