@@ -39,7 +39,7 @@ type (
 		BackupFileName() string
 		MarkRotated()
 		OutdatedFiles() []string
-		ShallRotate(size int64) bool
+		ShallRotate(size, currentSize int64) (bool, int64)
 	}
 
 	// A RotateLogger is a Logger that can rotate log files with given rules.
@@ -135,8 +135,8 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 }
 
 // ShallRotate checks if the file should be rotated.
-func (r *DailyRotateRule) ShallRotate(_ int64) bool {
-	return len(r.rotatedTime) > 0 && getNowDate() != r.rotatedTime
+func (r *DailyRotateRule) ShallRotate(_, _ int64) (bool, int64) {
+	return len(r.rotatedTime) > 0 && getNowDate() != r.rotatedTime, 0
 }
 
 // NewSizeLimitRotateRule returns the rotation rule with size limit
@@ -218,8 +218,8 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 	return result
 }
 
-func (r *SizeLimitRotateRule) ShallRotate(size int64) bool {
-	return r.maxSize > 0 && r.maxSize < size
+func (r *SizeLimitRotateRule) ShallRotate(size, currentSize int64) (bool, int64) {
+	return r.maxSize > 0 && r.maxSize < size, r.maxSize - currentSize
 }
 
 func (r *SizeLimitRotateRule) parseFilename() (prefix, ext string) {
@@ -399,7 +399,17 @@ func (l *RotateLogger) startWorker() {
 }
 
 func (l *RotateLogger) write(v []byte) {
-	if l.rule.ShallRotate(l.currentSize + int64(len(v))) {
+
+	for {
+		isRotate, freeSize := l.rule.ShallRotate(l.currentSize+int64(len(v)), l.currentSize)
+		if !isRotate {
+			break
+		}
+		if l.fp != nil {
+			l.fp.Write(v[:freeSize])
+			l.currentSize += int64(len(v[:freeSize+1]))
+			v = v[freeSize:]
+		}
 		if err := l.rotate(); err != nil {
 			log.Println(err)
 		} else {
