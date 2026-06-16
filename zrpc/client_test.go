@@ -15,6 +15,8 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer"
+	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
@@ -285,4 +287,14 @@ func TestSetHashKey(t *testing.T) {
 	assert.Equal(t, key, got)
 
 	assert.Empty(t, consistenthash.GetHashKey(context.Background()))
+}
+
+func TestWrapPicker(t *testing.T) {
+	info := base.PickerBuildInfo{
+		ReadySCs: map[balancer.SubConn]base.SubConnInfo{},
+	}
+	inner := base.NewErrPicker(balancer.ErrNoSubConnAvailable)
+
+	picker := WrapPicker(info, inner, true)
+	assert.NotNil(t, picker)
 }

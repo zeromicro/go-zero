@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/breaker"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/codes"
@@ -111,7 +112,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 
 			wg.Wait()
 			dist := make(map[any]int)
-			conns := picker.(*p2cPicker).conns
+			conns := picker.(breaker.Unwrapper).Unwrap().(*p2cPicker).conns
 			for _, conn := range conns {
 				dist[conn.addr.Addr] = int(conn.requests)
 			}
