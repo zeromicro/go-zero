@@ -22,12 +22,10 @@ var (
 )
 
 func getClient(r *Redis) (*red.Client, error) {
-	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
+	val, err := clientManager.GetResource(getRedisManagerKey(r), func() (io.Closer, error) {
 		var tlsConfig *tls.Config
-		if r.tls {
-			tlsConfig = &tls.Config{
-				InsecureSkipVerify: true,
-			}
+		if r.tlsConfig != nil {
+			tlsConfig = r.tlsConfig.Clone()
 		}
 		store := red.NewClient(&red.Options{
 			Addr:         r.Addr,

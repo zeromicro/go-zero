@@ -1,11 +1,38 @@
 package redis
 
 import (
+	"crypto/tls"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
+
+func TestRedisConfTLSVerification(t *testing.T) {
+	secure := RedisConf{
+		Host: "redis.example.com:6379",
+		Type: NodeType,
+		Tls:  true,
+	}.NewRedis()
+	assert.False(t, secure.tlsConfig.InsecureSkipVerify)
+
+	insecure := RedisConf{
+		Host:                  "redis.example.com:6379",
+		Type:                  NodeType,
+		Tls:                   true,
+		TlsInsecureSkipVerify: true,
+	}.NewRedis()
+	assert.True(t, insecure.tlsConfig.InsecureSkipVerify)
+
+	custom, err := NewRedis(RedisConf{
+		Host:     "redis.example.com:6379",
+		Type:     NodeType,
+		Tls:      true,
+		NonBlock: true,
+	}, WithTLSConfig(&tls.Config{ServerName: "redis.internal"}))
+	assert.NoError(t, err)
+	assert.Equal(t, "redis.internal", custom.tlsConfig.ServerName)
+}
 
 func TestRedisConf(t *testing.T) {
 	tests := []struct {
