@@ -42,17 +42,19 @@ func TestWithTLSConfigClonesConfig(t *testing.T) {
 
 func TestGetClientDoesNotShareAcrossTLSPolicies(t *testing.T) {
 	const addr = "redis-tls-policy.example.com:6379"
+	config := &tls.Config{ServerName: "redis.internal"}
 	plainClient, err := getClient(newRedis(addr))
 	require.NoError(t, err)
 	tlsClient, err := getClient(newRedis(addr, WithTLS()))
 	require.NoError(t, err)
-	customTLSClient, err := getClient(newRedis(addr, WithTLSConfig(&tls.Config{
-		ServerName: "redis.internal",
-	})))
+	customTLSClient, err := getClient(newRedis(addr, WithTLSConfig(config)))
+	require.NoError(t, err)
+	reusedTLSClient, err := getClient(newRedis(addr, WithTLSConfig(config)))
 	require.NoError(t, err)
 
 	assert.NotSame(t, plainClient, tlsClient)
 	assert.NotSame(t, tlsClient, customTLSClient)
+	assert.Same(t, customTLSClient, reusedTLSClient)
 	assert.Nil(t, plainClient.Options().TLSConfig)
 	assert.NotNil(t, tlsClient.Options().TLSConfig)
 	assert.Equal(t, "redis.internal", customTLSClient.Options().TLSConfig.ServerName)

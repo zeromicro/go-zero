@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,7 +51,6 @@ func TestGetCluster(t *testing.T) {
 		Addr:      r.Addr(),
 		Type:      ClusterType,
 		tlsConfig: &tls.Config{},
-		hooks:     []red.Hook{defaultDurationHook},
 	})
 	if assert.NoError(t, err) {
 		assert.NotNil(t, c)

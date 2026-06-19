@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"crypto/tls"
 	"errors"
 	"time"
 )
@@ -53,7 +52,7 @@ func (rc RedisConf) NewRedis() *Redis {
 	}
 	if rc.Tls {
 		if rc.TlsInsecureSkipVerify {
-			opts = append(opts, WithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
+			opts = append(opts, withInsecureTLS())
 		} else {
 			opts = append(opts, WithTLS())
 		}

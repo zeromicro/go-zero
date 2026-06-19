@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"sync/atomic"
 	"time"
 
 	red "github.com/redis/go-redis/v9"
@@ -35,7 +34,6 @@ var (
 	// ErrNilNode is an error that indicates a nil redis node.
 	ErrNilNode    = errors.New("nil redis node")
 	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
-	tlsConfigID   atomic.Uint64
 )
 
 type (
@@ -139,7 +137,7 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 	if conf.Tls {
 		if conf.TlsInsecureSkipVerify {
-			opts = append([]Option{WithTLSConfig(&tls.Config{InsecureSkipVerify: true})}, opts...)
+			opts = append([]Option{withInsecureTLS()}, opts...)
 		} else {
 			opts = append([]Option{WithTLS()}, opts...)
 		}
@@ -2711,7 +2709,8 @@ func WithTLS() Option {
 }
 
 // WithTLSConfig customizes the given Redis with TLS enabled using the given config.
-// A nil config uses the secure defaults from crypto/tls.
+// A nil config uses the secure defaults from crypto/tls. The config is cloned,
+// and callers should reuse the same immutable config pointer to share a client.
 func WithTLSConfig(config *tls.Config) Option {
 	return func(r *Redis) {
 		if config == nil {
@@ -2719,8 +2718,15 @@ func WithTLSConfig(config *tls.Config) Option {
 			r.tlsConfigKey = "default"
 		} else {
 			r.tlsConfig = config.Clone()
-			r.tlsConfigKey = "custom:" + strconv.FormatUint(tlsConfigID.Add(1), 10)
+			r.tlsConfigKey = fmt.Sprintf("custom:%p", config)
 		}
+	}
+}
+
+func withInsecureTLS() Option {
+	return func(r *Redis) {
+		r.tlsConfig = &tls.Config{InsecureSkipVerify: true}
+		r.tlsConfigKey = "insecure"
 	}
 }
 
