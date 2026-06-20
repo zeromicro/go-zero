@@ -2298,6 +2298,24 @@ func TestRedisXGroupSetID(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := newRedis(client.Addr, badType()).XGroupSetID("Source", "Destination", "0")
 		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "0")
+		assert.Nil(t, err)
+
+		res, err := redisCli.XGroupSetID(stream, group, "0")
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "not supported")
+
+		_, err = newRedis(client.Addr, badType()).XGroupSetIDCtx(context.Background(), stream, group, "0")
+		assert.NotNil(t, err)
+
+		res, err = redisCli.XGroupSetIDCtx(context.Background(), stream, group, "0")
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "not supported")
 	})
 }
 
