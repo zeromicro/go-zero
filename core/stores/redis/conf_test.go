@@ -30,6 +30,15 @@ func TestRedisConfTLSVerification(t *testing.T) {
 		TlsInsecureSkipVerify: true,
 	}.NewRedis()
 	assert.Equal(t, insecure.tlsConfigKey, insecureAgain.tlsConfigKey)
+	insecurePrimary, err := NewRedis(RedisConf{
+		Host:                  "redis.example.com:6379",
+		Type:                  NodeType,
+		Tls:                   true,
+		TlsInsecureSkipVerify: true,
+		NonBlock:              true,
+	})
+	assert.NoError(t, err)
+	assert.True(t, insecurePrimary.tlsConfig.InsecureSkipVerify)
 
 	custom, err := NewRedis(RedisConf{
 		Host:     "redis.example.com:6379",
