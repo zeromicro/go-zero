@@ -1868,6 +1868,21 @@ func (s *Redis) XGroupCreateCtx(ctx context.Context, stream string, group string
 	return conn.XGroupCreate(ctx, stream, group, start).Result()
 }
 
+// XGroupSetID sets the last delivered ID for a Redis stream consumer group.
+func (s *Redis) XGroupSetID(stream, group, start string) (string, error) {
+	return s.XGroupSetIDCtx(context.Background(), stream, group, start)
+}
+
+// XGroupSetIDCtx is the context-aware version of XGroupSetID.
+func (s *Redis) XGroupSetIDCtx(ctx context.Context, stream, group, start string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XGroupSetID(ctx, stream, group, start).Result()
+}
+
 // XInfoConsumers returns information about consumers in a Redis stream consumer group.
 func (s *Redis) XInfoConsumers(stream string, group string) ([]red.XInfoConsumer, error) {
 	return s.XInfoConsumersCtx(context.Background(), stream, group)
