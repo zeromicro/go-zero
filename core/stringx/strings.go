@@ -132,7 +132,7 @@ func Substr(str string, start, stop int) (string, error) {
 		return "", ErrInvalidStartPosition
 	}
 
-	if stop < 0 || stop > length {
+	if stop < 0 || stop > length || start > stop {
 		return "", ErrInvalidStopPosition
 	}
 
