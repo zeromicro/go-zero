@@ -1,6 +1,6 @@
 # RPC 예제
 
-[English / 中文](README.md) | 한국어
+[English](README.md) | [中文](README-cn.md) | 한국어
 
 이 디렉터리에는 모든 `goctl rpc` 코드 생성 시나리오에 대한 완전한 예제가 포함되어 있습니다.
 
