@@ -34,6 +34,10 @@ func Filter(s string, remove func(r rune) bool) string {
 
 // FirstN returns first n runes from s.
 func FirstN(s string, n int, ellipsis ...string) string {
+	if n < 0 {
+		return ""
+	}
+
 	var i int
 
 	for j := range s {

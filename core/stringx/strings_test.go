@@ -190,6 +190,18 @@ func TestFirstN(t *testing.T) {
 			n:      10,
 			expect: "我是中国人",
 		},
+		{
+			name:   "negative n returns empty string",
+			input:  "hello world",
+			n:      -1,
+			expect: "",
+		},
+		{
+			name:   "negative n with utf8 returns empty string",
+			input:  "我是中国人",
+			n:      -5,
+			expect: "",
+		},
 	}
 
 	for _, test := range tests {
