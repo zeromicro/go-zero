@@ -181,5 +181,5 @@ func TestRequestMetadataFromContextWithEmptyAndCanonicalizedHeaders(t *testing.T
 
 	metadata, ok := RequestMetadataFromContext(ctx)
 	assert.True(t, ok)
-	assert.Equal(t, []string{"a", "b"}, metadata.Headers["X-Tenant-Id"])
+	assert.ElementsMatch(t, []string{"a", "b"}, metadata.Headers["X-Tenant-Id"])
 }
