@@ -1,6 +1,6 @@
 # goctl rpc — RPC Code Generation
 
-English | [中文](README-cn.md)
+English | [中文](README-cn.md) | [한국어](README-ko.md)
 
 goctl rpc is the RPC service code generation module of the `goctl` scaffold. It generates a complete zRPC service from `.proto` files. You only need to write the proto definition and business logic — all boilerplate code is generated automatically.
 
@@ -10,7 +10,7 @@ goctl rpc is the RPC service code generation module of the `goctl` scaffold. It 
 - **External proto imports**: Cross-directory and cross-package proto imports with automatic transitive dependency resolution
 - **Multiple services**: Define multiple services in a single proto file, auto-grouped by service name
 - **Streaming support**: Server streaming, client streaming, and bidirectional streaming
-- **Google well-known types**: Automatic recognition of `google.protobuf.*` types with correct Go imports
+- **Google well-known types**: Automatic recognition of supported `google.protobuf.*` types with correct Go imports
 - **Client generation**: Auto-generated RPC client wrapper code
 
 ## Prerequisites
@@ -311,5 +311,5 @@ See the [example/](example/) directory for 10 complete examples covering all gen
 | 06 | [Well-known types](example/06-wellknown-types/) | Timestamp etc. in messages |
 | 07 | [External proto (same pkg)](example/07-external-proto-same-pkg/) | External proto, same go_package |
 | 08 | [External proto (diff pkg)](example/08-external-proto-diff-pkg/) | External proto, different go_package |
-| 09 | [Google types as params](example/09-google-types-as-rpc/) | Empty/Timestamp as RPC parameters |
+| 09 | [Google well-known types as params](example/09-google-types-as-rpc/) | Empty/Timestamp as RPC parameters |
 | 10 | [Streaming](example/10-streaming/) | Server/client/bidirectional streaming |

@@ -1,28 +1,28 @@
-# Example 06: Well-Known Types
+# 예제 06: Google well-known types
 
-English | [中文](README-cn.md) | [한국어](README-ko.md)
+[English](README.md) | [中文](README-cn.md) | 한국어
 
-This example demonstrates using a Google protobuf well-known type (`Timestamp`) as a message field.
+이 예제는 Google protobuf well-known type(`Timestamp`)을 메시지 필드로 사용하는 방법을 보여줍니다.
 
-## Proto Definition
+## proto 정의
 
-`events.proto` uses `google.protobuf.Timestamp` as a message field type.
+`events.proto`는 `google.protobuf.Timestamp`를 메시지 필드 타입으로 사용합니다.
 
-The `go_package` uses a full module path:
+`go_package`는 전체 모듈 경로를 사용합니다.
 
 ```protobuf
 option go_package = "example.com/demo/pb";
 ```
 
-## Generation Commands
+## 생성 명령
 
-First, initialize the output directory with a `go.mod`:
+먼저 출력 디렉터리에 `go.mod`를 초기화합니다.
 
 ```bash
 mkdir -p output && cd output && go mod init example.com/demo && cd ..
 ```
 
-Then generate the code:
+그런 다음 코드를 생성합니다.
 
 ```bash
 goctl rpc protoc events.proto \
@@ -35,7 +35,7 @@ goctl rpc protoc events.proto \
   -I .
 ```
 
-Generated directory structure:
+생성되는 디렉터리 구조:
 
 ```
 output/
@@ -60,8 +60,8 @@ output/
     └── events_grpc.pb.go
 ```
 
-## Key Points
+## 핵심 사항
 
-- Uses the Google well-known type `google.protobuf.Timestamp` as a message field.
-- goctl automatically maps well-known types to Go imports; in this example, `Timestamp` maps to `timestamppb`.
-- No extra `--proto_path` needed for well-known types if protoc is properly installed.
+- Google well-known type인 `google.protobuf.Timestamp`를 메시지 필드로 사용합니다.
+- goctl은 well-known types를 Go import로 자동 매핑합니다. 이 예제에서는 `Timestamp`가 `timestamppb`로 매핑됩니다.
+- protoc가 올바르게 설치되어 있다면 well-known types에는 추가 `--proto_path`가 필요하지 않습니다.

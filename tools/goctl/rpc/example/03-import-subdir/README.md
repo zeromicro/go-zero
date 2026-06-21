@@ -1,5 +1,7 @@
 # Example 03: Importing Proto from a Subdirectory
 
+English | [中文](README-cn.md) | [한국어](README-ko.md)
+
 This example demonstrates importing a proto file from a subdirectory.
 
 ## Proto Definition

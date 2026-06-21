@@ -1,5 +1,7 @@
 # 示例 08：外部 Proto — 不同 `go_package`
 
+[English](README.md) | 中文 | [한국어](README-ko.md)
+
 本示例演示从外部目录导入 proto 文件，且文件具有**不同**的 `go_package` 值，需要在生成的 Go 代码中进行跨包导入。
 
 ## Proto 定义
@@ -18,7 +20,8 @@ proto 文件使用不同的 `go_package` 值：
 │       └── types.proto    # 外部 proto（go_package = "example.com/demo/pb/common"）
 ├── service.proto          # 服务定义（go_package = "example.com/demo/pb"）
 ├── README.md
-└── README-cn.md
+├── README-cn.md
+└── README-ko.md
 ```
 
 - `types.proto` 的 `go_package = "example.com/demo/pb/common"` — **不同**的 Go 包。
