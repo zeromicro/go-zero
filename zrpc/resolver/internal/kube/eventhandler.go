@@ -39,6 +39,10 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 
 	var changed bool
 	for _, point := range endpoints.Endpoints {
+		if !isValidEndpoint(point) {
+			continue
+		}
+
 		for _, address := range point.Addresses {
 			if _, ok := h.endpoints[address]; !ok {
 				h.endpoints[address] = lang.Placeholder
@@ -107,6 +111,10 @@ func (h *EventHandler) Update(endpoints *v1.EndpointSlice) {
 	old := h.endpoints
 	h.endpoints = make(map[string]lang.PlaceholderType)
 	for _, point := range endpoints.Endpoints {
+		if !isValidEndpoint(point) {
+			continue
+		}
+
 		for _, address := range point.Addresses {
 			h.endpoints[address] = lang.Placeholder
 		}
@@ -139,4 +147,18 @@ func diff(o, n map[string]lang.PlaceholderType) bool {
 	}
 
 	return false
+}
+
+func isValidEndpoint(point v1.Endpoint) bool {
+	if point.Conditions.Ready != nil && !*point.Conditions.Ready {
+		return false
+	}
+	if point.Conditions.Terminating != nil && *point.Conditions.Terminating {
+		return false
+	}
+	if point.Conditions.Serving != nil && !*point.Conditions.Serving {
+		return false
+	}
+
+	return true
 }
