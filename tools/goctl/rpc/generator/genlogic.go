@@ -40,6 +40,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 	cfg *conf.Config) error {
 	dir := ctx.GetLogic()
 	service := proto.Service[0].Service.Name
+	pkgMap := parser.BuildProtoPackageMap(proto.ImportedProtos)
 	for _, rpc := range proto.Service[0].RPC {
 		logicName := fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
 		logicFilename, err := format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
@@ -48,14 +49,15 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 		}
 
 		filename := filepath.Join(dir.Filename, logicFilename+".go")
-		functions, err := g.genLogicFunction(service, proto.PbPackage, logicName, rpc)
+		functions, err := g.genLogicFunction(service, proto.PbPackage, proto.GoPackage, logicName, rpc, pkgMap)
 		if err != nil {
 			return err
 		}
 
 		imports := collection.NewSet[string]()
 		imports.Add(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
-		imports.Add(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))
+		addLogicImports(imports, ctx.GetPb().Package, proto.PbPackage, proto.GoPackage, rpc, pkgMap)
+
 		text, err := pathx.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
 		if err != nil {
 			return err
@@ -75,6 +77,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 
 func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetLogic()
+	pkgMap := parser.BuildProtoPackageMap(proto.ImportedProtos)
 	for _, item := range proto.Service {
 		serviceName := item.Name
 		for _, rpc := range item.RPC {
@@ -101,14 +104,15 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 			}
 
 			filename = filepath.Join(dir.Filename, serviceDir, logicFilename+".go")
-			functions, err := g.genLogicFunction(serviceName, proto.PbPackage, logicName, rpc)
+			functions, err := g.genLogicFunction(serviceName, proto.PbPackage, proto.GoPackage, logicName, rpc, pkgMap)
 			if err != nil {
 				return err
 			}
 
 			imports := collection.NewSet[string]()
 			imports.Add(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
-			imports.Add(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))
+			addLogicImports(imports, ctx.GetPb().Package, proto.PbPackage, proto.GoPackage, rpc, pkgMap)
+
 			text, err := pathx.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
 			if err != nil {
 				return err
@@ -127,9 +131,8 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 	return nil
 }
 
-func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
-	rpc *parser.RPC) (string,
-	error) {
+func (g *Generator) genLogicFunction(serviceName, goPackage, mainGoPackage, logicName string,
+	rpc *parser.RPC, pkgMap map[string]parser.ImportedProto) (string, error) {
 	functions := make([]string, 0)
 	text, err := pathx.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
 	if err != nil {
@@ -139,14 +142,18 @@ func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
 	comment := parser.GetComment(rpc.Doc())
 	streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(serviceName),
 		parser.CamelCase(rpc.Name), "Server")
+
+	reqRef := resolveRPCTypeRef(rpc.RequestType, goPackage, mainGoPackage, pkgMap)
+	respRef := resolveRPCTypeRef(rpc.ReturnsType, goPackage, mainGoPackage, pkgMap)
+
 	buffer, err := util.With("fun").Parse(text).Execute(map[string]any{
 		"logicName":    logicName,
 		"method":       parser.CamelCase(rpc.Name),
 		"hasReq":       !rpc.StreamsRequest,
-		"request":      fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.RequestType)),
+		"request":      "*" + reqRef.GoRef,
 		"hasReply":     !rpc.StreamsRequest && !rpc.StreamsReturns,
-		"response":     fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),
-		"responseType": fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),
+		"response":     "*" + respRef.GoRef,
+		"responseType": respRef.GoRef,
 		"stream":       rpc.StreamsRequest || rpc.StreamsReturns,
 		"streamBody":   streamServer,
 		"hasComment":   len(comment) > 0,
@@ -158,4 +165,30 @@ func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
 
 	functions = append(functions, buffer.String())
 	return strings.Join(functions, pathx.NL), nil
+}
+
+// addLogicImports adds the correct import paths to imports for a single RPC's
+// logic file. The main pb package is only included when it is actually referenced
+// (i.e. when the request or response type lives in that package, or the RPC streams).
+func addLogicImports(imports *collection.Set[string], pbImportPath, goPackage, mainGoPackage string,
+rpc *parser.RPC, pkgMap map[string]parser.ImportedProto) {
+// Streaming RPCs always reference the main pb package (for the stream type).
+if rpc.StreamsRequest || rpc.StreamsReturns {
+imports.Add(fmt.Sprintf(`"%s"`, pbImportPath))
+return
+}
+
+reqRef := resolveRPCTypeRef(rpc.RequestType, goPackage, mainGoPackage, pkgMap)
+respRef := resolveRPCTypeRef(rpc.ReturnsType, goPackage, mainGoPackage, pkgMap)
+
+// Add main pb import if any type ref is from the main package (no extra import path).
+if reqRef.ImportPath == "" || respRef.ImportPath == "" {
+imports.Add(fmt.Sprintf(`"%s"`, pbImportPath))
+}
+if reqRef.ImportPath != "" {
+imports.Add(fmt.Sprintf(`"%s"`, reqRef.ImportPath))
+}
+if respRef.ImportPath != "" {
+imports.Add(fmt.Sprintf(`"%s"`, respRef.ImportPath))
+}
 }

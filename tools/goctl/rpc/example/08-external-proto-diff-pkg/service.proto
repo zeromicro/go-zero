@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package svc;
+
+option go_package = "example.com/demo/pb";
+
+import "common/types.proto";
+
+service DataService {
+  rpc Fetch(common.ExtReq) returns (common.ExtReply);
+}

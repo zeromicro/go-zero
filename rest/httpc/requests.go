@@ -84,8 +84,11 @@ func buildRequest(ctx context.Context, method, url string, data any) (*http.Requ
 	var reader io.Reader
 	jsonVars, hasJsonBody := val[jsonKey]
 	if hasJsonBody {
-		if method == http.MethodGet {
+		switch method {
+		case http.MethodGet:
 			return nil, ErrGetWithBody
+		case http.MethodHead:
+			return nil, ErrHeadWithBody
 		}
 
 		var buf bytes.Buffer

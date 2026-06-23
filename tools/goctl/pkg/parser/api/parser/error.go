@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 )
 
@@ -24,5 +24,5 @@ func (e *errorManager) error() error {
 	if len(e.errors) == 0 {
 		return nil
 	}
-	return fmt.Errorf(strings.Join(e.errors, "\n"))
+	return errors.New(strings.Join(e.errors, "\n"))
 }

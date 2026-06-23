@@ -197,7 +197,7 @@ func (p *printer) print(x reflect.Value) {
 
 	case reflect.Struct:
 		if val, ok := x.Interface().(apitoken.Position); ok {
-			p.printf(val.String())
+			p.printf("%s", val.String())
 			return
 		}
 		t := x.Type()

@@ -4,7 +4,7 @@
 
 ***缩短从需求到上线的距离***
 
-[English](readme.md) | 简体中文
+[English](readme.md) | 简体中文 | [한국어](readme-ko.md)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/zeromicro/go-zero)](https://goreportcard.com/report/github.com/zeromicro/go-zero)
 [![goproxy](https://goproxy.cn/stats/github.com/zeromicro/go-zero/badges/download-count.svg)](https://goproxy.cn/stats/github.com/zeromicro/go-zero/badges/download-count.svg)

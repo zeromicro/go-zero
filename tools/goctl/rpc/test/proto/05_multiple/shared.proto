@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+// 场景05：多 service 场景共享的基础类型
+package shared;
+
+option go_package = "example.com/demo/s05_multiple/pb";
+
+message Meta {
+  string trace_id = 1;
+  string version  = 2;
+}

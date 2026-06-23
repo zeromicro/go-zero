@@ -275,6 +275,36 @@ func TestRedis_Eval(t *testing.T) {
 	})
 }
 
+func TestRedis_Do(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Do("PING")
+		assert.NotNil(t, err)
+
+		pong, err := client.Do("PING")
+		assert.Nil(t, err)
+		assert.Equal(t, "PONG", pong)
+
+		ok, err := client.Do("SET", "key1", "value1")
+		assert.Nil(t, err)
+		assert.Equal(t, "OK", ok)
+
+		val, err := client.Do("GET", "key1")
+		assert.Nil(t, err)
+		assert.Equal(t, "value1", val)
+
+		_, err = client.Do("GET", "not_exist")
+		assert.Equal(t, Nil, err)
+
+		_, err = client.Do()
+		assert.NotNil(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err = client.DoCtx(ctx, "PING")
+		assert.Equal(t, context.Canceled, err)
+	})
+}
+
 func TestRedis_ScriptRun(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		sc := NewScript(`redis.call("EXISTS", KEYS[1])`)
@@ -2261,6 +2291,31 @@ func TestRedisXGroupCreate(t *testing.T) {
 
 		_, err = redisCli.XGroupCreate("aa", "cc", "0")
 		assert.Nil(t, err)
+	})
+}
+
+func TestRedisXGroupSetID(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XGroupSetID("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "0")
+		assert.Nil(t, err)
+
+		res, err := redisCli.XGroupSetID(stream, group, "0")
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "not supported")
+
+		_, err = newRedis(client.Addr, badType()).XGroupSetIDCtx(context.Background(), stream, group, "0")
+		assert.NotNil(t, err)
+
+		res, err = redisCli.XGroupSetIDCtx(context.Background(), stream, group, "0")
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "not supported")
 	})
 }
 

@@ -357,7 +357,7 @@ func (w *Writer) Write(opts ...Option) {
 
 // WriteText writes the text.
 func (w *Writer) WriteText(text string) {
-	_, _ = fmt.Fprintf(w.tw, text)
+	_, _ = fmt.Fprint(w.tw, text)
 }
 
 func (w *Writer) write(opt *option) {

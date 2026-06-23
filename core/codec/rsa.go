@@ -3,6 +3,7 @@ package codec
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -46,7 +47,9 @@ type (
 	}
 )
 
-// NewRsaDecrypter returns a RsaDecrypter with the given file.
+// Deprecated: NewRsaDecrypter returns a RsaDecrypter with the given file.
+// PKCS#1 v1.5 padding is vulnerable to padding oracle attacks.
+// Use NewRsaOAEPDecrypter instead.
 func NewRsaDecrypter(file string) (RsaDecrypter, error) {
 	content, err := os.ReadFile(file)
 	if err != nil {
@@ -90,7 +93,9 @@ func (r *rsaDecrypter) DecryptBase64(input string) ([]byte, error) {
 	return r.Decrypt(base64Decoded)
 }
 
-// NewRsaEncrypter returns a RsaEncrypter with the given key.
+// Deprecated: NewRsaEncrypter returns a RsaEncrypter with the given key.
+// PKCS#1 v1.5 padding is vulnerable to padding oracle attacks.
+// Use NewRsaOAEPEncrypter instead.
 func NewRsaEncrypter(key []byte) (RsaEncrypter, error) {
 	block, _ := pem.Decode(key)
 	if block == nil {
@@ -153,4 +158,91 @@ func rsaDecryptBlock(privateKey *rsa.PrivateKey, block []byte) ([]byte, error) {
 
 func rsaEncryptBlock(publicKey *rsa.PublicKey, msg []byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, publicKey, msg)
+}
+
+// NewRsaOAEPDecrypter returns a RsaDecrypter using OAEP with SHA-256.
+func NewRsaOAEPDecrypter(file string) (RsaDecrypter, error) {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(content)
+	if block == nil {
+		return nil, ErrPrivateKey
+	}
+
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rsaOAEPDecrypter{
+		rsaBase: rsaBase{
+			bytesLimit: privateKey.N.BitLen() >> 3,
+		},
+		privateKey: privateKey,
+	}, nil
+}
+
+// NewRsaOAEPEncrypter returns a RsaEncrypter using OAEP with SHA-256.
+func NewRsaOAEPEncrypter(key []byte) (RsaEncrypter, error) {
+	block, _ := pem.Decode(key)
+	if block == nil {
+		return nil, ErrPublicKey
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	switch pubKey := pub.(type) {
+	case *rsa.PublicKey:
+		// OAEP overhead: 2*hash_size + 2
+		hashSize := sha256.New().Size()
+		return &rsaOAEPEncrypter{
+			rsaBase: rsaBase{
+				bytesLimit: (pubKey.N.BitLen() >> 3) - 2*hashSize - 2,
+			},
+			publicKey: pubKey,
+		}, nil
+	default:
+		return nil, ErrNotRsaKey
+	}
+}
+
+type rsaOAEPDecrypter struct {
+	rsaBase
+	privateKey *rsa.PrivateKey
+}
+
+func (r *rsaOAEPDecrypter) Decrypt(input []byte) ([]byte, error) {
+	return r.crypt(input, func(block []byte) ([]byte, error) {
+		return rsa.DecryptOAEP(sha256.New(), rand.Reader, r.privateKey, block, nil)
+	})
+}
+
+func (r *rsaOAEPDecrypter) DecryptBase64(input string) ([]byte, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	base64Decoded, err := base64.StdEncoding.DecodeString(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Decrypt(base64Decoded)
+}
+
+type rsaOAEPEncrypter struct {
+	rsaBase
+	publicKey *rsa.PublicKey
+}
+
+func (r *rsaOAEPEncrypter) Encrypt(input []byte) ([]byte, error) {
+	return r.crypt(input, func(block []byte) ([]byte, error) {
+		return rsa.EncryptOAEP(sha256.New(), rand.Reader, r.publicKey, block, nil)
+	})
 }

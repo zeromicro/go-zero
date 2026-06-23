@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package eventsvc;
+
+option go_package = "example.com/demo/pb";
+
+import "google/protobuf/timestamp.proto";
+
+message Event {
+  string                    id         = 1;
+  string                    name       = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message CreateEventReq {
+  string name = 1;
+}
+
+message CreateEventReply {
+  Event event = 1;
+}
+
+message ListEventsReq {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message ListEventsReply {
+  repeated Event events = 1;
+}
+
+service EventService {
+  rpc CreateEvent(CreateEventReq) returns (CreateEventReply);
+  rpc ListEvents(ListEventsReq) returns (ListEventsReply);
+}

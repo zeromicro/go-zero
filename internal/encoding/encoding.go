@@ -3,11 +3,62 @@ package encoding
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"math"
 
 	"github.com/pelletier/go-toml/v2"
+	"github.com/titanous/json5"
 	"github.com/zeromicro/go-zero/core/lang"
 	"gopkg.in/yaml.v2"
 )
+
+// Json5ToJson converts JSON5 data into its JSON representation.
+func Json5ToJson(data []byte) ([]byte, error) {
+	var val any
+	if err := json5.Unmarshal(data, &val); err != nil {
+		return nil, err
+	}
+
+	// Validate that there are no unsupported values like Infinity or NaN
+	if err := validateJSONCompatible(val); err != nil {
+		return nil, err
+	}
+
+	return encodeToJSON(val)
+}
+
+// validateJSONCompatible checks if the value can be represented in standard JSON.
+// JSON5 allows Infinity and NaN, but standard JSON does not support these values.
+func validateJSONCompatible(val any) error {
+	switch v := val.(type) {
+	case float64:
+		if math.IsInf(v, 0) {
+			return fmt.Errorf("JSON5 value Infinity cannot be represented in standard JSON")
+		}
+		if math.IsNaN(v) {
+			return fmt.Errorf("JSON5 value NaN cannot be represented in standard JSON")
+		}
+	case []any:
+		for _, item := range v {
+			if err := validateJSONCompatible(item); err != nil {
+				return err
+			}
+		}
+	case map[string]any:
+		for _, value := range v {
+			if err := validateJSONCompatible(value); err != nil {
+				return err
+			}
+		}
+	case map[any]any:
+		for _, value := range v {
+			if err := validateJSONCompatible(value); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 
 // TomlToJson converts TOML data into its JSON representation.
 func TomlToJson(data []byte) ([]byte, error) {

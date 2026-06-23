@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package ordersvc;
+
+option go_package = "example.com/demo/pb";
+
+import "common/types.proto";
+
+message OrderItem {
+  string id    = 1;
+  string name  = 2;
+  double price = 3;
+}
+
+message ListOrdersReq {
+  common.PageInfo page = 1;
+  common.SortInfo sort = 2;
+}
+
+message ListOrdersReply {
+  repeated OrderItem orders = 1;
+}
+
+message GetOrderReq {
+  string id = 1;
+}
+
+message GetOrderReply {
+  OrderItem order = 1;
+}
+
+service OrderService {
+  rpc ListOrders(ListOrdersReq) returns (ListOrdersReply);
+  rpc GetOrder(GetOrderReq) returns (GetOrderReply);
+}

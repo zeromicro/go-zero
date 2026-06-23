@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// 场景04：主 proto（A 层），只 import middleware.proto
+// 传递依赖：A → B(middleware) → C(base)
+// 预期：goctl 应同时生成 base.pb.go、middleware.pb.go、main.pb.go
+package pingsvc;
+
+option go_package = "example.com/demo/s04_transitive/pb";
+
+import "middleware.proto";
+
+message PingReq {
+  middleware.RequestMeta meta = 1;
+}
+
+message PingReply {
+  string pong = 1;
+}
+
+service PingService {
+  rpc Ping(PingReq) returns (PingReply);
+}

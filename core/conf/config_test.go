@@ -75,6 +75,160 @@ func TestLoadFromJsonBytesArray(t *testing.T) {
 	assert.EqualValues(t, []string{"foo", "bar"}, expect)
 }
 
+func TestConfigJson5(t *testing.T) {
+	// JSON5 with comments, trailing commas, and unquoted keys
+	text := `{
+	// This is a comment
+	a: 'foo',  // single quotes
+	b: 1,
+	c: "${FOO}",
+	d: "abcd!@#$112",  // trailing comma
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "${FOO}", val.C)
+	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJsonStandardParser(t *testing.T) {
+	// Standard JSON uses standard JSON parser (not JSON5) for backward compatibility
+	text := `{
+	"a": "foo",
+	"b": 1,
+	"c": "${FOO}",
+	"d": "abcd!@#$112"
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "${FOO}", val.C)
+	assert.Equal(t, "abcd!@#$112", val.D)
+}
+
+func TestConfigJsonLargeIntegers(t *testing.T) {
+	// Test that .json files preserve large integer precision (backward compatibility)
+	text := `{
+	"id": 1234567890123456789,
+	"timestamp": 9223372036854775807
+}`
+
+	tmpfile, err := createTempFile(t, ".json", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		ID        int64 `json:"id"`
+		Timestamp int64 `json:"timestamp"`
+	}
+	MustLoad(tmpfile, &val)
+	assert.Equal(t, int64(1234567890123456789), val.ID)
+	assert.Equal(t, int64(9223372036854775807), val.Timestamp)
+}
+
+func TestConfigJson5Env(t *testing.T) {
+	text := `{
+	// Comment with env variable
+	a: "foo",
+	b: 1,
+	c: "${FOO}",
+	d: "abcd!@#$a12 3",
+}`
+	t.Setenv("FOO", "2")
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+		C string `json:"c"`
+		D string `json:"d"`
+	}
+	MustLoad(tmpfile, &val, UseEnv())
+	assert.Equal(t, "foo", val.A)
+	assert.Equal(t, 1, val.B)
+	assert.Equal(t, "2", val.C)
+	assert.Equal(t, "abcd!@# 3", val.D)
+}
+
+func TestLoadFromJson5Bytes(t *testing.T) {
+	// Test JSON5 features: comments, trailing commas, single quotes, unquoted keys
+	input := []byte(`{
+		// This is a comment
+		users: [
+			{name: 'foo'},  // trailing comma
+			{Name: "bar"},
+		],
+	}`)
+	var val struct {
+		Users []struct {
+			Name string
+		}
+	}
+
+	assert.NoError(t, LoadFromJson5Bytes(input, &val))
+	var expect []string
+	for _, user := range val.Users {
+		expect = append(expect, user.Name)
+	}
+	assert.EqualValues(t, []string{"foo", "bar"}, expect)
+}
+
+func TestLoadFromJson5BytesError(t *testing.T) {
+	// Invalid JSON5 syntax
+	input := []byte(`{a: foo}`) // unquoted string value (invalid)
+	var val struct {
+		A string
+	}
+
+	assert.Error(t, LoadFromJson5Bytes(input, &val))
+}
+
+func TestConfigJson5LargeIntegersLimitation(t *testing.T) {
+	// Document that JSON5 has precision limitations for large integers (>2^53)
+	// due to JavaScript number semantics. Users should use .json for configs with large IDs.
+	text := `{
+	// JSON5 converts numbers to float64, which loses precision for large integers
+	id: 1234567890123456789
+}`
+
+	tmpfile, err := createTempFile(t, ".json5", text)
+	assert.Nil(t, err)
+
+	var val struct {
+		ID int64 `json:"id"`
+	}
+
+	// This will load; depending on the JSON5 implementation, large integers may lose precision.
+	// This test documents that behavior without requiring loss of precision as an invariant.
+	err = Load(tmpfile, &val)
+	assert.NoError(t, err)
+
+	t.Logf("loaded JSON5 large integer id=%d (original 1234567890123456789)", val.ID)
+}
+
 func TestConfigToml(t *testing.T) {
 	text := `a = "foo"
 b = 1

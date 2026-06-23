@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+// 场景09：请求/响应直接使用 google well-known types
+// google.protobuf.Empty 作为返回值（常见的 void 返回模式）
+// google.protobuf.Timestamp 直接作为请求/返回类型
+package healthsvc;
+
+option go_package = "example.com/demo/s09_google_types/pb";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message HealthCheckRequest {
+  string service = 1;
+}
+
+service HealthService {
+  // Ping: 无返回数据，使用 google.protobuf.Empty
+  rpc Ping(HealthCheckRequest) returns (google.protobuf.Empty);
+  // GetTime: 直接返回时间戳类型
+  rpc GetTime(HealthCheckRequest) returns (google.protobuf.Timestamp);
+}
+

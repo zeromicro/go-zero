@@ -542,7 +542,7 @@ func mustNewTestModel(collection mon.Collection, c cache.CacheConf, opts ...cach
 	}
 }
 
-// NewNodeModel returns a test Model with a cache node.
+// mustNewTestNodeModel returns a test Model with a cache node.
 func mustNewTestNodeModel(collection mon.Collection, rds *redis.Redis, opts ...cache.Option) *Model {
 	c := cache.NewNode(rds, singleFlight, stats, mongo.ErrNoDocuments, opts...)
 	return &Model{

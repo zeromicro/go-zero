@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pingsvc;
+
+option go_package = "example.com/demo/pb";
+
+import "middleware.proto";
+
+message PingReq {
+  middleware.RequestMeta meta = 1;
+}
+
+message PingReply {
+  string pong = 1;
+}
+
+service PingService {
+  rpc Ping(PingReq) returns (PingReply);
+}

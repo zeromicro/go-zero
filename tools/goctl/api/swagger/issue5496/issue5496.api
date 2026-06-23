@@ -1,0 +1,34 @@
+syntax = "v1"
+
+info (
+	title:   "Issue 5496 Reproduce"
+	version: "v1"
+	host:    "localhost"
+)
+
+// Reproduces issue #5496:
+// The `example` tag option in `path` and `form` tags does not appear in generated swagger JSON.
+type (
+	Request {
+		// path param with example — should appear as example in swagger
+		Name string `path:"name,options=you|me,example=nihao"`
+		// form param with example and range — should appear as example in swagger
+		Age int `form:"age,optional,range=[1:200],example=18"`
+	}
+	Response {
+		Name string `json:"name,example=nihao"`
+		Age  int    `json:"age,example=18"`
+	}
+)
+
+@server (
+	tags:    "issue5496"
+	summary: "Issue 5496 - example field missing for path/form params"
+)
+service issue5496 {
+	@doc (
+		description: "Demonstrate that example is missing in path/form swagger params"
+	)
+	@handler getUser
+	get /user/:name (Request) returns (Response)
+}

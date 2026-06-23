@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+// 场景05：多 service + import，使用 --multiple 模式
+// 预期：goctl --multiple 应同时生成 shared.pb.go 和 multi.pb.go
+package multisvc;
+
+option go_package = "example.com/demo/s05_multiple/pb";
+
+import "shared.proto";
+
+message SearchReq {
+  shared.Meta meta    = 1;
+  string      keyword = 2;
+}
+
+message SearchReply {
+  repeated string items = 1;
+}
+
+message NotifyReq {
+  shared.Meta meta    = 1;
+  string      message = 2;
+}
+
+message NotifyReply {
+  bool ok = 1;
+}
+
+service SearchService {
+  rpc Search(SearchReq) returns (SearchReply);
+}
+
+service NotifyService {
+  rpc Notify(NotifyReq) returns (NotifyReply);
+}
