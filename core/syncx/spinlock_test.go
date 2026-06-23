@@ -68,3 +68,14 @@ func TestSpinLock_TryLock(t *testing.T) {
 	wait.Wait()
 	assert.Equal(t, int32(2), atomic.LoadInt32(&count))
 }
+
+func BenchmarkSpinLock(b *testing.B) {
+	var spin SpinLock
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			spin.Lock()
+			//nolint:staticcheck
+			spin.Unlock()
+		}
+	})
+}
