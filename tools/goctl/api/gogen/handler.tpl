@@ -10,6 +10,7 @@ import (
 	{{.ImportPackages}}
 )
 
+{{range .Handlers}}
 {{if .HasDoc}}{{.Doc}}{{end}}
 func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -28,3 +29,4 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 	}
 }
+{{end}}
