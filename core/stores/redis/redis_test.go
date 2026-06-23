@@ -104,9 +104,10 @@ func TestNewRedis(t *testing.T) {
 		{
 			name: "tls",
 			RedisConf: RedisConf{
-				Host: r1.Addr(),
-				Type: NodeType,
-				Tls:  true,
+				Host:     r1.Addr(),
+				Type:     NodeType,
+				Tls:      true,
+				NonBlock: true,
 			},
 			ok: true,
 		},
@@ -2170,8 +2171,9 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 		InsecureSkipVerify: true,
 	})
 	assert.Nil(t, err)
+	r := newRedis(s.Addr(), WithTLS())
 	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+		client, err := clientManager.GetResource(getRedisManagerKey(r), func() (io.Closer, error) {
 			return nil, errors.New("should already exist")
 		})
 		if err != nil {
@@ -2181,7 +2183,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 			_ = client.Close()
 		}
 	}()
-	fn(newRedis(s.Addr(), WithTLS()))
+	fn(r)
 }
 
 func badType() Option {

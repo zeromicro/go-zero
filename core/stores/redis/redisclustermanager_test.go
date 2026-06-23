@@ -1,10 +1,10 @@
 package redis
 
 import (
+	"crypto/tls"
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,12 +48,12 @@ func TestGetCluster(t *testing.T) {
 	r := miniredis.RunT(t)
 	defer r.Close()
 	c, err := getCluster(&Redis{
-		Addr:  r.Addr(),
-		Type:  ClusterType,
-		tls:   true,
-		hooks: []red.Hook{defaultDurationHook},
+		Addr:      r.Addr(),
+		Type:      ClusterType,
+		tlsConfig: &tls.Config{},
 	})
 	if assert.NoError(t, err) {
 		assert.NotNil(t, c)
+		assert.False(t, c.Options().TLSConfig.InsecureSkipVerify)
 	}
 }

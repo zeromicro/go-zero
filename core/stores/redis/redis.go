@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"strconv"
@@ -53,13 +54,14 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		User  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr         string
+		Type         string
+		User         string
+		Pass         string
+		tlsConfig    *tls.Config
+		tlsConfigKey string
+		brk          breaker.Breaker
+		hooks        []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -134,7 +136,11 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 		opts = append([]Option{WithPass(conf.Pass)}, opts...)
 	}
 	if conf.Tls {
-		opts = append([]Option{WithTLS()}, opts...)
+		if conf.TlsInsecureSkipVerify {
+			opts = append([]Option{withInsecureTLS()}, opts...)
+		} else {
+			opts = append([]Option{WithTLS()}, opts...)
+		}
 	}
 
 	rds := newRedis(conf.Host, opts...)
@@ -2712,10 +2718,30 @@ func WithPass(pass string) Option {
 	}
 }
 
-// WithTLS customizes the given Redis with TLS enabled.
+// WithTLS customizes the given Redis with TLS enabled and server certificates verified.
 func WithTLS() Option {
+	return WithTLSConfig(nil)
+}
+
+// WithTLSConfig customizes the given Redis with TLS enabled using the given config.
+// A nil config uses the secure defaults from crypto/tls. The config is cloned,
+// and callers should reuse the same immutable config pointer to share a client.
+func WithTLSConfig(config *tls.Config) Option {
 	return func(r *Redis) {
-		r.tls = true
+		if config == nil {
+			r.tlsConfig = &tls.Config{}
+			r.tlsConfigKey = "default"
+		} else {
+			r.tlsConfig = config.Clone()
+			r.tlsConfigKey = fmt.Sprintf("custom:%p", config)
+		}
+	}
+}
+
+func withInsecureTLS() Option {
+	return func(r *Redis) {
+		r.tlsConfig = &tls.Config{InsecureSkipVerify: true}
+		r.tlsConfigKey = "insecure"
 	}
 }
 
@@ -2739,6 +2765,16 @@ func getRedis(r *Redis) (RedisNode, error) {
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
+}
+
+func getRedisManagerKey(r *Redis) string {
+	if r.tlsConfig == nil {
+		return r.Addr
+	}
+
+	// A TLS client must never reuse a plaintext client or a client created with
+	// a different TLS policy for the same address.
+	return fmt.Sprintf("%s|tls:%s", r.Addr, r.tlsConfigKey)
 }
 
 func toPairs(vals []red.Z) []Pair {
