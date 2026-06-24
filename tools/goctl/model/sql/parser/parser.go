@@ -20,12 +20,13 @@ const timeImport = "time.Time"
 type (
 	// Table describes a mysql table
 	Table struct {
-		Name        stringx.String
-		Db          stringx.String
-		PrimaryKey  Primary
-		UniqueIndex map[string][]*Field
-		Fields      []*Field
-		ContainsPQ  bool
+		Name                  stringx.String
+		Db                    stringx.String
+		PrimaryKey            Primary
+		UniqueIndex           map[string][]*Field
+		UniqueIndexPredicate  map[string]string
+		Fields                []*Field
+		ContainsPQ            bool
 	}
 
 	// Primary describes a primary key
@@ -277,6 +278,7 @@ func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	var reply Table
 	reply.ContainsPQ = containsPQ
 	reply.UniqueIndex = map[string][]*Field{}
+	reply.UniqueIndexPredicate = map[string]string{}
 	reply.Name = stringx.From(table.Table)
 	reply.Db = stringx.From(table.Db)
 	seqInIndex := 0
@@ -344,6 +346,9 @@ func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 
 		uniqueIndexSet.Add(uniqueKey)
 		reply.UniqueIndex[indexName] = list
+		if predicate, ok := table.UniqueIndexPredicate[indexName]; ok && predicate != "" {
+			reply.UniqueIndexPredicate[indexName] = predicate
+		}
 	}
 
 	return &reply, nil
