@@ -1149,6 +1149,13 @@ func fillWithSameType(fieldType reflect.Type, value reflect.Value, mapValue any,
 
 // getValue gets the value for the specific key, the key can be in the format of parentKey.childKey
 func getValue(m valuerWithParent, key string, opaque bool) (any, bool) {
+	// when keys are opaque, the key is used as-is without splitting on the
+	// delimiter, so it always resolves to a single lookup. Avoid allocating
+	// a one-element slice in readKeys on this hot path (form/path/header parsing).
+	if opaque {
+		return m.Value(key)
+	}
+
 	keys := readKeys(key, opaque)
 	return getValueWithChainedKeys(m, keys)
 }
@@ -1175,6 +1182,24 @@ func getValueWithChainedKeys(m valuerWithParent, keys []string) (any, bool) {
 }
 
 func join(elem ...string) string {
+	// fast path: when at most one element is non-empty (the common case for
+	// top-level fields where the parent name is empty), return it directly to
+	// avoid the strings.Builder allocation and copy.
+	var nonEmpty string
+	var count int
+	for _, e := range elem {
+		if len(e) > 0 {
+			nonEmpty = e
+			count++
+			if count > 1 {
+				break
+			}
+		}
+	}
+	if count <= 1 {
+		return nonEmpty
+	}
+
 	var builder strings.Builder
 
 	var fillSep bool
