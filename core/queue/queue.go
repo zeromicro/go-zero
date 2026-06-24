@@ -83,7 +83,14 @@ func (q *Queue) Broadcast(message any) {
 		defer q.eventLock.Unlock()
 
 		for _, channel := range q.eventChannels {
-			channel <- message
+			select {
+			case channel <- message:
+				// Successfully sent
+			default:
+				// Channel is full or has no receiver, skip to avoid blocking
+				// This can happen if the consumer has exited but the channel
+				// is still in the eventChannels list
+			}
 		}
 	}()
 }
