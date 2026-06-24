@@ -169,6 +169,26 @@ func (mr *MockEtcdClientMockRecorder) Revoke(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockEtcdClient)(nil).Revoke), ctx, id)
 }
 
+// TimeToLive mocks base method.
+func (m *MockEtcdClient) TimeToLive(ctx context.Context, id clientv3.LeaseID, opts ...clientv3.LeaseOption) (*clientv3.LeaseTimeToLiveResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, id}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "TimeToLive", varargs...)
+	ret0, _ := ret[0].(*clientv3.LeaseTimeToLiveResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TimeToLive indicates an expected call of TimeToLive.
+func (mr *MockEtcdClientMockRecorder) TimeToLive(ctx, id any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, id}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TimeToLive", reflect.TypeOf((*MockEtcdClient)(nil).TimeToLive), varargs...)
+}
+
 // Watch mocks base method.
 func (m *MockEtcdClient) Watch(ctx context.Context, key string, opts ...clientv3.OpOption) clientv3.WatchChan {
 	m.ctrl.T.Helper()
