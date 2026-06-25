@@ -3,8 +3,8 @@ package swagger
 import (
 	"testing"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func Test_pathVariable2SwaggerVariable(t *testing.T) {
@@ -137,4 +137,39 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	assert.Equal(t, "object", arrayField.Items.Schema.Type[0])
 	assert.Contains(t, arrayField.Items.Schema.Properties, "itemName")
 	assert.Equal(t, []string{"itemName"}, arrayField.Items.Schema.Required)
+}
+
+func TestResponseRequiredFields(t *testing.T) {
+	ctx := Context{
+		UseDefinitions: false,
+	}
+
+	respType := spec.DefineStruct{
+		RawName: "UserResponse",
+		Members: []spec.Member{
+			{
+				Name: "Id",
+				Type: spec.PrimitiveType{RawName: "int64"},
+				Tag:  `json:"id"`,
+			},
+			{
+				Name: "Name",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"name"`,
+			},
+			{
+				Name: "Email",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"email,optional"`,
+			},
+		},
+	}
+
+	responses := jsonResponseFromType(ctx, spec.AtDoc{}, respType)
+	resp := responses.StatusCodeResponses[200]
+
+	assert.NotNil(t, resp.Schema)
+	// optional fields should not appear in the required array
+	assert.Equal(t, []string{"id", "name"}, resp.Schema.Required)
+	assert.Contains(t, resp.Schema.Properties, "email")
 }
