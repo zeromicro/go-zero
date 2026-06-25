@@ -931,6 +931,74 @@ func TestUnmarshalJsonArray(t *testing.T) {
 	assert.Equal(t, 18, v[0].Age)
 }
 
+func TestUnmarshalJsonBytesPointerSliceUint64(t *testing.T) {
+	t.Run("with values", func(t *testing.T) {
+		var c struct {
+			IDs *[]uint64 `json:"ids,optional"`
+		}
+		content := []byte(`{"ids":[9000,9001]}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.NotNil(t, c.IDs)
+		assert.Equal(t, []uint64{9000, 9001}, *c.IDs)
+	})
+
+	t.Run("omitted", func(t *testing.T) {
+		var c struct {
+			IDs *[]uint64 `json:"ids,optional"`
+		}
+		content := []byte(`{}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.Nil(t, c.IDs)
+	})
+
+	t.Run("null", func(t *testing.T) {
+		var c struct {
+			IDs *[]uint64 `json:"ids,optional"`
+		}
+		content := []byte(`{"ids":null}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.Nil(t, c.IDs)
+	})
+
+	t.Run("empty array", func(t *testing.T) {
+		var c struct {
+			IDs *[]uint64 `json:"ids,optional"`
+		}
+		content := []byte(`{"ids":[]}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.NotNil(t, c.IDs)
+		assert.Equal(t, []uint64{}, *c.IDs)
+	})
+}
+
+func TestUnmarshalJsonBytesPointerSliceOtherTypes(t *testing.T) {
+	t.Run("pointer to []string", func(t *testing.T) {
+		var c struct {
+			Names *[]string `json:"names,optional"`
+		}
+		content := []byte(`{"names":["a","b"]}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.NotNil(t, c.Names)
+		assert.Equal(t, []string{"a", "b"}, *c.Names)
+	})
+
+	t.Run("pointer to []int", func(t *testing.T) {
+		var c struct {
+			Values *[]int `json:"values,optional"`
+		}
+		content := []byte(`{"values":[1,2,3]}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.NotNil(t, c.Values)
+		assert.Equal(t, []int{1, 2, 3}, *c.Values)
+	})
+}
+
 func TestUnmarshalJsonBytesError(t *testing.T) {
 	var v []struct {
 		Name string `json:"name"`
