@@ -3,8 +3,8 @@ package swagger
 import (
 	"testing"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func Test_pathVariable2SwaggerVariable(t *testing.T) {
@@ -66,7 +66,7 @@ func TestArrayDefinitionsBug(t *testing.T) {
 
 	// Verify the array field has correct structure
 	assert.Equal(t, "array", arrayField.Type[0])
-	
+
 	// Check that we have items
 	assert.NotNil(t, arrayField.Items, "Array should have items defined")
 	assert.NotNil(t, arrayField.Items.Schema, "Array items should have schema")
@@ -74,7 +74,7 @@ func TestArrayDefinitionsBug(t *testing.T) {
 	// The FIX: $ref should be inside items, not at schema level
 	hasRef := arrayField.Ref.String() != ""
 	assert.False(t, hasRef, "Schema level should NOT have $ref")
-	
+
 	// The $ref should be in the items
 	hasItemsRef := arrayField.Items.Schema.Ref.String() != ""
 	assert.True(t, hasItemsRef, "Items should have $ref")
@@ -137,4 +137,56 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	assert.Equal(t, "object", arrayField.Items.Schema.Type[0])
 	assert.Contains(t, arrayField.Items.Schema.Properties, "itemName")
 	assert.Equal(t, []string{"itemName"}, arrayField.Items.Schema.Required)
+}
+
+func TestPropertiesFromTypeInlinePointerMembers(t *testing.T) {
+	ctx := testingContext(t)
+
+	baseStruct := spec.DefineStruct{
+		RawName: "EmbeddedUser",
+		Members: []spec.Member{
+			{
+				Name: "UserId",
+				Type: spec.PrimitiveType{RawName: "int"},
+				Tag:  `json:"userId"`,
+			},
+		},
+	}
+	auditStruct := spec.DefineStruct{
+		RawName: "EmbeddedAudit",
+		Members: []spec.Member{
+			{
+				Name: "TraceId",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"traceId"`,
+			},
+		},
+	}
+	testStruct := spec.DefineStruct{
+		RawName: "EmbeddedProfile",
+		Members: []spec.Member{
+			{
+				Type:     baseStruct,
+				IsInline: true,
+			},
+			{
+				Type: spec.PointerType{
+					Type: auditStruct,
+				},
+				IsInline: true,
+			},
+			{
+				Name: "Nickname",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"nickname,optional"`,
+			},
+		},
+	}
+
+	properties, required := propertiesFromType(ctx, testStruct)
+
+	assert.Contains(t, properties, "userId")
+	assert.Contains(t, properties, "traceId")
+	assert.Contains(t, properties, "nickname")
+	assert.ElementsMatch(t, []string{"userId", "traceId"}, required)
 }
