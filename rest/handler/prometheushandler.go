@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/metric"
 	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/internal/trace"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
@@ -38,7 +39,7 @@ func PrometheusHandler(path, method string) func(http.Handler) http.Handler {
 			cw := response.NewWithCodeResponseWriter(w)
 			defer func() {
 				code := strconv.Itoa(cw.Code)
-				metricServerReqDur.Observe(timex.Since(startTime).Milliseconds(), path, method, code)
+				metricServerReqDur.ObserveWithTrace(float64(timex.Since(startTime).Milliseconds()), trace.TraceIDFromContext(r.Context()), path, method, code)
 				metricServerReqCodeTotal.Inc(path, method, code)
 			}()
 
