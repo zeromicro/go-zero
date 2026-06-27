@@ -121,7 +121,7 @@ func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver json
 		}
 
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
-		handler := internal.NewEventHandler(w, resolver)
+		handler := internal.NewEventHandlerWithContext(r.Context(), w, resolver, httpx.HasOkHandler())
 		if err := grpcurl.InvokeRPC(r.Context(), source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
