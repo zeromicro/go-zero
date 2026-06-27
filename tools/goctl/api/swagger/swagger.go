@@ -125,6 +125,14 @@ func itemFromGoType(ctx Context, tp apiSpec.Type) *spec.SchemaOrArray {
 				},
 			},
 		}
+	case apiSpec.InterfaceType:
+		return &spec.SchemaOrArray{
+			Schema: &spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Type: []string{swaggerTypeObject},
+				},
+			},
+		}
 	case apiSpec.PointerType:
 		return itemFromGoType(ctx, itemType.Type)
 	case apiSpec.ArrayType:
@@ -149,7 +157,7 @@ func typeFromGoType(ctx Context, tp apiSpec.Type) []string {
 		}
 	case apiSpec.ArrayType:
 		return []string{swaggerTypeArray}
-	case apiSpec.DefineStruct, apiSpec.MapType:
+	case apiSpec.DefineStruct, apiSpec.InterfaceType, apiSpec.MapType:
 		return []string{swaggerTypeObject}
 	case apiSpec.PointerType:
 		return typeFromGoType(ctx, val.Type)
@@ -163,7 +171,7 @@ func sampleTypeFromGoType(ctx Context, tp apiSpec.Type) string {
 		return tpMapper[val.RawName]
 	case apiSpec.ArrayType:
 		return swaggerTypeArray
-	case apiSpec.DefineStruct, apiSpec.MapType, apiSpec.NestedStruct:
+	case apiSpec.DefineStruct, apiSpec.InterfaceType, apiSpec.MapType, apiSpec.NestedStruct:
 		return swaggerTypeObject
 	case apiSpec.PointerType:
 		return sampleTypeFromGoType(ctx, val.Type)

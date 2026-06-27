@@ -3,8 +3,8 @@ package swagger
 import (
 	"testing"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
 func Test_pathVariable2SwaggerVariable(t *testing.T) {
@@ -66,7 +66,7 @@ func TestArrayDefinitionsBug(t *testing.T) {
 
 	// Verify the array field has correct structure
 	assert.Equal(t, "array", arrayField.Type[0])
-	
+
 	// Check that we have items
 	assert.NotNil(t, arrayField.Items, "Array should have items defined")
 	assert.NotNil(t, arrayField.Items.Schema, "Array items should have schema")
@@ -74,7 +74,7 @@ func TestArrayDefinitionsBug(t *testing.T) {
 	// The FIX: $ref should be inside items, not at schema level
 	hasRef := arrayField.Ref.String() != ""
 	assert.False(t, hasRef, "Schema level should NOT have $ref")
-	
+
 	// The $ref should be in the items
 	hasItemsRef := arrayField.Items.Schema.Ref.String() != ""
 	assert.True(t, hasItemsRef, "Items should have $ref")
@@ -137,4 +137,34 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	assert.Equal(t, "object", arrayField.Items.Schema.Type[0])
 	assert.Contains(t, arrayField.Items.Schema.Properties, "itemName")
 	assert.Equal(t, []string{"itemName"}, arrayField.Items.Schema.Required)
+}
+
+func TestNestedArrayInterfaceItems(t *testing.T) {
+	ctx := testingContext(t)
+	testStruct := spec.DefineStruct{
+		RawName: "TestStruct",
+		Members: []spec.Member{
+			{
+				Name: "Data",
+				Type: spec.ArrayType{
+					Value: spec.ArrayType{
+						Value: spec.InterfaceType{RawName: "interface{}"},
+					},
+				},
+				Tag: `json:"data"`,
+			},
+		},
+	}
+
+	properties, _ := propertiesFromType(ctx, testStruct)
+	arrayField := properties["data"]
+
+	assert.Equal(t, "array", arrayField.Type[0])
+	assert.NotNil(t, arrayField.Items)
+	assert.NotNil(t, arrayField.Items.Schema)
+	assert.Equal(t, "array", arrayField.Items.Schema.Type[0])
+	if assert.NotNil(t, arrayField.Items.Schema.Items) &&
+		assert.NotNil(t, arrayField.Items.Schema.Items.Schema) {
+		assert.Equal(t, "object", arrayField.Items.Schema.Items.Schema.Type[0])
+	}
 }
