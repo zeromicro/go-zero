@@ -999,6 +999,45 @@ func TestUnmarshalJsonBytesPointerSliceOtherTypes(t *testing.T) {
 	})
 }
 
+func TestUnmarshalJsonBytesPointerSliceStruct(t *testing.T) {
+	type Item struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	t.Run("with values", func(t *testing.T) {
+		var c struct {
+			Items *[]Item `json:"items,optional"`
+		}
+		content := []byte(`{"items":[{"name":"alice","age":30},{"name":"bob","age":25}]}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.NotNil(t, c.Items)
+		assert.Equal(t, []Item{{Name: "alice", Age: 30}, {Name: "bob", Age: 25}}, *c.Items)
+	})
+
+	t.Run("omitted", func(t *testing.T) {
+		var c struct {
+			Items *[]Item `json:"items,optional"`
+		}
+		content := []byte(`{}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.Nil(t, c.Items)
+	})
+
+	t.Run("empty array", func(t *testing.T) {
+		var c struct {
+			Items *[]Item `json:"items,optional"`
+		}
+		content := []byte(`{"items":[]}`)
+
+		assert.Nil(t, UnmarshalJsonBytes(content, &c))
+		assert.NotNil(t, c.Items)
+		assert.Equal(t, []Item{}, *c.Items)
+	})
+}
+
 func TestUnmarshalJsonBytesError(t *testing.T) {
 	var v []struct {
 		Name string `json:"name"`
