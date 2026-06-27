@@ -13,44 +13,61 @@ const (
 	envPodIp = "POD_IP"
 )
 
+type etcdPublisher interface {
+	KeepAlive() error
+	Pause()
+	Resume()
+}
+
 // NewRpcPubServer returns a Server.
 func NewRpcPubServer(etcd discov.EtcdConf, listenOn string,
 	opts ...ServerOption) (Server, error) {
-	registerEtcd := func() error {
-		pubListenOn := figureOutListenOn(listenOn)
-		var pubOpts []discov.PubOption
-		if etcd.HasAccount() {
-			pubOpts = append(pubOpts, discov.WithPubEtcdAccount(etcd.User, etcd.Pass))
-		}
-		if etcd.HasTLS() {
-			pubOpts = append(pubOpts, discov.WithPubEtcdTLS(etcd.CertFile, etcd.CertKeyFile,
-				etcd.CACertFile, etcd.InsecureSkipVerify))
-		}
-		if etcd.HasID() {
-			pubOpts = append(pubOpts, discov.WithId(etcd.ID))
-		}
-		pubClient := discov.NewPublisher(etcd.Hosts, etcd.Key, pubListenOn, pubOpts...)
-		return pubClient.KeepAlive()
+	pubListenOn := figureOutListenOn(listenOn)
+	var pubOpts []discov.PubOption
+	if etcd.HasAccount() {
+		pubOpts = append(pubOpts, discov.WithPubEtcdAccount(etcd.User, etcd.Pass))
 	}
+	if etcd.HasTLS() {
+		pubOpts = append(pubOpts, discov.WithPubEtcdTLS(etcd.CertFile, etcd.CertKeyFile,
+			etcd.CACertFile, etcd.InsecureSkipVerify))
+	}
+	if etcd.HasID() {
+		pubOpts = append(pubOpts, discov.WithId(etcd.ID))
+	}
+	pubClient := discov.NewPublisher(etcd.Hosts, etcd.Key, pubListenOn, pubOpts...)
 	server := keepAliveServer{
-		registerEtcd: registerEtcd,
-		Server:       NewRpcServer(listenOn, opts...),
+		publisher: pubClient,
+		Server:    NewRpcServer(listenOn, opts...),
 	}
 
 	return server, nil
 }
 
 type keepAliveServer struct {
-	registerEtcd func() error
+	publisher etcdPublisher
 	Server
 }
 
 func (s keepAliveServer) Start(fn RegisterFn) error {
-	if err := s.registerEtcd(); err != nil {
+	if err := s.publisher.KeepAlive(); err != nil {
 		return err
 	}
 
 	return s.Server.Start(fn)
+}
+
+// PauseEtcdRegister pauses the etcd lease renewal for this rpc server.
+func (s keepAliveServer) PauseEtcdRegister() {
+	if s.publisher != nil {
+		s.publisher.Pause()
+	}
+}
+
+// ResumeEtcdRegister resumes the etcd lease renewal for this rpc server.
+func (s keepAliveServer) ResumeEtcdRegister() {
+	if s.publisher != nil {
+		s.publisher.Resume()
+	}
 }
 
 func figureOutListenOn(listenOn string) string {
