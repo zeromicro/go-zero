@@ -160,20 +160,6 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	return rds, nil
 }
 
-func newRedis(addr string, opts ...Option) *Redis {
-	r := &Redis{
-		Addr: addr,
-		Type: NodeType,
-		brk:  breaker.NewBreaker(),
-	}
-
-	for _, opt := range opts {
-		opt(r)
-	}
-
-	return r
-}
-
 // NewScript returns a new Script instance.
 func NewScript(script string) *Script {
 	return red.NewScript(script)
@@ -2699,6 +2685,18 @@ func (s *Redis) checkConnection(pingTimeout time.Duration) error {
 	return conn.Ping(ctx).Err()
 }
 
+// maintNotificationsConfig builds the go-redis maintenance notifications config
+// from the configured mode, defaulting to disabled when unset so that the
+// CLIENT MAINT_NOTIFICATIONS command is not issued on connect.
+func (r *Redis) maintNotificationsConfig() *maintnotifications.Config {
+	mode := r.maintNotifications
+	if len(mode) == 0 {
+		mode = maintnotifications.ModeDisabled
+	}
+
+	return &maintnotifications.Config{Mode: mode}
+}
+
 // Cluster customizes the given Redis as a cluster.
 func Cluster() Option {
 	return func(r *Redis) {
@@ -2761,18 +2759,6 @@ func WithMaintNotifications(mode string) Option {
 	}
 }
 
-// maintNotificationsConfig builds the go-redis maintenance notifications config
-// from the configured mode, defaulting to disabled when unset so that the
-// CLIENT MAINT_NOTIFICATIONS command is not issued on connect.
-func (r *Redis) maintNotificationsConfig() *maintnotifications.Config {
-	mode := r.maintNotifications
-	if mode == "" {
-		mode = maintnotifications.ModeDisabled
-	}
-
-	return &maintnotifications.Config{Mode: mode}
-}
-
 func acceptable(err error) bool {
 	return err == nil || errorx.In(err, red.Nil, context.Canceled)
 }
@@ -2786,6 +2772,20 @@ func getRedis(r *Redis) (RedisNode, error) {
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
+}
+
+func newRedis(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
 func toPairs(vals []red.Z) []Pair {
