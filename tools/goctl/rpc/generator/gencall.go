@@ -226,60 +226,6 @@ func getMessageName(msg proto.Message) string {
 	return strings.Join(list, "_")
 }
 
-func collectServiceUsedTypes(messages []parser.Message, service parser.Service) *collection.Set[string] {
-	messageByName := make(map[string]*proto.Message, len(messages))
-	for _, item := range messages {
-		msgName := parser.CamelCase(getMessageName(*item.Message))
-		messageByName[msgName] = item.Message
-	}
-
-	usedTypes := collection.NewSet[string]()
-	for _, rpc := range service.RPC {
-		collectMessageDependencies(rpc.RequestType, messageByName, usedTypes)
-		collectMessageDependencies(rpc.ReturnsType, messageByName, usedTypes)
-	}
-
-	return usedTypes
-}
-
-func collectMessageDependencies(protoType string, messageByName map[string]*proto.Message,
-	usedTypes *collection.Set[string]) {
-	for _, candidate := range messageTypeCandidates(protoType) {
-		msg, ok := messageByName[candidate]
-		if !ok {
-			continue
-		}
-		if usedTypes.Contains(candidate) {
-			return
-		}
-
-		usedTypes.Add(candidate)
-		for _, elem := range msg.Elements {
-			switch field := elem.(type) {
-			case *proto.NormalField:
-				collectMessageDependencies(field.Type, messageByName, usedTypes)
-			case *proto.MapField:
-				collectMessageDependencies(field.Type, messageByName, usedTypes)
-			case *proto.Oneof:
-				for _, oneofElem := range field.Elements {
-					if oneofField, ok := oneofElem.(*proto.OneOfField); ok {
-						collectMessageDependencies(oneofField.Type, messageByName, usedTypes)
-					}
-				}
-			}
-		}
-		return
-	}
-}
-
-func messageTypeCandidates(protoType string) []string {
-	protoType = strings.TrimPrefix(protoType, ".")
-	return []string{
-		parser.CamelCase(protoType),
-		parser.CamelCase(strings.ReplaceAll(protoType, ".", "_")),
-	}
-}
-
 func (g *Generator) genFunction(goPackage, mainGoPackage, serviceName string, service parser.Service,
 	isCallPkgSameToGrpcPkg bool, pkgMap map[string]parser.ImportedProto,
 	alias, extraImports *collection.Set[string]) ([]string, error) {
