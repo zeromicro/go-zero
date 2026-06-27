@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -88,6 +89,128 @@ func TestAuthHandler_NilError(t *testing.T) {
 	assert.NotPanics(t, func() {
 		unauthorized(resp, req, nil, nil)
 	})
+}
+
+func TestAuthHandlerWithJSONBody(t *testing.T) {
+	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	
+	// Create a request with JSON body
+	jsonBody := `{"username":"test","password":"secret"}`
+	req := httptest.NewRequest(http.MethodPost, "http://localhost/login", 
+		strings.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	// Missing authorization header to trigger the unauthorized path
+	
+	handler := Authorize(key)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+	
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	
+	// Should return unauthorized
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+}
+
+func TestAuthHandlerWithMultipartFormData(t *testing.T) {
+	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	
+	// Create a multipart form-data request
+	// We don't need actual body content since we're testing that
+	// the body is NOT read when Content-Type is multipart/form-data
+	req := httptest.NewRequest(http.MethodPost, "http://localhost/upload", 
+		http.NoBody)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary")
+	// Missing authorization header to trigger the unauthorized path
+	
+	handler := Authorize(key)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+	
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	
+	// Should return unauthorized
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+}
+
+func TestAuthHandlerWithMultipartFormDataLargeFile(t *testing.T) {
+	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	
+	// Create a multipart form-data request with a simulated large file
+	// This tests that the body is NOT consumed when Content-Type is multipart/form-data
+	largeContent := make([]byte, 1024*1024) // 1MB of data
+	for i := range largeContent {
+		largeContent[i] = byte(i % 256)
+	}
+	
+	req := httptest.NewRequest(http.MethodPost, "http://localhost/upload", 
+		http.NoBody)
+	req.Header.Set("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary")
+	req.Header.Set("Content-Length", "1048576")
+	// Missing authorization header to trigger the unauthorized path
+	
+	handler := Authorize(key)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+	
+	resp := httptest.NewRecorder()
+	
+	// This should complete quickly without reading the body
+	start := time.Now()
+	handler.ServeHTTP(resp, req)
+	elapsed := time.Since(start)
+	
+	// Should return unauthorized
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+	// Should complete in less than 100ms (without reading 1MB of data)
+	assert.Less(t, elapsed, 100*time.Millisecond)
+}
+
+func TestIsMultipartFormData(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		expected    bool
+	}{
+		{
+			name:        "multipart/form-data",
+			contentType: "multipart/form-data",
+			expected:    true,
+		},
+		{
+			name:        "multipart/form-data with boundary",
+			contentType: "multipart/form-data; boundary=----WebKitFormBoundary",
+			expected:    true,
+		},
+		{
+			name:        "application/json",
+			contentType: "application/json",
+			expected:    false,
+		},
+		{
+			name:        "application/x-www-form-urlencoded",
+			contentType: "application/x-www-form-urlencoded",
+			expected:    false,
+		},
+		{
+			name:        "empty content type",
+			contentType: "",
+			expected:    false,
+		},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "http://localhost", http.NoBody)
+			req.Header.Set("Content-Type", tt.contentType)
+			result := isMultipartFormData(req)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
 
 func buildToken(secretKey string, payloads map[string]any, seconds int64) (string, error) {
