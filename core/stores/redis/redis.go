@@ -8,6 +8,7 @@ import (
 	"time"
 
 	red "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9/maintnotifications"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -53,13 +54,16 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		User  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr               string
+		Type               string
+		User               string
+		Pass               string
+		protocol           int
+		identity           bool
+		maintNotifications maintnotifications.Mode
+		tls                bool
+		brk                breaker.Breaker
+		hooks              []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -135,6 +139,15 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
+	}
+	if conf.Protocol > 0 {
+		opts = append([]Option{WithProtocol(conf.Protocol)}, opts...)
+	}
+	if conf.DisableIdentity {
+		opts = append([]Option{WithIdentity()}, opts...)
+	}
+	if len(conf.MaintNotifications) > 0 {
+		opts = append([]Option{WithMaintNotifications(conf.MaintNotifications)}, opts...)
 	}
 
 	rds := newRedis(conf.Host, opts...)
@@ -2724,6 +2737,40 @@ func WithUser(user string) Option {
 	return func(r *Redis) {
 		r.User = user
 	}
+}
+
+// WithProtocol customizes the given Redis with protocol.
+func WithProtocol(protocol int) Option {
+	return func(r *Redis) {
+		r.protocol = protocol
+	}
+}
+
+// WithIdentity customizes the given Redis with Identity enabled.
+func WithIdentity() Option {
+	return func(r *Redis) {
+		r.identity = true
+	}
+}
+
+// WithMaintNotifications customizes the given Redis with the maintenance
+// notifications mode (disabled, enabled or auto).
+func WithMaintNotifications(mode string) Option {
+	return func(r *Redis) {
+		r.maintNotifications = maintnotifications.Mode(mode)
+	}
+}
+
+// maintNotificationsConfig builds the go-redis maintenance notifications config
+// from the configured mode, defaulting to disabled when unset so that the
+// CLIENT MAINT_NOTIFICATIONS command is not issued on connect.
+func (r *Redis) maintNotificationsConfig() *maintnotifications.Config {
+	mode := r.maintNotifications
+	if mode == "" {
+		mode = maintnotifications.ModeDisabled
+	}
+
+	return &maintnotifications.Config{Mode: mode}
 }
 
 func acceptable(err error) bool {
