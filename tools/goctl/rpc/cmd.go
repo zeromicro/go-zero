@@ -33,6 +33,7 @@ func init() {
 	rpcCmdFlags.StringVar(&cli.VarStringRemote, "remote")
 	rpcCmdFlags.StringVar(&cli.VarStringBranch, "branch")
 
+	newCmdFlags.BoolVarP(&cli.VarBoolMultiple, "multiple", "m")
 	newCmdFlags.StringSliceVar(&cli.VarStringSliceGoOpt, "go_opt")
 	newCmdFlags.StringSliceVar(&cli.VarStringSliceGoGRPCOpt, "go-grpc_opt")
 	newCmdFlags.StringVarWithDefaultValue(&cli.VarStringStyle, "style", config.DefaultFormat)
