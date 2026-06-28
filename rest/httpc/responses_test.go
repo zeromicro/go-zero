@@ -2,6 +2,7 @@ package httpc
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/rest/internal/header"
 )
+
+type closingMockedReader struct {
+	closed bool
+	err    error
+}
 
 func TestParse(t *testing.T) {
 	var val struct {
@@ -46,6 +52,22 @@ func TestParseHeaderError(t *testing.T) {
 	resp, err := DoRequest(req)
 	assert.Nil(t, err)
 	assert.NotNil(t, Parse(resp, &val))
+}
+
+func TestParseHeaderErrorClosesBody(t *testing.T) {
+	var val struct {
+		Foo int `header:"foo"`
+	}
+	body := &closingMockedReader{}
+	resp := &http.Response{
+		Header: http.Header{
+			"Foo": []string{"bar"},
+		},
+		Body: body,
+	}
+
+	assert.Error(t, Parse(resp, &val))
+	assert.True(t, body.closed)
 }
 
 func TestParseNoBody(t *testing.T) {
@@ -177,4 +199,16 @@ func (m mockedReader) Close() error {
 
 func (m mockedReader) Read(_ []byte) (n int, err error) {
 	return 0, errors.New("dummy")
+}
+
+func (m *closingMockedReader) Close() error {
+	m.closed = true
+	return nil
+}
+
+func (m *closingMockedReader) Read(_ []byte) (n int, err error) {
+	if m.err != nil {
+		return 0, m.err
+	}
+	return 0, io.EOF
 }
