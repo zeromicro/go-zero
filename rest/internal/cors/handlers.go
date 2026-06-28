@@ -94,7 +94,7 @@ func isOriginAllowed(allows []string, origin string) bool {
 			return true
 		}
 
-		if strings.HasSuffix(origin, "."+allow) {
+		if strings.HasSuffix(origin, allow) {
 			return true
 		}
 	}
