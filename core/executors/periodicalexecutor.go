@@ -1,7 +1,6 @@
 package executors
 
 import (
-	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -18,21 +17,21 @@ const idleRound = 10
 type (
 	// TaskContainer interface defines a type that can be used as the underlying
 	// container that used to do periodical executions.
-	TaskContainer interface {
+	TaskContainer[T any] interface {
 		// AddTask adds the task into the container.
 		// Returns true if the container needs to be flushed after the addition.
-		AddTask(task any) bool
+		AddTask(task T) bool
 		// Execute handles the collected tasks by the container when flushing.
-		Execute(tasks any)
+		Execute(tasks []T)
 		// RemoveAll removes the contained tasks, and return them.
-		RemoveAll() any
+		RemoveAll() []T
 	}
 
 	// A PeriodicalExecutor is an executor that periodically execute tasks.
-	PeriodicalExecutor struct {
-		commander chan any
+	PeriodicalExecutor[T any] struct {
+		commander chan []T
 		interval  time.Duration
-		container TaskContainer
+		container TaskContainer[T]
 		waitGroup sync.WaitGroup
 		// avoid race condition on waitGroup when calling wg.Add/Done/Wait(...)
 		wgBarrier   syncx.Barrier
@@ -45,10 +44,10 @@ type (
 )
 
 // NewPeriodicalExecutor returns a PeriodicalExecutor with given interval and container.
-func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *PeriodicalExecutor {
-	executor := &PeriodicalExecutor{
+func NewPeriodicalExecutor[T any](interval time.Duration, container TaskContainer[T]) *PeriodicalExecutor[T] {
+	executor := &PeriodicalExecutor[T]{
 		// buffer 1 to let the caller go quickly
-		commander:   make(chan any, 1),
+		commander:   make(chan []T, 1),
 		interval:    interval,
 		container:   container,
 		confirmChan: make(chan lang.PlaceholderType),
@@ -64,7 +63,7 @@ func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *Per
 }
 
 // Add adds tasks into pe.
-func (pe *PeriodicalExecutor) Add(task any) {
+func (pe *PeriodicalExecutor[T]) Add(task T) {
 	if vals, ok := pe.addAndCheck(task); ok {
 		pe.commander <- vals
 		<-pe.confirmChan
@@ -72,9 +71,9 @@ func (pe *PeriodicalExecutor) Add(task any) {
 }
 
 // Flush forces pe to execute tasks.
-func (pe *PeriodicalExecutor) Flush() bool {
+func (pe *PeriodicalExecutor[T]) Flush() bool {
 	pe.enterExecution()
-	return pe.executeTasks(func() any {
+	return pe.executeTasks(func() []T {
 		pe.lock.Lock()
 		defer pe.lock.Unlock()
 		return pe.container.RemoveAll()
@@ -82,21 +81,21 @@ func (pe *PeriodicalExecutor) Flush() bool {
 }
 
 // Sync lets caller run fn thread-safe with pe, especially for the underlying container.
-func (pe *PeriodicalExecutor) Sync(fn func()) {
+func (pe *PeriodicalExecutor[T]) Sync(fn func()) {
 	pe.lock.Lock()
 	defer pe.lock.Unlock()
 	fn()
 }
 
 // Wait waits the execution to be done.
-func (pe *PeriodicalExecutor) Wait() {
+func (pe *PeriodicalExecutor[T]) Wait() {
 	pe.Flush()
 	pe.wgBarrier.Guard(func() {
 		pe.waitGroup.Wait()
 	})
 }
 
-func (pe *PeriodicalExecutor) addAndCheck(task any) (any, bool) {
+func (pe *PeriodicalExecutor[T]) addAndCheck(task T) ([]T, bool) {
 	pe.lock.Lock()
 	defer func() {
 		if !pe.guarded {
@@ -115,7 +114,7 @@ func (pe *PeriodicalExecutor) addAndCheck(task any) (any, bool) {
 	return nil, false
 }
 
-func (pe *PeriodicalExecutor) backgroundFlush() {
+func (pe *PeriodicalExecutor[T]) backgroundFlush() {
 	go func() {
 		// flush before quit goroutine to avoid missing tasks
 		defer pe.Flush()
@@ -147,17 +146,17 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 	}()
 }
 
-func (pe *PeriodicalExecutor) doneExecution() {
+func (pe *PeriodicalExecutor[T]) doneExecution() {
 	pe.waitGroup.Done()
 }
 
-func (pe *PeriodicalExecutor) enterExecution() {
+func (pe *PeriodicalExecutor[T]) enterExecution() {
 	pe.wgBarrier.Guard(func() {
 		pe.waitGroup.Add(1)
 	})
 }
 
-func (pe *PeriodicalExecutor) executeTasks(tasks any) bool {
+func (pe *PeriodicalExecutor[T]) executeTasks(tasks []T) bool {
 	defer pe.doneExecution()
 
 	ok := pe.hasTasks(tasks)
@@ -170,22 +169,11 @@ func (pe *PeriodicalExecutor) executeTasks(tasks any) bool {
 	return ok
 }
 
-func (pe *PeriodicalExecutor) hasTasks(tasks any) bool {
-	if tasks == nil {
-		return false
-	}
-
-	val := reflect.ValueOf(tasks)
-	switch val.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
-		return val.Len() > 0
-	default:
-		// unknown type, let caller execute it
-		return true
-	}
+func (pe *PeriodicalExecutor[T]) hasTasks(tasks []T) bool {
+	return len(tasks) > 0
 }
 
-func (pe *PeriodicalExecutor) shallQuit(last time.Duration) (stop bool) {
+func (pe *PeriodicalExecutor[T]) shallQuit(last time.Duration) (stop bool) {
 	if timex.Since(last) <= pe.interval*idleRound {
 		return
 	}
