@@ -88,6 +88,10 @@ func (cc CachedConn) GetCacheCtx(ctx context.Context, key string, v any) error {
 	return cc.cache.GetCtx(ctx, key, v)
 }
 
+func(cc CachedConn)GetRawConnNoCache()sqlx.SqlConn{
+	return cc.db
+}	
+
 // Exec runs given exec on given keys, and returns execution result.
 func (cc CachedConn) Exec(exec ExecFn, keys ...string) (sql.Result, error) {
 	execCtx := func(_ context.Context, conn sqlx.SqlConn) (sql.Result, error) {
