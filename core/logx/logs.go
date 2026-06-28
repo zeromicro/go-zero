@@ -22,9 +22,12 @@ var (
 	// maxContentLength is used to truncate the log content, 0 for not truncating.
 	maxContentLength uint32
 	// use uint32 for atomic operations
-	disableStat uint32
-	logLevel    uint32
-	options     logOptions
+	disableStat  uint32
+	logLevel     uint32
+	// slowLogLevel controls slow log output independently from the main log level.
+	// Defaults to ErrorLevel to preserve backward-compatible behavior.
+	slowLogLevel = uint32(ErrorLevel)
+	options      logOptions
 	writer      = new(atomicWriter)
 	setupOnce   sync.Once
 )
@@ -327,16 +330,23 @@ func Severef(format string, v ...any) {
 	}
 }
 
+// SetSlowLevel sets the minimum log level required to emit slow logs.
+// By default it matches ErrorLevel (backward-compatible). Set to InfoLevel
+// to make slow logs visible even when error logs are suppressed.
+func SetSlowLevel(level uint32) {
+	atomic.StoreUint32(&slowLogLevel, level)
+}
+
 // Slow writes v into slow log.
 func Slow(v ...any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		writeSlow(fmt.Sprint(v...))
 	}
 }
 
 // Slowf writes v with format into slow log.
 func Slowf(format string, v ...any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		writeSlow(fmt.Sprintf(format, v...))
 	}
 }
@@ -344,21 +354,21 @@ func Slowf(format string, v ...any) {
 // Slowfn writes function result into slow log.
 // This is useful when the function is expensive to call and slow level disabled.
 func Slowfn(fn func() any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		writeSlow(fn())
 	}
 }
 
 // Slowv writes v into slow log with json content.
 func Slowv(v any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		writeSlow(v)
 	}
 }
 
 // Sloww writes msg along with fields into slow log.
 func Sloww(msg string, fields ...LogField) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		writeSlow(msg, fields...)
 	}
 }
@@ -546,6 +556,10 @@ func setupWithVolume(c LogConf) error {
 
 func shallLog(level uint32) bool {
 	return atomic.LoadUint32(&logLevel) <= level
+}
+
+func shallSlowLog() bool {
+	return atomic.LoadUint32(&logLevel) <= atomic.LoadUint32(&slowLogLevel)
 }
 
 func shallLogStat() bool {
