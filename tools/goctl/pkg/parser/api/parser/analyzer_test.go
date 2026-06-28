@@ -107,4 +107,120 @@ func Test_Parse(t *testing.T) {
 			assert.Nil(t, err)
 		},
 	)
+	t.Run(
+		"multi_level_embedding", func(t *testing.T) {
+			apiSpec, err := Parse("./testdata/multi_level_embedding.api", nil)
+			assert.Nil(t, err)
+			assert.NotNil(t, apiSpec)
+
+			// Verify that types are resolved correctly
+			var ageStruct, fullProfile spec.DefineStruct
+			for _, typ := range apiSpec.Types {
+				if defineStruct, ok := typ.(spec.DefineStruct); ok {
+					switch defineStruct.RawName {
+					case "AgeStruct":
+						ageStruct = defineStruct
+					case "FullProfile":
+						fullProfile = defineStruct
+					}
+				}
+			}
+
+			// Test 2-level embedding: AgeStruct embeds NameStruct which embeds IdStruct
+			assert.NotEmpty(t, ageStruct.RawName, "AgeStruct should be found")
+			assert.Equal(t, 2, len(ageStruct.Members), "AgeStruct should have 2 members: embedded NameStruct and Age field")
+
+			// Verify the embedded NameStruct is fully resolved
+			var embeddedNameStruct spec.Member
+			for _, member := range ageStruct.Members {
+				if member.IsInline {
+					embeddedNameStruct = member
+					break
+				}
+			}
+			assert.True(t, embeddedNameStruct.IsInline, "NameStruct should be embedded (IsInline=true)")
+
+			// The embedded type should be fully resolved NameStruct with its members
+			if resolvedNameStruct, ok := embeddedNameStruct.Type.(spec.DefineStruct); ok {
+				assert.Equal(t, "NameStruct", resolvedNameStruct.RawName)
+				assert.Equal(t, 2, len(resolvedNameStruct.Members), "Embedded NameStruct should have 2 members")
+
+				// Check that NameStruct has the embedded IdStruct resolved
+				var embeddedIdStruct spec.Member
+				for _, member := range resolvedNameStruct.Members {
+					if member.IsInline {
+						embeddedIdStruct = member
+						break
+					}
+				}
+				assert.True(t, embeddedIdStruct.IsInline, "IdStruct should be embedded in NameStruct")
+
+				if resolvedIdStruct, ok := embeddedIdStruct.Type.(spec.DefineStruct); ok {
+					assert.Equal(t, "IdStruct", resolvedIdStruct.RawName)
+					assert.Equal(t, 1, len(resolvedIdStruct.Members), "IdStruct should have 1 member")
+					assert.Equal(t, "Id", resolvedIdStruct.Members[0].Name)
+				} else {
+					t.Errorf("Embedded IdStruct should be resolved to DefineStruct, got %T", embeddedIdStruct.Type)
+				}
+			} else {
+				t.Errorf("Embedded NameStruct should be resolved to DefineStruct, got %T", embeddedNameStruct.Type)
+			}
+
+			// Test 3-level embedding: FullProfile -> ExtendedProfile -> UserProfile -> BaseUser
+			assert.NotEmpty(t, fullProfile.RawName, "FullProfile should be found")
+			assert.Equal(t, 3, len(fullProfile.Members), "FullProfile should have 3 members: embedded ExtendedProfile, Bio, and CreatedAt")
+
+			// Verify the embedded ExtendedProfile is fully resolved
+			var embeddedExtendedProfile spec.Member
+			for _, member := range fullProfile.Members {
+				if member.IsInline {
+					embeddedExtendedProfile = member
+					break
+				}
+			}
+			assert.True(t, embeddedExtendedProfile.IsInline, "ExtendedProfile should be embedded")
+
+			if resolvedExtendedProfile, ok := embeddedExtendedProfile.Type.(spec.DefineStruct); ok {
+				assert.Equal(t, "ExtendedProfile", resolvedExtendedProfile.RawName)
+				assert.Equal(t, 3, len(resolvedExtendedProfile.Members), "ExtendedProfile should have 3 members")
+
+				// Check that ExtendedProfile has UserProfile embedded and resolved
+				var embeddedUserProfile spec.Member
+				for _, member := range resolvedExtendedProfile.Members {
+					if member.IsInline {
+						embeddedUserProfile = member
+						break
+					}
+				}
+
+				if resolvedUserProfile, ok := embeddedUserProfile.Type.(spec.DefineStruct); ok {
+					assert.Equal(t, "UserProfile", resolvedUserProfile.RawName)
+					assert.Equal(t, 3, len(resolvedUserProfile.Members), "UserProfile should have 3 members")
+
+					// Check that UserProfile has BaseUser embedded and resolved
+					var embeddedBaseUser spec.Member
+					for _, member := range resolvedUserProfile.Members {
+						if member.IsInline {
+							embeddedBaseUser = member
+							break
+						}
+					}
+
+					if resolvedBaseUser, ok := embeddedBaseUser.Type.(spec.DefineStruct); ok {
+						assert.Equal(t, "BaseUser", resolvedBaseUser.RawName)
+						assert.Equal(t, 2, len(resolvedBaseUser.Members), "BaseUser should have 2 members")
+						// Verify the deepest fields are present
+						assert.Equal(t, "UserId", resolvedBaseUser.Members[0].Name)
+						assert.Equal(t, "Email", resolvedBaseUser.Members[1].Name)
+					} else {
+						t.Errorf("Embedded BaseUser should be resolved to DefineStruct, got %T", embeddedBaseUser.Type)
+					}
+				} else {
+					t.Errorf("Embedded UserProfile should be resolved to DefineStruct, got %T", embeddedUserProfile.Type)
+				}
+			} else {
+				t.Errorf("Embedded ExtendedProfile should be resolved to DefineStruct, got %T", embeddedExtendedProfile.Type)
+			}
+		},
+	)
 }
