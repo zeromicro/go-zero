@@ -142,11 +142,11 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return nil
 	}
 
-	baseType := fieldType.Elem()
+	baseType := Deref(fieldType).Elem()
 	dereffedBaseType := Deref(baseType)
 	dereffedBaseKind := dereffedBaseType.Kind()
 	if refValue.Len() == 0 {
-		value.Set(reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
+		SetValue(fieldType, value, reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
 		return nil
 	}
 
@@ -179,7 +179,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	}
 
 	if valid {
-		value.Set(conv)
+		SetValue(fieldType, value, conv)
 	}
 
 	return nil
@@ -201,7 +201,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 		return errUnsupportedType
 	}
 
-	baseFieldType := fieldType.Elem()
+	baseFieldType := Deref(fieldType).Elem()
 	baseFieldKind := baseFieldType.Kind()
 	conv := reflect.MakeSlice(reflect.SliceOf(baseFieldType), len(slice), cap(slice))
 
@@ -211,7 +211,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 		}
 	}
 
-	value.Set(conv)
+	SetValue(fieldType, value, conv)
 	return nil
 }
 
