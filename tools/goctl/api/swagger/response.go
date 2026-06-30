@@ -46,9 +46,10 @@ func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *sp
 		}
 	}
 
-	p, _ := propertiesFromType(ctx, tp)
+	p, r := propertiesFromType(ctx, tp)
 	props.Type = typeFromGoType(ctx, tp)
 	props.Properties = p
+	props.Required = r
 	return &spec.Responses{
 		ResponsesProps: spec.ResponsesProps{
 			StatusCodeResponses: map[int]spec.Response{
