@@ -139,16 +139,33 @@ func (m Member) IsFormMember() bool {
 	return false
 }
 
-// IsTagMember returns true if contains given tag
+// IsTagMember returns true if the member contains the given tag.
+// For inline members, it recursively checks the members of the referenced
+// struct, since inline members themselves carry no tag and any matching tag
+// must live on one of their children. This avoids spuriously reporting the
+// presence of a tag (e.g. `header`) for an inline struct whose children do
+// not actually use that tag. See go-zero #4800.
 func (m Member) IsTagMember(tagKey string) bool {
-	if m.IsInline {
-		return true
-	}
-
 	tags := m.Tags()
 	for _, tag := range tags {
 		if tag.Key == tagKey {
 			return true
+		}
+	}
+	if m.IsInline {
+		switch v := m.Type.(type) {
+		case DefineStruct:
+			for _, child := range v.Members {
+				if child.IsTagMember(tagKey) {
+					return true
+				}
+			}
+		case NestedStruct:
+			for _, child := range v.Members {
+				if child.IsTagMember(tagKey) {
+					return true
+				}
+			}
 		}
 	}
 	return false
