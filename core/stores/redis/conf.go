@@ -23,6 +23,30 @@ type (
 		Pass     string `json:",optional"`
 		Tls      bool   `json:",optional"`
 		NonBlock bool   `json:",default=true"`
+		// DisableIdentity is used to disable CLIENT SETINFO command on connect.
+		//
+		// Some redis versions/proxies do not support CLIENT SETINFO and return an
+		// error on connect; since that command runs through the breaker hook it can
+		// trip the breaker. Set this to true to skip it on such servers. Together
+		// with the default MaintNotifications=disabled (and the always-ignored
+		// HELLO command), this keeps the connect-time commands from tripping the
+		// breaker on incompatible servers, without forcing RESP2.
+		//
+		// default: false
+		DisableIdentity bool `json:",default=false"`
+		// Protocol 2 or 3. Use the version to negotiate RESP version with redis-server.
+		//
+		// default: 3.
+		Protocol int `json:",default=3"`
+		// MaintNotifications controls the CLIENT MAINT_NOTIFICATIONS handshake mode
+		// (go-redis MaintNotificationsConfig.Mode):
+		//   - disabled: never send the command (avoids tripping the breaker on servers
+		//     that don't support it; keeps RESP3 intact)
+		//   - auto: try, silently fall back on error (go-redis default)
+		//   - enabled: force, fail the connection on error
+		//
+		// default: disabled
+		MaintNotifications string `json:",default=disabled,options=disabled|enabled|auto"`
 		// PingTimeout is the timeout for ping redis.
 		PingTimeout time.Duration `json:",default=1s"`
 	}

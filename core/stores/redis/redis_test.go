@@ -11,6 +11,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	red "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9/maintnotifications"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -147,6 +148,82 @@ func TestNewRedis(t *testing.T) {
 				assert.Error(t, err)
 			}
 		})
+	}
+}
+
+func TestGetClientWithProtocolAndIdentity(t *testing.T) {
+	r := miniredis.RunT(t)
+	defer r.Close()
+	c, err := getClient(&Redis{
+		Addr:     r.Addr(),
+		Type:     NodeType,
+		protocol: 2,
+		identity: true,
+	})
+	if assert.NoError(t, err) {
+		assert.NotNil(t, c)
+		assert.Equal(t, 2, c.Options().Protocol)
+		assert.True(t, c.Options().DisableIdentity)
+	}
+}
+
+func TestNewRedis_ProtocolAndIdentity(t *testing.T) {
+	logx.Disable()
+
+	s := miniredis.RunT(t)
+	rds, err := NewRedis(RedisConf{
+		Host:            s.Addr(),
+		Type:            NodeType,
+		Protocol:        2,
+		DisableIdentity: true,
+	})
+	if assert.NoError(t, err) {
+		assert.Equal(t, 2, rds.protocol)
+		assert.True(t, rds.identity)
+	}
+}
+
+func TestGetClientWithMaintNotifications(t *testing.T) {
+	tests := []struct {
+		name string
+		mode maintnotifications.Mode
+		want maintnotifications.Mode
+	}{
+		{name: "unset falls back to disabled", mode: "", want: maintnotifications.ModeDisabled},
+		{name: "disabled", mode: maintnotifications.ModeDisabled, want: maintnotifications.ModeDisabled},
+		{name: "enabled", mode: maintnotifications.ModeEnabled, want: maintnotifications.ModeEnabled},
+		{name: "auto", mode: maintnotifications.ModeAuto, want: maintnotifications.ModeAuto},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			r := miniredis.RunT(t)
+			defer r.Close()
+			c, err := getClient(&Redis{
+				Addr:               r.Addr(),
+				Type:               NodeType,
+				maintNotifications: test.mode,
+			})
+			if assert.NoError(t, err) {
+				assert.NotNil(t, c)
+				assert.NotNil(t, c.Options().MaintNotificationsConfig)
+				assert.Equal(t, test.want, c.Options().MaintNotificationsConfig.Mode)
+			}
+		})
+	}
+}
+
+func TestNewRedis_MaintNotifications(t *testing.T) {
+	logx.Disable()
+
+	s := miniredis.RunT(t)
+	rds, err := NewRedis(RedisConf{
+		Host:               s.Addr(),
+		Type:               NodeType,
+		MaintNotifications: string(maintnotifications.ModeAuto),
+	})
+	if assert.NoError(t, err) {
+		assert.Equal(t, maintnotifications.ModeAuto, rds.maintNotifications)
 	}
 }
 
