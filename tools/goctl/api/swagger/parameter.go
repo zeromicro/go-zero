@@ -8,6 +8,10 @@ import (
 	apiSpec "github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
+func shouldIgnoreTag(tag *apiSpec.Tag) bool {
+	return tag != nil && tag.Name == "-"
+}
+
 func isRequestBodyJson(ctx Context, method string, tp apiSpec.Type) (string, bool) {
 	// Support HTTP methods that commonly use request bodies with JSON
 	// POST, PUT, PATCH are standard methods with bodies
@@ -60,6 +64,9 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		hasJson := jsonTag != nil
 
 		if hasHeader {
+			if shouldIgnoreTag(headerTag) {
+				return
+			}
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(headerTag.Options)
 			resp = append(resp, spec.Parameter{
 				CommonValidations: spec.CommonValidations{
@@ -85,6 +92,9 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		}
 
 		if hasPathParameter {
+			if shouldIgnoreTag(pathParameterTag) {
+				return
+			}
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(pathParameterTag.Options)
 			resp = append(resp, spec.Parameter{
 				CommonValidations: spec.CommonValidations{
@@ -110,6 +120,9 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		}
 
 		if hasForm {
+			if shouldIgnoreTag(formTag) {
+				return
+			}
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(formTag.Options)
 			if strings.EqualFold(method, http.MethodGet) {
 				resp = append(resp, spec.Parameter{
@@ -161,6 +174,9 @@ func parametersFromType(ctx Context, method string, tp apiSpec.Type) []spec.Para
 		}
 
 		if hasJson {
+			if shouldIgnoreTag(jsonTag) {
+				return
+			}
 			minimum, maximum, exclusiveMinimum, exclusiveMaximum := rangeValueFromOptions(jsonTag.Options)
 			if required {
 				requiredFields = append(requiredFields, jsonTag.Name)

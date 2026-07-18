@@ -138,3 +138,28 @@ func TestArrayWithoutDefinitions(t *testing.T) {
 	assert.Contains(t, arrayField.Items.Schema.Properties, "itemName")
 	assert.Equal(t, []string{"itemName"}, arrayField.Items.Schema.Required)
 }
+
+func TestPropertiesFromType_IgnoresJsonDashTag(t *testing.T) {
+	ctx := testingContext(t)
+	testStruct := spec.DefineStruct{
+		RawName: "Req",
+		Members: []spec.Member{
+			{
+				Name: "Visible",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"visible"`,
+			},
+			{
+				Name: "Hidden",
+				Type: spec.PrimitiveType{RawName: "string"},
+				Tag:  `json:"-"`,
+			},
+		},
+	}
+
+	properties, required := propertiesFromType(ctx, testStruct)
+	assert.Contains(t, properties, "visible")
+	assert.NotContains(t, properties, "-")
+	assert.NotContains(t, required, "-")
+	assert.Equal(t, []string{"visible"}, required)
+}

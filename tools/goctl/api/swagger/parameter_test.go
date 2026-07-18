@@ -118,6 +118,36 @@ func TestParametersFromType_ExampleField(t *testing.T) {
 	assert.EqualValues(t, int64(18), queryParam.SimpleSchema.Example, "form param example should be set")
 }
 
+func TestParametersFromType_IgnoreDashTagName(t *testing.T) {
+	ctx := testingContext(t)
+
+	testStruct := apiSpec.DefineStruct{
+		RawName: "Request",
+		Members: []apiSpec.Member{
+			{
+				Name: "A",
+				Type: apiSpec.PrimitiveType{RawName: "string"},
+				Tag:  `form:"a,optional"`,
+			},
+			{
+				Name: "Hidden1",
+				Type: apiSpec.PrimitiveType{RawName: "bool"},
+				Tag:  `form:"-"`,
+			},
+			{
+				Name: "Hidden2",
+				Type: apiSpec.ArrayType{Value: apiSpec.PrimitiveType{RawName: "int"}},
+				Tag:  `form:"-"`,
+			},
+		},
+	}
+
+	params := parametersFromType(ctx, http.MethodGet, testStruct)
+	assert.Len(t, params, 1)
+	assert.Equal(t, paramsInQuery, params[0].In)
+	assert.Equal(t, "a", params[0].Name)
+}
+
 func createTestStruct(name string, hasJson bool) apiSpec.DefineStruct {
 	tag := `form:"username"`
 	if hasJson {
