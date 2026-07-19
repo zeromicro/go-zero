@@ -16,7 +16,6 @@ func jsonResponseFromType(ctx Context, atDoc apiSpec.AtDoc, tp apiSpec.Type) *sp
 		response = spec.Response{
 			ResponseProps: spec.ResponseProps{
 				Description: "",
-				Schema:      &spec.Schema{},
 			},
 		}
 	} else {

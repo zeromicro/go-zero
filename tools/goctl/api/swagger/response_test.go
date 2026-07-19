@@ -68,6 +68,9 @@ func TestJsonResponseFromTypeStatusCode(t *testing.T) {
 
 			assert.Len(t, responses.StatusCodeResponses, 1)
 			assert.Contains(t, responses.StatusCodeResponses, test.want)
+			if test.response == nil {
+				assert.Nil(t, responses.StatusCodeResponses[test.want].Schema)
+			}
 		})
 	}
 }
