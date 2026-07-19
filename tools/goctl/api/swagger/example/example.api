@@ -82,6 +82,7 @@ type (
 service Swagger {
 	@doc (
 		description: "form demo"
+		respCode: "201" // HTTP status code corresponding to Swagger
 	)
 	@handler form
 	post /form (FormReq) returns (FormResp)
@@ -238,4 +239,3 @@ service Swagger {
 	@handler jsonComplex
 	post /json/complex (ComplexJsonReq) returns (ComplexJsonResp)
 }
-
