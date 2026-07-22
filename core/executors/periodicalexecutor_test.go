@@ -14,25 +14,25 @@ import (
 
 const threshold = 10
 
-type container struct {
+type container[T any] struct {
 	interval time.Duration
-	tasks    []int
-	execute  func(tasks any)
+	tasks    []T
+	execute  func(tasks []T)
 }
 
-func newContainer(interval time.Duration, execute func(tasks any)) *container {
-	return &container{
+func newContainer[T any](interval time.Duration, execute func(tasks []T)) *container[T] {
+	return &container[T]{
 		interval: interval,
 		execute:  execute,
 	}
 }
 
-func (c *container) AddTask(task any) bool {
-	c.tasks = append(c.tasks, task.(int))
+func (c *container[T]) AddTask(task T) bool {
+	c.tasks = append(c.tasks, task)
 	return len(c.tasks) > threshold
 }
 
-func (c *container) Execute(tasks any) {
+func (c *container[T]) Execute(tasks []T) {
 	if c.execute != nil {
 		c.execute(tasks)
 	} else {
@@ -40,7 +40,7 @@ func (c *container) Execute(tasks any) {
 	}
 }
 
-func (c *container) RemoveAll() any {
+func (c *container[T]) RemoveAll() []T {
 	tasks := c.tasks
 	c.tasks = nil
 	return tasks
@@ -48,7 +48,7 @@ func (c *container) RemoveAll() any {
 
 func TestPeriodicalExecutor_Sync(t *testing.T) {
 	var done int32
-	exec := NewPeriodicalExecutor(time.Second, newContainer(time.Millisecond*500, nil))
+	exec := NewPeriodicalExecutor[int](time.Second, newContainer[int](time.Millisecond*500, nil))
 	exec.Sync(func() {
 		atomic.AddInt32(&done, 1)
 	})
@@ -57,7 +57,7 @@ func TestPeriodicalExecutor_Sync(t *testing.T) {
 
 func TestPeriodicalExecutor_QuitGoroutine(t *testing.T) {
 	ticker := timex.NewFakeTicker()
-	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, nil))
+	exec := NewPeriodicalExecutor[int](time.Millisecond, newContainer[int](time.Millisecond, nil))
 	exec.newTicker = func(d time.Duration) timex.Ticker {
 		return ticker
 	}
@@ -76,9 +76,8 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	var vals []int
 	// avoid data race
 	var lock sync.Mutex
-	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
-		t := tasks.([]int)
-		for _, each := range t {
+	exec := NewPeriodicalExecutor[int](time.Millisecond, newContainer[int](time.Millisecond, func(tasks []int) {
+		for _, each := range tasks {
 			lock.Lock()
 			vals = append(vals, each)
 			lock.Unlock()
@@ -117,15 +116,15 @@ func TestPeriodicalExecutor_Panic(t *testing.T) {
 		executedTasks []int
 		expected      []int
 	)
-	executor := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
-		tt := tasks.([]int)
-		lock.Lock()
-		executedTasks = append(executedTasks, tt...)
-		lock.Unlock()
-		if tt[0] == 0 {
-			panic("test")
-		}
-	}))
+	executor := NewPeriodicalExecutor[int](time.Millisecond, newContainer[int](
+		time.Millisecond, func(tasks []int) {
+			lock.Lock()
+			executedTasks = append(executedTasks, tasks...)
+			lock.Unlock()
+			if tasks[0] == 0 {
+				panic("test")
+			}
+		}))
 	executor.newTicker = func(duration time.Duration) timex.Ticker {
 		return ticker
 	}
@@ -147,15 +146,15 @@ func TestPeriodicalExecutor_FlushPanic(t *testing.T) {
 		expected      []int
 		lock          sync.Mutex
 	)
-	executor := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
-		tt := tasks.([]int)
-		lock.Lock()
-		executedTasks = append(executedTasks, tt...)
-		lock.Unlock()
-		if tt[0] == 0 {
-			panic("flush panic")
-		}
-	}))
+	executor := NewPeriodicalExecutor[int](time.Millisecond, newContainer[int](
+		time.Millisecond, func(tasks []int) {
+			lock.Lock()
+			executedTasks = append(executedTasks, tasks...)
+			lock.Unlock()
+			if tasks[0] == 0 {
+				panic("flush panic")
+			}
+		}))
 	for i := 0; i < 8; i++ {
 		executor.Add(i)
 		expected = append(expected, i)
@@ -168,7 +167,7 @@ func TestPeriodicalExecutor_FlushPanic(t *testing.T) {
 
 func TestPeriodicalExecutor_Wait(t *testing.T) {
 	var lock sync.Mutex
-	executor := NewBulkExecutor(func(tasks []any) {
+	executor := NewBulkExecutor[int](func(tasks []int) {
 		lock.Lock()
 		defer lock.Unlock()
 		time.Sleep(10 * time.Millisecond)
@@ -209,16 +208,16 @@ func TestPeriodicalExecutor_Deadlock(t *testing.T) {
 }
 
 func TestPeriodicalExecutor_hasTasks(t *testing.T) {
-	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, nil))
+	exec := NewPeriodicalExecutor[int](time.Millisecond, newContainer[int](time.Millisecond, nil))
 	assert.False(t, exec.hasTasks(nil))
-	assert.True(t, exec.hasTasks(1))
+	assert.True(t, exec.hasTasks([]int{1}))
 }
 
 // go test -benchtime 10s -bench .
 func BenchmarkExecutor(b *testing.B) {
 	b.ReportAllocs()
 
-	executor := NewPeriodicalExecutor(time.Second, newContainer(time.Millisecond*500, nil))
+	executor := NewPeriodicalExecutor[int](time.Second, newContainer[int](time.Millisecond*500, nil))
 	for i := 0; i < b.N; i++ {
 		executor.Add(1)
 	}
