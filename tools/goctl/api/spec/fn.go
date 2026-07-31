@@ -153,19 +153,27 @@ func (m Member) IsTagMember(tagKey string) bool {
 		}
 	}
 	if m.IsInline {
-		switch v := m.Type.(type) {
-		case DefineStruct:
-			for _, child := range v.Members {
-				if child.IsTagMember(tagKey) {
-					return true
-				}
-			}
-		case NestedStruct:
-			for _, child := range v.Members {
-				if child.IsTagMember(tagKey) {
-					return true
-				}
-			}
+		return typeContainsTag(m.Type, tagKey)
+	}
+	return false
+}
+
+func typeContainsTag(tp Type, tagKey string) bool {
+	var members []Member
+	switch v := tp.(type) {
+	case DefineStruct:
+		members = v.Members
+	case NestedStruct:
+		members = v.Members
+	case PointerType:
+		return typeContainsTag(v.Type, tagKey)
+	default:
+		return false
+	}
+
+	for _, child := range members {
+		if child.IsTagMember(tagKey) {
+			return true
 		}
 	}
 	return false

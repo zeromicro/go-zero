@@ -115,6 +115,24 @@ func TestMember_IsTagMember(t *testing.T) {
 		assert.True(t, m.IsTagMember("header"))
 	})
 
+	t.Run("inline PointerType whose child has matching tag returns true", func(t *testing.T) {
+		m := Member{
+			Name:     "Auth",
+			IsInline: true,
+			Type: PointerType{
+				RawName: "*Auth",
+				Type: DefineStruct{
+					RawName: "Auth",
+					Members: []Member{
+						{Name: "Token", Tag: `header:"Authorization"`},
+					},
+				},
+			},
+		}
+		assert.True(t, m.IsTagMember("header"))
+		assert.False(t, m.IsTagMember("path"))
+	})
+
 	t.Run("empty inline struct returns false", func(t *testing.T) {
 		m := Member{
 			Name:     "Empty",
