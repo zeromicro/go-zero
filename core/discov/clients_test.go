@@ -21,6 +21,24 @@ func setMockClient(cli internal.EtcdClient) func() {
 	}
 }
 
+func setMockClients(clis ...internal.EtcdClient) func() {
+	mockLock.Lock()
+	index := 0
+	internal.NewClient = func([]string) (internal.EtcdClient, error) {
+		if index >= len(clis) {
+			panic("unexpected etcd client creation")
+		}
+
+		cli := clis[index]
+		index++
+		return cli, nil
+	}
+	return func() {
+		internal.NewClient = internal.DialClient
+		mockLock.Unlock()
+	}
+}
+
 func TestExtract(t *testing.T) {
 	id, ok := extractId("key/123/val")
 	assert.True(t, ok)
