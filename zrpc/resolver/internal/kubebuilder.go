@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/go-zero/zrpc/resolver/internal/kube"
 	"google.golang.org/grpc/resolver"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -65,7 +66,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 				LabelSelector: serviceSelector + svc.Name,
 			})
 		if err != nil {
-			return nil, err
+			return nil, wrapEndpointSliceListError(svc, err)
 		}
 		if len(endpointSlices.Items) == 0 {
 			return nil, fmt.Errorf("no endpoint slices found for service %s in namespace %s",
@@ -122,7 +123,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			LabelSelector: serviceSelector + svc.Name,
 		})
 	if err != nil {
-		return nil, err
+		return nil, wrapEndpointSliceListError(svc, err)
 	}
 
 	// Aggregate endpoints from all EndpointSlices.
@@ -143,4 +144,14 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 func (b *kubeBuilder) Scheme() string {
 	return KubernetesScheme
+}
+
+func wrapEndpointSliceListError(svc kube.Service, err error) error {
+	if apierrors.IsForbidden(err) {
+		return fmt.Errorf("failed to list EndpointSlices for Kubernetes service %q in namespace %q: %w; "+
+			"the k8s resolver requires get/list/watch permissions on endpointslices.discovery.k8s.io",
+			svc.Name, svc.Namespace, err)
+	}
+
+	return err
 }
