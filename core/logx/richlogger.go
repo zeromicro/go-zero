@@ -131,31 +131,31 @@ func (l *richLogger) Infow(msg string, fields ...LogField) {
 }
 
 func (l *richLogger) Slow(v ...any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		l.slow(fmt.Sprint(v...))
 	}
 }
 
 func (l *richLogger) Slowf(format string, v ...any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		l.slow(fmt.Sprintf(format, v...))
 	}
 }
 
 func (l *richLogger) Slowfn(fn func() any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		l.slow(fn())
 	}
 }
 
 func (l *richLogger) Slowv(v any) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		l.slow(v)
 	}
 }
 
 func (l *richLogger) Sloww(msg string, fields ...LogField) {
-	if shallLog(ErrorLevel) {
+	if shallSlowLog() {
 		l.slow(msg, fields...)
 	}
 }

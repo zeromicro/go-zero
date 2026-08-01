@@ -20,6 +20,9 @@ const (
 	tokenFormat     = "{%s}.tokens"
 	timestampFormat = "{%s}.ts"
 	pingInterval    = time.Millisecond * 100
+	// monitorMaxWait is the maximum time waitForRedis will poll before giving
+	// up and resetting the monitor flag so a future request can retry.
+	monitorMaxWait = time.Minute * 5
 )
 
 var (
@@ -142,17 +145,26 @@ func (lim *TokenLimiter) startMonitor() {
 
 func (lim *TokenLimiter) waitForRedis() {
 	ticker := time.NewTicker(pingInterval)
+	deadline := time.NewTimer(monitorMaxWait)
 	defer func() {
 		ticker.Stop()
+		deadline.Stop()
 		lim.rescueLock.Lock()
 		lim.monitorStarted = false
 		lim.rescueLock.Unlock()
 	}()
 
-	for range ticker.C {
-		if lim.store.Ping() {
-			atomic.StoreUint32(&lim.redisAlive, 1)
+	for {
+		select {
+		case <-deadline.C:
+			// Redis did not recover within monitorMaxWait; give up so a
+			// subsequent request can restart the monitor if needed.
 			return
+		case <-ticker.C:
+			if lim.store.Ping() {
+				atomic.StoreUint32(&lim.redisAlive, 1)
+				return
+			}
 		}
 	}
 }
