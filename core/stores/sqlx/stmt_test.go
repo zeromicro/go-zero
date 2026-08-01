@@ -297,7 +297,7 @@ func TestQueryRowsScanTimeout(t *testing.T) {
 		for i := 0; i < 10000; i++ {
 			rows = rows.AddRow("bar" + strconv.Itoa(i))
 		}
-		mock.ExpectQuery("any").WillReturnRows(rows)
+		mock.ExpectQuery("any").WillDelayFor(10 * time.Millisecond).WillReturnRows(rows)
 		var val []struct {
 			Foo string
 		}

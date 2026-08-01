@@ -207,6 +207,9 @@ func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 	}
 
 	rows, err := conn.QueryContext(ctx, q, args...)
+	if err != nil && ctx.Err() != nil {
+		err = ctx.Err()
+	}
 	guard.finish(ctx, err)
 	if err != nil {
 		return err
@@ -224,6 +227,9 @@ func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error
 	}
 
 	rows, err := conn.QueryContext(ctx, args...)
+	if err != nil && ctx.Err() != nil {
+		err = ctx.Err()
+	}
 	guard.finish(ctx, err)
 	if err != nil {
 		return err
