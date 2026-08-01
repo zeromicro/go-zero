@@ -120,3 +120,10 @@ func TestResourceManager_RemoveResource(t *testing.T) {
 	_, ok := manager.resources["key"]
 	assert.False(t, ok)
 }
+
+func TestResourceManager_RemoveResourceMissing(t *testing.T) {
+	manager := NewResourceManager()
+	defer manager.Close()
+
+	assert.NoError(t, manager.RemoveResource("missing"))
+}

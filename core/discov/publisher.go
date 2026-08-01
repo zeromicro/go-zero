@@ -119,9 +119,7 @@ func (p *Publisher) retryKeepAlive(cli internal.EtcdClient, invalidate bool) {
 			logc.Errorf(cli.Ctx(), "etcd publisher invalidate conn: %v", err)
 		}
 	}
-	if err := p.doKeepAlive(); err != nil {
-		logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
-	}
+	p.doKeepAlive()
 }
 
 func (p *Publisher) doRegister() (internal.EtcdClient, error) {
