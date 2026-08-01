@@ -66,8 +66,8 @@ func TestKubeBuilder_BuildReturnsKubeClientError(t *testing.T) {
 }
 
 func TestKubeBuilder_BuildReturnsAddEventHandlerError(t *testing.T) {
-	restore := mockKubeClient(t)
-	defer restore()
+	restoreConfig := mockKubeConfig(t)
+	defer restoreConfig()
 
 	sentinel := errors.New("add event handler failed")
 	restoreHandler := mockEndpointSliceEventHandler(t, sentinel)
@@ -172,7 +172,7 @@ func mockKubeConfig(t *testing.T) func() {
 
 	oldConfig := inClusterConfig
 	inClusterConfig = func() (*rest.Config, error) {
-		return &rest.Config{}, nil
+		return &rest.Config{Host: "https://127.0.0.1"}, nil
 	}
 
 	return func() {
