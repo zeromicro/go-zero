@@ -16,11 +16,23 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
 )
 
 const (
 	resyncInterval  = 5 * time.Minute
 	serviceSelector = "kubernetes.io/service-name="
+)
+
+var (
+	inClusterConfig = rest.InClusterConfig
+	newKubeClient   = func(config *rest.Config) (kubernetes.Interface, error) {
+		return kubernetes.NewForConfig(config)
+	}
+	addEndpointSliceEventHandler = func(informer cache.SharedIndexInformer, handler cache.ResourceEventHandler) error {
+		_, err := informer.AddEventHandler(handler)
+		return err
+	}
 )
 
 type kubeResolver struct {
@@ -50,12 +62,12 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		return nil, err
 	}
 
-	config, err := rest.InClusterConfig()
+	config, err := inClusterConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	cs, err := kubernetes.NewForConfig(config)
+	cs, err := newKubeClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -107,11 +119,9 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	})
 	inf := informers.NewSharedInformerFactoryWithOptions(cs, resyncInterval,
 		informers.WithNamespace(svc.Namespace),
-		informers.WithTweakListOptions(func(options *v1.ListOptions) {
-			options.LabelSelector = serviceSelector + svc.Name
-		}))
+		informers.WithTweakListOptions(endpointSliceTweakListOptions(svc.Name)))
 	in := inf.Discovery().V1().EndpointSlices()
-	_, err = in.Informer().AddEventHandler(handler)
+	err = addEndpointSliceEventHandler(in.Informer(), handler)
 	if err != nil {
 		return nil, err
 	}
@@ -144,6 +154,12 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 func (b *kubeBuilder) Scheme() string {
 	return KubernetesScheme
+}
+
+func endpointSliceTweakListOptions(service string) func(*v1.ListOptions) {
+	return func(options *v1.ListOptions) {
+		options.LabelSelector = serviceSelector + service
+	}
 }
 
 func wrapEndpointSliceListError(svc kube.Service, err error) error {
