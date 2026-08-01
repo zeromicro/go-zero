@@ -202,6 +202,8 @@ func expandMembers(ctx Context, tp apiSpec.Type) []apiSpec.Member {
 			}
 			members = append(members, v)
 		}
+	case apiSpec.PointerType:
+		members = expandMembers(ctx, val.Type)
 	}
 
 	return members
