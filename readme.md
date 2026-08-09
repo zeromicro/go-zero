@@ -268,7 +268,7 @@ read EndpointSlices in the target namespace:
 rules:
   - apiGroups: ["discovery.k8s.io"]
     resources: ["endpointslices"]
-    verbs: ["get", "list", "watch"]
+    verbs: ["list", "watch"]
 ```
 
 ## Benchmark

@@ -165,7 +165,7 @@ func endpointSliceTweakListOptions(service string) func(*v1.ListOptions) {
 func wrapEndpointSliceListError(svc kube.Service, err error) error {
 	if apierrors.IsForbidden(err) {
 		return fmt.Errorf("failed to list EndpointSlices for Kubernetes service %q in namespace %q: %w; "+
-			"the k8s resolver requires get/list/watch permissions on endpointslices.discovery.k8s.io",
+			"the k8s resolver requires list/watch permissions on endpointslices.discovery.k8s.io",
 			svc.Name, svc.Namespace, err)
 	}
 

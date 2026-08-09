@@ -92,7 +92,7 @@ func TestKubeBuilder_BuildWrapsFirstEndpointSliceListError(t *testing.T) {
 	_, err = b.Build(resolver.Target{URL: *u}, nil, resolver.BuildOptions{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to list EndpointSlices")
-	assert.Contains(t, err.Error(), "get/list/watch permissions")
+	assert.Contains(t, err.Error(), "list/watch permissions")
 }
 
 func TestKubeBuilder_BuildWrapsSecondEndpointSliceListError(t *testing.T) {
@@ -106,7 +106,7 @@ func TestKubeBuilder_BuildWrapsSecondEndpointSliceListError(t *testing.T) {
 	_, err = b.Build(resolver.Target{URL: *u}, nil, resolver.BuildOptions{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to list EndpointSlices")
-	assert.Contains(t, err.Error(), "get/list/watch permissions")
+	assert.Contains(t, err.Error(), "list/watch permissions")
 }
 
 func TestWrapEndpointSliceListError(t *testing.T) {
@@ -124,7 +124,7 @@ func TestWrapEndpointSliceListError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "EndpointSlices")
 	assert.Contains(t, err.Error(), "endpointslices.discovery.k8s.io")
-	assert.Contains(t, err.Error(), "get/list/watch")
+	assert.Contains(t, err.Error(), "list/watch")
 }
 
 func TestWrapEndpointSliceListErrorOther(t *testing.T) {
