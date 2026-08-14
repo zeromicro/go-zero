@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 	"testing"
 	"time"
 
@@ -293,16 +292,15 @@ func TestStmtBreaker(t *testing.T) {
 
 func TestQueryRowsScanTimeout(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
-		rows := sqlmock.NewRows([]string{"foo"})
-		for i := 0; i < 10000; i++ {
-			rows = rows.AddRow("bar" + strconv.Itoa(i))
-		}
-		mock.ExpectQuery("any").WillReturnRows(rows)
 		var val []struct {
 			Foo string
 		}
 		conn := NewSqlConnFromDB(db)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*2)
+		// An already expired deadline keeps the assertion deterministic: a
+		// live 2ms budget made the outcome depend on how fast 10k mocked rows
+		// can be scanned, and faster scanning flipped the expectation.
+		ctx, cancel := context.WithDeadline(context.Background(),
+			time.Now().Add(-time.Second))
 		err := conn.QueryRowsCtx(ctx, &val, "any")
 		assert.ErrorIs(t, err, context.DeadlineExceeded)
 		cancel()
