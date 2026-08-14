@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/zeromicro/go-zero/core/mapping"
 )
@@ -32,41 +33,100 @@ type rowsScanner interface {
 	Scan(v ...any) error
 }
 
-func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
-	rt := mapping.Deref(v.Type())
-	size := rt.NumField()
-	result := make(map[string]any, size)
+// cachedFields caches the type-level mapping from db tag names to field indexes,
+// so that per-row scanning no longer re-parses struct tags, re-walks the struct
+// and rebuilds the tagged value map on every row. Same approach as jmoiron/sqlx
+// StructScan, which also caches the reflect work per type.
+type cachedFields struct {
+	flat   [][]int        // all scannable fields in unwrapFields order (tagged or not)
+	byName map[string]int // db tag name -> index into flat (later fields win on duplicates)
+	tagged bool           // whether any field carries a db tag
+	// ptrIndex lists every settable pointer field (embedded pointer intermediates
+	// first, ordered by path length) that must be initialized before scanning,
+	// preserving the previous side effect of unwrapFields on every row.
+	ptrIndex [][]int
+}
 
-	for i := 0; i < size; i++ {
-		field := rt.Field(i)
-		if field.Anonymous && mapping.Deref(field.Type).Kind() == reflect.Struct {
-			inner, err := getTaggedFieldValueMap(reflect.Indirect(v).Field(i))
-			if err != nil {
-				return nil, err
-			}
+var fieldCache sync.Map // reflect.Type -> *cachedFields
 
-			for key, val := range inner {
-				result[key] = val
-			}
-
-			continue
-		}
-
-		key := parseTagName(field)
-		if len(key) == 0 {
-			continue
-		}
-
-		valueField := reflect.Indirect(v).Field(i)
-		valueData, err := getValueInterface(valueField)
-		if err != nil {
-			return nil, err
-		}
-
-		result[key] = valueData
+// getCachedFields returns the cached mapping for a struct type, building it once.
+func getCachedFields(rt reflect.Type) (*cachedFields, error) {
+	if cached, ok := fieldCache.Load(rt); ok {
+		return cached.(*cachedFields), nil
 	}
 
-	return result, nil
+	cf := &cachedFields{byName: make(map[string]int)}
+	if err := appendFieldIndexes(cf, rt, nil); err != nil {
+		return nil, err // don't cache failures; behavior matches per-row errors
+	}
+	cf.tagged = len(cf.byName) > 0
+
+	fieldCache.Store(rt, cf)
+	return cf, nil
+}
+
+// appendFieldIndexes recursively collects field metadata,
+// mirroring the traversal of the previous per-row implementation:
+//   - unexported fields are skipped, but fail with ErrNotReadableValue when
+//     they carry a db tag (same error the per-row path returned)
+//   - db:"-" fields are excluded from the strict count but still matched by name
+//   - embedded structs (anonymous, dereferenced) are flattened recursively,
+//     with pointer intermediates recorded for per-row initialization
+func appendFieldIndexes(cf *cachedFields, rt reflect.Type, prefix []int) error {
+	for i := 0; i < rt.NumField(); i++ {
+		field := rt.Field(i)
+		idx := append(append([]int{}, prefix...), i)
+		unexported := field.PkgPath != ""
+
+		if field.Anonymous && mapping.Deref(field.Type).Kind() == reflect.Struct {
+			if parseTagName(field) == tagIgnore {
+				continue
+			}
+			// Unexported pointer embedding cannot be initialized (reflect forbids
+			// Set through unexported fields); the previous per-row path panicked
+			// on it, here the subtree is skipped instead.
+			if field.Type.Kind() == reflect.Pointer && unexported {
+				continue
+			}
+			if field.Type.Kind() == reflect.Pointer {
+				cf.ptrIndex = append(cf.ptrIndex, idx)
+			}
+			if err := appendFieldIndexes(cf, mapping.Deref(field.Type), idx); err != nil {
+				return err
+			}
+			continue
+		}
+
+		column := parseTagName(field)
+		if unexported && len(column) > 0 {
+			return ErrNotReadableValue
+		}
+		if unexported || column == tagIgnore {
+			continue
+		}
+
+		cf.flat = append(cf.flat, idx)
+		if field.Type.Kind() == reflect.Pointer && !unexported {
+			cf.ptrIndex = append(cf.ptrIndex, idx)
+		}
+		if len(column) > 0 {
+			cf.byName[column] = len(cf.flat) - 1
+		}
+	}
+
+	return nil
+}
+
+// initPtrFields materializes nil pointer fields, preserving the side effect
+// unwrapFields had on every row: every settable nil pointer gets allocated,
+// even for columns that are not selected.
+func (cf *cachedFields) initPtrFields(v reflect.Value) {
+	for _, idx := range cf.ptrIndex {
+		f := v.FieldByIndex(idx)
+		if f.IsNil() {
+			f.Set(reflect.New(f.Type().Elem()))
+		}
+	}
 }
 
 func getValueInterface(value reflect.Value) (any, error) {
@@ -87,40 +147,75 @@ func isScanFailed(err error) bool {
 }
 
 func mapStructFieldsIntoSlice(v reflect.Value, columns []string, strict bool) ([]any, error) {
-	fields := unwrapFields(v)
-	if strict && len(columns) < len(fields) {
-		return nil, ErrNotMatchDestination
-	}
-
-	taggedMap, err := getTaggedFieldValueMap(v)
+	cf, err := getCachedFields(mapping.Deref(v.Type()))
 	if err != nil {
 		return nil, err
 	}
+	if strict && len(columns) < len(cf.flat) {
+		return nil, ErrNotMatchDestination
+	}
+	if !cf.tagged && len(cf.flat) < len(columns) {
+		return nil, ErrNotMatchDestination
+	}
 
-	values := make([]any, len(columns))
-	if len(taggedMap) == 0 {
-		if len(fields) < len(values) {
-			return nil, ErrNotMatchDestination
+	return cf.buildValues(reflect.Indirect(v), cf.matchColumns(columns))
+}
+
+// matchColumns resolves column names to flat field indexes once per result set;
+// unmatched columns get -1 and are discarded via an anonymous sink at scan time.
+func (cf *cachedFields) matchColumns(columns []string) []int {
+	indexes := make([]int, len(columns))
+	if !cf.tagged {
+		// untagged structs map columns to fields positionally
+		for i := range indexes {
+			indexes[i] = i
 		}
+		return indexes
+	}
 
-		for i := 0; i < len(values); i++ {
-			valueField := fields[i]
-			valueData, err := getValueInterface(valueField)
+	for i, column := range columns {
+		if fi, ok := cf.byName[column]; ok {
+			indexes[i] = fi
+		} else {
+			indexes[i] = -1
+		}
+	}
+	return indexes
+}
+
+// buildValues assembles the scan targets for a single row.
+func (cf *cachedFields) buildValues(indirect reflect.Value, colIdx []int) ([]any, error) {
+	cf.initPtrFields(indirect)
+
+	values := make([]any, len(colIdx))
+	if !cf.tagged {
+		for i := range values {
+			field := indirect.FieldByIndex(cf.flat[i])
+			if field.Kind() == reflect.Pointer {
+				// unwrapFields used to hand out the pointed-to value here,
+				// keep that behavior for the untagged path
+				field = field.Elem()
+			}
+			valueData, err := getValueInterface(field)
 			if err != nil {
 				return nil, err
 			}
-
 			values[i] = valueData
 		}
-	} else {
-		for i, column := range columns {
-			if tagged, ok := taggedMap[column]; ok {
-				values[i] = tagged
-			} else {
-				var anonymous any
-				values[i] = &anonymous
-			}
+		return values, nil
+	}
+
+	for i, fi := range colIdx {
+		if fi < 0 {
+			var anonymous any
+			values[i] = &anonymous
+			continue
 		}
+		valueData, err := getValueInterface(indirect.FieldByIndex(cf.flat[fi]))
+		if err != nil {
+			return nil, err
+		}
+		values[i] = valueData
 	}
 
 	return values, nil
@@ -230,9 +325,23 @@ func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 				return err
 			}
 
+			cf, err := getCachedFields(base)
+			if err != nil {
+				return err
+			}
+			if strict && len(columns) < len(cf.flat) {
+				return ErrNotMatchDestination
+			}
+			if !cf.tagged && len(cf.flat) < len(columns) {
+				return ErrNotMatchDestination
+			}
+
+			// columns are fixed for the whole result set, match once
+			colIdx := cf.matchColumns(columns)
+
 			for scanner.Next() {
 				value := reflect.New(base)
-				values, err := mapStructFieldsIntoSlice(value, columns, strict)
+				values, err := cf.buildValues(value.Elem(), colIdx)
 				if err != nil {
 					return err
 				}
@@ -251,35 +360,4 @@ func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 	default:
 		return ErrUnsupportedValueType
 	}
-}
-
-func unwrapFields(v reflect.Value) []reflect.Value {
-	var fields []reflect.Value
-	indirect := reflect.Indirect(v)
-
-	for i := 0; i < indirect.NumField(); i++ {
-		child := indirect.Field(i)
-		if !child.CanSet() {
-			continue
-		}
-
-		childType := indirect.Type().Field(i)
-		if parseTagName(childType) == tagIgnore {
-			continue
-		}
-
-		if child.Kind() == reflect.Ptr && child.IsNil() {
-			baseValueType := mapping.Deref(child.Type())
-			child.Set(reflect.New(baseValueType))
-		}
-
-		child = reflect.Indirect(child)
-		if child.Kind() == reflect.Struct && childType.Anonymous {
-			fields = append(fields, unwrapFields(child)...)
-		} else {
-			fields = append(fields, child)
-		}
-	}
-
-	return fields
 }
