@@ -37,10 +37,25 @@ type rowsScanner interface {
 // so that per-row scanning no longer re-parses struct tags, re-walks the struct
 // and rebuilds the tagged value map on every row. Same approach as jmoiron/sqlx
 // StructScan, which also caches the reflect work per type.
+//
+// The two collections intentionally mirror the two traversals the previous
+// per-row code performed, because they had different semantics:
+//   - flat follows unwrapFields: only settable (exported) fields, db:"-"
+//     excluded (whole subtree when on an embedding). It drives the strict
+//     count, the positional (untagged) path and the pointer init list.
+//   - byName follows getTaggedFieldValueMap: embedded structs are flattened
+//     regardless of their own tag or export status, and every non-empty db tag
+//     (including "-") is kept for name matching. A tagged unexported field is
+//     kept as well; scanning it later fails in getValueInterface with
+//     ErrNotReadableValue, matching the error the old map build returned.
+//
+// The cache has no eviction: entries live for the process lifetime, keyed by
+// reflect.Type, so the number of entries is bounded by the set of scanned
+// model types. Concurrent first builds may duplicate work but are idempotent.
 type cachedFields struct {
-	flat   [][]int        // all scannable fields in unwrapFields order (tagged or not)
-	byName map[string]int // db tag name -> index into flat (later fields win on duplicates)
-	tagged bool           // whether any field carries a db tag
+	flat   [][]int          // unwrapFields order: strict count + positional path
+	byName map[string][]int // db tag name -> field index path (later fields win)
+	tagged bool             // whether any field carries a db tag
 	// ptrIndex lists every settable pointer field (embedded pointer intermediates
 	// first, ordered by path length) that must be initialized before scanning,
 	// preserving the previous side effect of unwrapFields on every row.
@@ -55,66 +70,67 @@ func getCachedFields(rt reflect.Type) (*cachedFields, error) {
 		return cached.(*cachedFields), nil
 	}
 
-	cf := &cachedFields{byName: make(map[string]int)}
-	if err := appendFieldIndexes(cf, rt, nil); err != nil {
-		return nil, err // don't cache failures; behavior matches per-row errors
-	}
+	cf := &cachedFields{byName: make(map[string][]int)}
+	collectFlat(cf, rt, nil)
+	collectByName(cf, rt, nil)
 	cf.tagged = len(cf.byName) > 0
 
 	fieldCache.Store(rt, cf)
 	return cf, nil
 }
 
-// appendFieldIndexes recursively collects field metadata,
-// mirroring the traversal of the previous per-row implementation:
-//   - unexported fields are skipped, but fail with ErrNotReadableValue when
-//     they carry a db tag (same error the per-row path returned)
-//   - db:"-" fields are excluded from the strict count but still matched by name
-//   - embedded structs (anonymous, dereferenced) are flattened recursively,
-//     with pointer intermediates recorded for per-row initialization
-func appendFieldIndexes(cf *cachedFields, rt reflect.Type, prefix []int) error {
+// collectFlat mirrors unwrapFields: unexported fields (and whole unexported or
+// db:"-" embeddings) are skipped; exported pointer fields are recorded for
+// per-row initialization.
+func collectFlat(cf *cachedFields, rt reflect.Type, prefix []int) {
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
-		idx := append(append([]int{}, prefix...), i)
-		unexported := field.PkgPath != ""
+		if field.PkgPath != "" { // not settable through reflect
+			continue
+		}
+		if parseTagName(field) == tagIgnore {
+			continue
+		}
 
+		idx := append(append([]int{}, prefix...), i)
 		if field.Anonymous && mapping.Deref(field.Type).Kind() == reflect.Struct {
-			if parseTagName(field) == tagIgnore {
-				continue
-			}
-			// Unexported pointer embedding cannot be initialized (reflect forbids
-			// Set through unexported fields); the previous per-row path panicked
-			// on it, here the subtree is skipped instead.
-			if field.Type.Kind() == reflect.Pointer && unexported {
-				continue
-			}
 			if field.Type.Kind() == reflect.Pointer {
 				cf.ptrIndex = append(cf.ptrIndex, idx)
 			}
-			if err := appendFieldIndexes(cf, mapping.Deref(field.Type), idx); err != nil {
-				return err
+			collectFlat(cf, mapping.Deref(field.Type), idx)
+			continue
+		}
+
+		if field.Type.Kind() == reflect.Pointer {
+			cf.ptrIndex = append(cf.ptrIndex, idx)
+		}
+		cf.flat = append(cf.flat, idx)
+	}
+}
+
+// collectByName mirrors getTaggedFieldValueMap: anonymous structs are flattened
+// regardless of their own db tag or export status (an unexported pointer
+// embedding is skipped: reflect forbids initializing it and the previous
+// per-row path panicked there), and every non-empty tag is kept.
+func collectByName(cf *cachedFields, rt reflect.Type, prefix []int) {
+	for i := 0; i < rt.NumField(); i++ {
+		field := rt.Field(i)
+		idx := append(append([]int{}, prefix...), i)
+
+		if field.Anonymous && mapping.Deref(field.Type).Kind() == reflect.Struct {
+			if field.Type.Kind() == reflect.Pointer && field.PkgPath != "" {
+				continue
 			}
+			collectByName(cf, mapping.Deref(field.Type), idx)
 			continue
 		}
 
 		column := parseTagName(field)
-		if unexported && len(column) > 0 {
-			return ErrNotReadableValue
-		}
-		if unexported || column == tagIgnore {
+		if len(column) == 0 {
 			continue
 		}
-
-		cf.flat = append(cf.flat, idx)
-		if field.Type.Kind() == reflect.Pointer && !unexported {
-			cf.ptrIndex = append(cf.ptrIndex, idx)
-		}
-		if len(column) > 0 {
-			cf.byName[column] = len(cf.flat) - 1
-		}
+		cf.byName[column] = idx
 	}
-
-	return nil
 }
 
 // initPtrFields materializes nil pointer fields, preserving the side effect
@@ -161,57 +177,43 @@ func mapStructFieldsIntoSlice(v reflect.Value, columns []string, strict bool) ([
 	return cf.buildValues(reflect.Indirect(v), cf.matchColumns(columns))
 }
 
-// matchColumns resolves column names to flat field indexes once per result set;
-// unmatched columns get -1 and are discarded via an anonymous sink at scan time.
-func (cf *cachedFields) matchColumns(columns []string) []int {
-	indexes := make([]int, len(columns))
+// matchColumns resolves column names to field index paths once per result set;
+// unmatched columns get nil and are discarded via an anonymous sink at scan time.
+func (cf *cachedFields) matchColumns(columns []string) [][]int {
+	indexes := make([][]int, len(columns))
 	if !cf.tagged {
 		// untagged structs map columns to fields positionally
 		for i := range indexes {
-			indexes[i] = i
+			indexes[i] = cf.flat[i]
 		}
 		return indexes
 	}
 
 	for i, column := range columns {
-		if fi, ok := cf.byName[column]; ok {
-			indexes[i] = fi
-		} else {
-			indexes[i] = -1
-		}
+		indexes[i] = cf.byName[column]
 	}
 	return indexes
 }
 
 // buildValues assembles the scan targets for a single row.
-func (cf *cachedFields) buildValues(indirect reflect.Value, colIdx []int) ([]any, error) {
+func (cf *cachedFields) buildValues(indirect reflect.Value, colIdx [][]int) ([]any, error) {
 	cf.initPtrFields(indirect)
 
 	values := make([]any, len(colIdx))
-	if !cf.tagged {
-		for i := range values {
-			field := indirect.FieldByIndex(cf.flat[i])
-			if field.Kind() == reflect.Pointer {
-				// unwrapFields used to hand out the pointed-to value here,
-				// keep that behavior for the untagged path
-				field = field.Elem()
-			}
-			valueData, err := getValueInterface(field)
-			if err != nil {
-				return nil, err
-			}
-			values[i] = valueData
-		}
-		return values, nil
-	}
-
-	for i, fi := range colIdx {
-		if fi < 0 {
+	for i, idx := range colIdx {
+		if idx == nil {
 			var anonymous any
 			values[i] = &anonymous
 			continue
 		}
-		valueData, err := getValueInterface(indirect.FieldByIndex(cf.flat[fi]))
+
+		field := indirect.FieldByIndex(idx)
+		if !cf.tagged && field.Kind() == reflect.Pointer {
+			// unwrapFields used to hand out the pointed-to value on the
+			// positional (untagged) path, keep that behavior
+			field = field.Elem()
+		}
+		valueData, err := getValueInterface(field)
 		if err != nil {
 			return nil, err
 		}
