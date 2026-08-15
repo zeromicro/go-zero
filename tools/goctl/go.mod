@@ -19,7 +19,7 @@ require (
 	github.com/zeromicro/go-zero v1.10.3
 	golang.org/x/text v0.41.0
 	google.golang.org/grpc v1.83.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v2 v2.4.0
 )
 
