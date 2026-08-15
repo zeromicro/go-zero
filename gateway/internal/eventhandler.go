@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"bytes"
+	"context"
 	"io"
 	"net/http"
 
@@ -8,6 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
@@ -23,9 +26,11 @@ const (
 )
 
 type EventHandler struct {
-	Status    *status.Status
-	writer    io.Writer
-	marshaler jsonpb.Marshaler
+	Status       *status.Status
+	writer       io.Writer
+	marshaler    jsonpb.Marshaler
+	ctx          context.Context
+	useOkHandler bool
 }
 
 func NewEventHandler(writer io.Writer, resolver jsonpb.AnyResolver) *EventHandler {
@@ -35,6 +40,19 @@ func NewEventHandler(writer io.Writer, resolver jsonpb.AnyResolver) *EventHandle
 			EmitDefaults: true,
 			AnyResolver:  resolver,
 		},
+	}
+}
+
+// NewEventHandlerWithContext creates an EventHandler that supports httpx.OkHandler callbacks
+func NewEventHandlerWithContext(ctx context.Context, w http.ResponseWriter, resolver jsonpb.AnyResolver, useOkHandler bool) *EventHandler {
+	return &EventHandler{
+		writer: w,
+		marshaler: jsonpb.Marshaler{
+			EmitDefaults: true,
+			AnyResolver:  resolver,
+		},
+		ctx:          ctx,
+		useOkHandler: useOkHandler,
 	}
 }
 
@@ -51,8 +69,21 @@ func (h *EventHandler) OnReceiveHeaders(md metadata.MD) {
 }
 
 func (h *EventHandler) OnReceiveResponse(message proto.Message) {
-	if err := h.marshaler.Marshal(h.writer, message); err != nil {
-		logx.Error(err)
+	if h.useOkHandler {
+		// Use httpx.OkJsonCtx to trigger the OkHandler callback
+		var buf bytes.Buffer
+		if err := h.marshaler.Marshal(&buf, message); err != nil {
+			logx.Error(err)
+			return
+		}
+
+		result := buf.Bytes()
+		httpx.OkJsonCtx(h.ctx, h.writer.(http.ResponseWriter), result)
+	} else {
+		// Fallback to original behavior
+		if err := h.marshaler.Marshal(h.writer, message); err != nil {
+			logx.Error(err)
+		}
 	}
 }
 
