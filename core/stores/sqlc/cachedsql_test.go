@@ -631,6 +631,124 @@ func TestNewConnWithCache(t *testing.T) {
 	assert.True(t, conn.execValue)
 }
 
+func TestNewNodeConnWithMultiLevelCache(t *testing.T) {
+	resetStats()
+	r := redistest.CreateRedis(t)
+
+	c, err := NewNodeConnWithMultiLevelCache(dummySqlConn{}, r,
+		[]cache.MultiLevelCacheOption{
+			cache.WithLocalExpire(time.Minute),
+			cache.WithLocalLimit(100),
+		},
+		cache.WithExpiry(time.Second*10))
+	assert.NoError(t, err)
+
+	// First query: misses both L1 and L2, hits DB
+	var str string
+	err = c.QueryRow(&str, "ml-key", func(conn sqlx.SqlConn, v any) error {
+		*v.(*string) = "ml-value"
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "ml-value", str)
+
+	// Second query: should hit L1, no DB call
+	var str2 string
+	var dbCalled bool
+	err = c.QueryRow(&str2, "ml-key", func(conn sqlx.SqlConn, v any) error {
+		dbCalled = true
+		*v.(*string) = "should-not-reach"
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "ml-value", str2)
+	assert.False(t, dbCalled)
+
+	// Delete and verify gone
+	assert.NoError(t, c.DelCache("ml-key"))
+	err = c.GetCache("ml-key", &str)
+	assert.Equal(t, ErrNotFound, err)
+}
+
+func TestNewConnWithMultiLevelCache(t *testing.T) {
+	resetStats()
+	r := redistest.CreateRedis(t)
+
+	c, err := NewConnWithMultiLevelCache(dummySqlConn{}, cache.CacheConf{
+		{
+			RedisConf: redis.RedisConf{
+				Host: r.Addr,
+				Type: redis.NodeType,
+			},
+			Weight: 100,
+		},
+	}, nil, cache.WithExpiry(time.Second*10))
+	assert.NoError(t, err)
+
+	var str string
+	err = c.QueryRow(&str, "mlconn-key", func(conn sqlx.SqlConn, v any) error {
+		*v.(*string) = "mlconn-value"
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "mlconn-value", str)
+}
+
+func TestNewNodeConnWithMultiLevelCache_ExecDropsCache(t *testing.T) {
+	resetStats()
+	r := redistest.CreateRedis(t)
+
+	var conn trackedConn
+	c, err := NewNodeConnWithMultiLevelCache(&conn, r, nil,
+		cache.WithExpiry(time.Second*30))
+	assert.NoError(t, err)
+
+	const key = "ml-exec-key"
+
+	// Populate cache
+	assert.NoError(t, c.SetCache(key, "value"))
+	var val string
+	assert.NoError(t, c.GetCache(key, &val))
+	assert.Equal(t, "value", val)
+
+	// Exec should drop both L1 and L2
+	_, err = c.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+		return conn.Exec("delete from user_table where id='kevin'")
+	}, key)
+	assert.NoError(t, err)
+
+	err = c.GetCache(key, &val)
+	assert.Equal(t, ErrNotFound, err)
+}
+
+func TestNewNodeConnWithMultiLevelCache_NotFound(t *testing.T) {
+	resetStats()
+	r := redistest.CreateRedis(t)
+
+	c, err := NewNodeConnWithMultiLevelCache(dummySqlConn{}, r, nil,
+		cache.WithExpiry(time.Second*10), cache.WithNotFoundExpiry(time.Second))
+	assert.NoError(t, err)
+
+	var queryCount int
+
+	// First call: DB returns not found
+	var str string
+	err = c.QueryRow(&str, "ml-missing", func(conn sqlx.SqlConn, v any) error {
+		queryCount++
+		return ErrNotFound
+	})
+	assert.Equal(t, ErrNotFound, err)
+	assert.Equal(t, 1, queryCount)
+
+	// Second call: should hit L1 not-found placeholder, no DB
+	err = c.QueryRow(&str, "ml-missing", func(conn sqlx.SqlConn, v any) error {
+		queryCount++
+		return ErrNotFound
+	})
+	assert.Equal(t, ErrNotFound, err)
+	assert.Equal(t, 1, queryCount)
+}
+
 func TestCachedConn_WithSession(t *testing.T) {
 	dbtest.RunTxTest(t, func(tx *sql.Tx, mock sqlmock.Sqlmock) {
 		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
