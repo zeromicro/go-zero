@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeromicro/go-zero/core/hash"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/breaker"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/codes"
@@ -48,10 +49,10 @@ func (b *pickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		hashRing.Add(addr)
 	}
 
-	return &picker{
+	return breaker.WrapPicker(info, &picker{
 		hashRing: hashRing,
 		conns:    conns,
-	}
+	}, false)
 }
 
 func newBuilder() balancer.Builder {
