@@ -92,7 +92,8 @@ type (
 	}
 
 	circuitBreaker struct {
-		name string
+		name    string
+		timeout time.Duration
 		throttle
 	}
 
@@ -117,7 +118,7 @@ func NewBreaker(opts ...Option) Breaker {
 	if len(b.name) == 0 {
 		b.name = stringx.Rand()
 	}
-	b.throttle = newLoggedThrottle(b.name, newGoogleBreaker())
+	b.throttle = newLoggedThrottle(b.name, newGoogleBreaker(b.timeout))
 
 	return &b
 }
@@ -199,6 +200,12 @@ func (cb *circuitBreaker) Name() string {
 func WithName(name string) Option {
 	return func(b *circuitBreaker) {
 		b.name = name
+	}
+}
+
+func WithTimeout(timeout time.Duration) Option {
+	return func(b *circuitBreaker) {
+		b.timeout = timeout
 	}
 }
 
