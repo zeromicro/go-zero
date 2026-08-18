@@ -48,6 +48,10 @@ type rowsScanner interface {
 //     (including "-") is kept for name matching. A tagged unexported field is
 //     kept as well; scanning it later fails in getValueInterface with
 //     ErrNotReadableValue, matching the error the old map build returned.
+//     Paths may cross embedded pointers that ptrIndex cannot pre-allocate
+//     (unexported, or db:"-" so collectFlat skipped the subtree): crossing a
+//     nil one fails with ErrNotReadableValue in fieldByIndex instead of the
+//     reflect panic the old per-row code hit, non-nil ones scan as before.
 //
 // The cache has no eviction: entries live for the process lifetime, keyed by
 // reflect.Type, so the number of entries is bounded by the set of scanned
@@ -109,18 +113,17 @@ func collectFlat(cf *cachedFields, rt reflect.Type, prefix []int) {
 }
 
 // collectByName mirrors getTaggedFieldValueMap: anonymous structs are flattened
-// regardless of their own db tag or export status (an unexported pointer
-// embedding is skipped: reflect forbids initializing it and the previous
-// per-row path panicked there), and every non-empty tag is kept.
+// regardless of their own db tag or export status, and every non-empty tag is
+// kept. Unlike collectFlat this recurses into unexported and db:"-" embedded
+// pointers as well: their inner exported fields stay scannable by name when the
+// pointer is set, and fieldByIndex reports a nil crossing instead of the panic
+// the old per-row code hit there.
 func collectByName(cf *cachedFields, rt reflect.Type, prefix []int) {
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
 		idx := append(append([]int{}, prefix...), i)
 
 		if field.Anonymous && mapping.Deref(field.Type).Kind() == reflect.Struct {
-			if field.Type.Kind() == reflect.Pointer && field.PkgPath != "" {
-				continue
-			}
 			collectByName(cf, mapping.Deref(field.Type), idx)
 			continue
 		}
@@ -137,6 +140,8 @@ func collectByName(cf *cachedFields, rt reflect.Type, prefix []int) {
 // unwrapFields had on every row: every settable nil pointer gets allocated,
 // even for columns that are not selected.
 func (cf *cachedFields) initPtrFields(v reflect.Value) {
+	// ptrIndex paths only cross exported non-ignored embedded pointers, and
+	// ancestors precede descendants, so plain FieldByIndex cannot panic here.
 	for _, idx := range cf.ptrIndex {
 		f := v.FieldByIndex(idx)
 		if f.IsNil() {
@@ -195,6 +200,23 @@ func (cf *cachedFields) matchColumns(columns []string) [][]int {
 	return indexes
 }
 
+// fieldByIndex is FieldByIndex that reports an error instead of panicking when
+// the path crosses a nil embedded pointer. Such an intermediate is not in
+// ptrIndex when it is unexported (reflect cannot set it) or tagged db:"-"
+// (collectFlat skips the subtree); the previous per-row code panicked there.
+func fieldByIndex(v reflect.Value, index []int) (reflect.Value, error) {
+	for i, x := range index {
+		if i > 0 && v.Kind() == reflect.Pointer {
+			if v.IsNil() {
+				return reflect.Value{}, ErrNotReadableValue
+			}
+			v = v.Elem()
+		}
+		v = v.Field(x)
+	}
+	return v, nil
+}
+
 // buildValues assembles the scan targets for a single row.
 func (cf *cachedFields) buildValues(indirect reflect.Value, colIdx [][]int) ([]any, error) {
 	cf.initPtrFields(indirect)
@@ -207,7 +229,10 @@ func (cf *cachedFields) buildValues(indirect reflect.Value, colIdx [][]int) ([]a
 			continue
 		}
 
-		field := indirect.FieldByIndex(idx)
+		field, err := fieldByIndex(indirect, idx)
+		if err != nil {
+			return nil, err
+		}
 		if !cf.tagged && field.Kind() == reflect.Pointer {
 			// unwrapFields used to hand out the pointed-to value on the
 			// positional (untagged) path, keep that behavior
