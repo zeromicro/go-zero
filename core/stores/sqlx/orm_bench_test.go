@@ -17,29 +17,29 @@ Run:
 */
 
 type benchUser struct {
-	ID                        *uint64 `db:"id"`
-	Username                  *string `db:"username"`
-	Nickname                  *string `db:"nickname"`
-	Mobile                    *string `db:"mobile"`
-	Email                     *string `db:"email"`
-	Avatar                    *string `db:"avatar"`
-	Password                  *string `db:"password"`
-	Status                    *int64  `db:"status"`
-	Level                     *int64  `db:"level"`
-	Type                      *int64  `db:"type"`
-	CityID                    *uint64 `db:"city_id"`
-	ProvinceID                *uint64 `db:"province_id"`
-	AreaID                    *uint64 `db:"area_id"`
-	LoginCount                *int64  `db:"login_count"`
-	LastLoginAt               *int64  `db:"last_login_at"`
-	CreatedAt                 *int64  `db:"created_at"`
-	UpdatedAt                 *int64  `db:"updated_at"`
-	DeletedAt                 *int64  `db:"deleted_at"`
-	RegisterIP                *string `db:"register_ip"`
-	LastLoginIP               *string `db:"last_login_ip"`
-	InviterID                 *uint64 `db:"inviter_id"`
-	Channel                   *string `db:"channel"`
-	DeviceType                *int64  `db:"device_type"`
+	ID          *uint64 `db:"id"`
+	Username    *string `db:"username"`
+	Nickname    *string `db:"nickname"`
+	Mobile      *string `db:"mobile"`
+	Email       *string `db:"email"`
+	Avatar      *string `db:"avatar"`
+	Password    *string `db:"password"`
+	Status      *int64  `db:"status"`
+	Level       *int64  `db:"level"`
+	Type        *int64  `db:"type"`
+	CityID      *uint64 `db:"city_id"`
+	ProvinceID  *uint64 `db:"province_id"`
+	AreaID      *uint64 `db:"area_id"`
+	LoginCount  *int64  `db:"login_count"`
+	LastLoginAt *int64  `db:"last_login_at"`
+	CreatedAt   *int64  `db:"created_at"`
+	UpdatedAt   *int64  `db:"updated_at"`
+	DeletedAt   *int64  `db:"deleted_at"`
+	RegisterIP  *string `db:"register_ip"`
+	LastLoginIP *string `db:"last_login_ip"`
+	InviterID   *uint64 `db:"inviter_id"`
+	Channel     *string `db:"channel"`
+	DeviceType  *int64  `db:"device_type"`
 }
 
 func benchColumns() []string {
