@@ -64,6 +64,13 @@ type cachedFields struct {
 	// first, ordered by path length) that must be initialized before scanning,
 	// preserving the previous side effect of unwrapFields on every row.
 	ptrIndex [][]int
+	// taggedPtrIndex lists the pointer fields visited with a non-empty db tag
+	// during the collectByName walk. The old per-row getTaggedFieldValueMap
+	// allocated the nil pointer of every such field while building the map —
+	// including db:"-" leaves, tagged fields inside db:"-" or unexported
+	// embeddings, and fields whose tag a later duplicate overwrote — even when
+	// the column was not selected. This index preserves that side effect.
+	taggedPtrIndex [][]int
 }
 
 var fieldCache sync.Map // reflect.Type -> *cachedFields
@@ -133,18 +140,42 @@ func collectByName(cf *cachedFields, rt reflect.Type, prefix []int) {
 			continue
 		}
 		cf.byName[column] = idx
+		// The old map build ran getValueInterface on every visited tagged
+		// field, allocating its nil pointer as a side effect even when the
+		// column was not selected or a later duplicate tag overwrote the map
+		// entry. Unexported tagged leaves errored there and still do at scan
+		// time, so they are not collected for initialization.
+		if field.PkgPath == "" && field.Type.Kind() == reflect.Pointer {
+			cf.taggedPtrIndex = append(cf.taggedPtrIndex, idx)
+		}
 	}
 }
 
-// initPtrFields materializes nil pointer fields, preserving the side effect
-// unwrapFields had on every row: every settable nil pointer gets allocated,
-// even for columns that are not selected.
+// initPtrFields materializes nil pointer fields, preserving both side effects
+// the previous per-row code had on every row: unwrapFields allocated every
+// settable nil pointer (ptrIndex, embedded pointers first), and the tagged map
+// build additionally allocated the nil pointer of every visited tagged field
+// (taggedPtrIndex), even for columns that were not selected.
 func (cf *cachedFields) initPtrFields(v reflect.Value) {
 	// ptrIndex paths only cross exported non-ignored embedded pointers, and
 	// ancestors precede descendants, so plain FieldByIndex cannot panic here.
 	for _, idx := range cf.ptrIndex {
 		f := v.FieldByIndex(idx)
 		if f.IsNil() {
+			f.Set(reflect.New(f.Type().Elem()))
+		}
+	}
+	// taggedPtrIndex paths may cross embedded pointers outside ptrIndex
+	// (unexported or db:"-" tagged); skip those when nil — the old code
+	// panicked there, fieldByIndex keeps scan-time errors consistent for
+	// columns that actually match. Run after ptrIndex so paths crossing an
+	// initialized embedded pointer are walkable.
+	for _, idx := range cf.taggedPtrIndex {
+		f, err := fieldByIndex(v, idx)
+		if err != nil {
+			continue
+		}
+		if f.IsNil() && f.CanSet() {
 			f.Set(reflect.New(f.Type().Elem()))
 		}
 	}

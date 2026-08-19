@@ -226,3 +226,99 @@ func TestRegressIgnoredEmbeddedPtrSelectedColumn(t *testing.T) {
 		t.Fatalf("want ErrNotReadableValue on nil db:\"-\" embedded pointer, got: %v", err)
 	}
 }
+
+// Regress #5: the old per-row getTaggedFieldValueMap allocated the nil pointer
+// of every visited tagged field as a side effect — including db:"-" leaves —
+// even when the column was not selected. The cached path must do the same.
+func TestRegressTagIgnoreLeafPtrAllocated(t *testing.T) {
+	type row struct {
+		A    *int64  `db:"a"`
+		Skip *string `db:"-"`
+	}
+
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"a"}).AddRow(int64(1)))
+
+	conn := NewSqlConnFromDB(db)
+	var out []row
+	if err := conn.QueryRowsPartialCtx(context.Background(), &out, "SELECT a FROM t"); err != nil {
+		t.Fatalf("scan failed: %v", err)
+	}
+	if len(out) != 1 || out[0].A == nil || *out[0].A != 1 {
+		t.Fatalf("values: %+v", out)
+	}
+	if out[0].Skip == nil {
+		t.Fatal("db:\"-\" tagged pointer must stay allocated (old map-build side effect)")
+	}
+}
+
+// Regress #5b: same side effect for tagged fields inside a db:"-" embedded
+// struct, while an untagged pointer in that subtree stays nil (the old map
+// build never touched untagged fields, and unwrapFields skipped the subtree).
+func TestRegressTagIgnoreEmbedPtrSideEffects(t *testing.T) {
+	type sub struct {
+		Foo    *string `db:"foo"`
+		Untag  *string
+		LeafIg *string `db:"-"`
+	}
+	type row struct {
+		sub `db:"-"`
+		Top *int64 `db:"top"`
+	}
+
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"foo", "top"}).AddRow("v1", int64(9)))
+
+	conn := NewSqlConnFromDB(db)
+	var out []row
+	if err := conn.QueryRowsPartialCtx(context.Background(), &out, "SELECT foo, top FROM t"); err != nil {
+		t.Fatalf("scan failed: %v", err)
+	}
+	r := out[0]
+	if r.Foo == nil || *r.Foo != "v1" {
+		t.Fatalf("tagged field in db:\"-\" embed not scanned: %+v", r)
+	}
+	if r.Untag != nil {
+		t.Fatalf("untagged pointer in db:\"-\" embed must stay nil: %+v", r)
+	}
+	if r.LeafIg == nil {
+		t.Fatalf("db:\"-\" leaf in db:\"-\" embed must stay allocated: %+v", r)
+	}
+}
+
+// Regress #5c: when a duplicate tag overwrites an earlier map entry, the old
+// map build had already allocated the earlier field's pointer while walking.
+// The cached path must keep that allocation even though only the later field
+// stays scannable. The plain case (both fields exported, no db:"-") is already
+// covered by ptrIndex; the diverging case is the overwritten field living
+// inside a db:"-" embedded struct.
+func TestRegressDuplicateTagOverwrittenPtrAllocated(t *testing.T) {
+	type sub struct {
+		A *string `db:"x"`
+	}
+	type row struct {
+		sub `db:"-"`
+		B   *string `db:"x"`
+	}
+
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"x"}).AddRow("later"))
+
+	conn := NewSqlConnFromDB(db)
+	var out []row
+	if err := conn.QueryRowsPartialCtx(context.Background(), &out, "SELECT x FROM t"); err != nil {
+		t.Fatalf("scan failed: %v", err)
+	}
+	if out[0].B == nil || *out[0].B != "later" {
+		t.Fatalf("later duplicate must win the column: %+v", out[0])
+	}
+	if out[0].A == nil {
+		t.Fatal("overwritten duplicate's pointer must stay allocated (old map-build side effect)")
+	}
+}
