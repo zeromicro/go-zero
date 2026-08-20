@@ -12,7 +12,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v1.0.5
@@ -84,7 +84,6 @@ require (
 	github.com/robertkrimen/otto v0.5.1 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/titanous/json5 v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
