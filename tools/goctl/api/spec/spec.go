@@ -83,6 +83,8 @@ type (
 		HandlerComment     Doc
 		Doc                Doc
 		Comment            Doc
+		// Extensions holds custom Swagger x- extension fields declared via @x-* annotations.
+		Extensions map[string]string
 	}
 
 	// Service describes api service

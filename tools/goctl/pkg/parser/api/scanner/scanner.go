@@ -215,14 +215,27 @@ func (s *Scanner) scanAt() (token.Token, error) {
 			Text:     "@doc",
 			Position: s.newPosition(position),
 		}, nil
+	case "x":
+		if s.ch == '-' && (s.isLetter(s.peekRune()) || s.isDigit(s.peekRune()) || s.peekRune() == '_') {
+			s.readRune() // consume '-'
+			for s.isLetter(s.ch) || s.isDigit(s.ch) || s.ch == '_' || s.ch == '-' {
+				s.readRune()
+			}
+			return token.Token{
+				Type:     token.AT_X,
+				Text:     string(s.data[position:s.position]),
+				Position: s.newPosition(position),
+			}, nil
+		}
 	default:
-
-		return token.ErrorToken, s.assertExpectedString(
-			"@"+letters,
-			token.AT_DOC.String(),
-			token.AT_HANDLER.String(),
-			token.AT_SERVER.String())
 	}
+
+	return token.ErrorToken, s.assertExpectedString(
+		"@"+letters,
+		token.AT_DOC.String(),
+		token.AT_HANDLER.String(),
+		token.AT_SERVER.String(),
+		token.AT_X.String())
 }
 
 func (s *Scanner) scanIntOrDuration() token.Token {

@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -287,6 +288,46 @@ func wrapCodeMsgProps(ctx Context, properties spec.SchemaProps, atDoc apiSpec.At
 			},
 		},
 	}
+}
+
+func parseExtensionValue(raw string) any {
+	if raw == "" {
+		return raw
+	}
+
+	inner, quoted := unquoteExtensionValue(raw)
+	trimmed := strings.TrimSpace(inner)
+	if len(trimmed) > 0 && ((trimmed[0] == '[' && trimmed[len(trimmed)-1] == ']') || (trimmed[0] == '{' && trimmed[len(trimmed)-1] == '}')) {
+		var result any
+		if err := json.Unmarshal([]byte(trimmed), &result); err == nil {
+			return result
+		}
+	}
+	if quoted {
+		return inner
+	}
+
+	if b, err := strconv.ParseBool(raw); err == nil {
+		return b
+	}
+	if n, err := strconv.ParseFloat(raw, 64); err == nil {
+		return n
+	}
+	return raw
+}
+
+func unquoteExtensionValue(raw string) (string, bool) {
+	if len(raw) < 2 {
+		return raw, false
+	}
+	if raw[0] == '"' && raw[len(raw)-1] == '"' {
+		if v, err := strconv.Unquote(raw); err == nil {
+			return v, true
+		}
+	} else if raw[0] == '`' && raw[len(raw)-1] == '`' {
+		return raw[1 : len(raw)-1], true
+	}
+	return raw, false
 }
 
 func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {

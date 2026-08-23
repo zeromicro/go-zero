@@ -256,15 +256,22 @@ func (a *Analyzer) fillService() error {
 			if astRoute.AtDoc != nil {
 				route.AtDoc = a.convertAtDoc(astRoute.AtDoc)
 			}
-			if astRoute.AtHandler != nil {
-				route.AtDoc = a.convertAtDoc(astRoute.AtDoc)
-				route.Handler = astRoute.AtHandler.Name.Token.Text
-				head, leading := astRoute.AtHandler.CommentGroup()
-				route.HandlerDoc = head.List()
-				route.HandlerComment = leading.List()
-			}
+		if astRoute.AtHandler != nil {
+			route.Handler = astRoute.AtHandler.Name.Token.Text
+			head, leading := astRoute.AtHandler.CommentGroup()
+			route.HandlerDoc = head.List()
+			route.HandlerComment = leading.List()
+		}
 
-			if astRoute.Route.Request != nil && astRoute.Route.Request.Body != nil {
+		if len(astRoute.AtXAnnotations) > 0 {
+			route.Extensions = make(map[string]string)
+			for _, atX := range astRoute.AtXAnnotations {
+				key := strings.TrimPrefix(atX.AtX.Token.Text, "@")
+				route.Extensions[key] = atX.Value.Token.Text
+			}
+		}
+
+		if astRoute.Route.Request != nil && astRoute.Route.Request.Body != nil {
 				requestType, err := a.getType(astRoute.Route.Request, true)
 				if err != nil {
 					return err

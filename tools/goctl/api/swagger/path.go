@@ -105,6 +105,14 @@ func spec2Path(ctx Context, group apiSpec.Group, route apiSpec.Route) spec.PathI
 		}
 
 	}
+	if len(route.Extensions) > 0 {
+		if op.Extensions == nil {
+			op.Extensions = spec.Extensions{}
+		}
+		for k, v := range route.Extensions {
+			op.Extensions.Add(k, parseExtensionValue(v))
+		}
+	}
 	item := spec.PathItem{}
 	switch strings.ToUpper(route.Method) {
 	case http.MethodGet:

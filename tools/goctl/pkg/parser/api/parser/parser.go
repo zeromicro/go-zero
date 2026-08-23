@@ -163,7 +163,7 @@ func (p *Parser) parseServiceItemsStmt() []*ast.ServiceItemStmt {
 			break
 		}
 
-		if p.notExpectPeekToken(token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
+		if p.notExpectPeekToken(token.AT_DOC, token.AT_X, token.AT_HANDLER, token.RBRACE) {
 			return nil
 		}
 	}
@@ -185,6 +185,20 @@ func (p *Parser) parseServiceItemStmt() *ast.ServiceItemStmt {
 		}
 
 		stmt.AtDoc = atDocStmt
+	}
+
+	// statement @x-*
+	for p.peekTokenIs(token.AT_X) {
+		if !p.nextToken() {
+			return nil
+		}
+
+		atXStmt := p.parseAtXStmt()
+		if atXStmt == nil {
+			return nil
+		}
+
+		stmt.AtXAnnotations = append(stmt.AtXAnnotations, atXStmt)
 	}
 
 	// statement @handler
@@ -590,14 +604,23 @@ func (p *Parser) parseAtDocLiteralStmt() ast.AtDocStmt {
 func (p *Parser) parseAtHandlerStmt() *ast.AtHandlerStmt {
 	var stmt = &ast.AtHandlerStmt{}
 	stmt.AtHandler = p.curTokenNode()
-
 	// token IDENT
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
 
 	stmt.Name = p.curTokenNode()
+	return stmt
+}
 
+func (p *Parser) parseAtXStmt() *ast.AtXStmt {
+	var stmt = &ast.AtXStmt{}
+	stmt.AtX = p.curTokenNode()
+	if !p.advanceIfPeekTokenIs(token.STRING, token.RAW_STRING, token.IDENT, token.INT, token.DURATION) {
+		return nil
+	}
+
+	stmt.Value = p.curTokenNode()
 	return stmt
 }
 
@@ -1720,6 +1743,8 @@ func (p *Parser) parseStmtForUniTest() ast.Stmt {
 		return p.parseAtHandlerStmt()
 	case token.AT_DOC:
 		return p.parseAtDocStmt()
+	case token.AT_X:
+		return p.parseAtXStmt()
 	}
 	return nil
 }

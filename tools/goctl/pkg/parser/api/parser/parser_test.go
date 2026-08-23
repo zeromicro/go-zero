@@ -499,6 +499,80 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 //go:embed testdata/service_test.api
 var serviceTestAPI string
 
+func TestParser_Parse_atX(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		var testData = []struct {
+			input    string
+			expected string
+			value    string
+		}{
+			{input: `@x-log-enabled true`, expected: "@x-log-enabled", value: "true"},
+			{input: `@x-rate-limit "100/min"`, expected: "@x-rate-limit", value: `"100/min"`},
+			{input: `@x-timeout 30`, expected: "@x-timeout", value: "30"},
+		{input: "@x-owners `[\"alice\",\"bob\"]`", expected: "@x-owners", value: "`[\"alice\",\"bob\"]`"},
+			{input: "@x-foo `bar`", expected: "@x-foo", value: "`bar`"},
+		}
+		for _, v := range testData {
+			p := New("foo.api", v.input)
+			result := p.ParseForUintTest()
+			assert.True(t, p.hasNoErrors())
+			stmt := result.Stmts[0]
+			atXStmt, ok := stmt.(*ast.AtXStmt)
+			assert.True(t, ok)
+			assert.Equal(t, v.expected, atXStmt.AtX.Token.Text)
+			assert.Equal(t, v.value, atXStmt.Value.Token.Text)
+		}
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		var testData = []string{
+			`@x`,
+			`@x-`,
+			`@x-log-enabled`,
+			`@x-log-enabled @`,
+		}
+		for _, v := range testData {
+			p := New("foo.api", v)
+			_ = p.ParseForUintTest()
+			assertx.ErrorOrigin(t, v, p.errors...)
+		}
+	})
+}
+
+func TestParser_Parse_serviceWithAtX(t *testing.T) {
+	input := `type OrderReq {
+	Name string
+}
+type OrderResp {
+	Id int
+}
+service order {
+	@doc "Create Order"
+	@x-log-enabled true
+	@x-rate-limit "100/min"
+	@handler createOrder
+	post /order/create (OrderReq) returns (OrderResp)
+}`
+	p := New("order.api", input)
+	result := p.Parse()
+	assert.True(t, p.hasNoErrors())
+	var serviceStmt *ast.ServiceStmt
+	for _, stmt := range result.Stmts {
+		if s, ok := stmt.(*ast.ServiceStmt); ok {
+			serviceStmt = s
+			break
+		}
+	}
+	assert.NotNil(t, serviceStmt)
+	assert.Equal(t, 1, len(serviceStmt.Routes))
+	item := serviceStmt.Routes[0]
+	assert.Equal(t, 2, len(item.AtXAnnotations))
+	assert.Equal(t, "@x-log-enabled", item.AtXAnnotations[0].AtX.Token.Text)
+	assert.Equal(t, "true", item.AtXAnnotations[0].Value.Token.Text)
+	assert.Equal(t, "@x-rate-limit", item.AtXAnnotations[1].AtX.Token.Text)
+	assert.Equal(t, `"100/min"`, item.AtXAnnotations[1].Value.Token.Text)
+}
+
 func TestParser_Parse_service(t *testing.T) {
 	assertEqual := func(t *testing.T, expected, actual *ast.ServiceStmt) {
 		if expected.AtServerStmt == nil {

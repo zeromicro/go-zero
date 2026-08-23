@@ -185,6 +185,7 @@ const (
 	AT_DOC
 	AT_HANDLER
 	AT_SERVER
+	AT_X
 	ANY
 
 	api_keyword_end
@@ -264,6 +265,7 @@ var tokens = [...]string{
 	AT_DOC:     "@doc",
 	AT_HANDLER: "@handler",
 	AT_SERVER:  "@server",
+	AT_X:       "x-annotation",
 	ANY:        "interface{}",
 }
 

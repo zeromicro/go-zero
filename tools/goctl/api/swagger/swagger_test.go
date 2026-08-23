@@ -1,10 +1,12 @@
 package swagger
 
 import (
+	"encoding/json"
 	"testing"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
 func Test_pathVariable2SwaggerVariable(t *testing.T) {
@@ -84,6 +86,82 @@ func TestArrayDefinitionsBug(t *testing.T) {
 	assert.Nil(t, arrayField.Items.Schema.Properties, "Items with $ref should not have properties")
 	assert.Empty(t, arrayField.Items.Schema.Required, "Items with $ref should not have required")
 	assert.Empty(t, arrayField.Items.Schema.Type, "Items with $ref should not have type")
+}
+
+func TestParseExtensionValue(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{input: "true", expected: true},
+		{input: "false", expected: false},
+		{input: "30", expected: float64(30)},
+		{input: "3.14", expected: 3.14},
+		{input: `"100/min"`, expected: "100/min"},
+		{input: "`business`", expected: "business"},
+		{input: "[\"alice\",\"bob\"]", expected: []interface{}{"alice", "bob"}},
+		{input: "{\"foo\":\"bar\"}", expected: map[string]interface{}{"foo": "bar"}},
+		{input: "`[\"alice\",\"bob\"]`", expected: []interface{}{"alice", "bob"}},
+		{input: "`{\"foo\":\"bar\"}`", expected: map[string]interface{}{"foo": "bar"}},
+		{input: "\"[\\\"alice\\\",\\\"bob\\\"]\"", expected: []interface{}{"alice", "bob"}},
+		{input: "\"{\\\"foo\\\":\\\"bar\\\"}\"", expected: map[string]interface{}{"foo": "bar"}},
+		{input: "plain", expected: "plain"},
+	}
+	for _, tt := range tests {
+		actual := parseExtensionValue(tt.input)
+		assert.Equal(t, tt.expected, actual)
+	}
+}
+
+func TestSpec2SwaggerWithRouteExtensions(t *testing.T) {
+	src := `syntax = "v1"
+
+type LoginRequest {
+	Name string
+}
+
+type LoginResponse {
+	Token string
+}
+
+service user {
+	@doc "User Login"
+	@x-log-enabled true
+	@x-log-type business
+	@x-sensitive true
+	@x-rate-limit "100/min"
+	@x-timeout 30
+	@x-owners ` + "`" + `["alice","bob"]` + "`" + `
+	@handler Login
+	post /user/login (LoginRequest) returns (LoginResponse)
+}`
+
+	spec, err := parser.Parse("", src)
+	assert.NoError(t, err)
+
+	swagger, err := spec2Swagger(spec)
+	assert.NoError(t, err)
+
+	pathItem := swagger.Paths.Paths["/user/login"]
+	assert.NotNil(t, pathItem.Post)
+	op := pathItem.Post
+
+	assert.Equal(t, true, op.Extensions["x-log-enabled"])
+	assert.Equal(t, "business", op.Extensions["x-log-type"])
+	assert.Equal(t, true, op.Extensions["x-sensitive"])
+	assert.Equal(t, "100/min", op.Extensions["x-rate-limit"])
+	assert.Equal(t, float64(30), op.Extensions["x-timeout"])
+	assert.Equal(t, []interface{}{"alice", "bob"}, op.Extensions["x-owners"])
+
+	// Also ensure the generated JSON really contains the x- fields.
+	data, err := json.Marshal(swagger)
+	assert.NoError(t, err)
+	var m map[string]interface{}
+	assert.NoError(t, json.Unmarshal(data, &m))
+	paths := m["paths"].(map[string]interface{})
+	post := paths["/user/login"].(map[string]interface{})["post"].(map[string]interface{})
+	assert.Equal(t, true, post["x-log-enabled"])
+	assert.Equal(t, "business", post["x-log-type"])
 }
 
 func TestArrayWithoutDefinitions(t *testing.T) {

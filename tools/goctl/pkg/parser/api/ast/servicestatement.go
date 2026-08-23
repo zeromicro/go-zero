@@ -305,15 +305,54 @@ func (a *AtHandlerStmt) Pos() token.Position {
 
 func (a *AtHandlerStmt) stmtNode() {}
 
+type AtXStmt struct {
+	AtX   *TokenNode
+	Value *TokenNode
+}
+
+func (a *AtXStmt) HasHeadCommentGroup() bool {
+	return a.AtX.HasHeadCommentGroup()
+}
+
+func (a *AtXStmt) HasLeadingCommentGroup() bool {
+	return a.Value.HasLeadingCommentGroup()
+}
+
+func (a *AtXStmt) CommentGroup() (head, leading CommentGroup) {
+	return a.AtX.HeadCommentGroup, a.Value.LeadingCommentGroup
+}
+
+func (a *AtXStmt) Format(prefix ...string) string {
+	w := NewBufferWriter()
+	atXNode := transferTokenNode(a.AtX, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	valueNode := transferTokenNode(a.Value, ignoreHeadComment())
+	w.Write(withNode(atXNode, valueNode), expectSameLine())
+	return w.String()
+}
+
+func (a *AtXStmt) End() token.Position {
+	return a.Value.End()
+}
+
+func (a *AtXStmt) Pos() token.Position {
+	return a.AtX.Pos()
+}
+
+func (a *AtXStmt) stmtNode() {}
+
 type ServiceItemStmt struct {
-	AtDoc     AtDocStmt
-	AtHandler *AtHandlerStmt
-	Route     *RouteStmt
+	AtDoc          AtDocStmt
+	AtXAnnotations []*AtXStmt
+	AtHandler      *AtHandlerStmt
+	Route          *RouteStmt
 }
 
 func (s *ServiceItemStmt) HasHeadCommentGroup() bool {
 	if s.AtDoc != nil {
 		return s.AtDoc.HasHeadCommentGroup()
+	}
+	if len(s.AtXAnnotations) > 0 {
+		return s.AtXAnnotations[0].HasHeadCommentGroup()
 	}
 	return s.AtHandler.HasHeadCommentGroup()
 }
@@ -328,6 +367,10 @@ func (s *ServiceItemStmt) CommentGroup() (head, leading CommentGroup) {
 		head, _ = s.AtDoc.CommentGroup()
 		return head, leading
 	}
+	if len(s.AtXAnnotations) > 0 {
+		head, _ = s.AtXAnnotations[0].CommentGroup()
+		return head, leading
+	}
 	head, _ = s.AtHandler.CommentGroup()
 	return head, leading
 }
@@ -336,6 +379,10 @@ func (s *ServiceItemStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	if s.AtDoc != nil {
 		w.WriteText(s.AtDoc.Format(prefix...))
+		w.NewLine()
+	}
+	for _, atX := range s.AtXAnnotations {
+		w.WriteText(atX.Format(prefix...))
 		w.NewLine()
 	}
 	w.WriteText(s.AtHandler.Format(prefix...))
@@ -353,6 +400,9 @@ func (s *ServiceItemStmt) End() token.Position {
 func (s *ServiceItemStmt) Pos() token.Position {
 	if s.AtDoc != nil {
 		return s.AtDoc.Pos()
+	}
+	if len(s.AtXAnnotations) > 0 {
+		return s.AtXAnnotations[0].Pos()
 	}
 	return s.AtHandler.Pos()
 }
