@@ -1172,12 +1172,12 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 
 		slashTok := p.curTok
 		var pathText = slashTok.Text
-		if !p.advanceIfPeekTokenIs(token.IDENT) {
+		if !p.advanceIfPeekTokenIs(token.IDENT, token.SUB) {
 			return nil
 		}
 
 		pathText += p.curTok.Text
-		if p.peekTokenIs(token.SUB) { //  parse abc-efg format
+		if p.peekTokenIs(token.SUB) && p.curTokenIs(token.IDENT) { //  parse abc-efg format
 			if !p.nextToken() {
 				return nil
 			}
@@ -1303,12 +1303,21 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			slashTok := p.curTok
 			var pathText = valueTok.Text
 			pathText += slashTok.Text
-			if !p.advanceIfPeekTokenIs(token.IDENT) {
+			// Allow a trailing slash at the end of an @server path value.
+			if p.peekTok.Line() > p.curTok.Line() || p.peekTokenIs(token.RPAREN) {
+				valueTok = token.Token{
+					Text:     pathText,
+					Position: valueTok.Position,
+				}
+				leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+				break
+			}
+			if !p.advanceIfPeekTokenIs(token.IDENT, token.SUB) {
 				return nil
 			}
 
 			pathText += p.curTok.Text
-			if p.peekTokenIs(token.SUB) { //  parse abc-efg format
+			if p.peekTokenIs(token.SUB) && p.curTokenIs(token.IDENT) { //  parse abc-efg format
 				if !p.nextToken() {
 					return nil
 				}
