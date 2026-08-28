@@ -6312,3 +6312,33 @@ type mockUnmarshalerWithError struct {
 func (m *mockUnmarshalerWithError) UnmarshalJSON(b []byte) error {
 	return errors.New("foo")
 }
+
+func TestUnmarshalInterfaceField(t *testing.T) {
+	type DataItem struct {
+		Value     any `json:"value,optional"`
+		ValueType int `json:"valueType"`
+	}
+	type UpdateReq struct {
+		Id    string     `json:"id"`
+		Items []DataItem `json:"datas,optional"`
+	}
+
+	content := []byte(`{
+		"id": "123",
+		"datas": [
+			{"value": "string_val", "valueType": 0},
+			{"value": 100, "valueType": 1}
+		]
+	}`)
+
+	var req UpdateReq
+	err := UnmarshalJsonBytes(content, &req)
+	assert.NoError(t, err)
+	assert.Equal(t, "123", req.Id)
+	assert.Equal(t, 2, len(req.Items))
+	assert.Equal(t, "string_val", req.Items[0].Value)
+	assert.Equal(t, 0, req.Items[0].ValueType)
+	assert.Equal(t, json.Number("100"), req.Items[1].Value)
+	assert.Equal(t, 1, req.Items[1].ValueType)
+}
+
