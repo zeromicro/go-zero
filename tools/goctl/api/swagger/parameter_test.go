@@ -60,7 +60,7 @@ func TestParametersFromType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := Context{UseDefinitions: tt.useDefinitions}
 			testStruct := createTestStruct("TestStruct", tt.hasJson)
-			params := parametersFromType(ctx, tt.method, testStruct)
+			params := parametersFromType(ctx, tt.method, testStruct, "/test/path")
 
 			assert.Equal(t, tt.expectedCount, len(params))
 			if tt.expectedBody {
@@ -75,11 +75,11 @@ func TestParametersFromType(t *testing.T) {
 func TestParametersFromType_EdgeCases(t *testing.T) {
 	ctx := testingContext(t)
 
-	params := parametersFromType(ctx, http.MethodPost, nil)
+	params := parametersFromType(ctx, http.MethodPost, nil, "/test/path")
 	assert.Empty(t, params)
 
 	primitiveType := apiSpec.PrimitiveType{RawName: "string"}
-	params = parametersFromType(ctx, http.MethodPost, primitiveType)
+	params = parametersFromType(ctx, http.MethodPost, primitiveType, "/test/path")
 	assert.Empty(t, params)
 }
 
