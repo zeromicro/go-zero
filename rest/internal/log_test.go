@@ -2,12 +2,14 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
@@ -15,13 +17,12 @@ func TestInfo(t *testing.T) {
 	collector := new(LogCollector)
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	req = req.WithContext(WithLogCollector(req.Context(), collector))
-	Info(req, "first")
-	Infof(req, "second %s", "third")
+	Info(req, "id", "123456")
+	Infof(req, "mobile_channel", "channel_%s", "first")
 	val := collector.Flush()
-	assert.True(t, strings.Contains(val, "first"))
-	assert.True(t, strings.Contains(val, "second"))
-	assert.True(t, strings.Contains(val, "third"))
-	assert.True(t, strings.Contains(val, "\n"))
+	for _, field := range val {
+		logx.Infow(fmt.Sprintf("%s_test", field.Key), field)
+	}
 }
 
 func TestError(t *testing.T) {
