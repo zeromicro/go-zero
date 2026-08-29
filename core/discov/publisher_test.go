@@ -252,8 +252,7 @@ func TestPublisher_keepAliveAsyncPause(t *testing.T) {
 	wg.Wait()
 }
 
-// Test case for key deletion and re-registration (covers lines 148-155)
-func TestPublisher_keepAliveAsyncKeyDeletion(t *testing.T) {
+func TestPublisher_keepAliveAsyncDeleteRePutsWhenLeaseAlive(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	const id clientv3.LeaseID = 1
@@ -262,33 +261,24 @@ func TestPublisher_keepAliveAsyncKeyDeletion(t *testing.T) {
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()
 	cli.EXPECT().KeepAlive(gomock.Any(), id)
-
-	// Create a watch channel that will send a delete event
-	watchChan := make(chan clientv3.WatchResponse, 1)
-	watchResp := clientv3.WatchResponse{
-		Events: []*clientv3.Event{{
-			Type: clientv3.EventTypeDelete,
-			Kv: &mvccpb.KeyValue{
-				Key: []byte("thekey"),
-			},
-		}},
-	}
-	watchChan <- watchResp
-
-	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return((<-chan clientv3.WatchResponse)(watchChan))
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(newDeleteWatchChan("thekey"))
+	cli.EXPECT().TimeToLive(gomock.Any(), id).Return(&clientv3.LeaseTimeToLiveResponse{
+		TTL: 1,
+	}, nil)
 
 	var wg sync.WaitGroup
-	wg.Add(1) // Only wait for Revoke call
-
-	// Use a channel to signal when Put has been called
+	wg.Add(1)
 	putCalled := make(chan struct{})
-
-	// Expect the re-put operation when key is deleted
 	cli.EXPECT().Put(gomock.Any(), "thekey", "thevalue", gomock.Any()).Do(func(_, _, _, _ any) {
-		close(putCalled) // Signal that Put has been called
+		close(putCalled)
 	}).Return(nil, nil)
-
-	// Expect revoke when Stop is called
+	cli.EXPECT().Get(gomock.Any(), "thekey").Return(&clientv3.GetResponse{
+		Kvs: []*mvccpb.KeyValue{{
+			Key:   []byte("thekey"),
+			Value: []byte("thevalue"),
+			Lease: int64(id),
+		}},
+	}, nil)
 	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ any) {
 		wg.Done()
 	})
@@ -305,8 +295,7 @@ func TestPublisher_keepAliveAsyncKeyDeletion(t *testing.T) {
 	wg.Wait()
 }
 
-// Test case for key deletion with re-put error (covers error branch in lines 151-152)
-func TestPublisher_keepAliveAsyncKeyDeletionPutError(t *testing.T) {
+func TestPublisher_keepAliveAsyncDeleteSkipsPutAndRestartsWhenLeaseExpired(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	const id clientv3.LeaseID = 1
@@ -315,35 +304,14 @@ func TestPublisher_keepAliveAsyncKeyDeletionPutError(t *testing.T) {
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()
 	cli.EXPECT().KeepAlive(gomock.Any(), id)
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(newDeleteWatchChan("thekey"))
+	cli.EXPECT().TimeToLive(gomock.Any(), id).Return(&clientv3.LeaseTimeToLiveResponse{
+		TTL: 0,
+	}, nil)
 
-	// Create a watch channel that will send a delete event
-	watchChan := make(chan clientv3.WatchResponse, 1)
-	watchResp := clientv3.WatchResponse{
-		Events: []*clientv3.Event{{
-			Type: clientv3.EventTypeDelete,
-			Kv: &mvccpb.KeyValue{
-				Key: []byte("thekey"),
-			},
-		}},
-	}
-	watchChan <- watchResp
-
-	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return((<-chan clientv3.WatchResponse)(watchChan))
-
-	var wg sync.WaitGroup
-	wg.Add(1) // Only wait for Revoke call
-
-	// Use a channel to signal when Put has been called
-	putCalled := make(chan struct{})
-
-	// Expect the re-put operation to fail
-	cli.EXPECT().Put(gomock.Any(), "thekey", "thevalue", gomock.Any()).Do(func(_, _, _, _ any) {
-		close(putCalled) // Signal that Put has been called
-	}).Return(nil, errors.New("put error"))
-
-	// Expect revoke when Stop is called
+	restarted := make(chan struct{})
 	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ any) {
-		wg.Done()
+		close(restarted)
 	})
 
 	pub := NewPublisher(nil, "thekey", "thevalue")
@@ -351,11 +319,93 @@ func TestPublisher_keepAliveAsyncKeyDeletionPutError(t *testing.T) {
 	pub.fullKey = "thekey"
 
 	assert.Nil(t, pub.keepAliveAsync(cli))
-
-	// Wait for Put to be called, then stop
-	<-putCalled
+	waitForSignal(t, restarted)
 	pub.Stop()
-	wg.Wait()
+}
+
+func TestPublisher_keepAliveAsyncDeleteSkipsPutWhenTTLUnavailable(t *testing.T) {
+	tests := []struct {
+		name    string
+		resp    *clientv3.LeaseTimeToLiveResponse
+		err     error
+		leaseID clientv3.LeaseID
+	}{
+		{
+			name:    "ttl error",
+			err:     errors.New("ttl error"),
+			leaseID: 1,
+		},
+		{
+			name:    "ttl nil response",
+			resp:    nil,
+			leaseID: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			cli := internal.NewMockEtcdClient(ctrl)
+			restore := setMockClient(cli)
+			defer restore()
+
+			cli.EXPECT().Ctx().AnyTimes()
+			cli.EXPECT().KeepAlive(gomock.Any(), tt.leaseID)
+			cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(newDeleteWatchChan("thekey"))
+			cli.EXPECT().TimeToLive(gomock.Any(), tt.leaseID).Return(tt.resp, tt.err)
+
+			restarted := make(chan struct{})
+			cli.EXPECT().Revoke(gomock.Any(), tt.leaseID).Do(func(_, _ any) {
+				close(restarted)
+			})
+
+			pub := NewPublisher(nil, "thekey", "thevalue")
+			pub.lease = tt.leaseID
+			pub.fullKey = "thekey"
+
+			assert.Nil(t, pub.keepAliveAsync(cli))
+			waitForSignal(t, restarted)
+			pub.Stop()
+		})
+	}
+}
+
+func TestPublisher_keepAliveAsyncDeleteRestartsWhenRePutLosesLease(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	const id clientv3.LeaseID = 1
+	cli := internal.NewMockEtcdClient(ctrl)
+	restore := setMockClient(cli)
+	defer restore()
+	cli.EXPECT().Ctx().AnyTimes()
+	cli.EXPECT().KeepAlive(gomock.Any(), id)
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).Return(newDeleteWatchChan("thekey"))
+	cli.EXPECT().TimeToLive(gomock.Any(), id).Return(&clientv3.LeaseTimeToLiveResponse{
+		TTL: 1,
+	}, nil)
+	cli.EXPECT().Put(gomock.Any(), "thekey", "thevalue", gomock.Any()).Return(nil, nil)
+	cli.EXPECT().Get(gomock.Any(), "thekey").Return(&clientv3.GetResponse{
+		Kvs: []*mvccpb.KeyValue{{
+			Key:   []byte("thekey"),
+			Value: []byte("thevalue"),
+			Lease: 0,
+		}},
+	}, nil)
+
+	restarted := make(chan struct{})
+	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ any) {
+		close(restarted)
+	})
+
+	pub := NewPublisher(nil, "thekey", "thevalue")
+	pub.lease = id
+	pub.fullKey = "thekey"
+
+	assert.Nil(t, pub.keepAliveAsync(cli))
+	waitForSignal(t, restarted)
+	pub.Stop()
 }
 
 func TestPublisher_Resume(t *testing.T) {
@@ -461,4 +511,28 @@ func createTempFile(t *testing.T, body []byte) string {
 	}
 
 	return tmpFile.Name()
+}
+
+func newDeleteWatchChan(key string) <-chan clientv3.WatchResponse {
+	watchChan := make(chan clientv3.WatchResponse, 1)
+	watchChan <- clientv3.WatchResponse{
+		Events: []*clientv3.Event{{
+			Type: clientv3.EventTypeDelete,
+			Kv: &mvccpb.KeyValue{
+				Key: []byte(key),
+			},
+		}},
+	}
+
+	return watchChan
+}
+
+func waitForSignal(t *testing.T, ch <-chan struct{}) {
+	t.Helper()
+
+	select {
+	case <-ch:
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for signal")
+	}
 }
