@@ -3,6 +3,7 @@ package rest
 import (
 	"time"
 
+	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/service"
 )
 
@@ -59,5 +60,7 @@ type (
 		Middlewares MiddlewaresConf
 		// TraceIgnorePaths is paths blacklist for trace middleware.
 		TraceIgnorePaths []string `json:",optional"`
+		// Etcd is the etcd configuration for service registration.
+		Etcd discov.EtcdConf `json:",optional,inherit"`
 	}
 )
