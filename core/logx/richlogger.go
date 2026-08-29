@@ -3,19 +3,37 @@ package logx
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/internal/trace"
 )
 
+// loggerIDCounter is a counter for generating unique logger IDs.
+var loggerIDCounter uint64
+var cacheEnabled uint32 = 1
+
+// EnableCache enables the field processor cache.
+func EnableCache() {
+	atomic.StoreUint32(&cacheEnabled, 1)
+}
+
+// DisableCache disables the field processor cache.
+func DisableCache() {
+	atomic.StoreUint32(&cacheEnabled, 0)
+}
+
 // WithCallerSkip returns a Logger with given caller skip.
 func WithCallerSkip(skip int) Logger {
 	if skip <= 0 {
-		return new(richLogger)
+		return &richLogger{
+			id: atomic.AddUint64(&loggerIDCounter, 1),
+		}
 	}
 
 	return &richLogger{
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		callerSkip: skip,
 	}
 }
@@ -23,6 +41,7 @@ func WithCallerSkip(skip int) Logger {
 // WithContext sets ctx to log, for keeping tracing information.
 func WithContext(ctx context.Context) Logger {
 	return &richLogger{
+		id:  atomic.AddUint64(&loggerIDCounter, 1),
 		ctx: ctx,
 	}
 }
@@ -30,11 +49,13 @@ func WithContext(ctx context.Context) Logger {
 // WithDuration returns a Logger with given duration.
 func WithDuration(d time.Duration) Logger {
 	return &richLogger{
+		id:     atomic.AddUint64(&loggerIDCounter, 1),
 		fields: []LogField{Field(durationKey, timex.ReprOfDuration(d))},
 	}
 }
 
 type richLogger struct {
+	id         uint64 // 唯一标识符
 	ctx        context.Context
 	callerSkip int
 	fields     []LogField
@@ -166,6 +187,7 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 	}
 
 	return &richLogger{
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        l.ctx,
 		callerSkip: skip,
 		fields:     l.fields,
@@ -174,6 +196,7 @@ func (l *richLogger) WithCallerSkip(skip int) Logger {
 
 func (l *richLogger) WithContext(ctx context.Context) Logger {
 	return &richLogger{
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        ctx,
 		callerSkip: l.callerSkip,
 		fields:     l.fields,
@@ -184,6 +207,7 @@ func (l *richLogger) WithDuration(duration time.Duration) Logger {
 	fields := append(l.fields, Field(durationKey, timex.ReprOfDuration(duration)))
 
 	return &richLogger{
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
 		fields:     fields,
@@ -198,6 +222,7 @@ func (l *richLogger) WithFields(fields ...LogField) Logger {
 	f := append(l.fields, fields...)
 
 	return &richLogger{
+		id:         atomic.AddUint64(&loggerIDCounter, 1),
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
 		fields:     f,
@@ -236,24 +261,24 @@ func (l *richLogger) buildFields(fields ...LogField) []LogField {
 
 func (l *richLogger) debug(v any, fields ...LogField) {
 	if shallLog(DebugLevel) {
-		getWriter().Debug(v, l.buildFields(fields...)...)
+		getWriter().Debug(v, l.id, l.buildFields(fields...)...)
 	}
 }
 
 func (l *richLogger) err(v any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		getWriter().Error(v, l.buildFields(fields...)...)
+		getWriter().Error(v, l.id, l.buildFields(fields...)...)
 	}
 }
 
 func (l *richLogger) info(v any, fields ...LogField) {
 	if shallLog(InfoLevel) {
-		getWriter().Info(v, l.buildFields(fields...)...)
+		getWriter().Info(v, l.id, l.buildFields(fields...)...)
 	}
 }
 
 func (l *richLogger) slow(v any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		getWriter().Slow(v, l.buildFields(fields...)...)
+		getWriter().Slow(v, l.id, l.buildFields(fields...)...)
 	}
 }
