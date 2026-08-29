@@ -74,7 +74,8 @@ func TestDailyRotateRuleOutdatedFiles(t *testing.T) {
 func TestDailyRotateRuleShallRotate(t *testing.T) {
 	var rule DailyRotateRule
 	rule.rotatedTime = time.Now().Add(time.Hour * 24).Format(time.DateOnly)
-	assert.True(t, rule.ShallRotate(0))
+	i, _ := rule.ShallRotate(0, 0)
+	assert.True(t, i)
 }
 
 func TestSizeLimitRotateRuleMarkRotated(t *testing.T) {
@@ -179,10 +180,13 @@ func TestSizeLimitRotateRuleShallRotate(t *testing.T) {
 	var rule SizeLimitRotateRule
 	rule.rotatedTime = time.Now().Add(time.Hour * 24).Format(fileTimeFormat)
 	rule.maxSize = 0
-	assert.False(t, rule.ShallRotate(0))
+	i, _ := rule.ShallRotate(0, 0)
+	assert.False(t, i)
 	rule.maxSize = 100
-	assert.False(t, rule.ShallRotate(0))
-	assert.True(t, rule.ShallRotate(101*megaBytes))
+	i, _ = rule.ShallRotate(0, 0)
+	assert.False(t, i)
+	i, _ = rule.ShallRotate(101*megaBytes, 0)
+	assert.True(t, i)
 }
 
 func TestRotateLoggerClose(t *testing.T) {
