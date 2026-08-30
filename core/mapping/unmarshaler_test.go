@@ -6342,3 +6342,29 @@ func TestUnmarshalInterfaceField(t *testing.T) {
 	assert.Equal(t, 1, req.Items[1].ValueType)
 }
 
+func TestUnmarshalInterfaceFieldHonorsOptionsAndRange(t *testing.T) {
+	t.Run("options", func(t *testing.T) {
+		type payload struct {
+			Value any `key:"value,options=[allowed]"`
+		}
+
+		var got payload
+		err := UnmarshalKey(map[string]any{"value": "denied"}, &got)
+		assert.Error(t, err)
+	})
+
+	t.Run("json number range", func(t *testing.T) {
+		type payload struct {
+			Value any `key:"number_value,range=[1:3]"`
+		}
+
+		var valid payload
+		err := UnmarshalKey(map[string]any{"number_value": json.Number("2")}, &valid)
+		assert.NoError(t, err)
+		assert.Equal(t, json.Number("2"), valid.Value)
+
+		var invalid payload
+		err = UnmarshalKey(map[string]any{"number_value": json.Number("4")}, &invalid)
+		assert.ErrorIs(t, err, errNumberRange)
+	})
+}

@@ -648,11 +648,25 @@ func (u *Unmarshaler) processFieldPrimitive(fieldType reflect.Type, value reflec
 	switch v := mapValue.(type) {
 	case json.Number:
 		if typeKind == reflect.Interface {
+			if err := validateValueInOptions(mapValue, opts.options()); err != nil {
+				return err
+			}
+			if err := validateJsonNumberRange(v, opts); err != nil {
+				return err
+			}
+			if opts != nil && opts.Range != nil {
+				optionsCopy := *opts
+				optionsCopy.Range = nil
+				opts = &optionsCopy
+			}
 			return fillWithSameType(fieldType, value, mapValue, opts)
 		}
 		return u.processFieldPrimitiveWithJSONNumber(fieldType, value, v, opts, fullName)
 	default:
 		if typeKind == reflect.Interface {
+			if err := validateValueInOptions(mapValue, opts.options()); err != nil {
+				return err
+			}
 			return fillWithSameType(fieldType, value, mapValue, opts)
 		}
 		if typeKind == valueKind {
