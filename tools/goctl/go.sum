@@ -43,8 +43,8 @@ github.com/go-openapi/jsonpointer v1.0.0 h1:kR9tHqY0CtZaOPVFm622dPVNhrvYpwr4uCxg
 github.com/go-openapi/jsonpointer v1.0.0/go.mod h1:Z3rw7dWu1p9IgitXCFamSlA5lmDiklEB6vkaxcNZW5Y=
 github.com/go-openapi/jsonreference v1.0.1 h1:4zJ7AmYDKNmD3aSpfPnFNCFA5E80/xMHUNKgydaLh38=
 github.com/go-openapi/jsonreference v1.0.1/go.mod h1:dYplQXa6p5lXprLcJ8LE2iU7vNpXsAHDQ5ZAgL+Qx3A=
-github.com/go-openapi/spec v0.22.11 h1:/ZW28n4PCghbBpwjmvoMeyCeDwd6pIe715Ov8T3kAaQ=
-github.com/go-openapi/spec v0.22.11/go.mod h1:Ypu+u1KTejey7/QCr3j1ChdjwhGgXuklbH7l8+YP1J4=
+github.com/go-openapi/spec v1.0.0 h1:JtB/GHOj+eetjse6YvxqLze88oEekl/4uPBethvzRrA=
+github.com/go-openapi/spec v1.0.0/go.mod h1:boj1PRhqS0x5jylgcNp9BRWxenphrh7vVNYZ90IRCoo=
 github.com/go-openapi/swag v0.23.1 h1:lpsStH0n2ittzTnbaSloVZLuB5+fvSY/+hnagBjSNZU=
 github.com/go-openapi/swag v0.23.1/go.mod h1:STZs8TbRvEQQKUA+JZNAm3EWlgaOBGpyFDqQnDHMef0=
 github.com/go-openapi/swag/conv v0.29.1 h1:AC4Eh/5c/eUDOUCzzsRC9ghmFgOSBHeRMGIngY0ZUGA=
@@ -63,10 +63,10 @@ github.com/go-openapi/swag/typeutils v0.29.1 h1:Nzv9nhnlLCRBPQqfOX+7lB6Guju370or
 github.com/go-openapi/swag/typeutils v0.29.1/go.mod h1:hxpgDZJVBkBsi/d3MIUosafoFdE5exaQRmVp0zwu3YE=
 github.com/go-openapi/swag/yamlutils v0.29.1 h1:69w3tsBajm7MR/fejLy7HD/3J68Ys1SeeZMEzZ3w2sk=
 github.com/go-openapi/swag/yamlutils v0.29.1/go.mod h1:rgsp3vT/QdWzKwn43CigDwjOGIenPyTZMKnxEM8jZOA=
-github.com/go-openapi/testify/enable/yaml/v2 v2.6.1 h1:Jm+/ze2rMtbD98yen92AhATGLGREDYXG56Xr4gMjEtE=
-github.com/go-openapi/testify/enable/yaml/v2 v2.6.1/go.mod h1:YDPnwCRDu38/oJBVMBVXOUDiJ9cIeBHWvfImHaXqnv4=
-github.com/go-openapi/testify/v2 v2.6.1 h1:6CNJhTjMzgaeaH8WhshcsZNPIvRemiOcFpU7seO/y7Q=
-github.com/go-openapi/testify/v2 v2.6.1/go.mod h1:SgsVHtfooshd0tublTtJ50FPKhujf47YRqauXXOUxfw=
+github.com/go-openapi/testify/enable/yaml/v2 v2.7.0 h1:wPW6YRgx3+SID1yUy/Xwa17L8kFEaEKod2VRbJDZNUs=
+github.com/go-openapi/testify/enable/yaml/v2 v2.7.0/go.mod h1:mI1M88etYbc3PhgHsWQK2kwvNwW5aGFqMPbmib+SGIs=
+github.com/go-openapi/testify/v2 v2.7.0 h1:bycOreEj6wfBvijg3YFogZ/sFjTCDmQnwSodSzHa3X8=
+github.com/go-openapi/testify/v2 v2.7.0/go.mod h1:SgsVHtfooshd0tublTtJ50FPKhujf47YRqauXXOUxfw=
 github.com/go-sql-driver/mysql v1.10.0 h1:Q+1LV8DkHJvSYAdR83XzuhDaTykuDx0l6fkXxoWCWfw=
 github.com/go-sql-driver/mysql v1.10.0/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
 github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 h1:tfuBGBXKqDEevZMzYi5KSi8KkcZtzBcTgAUUtapy0OI=
