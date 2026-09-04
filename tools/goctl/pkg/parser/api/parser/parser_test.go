@@ -306,6 +306,10 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"prefix2":    "v1/v2_test/v2-beta",
 			"prefix3":    "v1/v2_",
 			"prefix4":    "a-b-c",
+			"prefix5":    "/-",
+			"prefix6":    "/-/",
+			"prefix7":    "/abc/",
+			"prefix8":    "/comment/",
 			"summary":    `"test"`,
 			"key":        `"bar"`,
 		}
@@ -359,6 +363,8 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server(foo: m1,`,
 			`@server(foo: m1,)`,
 			`@server(foo: v1/v2-)`,
+			`@server(prefix:/--)`,
+			`@server(prefix:/-abc)`,
 			`@server(foo:"test")`,
 		}
 		for _, v := range testData {
