@@ -91,7 +91,7 @@ func responseStatusCode(atDoc apiSpec.AtDoc) int {
 
 func responseDescriptions(atDoc apiSpec.AtDoc) map[int]string {
 	descriptions := make(map[int]string)
-	for _, item := range strings.Split(getStringFromKVOrDefault(atDoc.Properties, propertyKeyResponses, ""), "<br>") {
+	for item := range strings.SplitSeq(getStringFromKVOrDefault(atDoc.Properties, propertyKeyResponses, ""), "<br>") {
 		codeText, description, ok := strings.Cut(item, "-")
 		if !ok {
 			continue
