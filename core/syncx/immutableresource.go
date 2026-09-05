@@ -73,6 +73,7 @@ func (ir *ImmutableResource) shouldRefresh() bool {
 	if ir.refreshInterval <= 0 {
 		return true
 	}
+
 	lastTime := ir.lastTime.Load()
 	return lastTime == 0 || lastTime+ir.refreshInterval < timex.Now()
 }
