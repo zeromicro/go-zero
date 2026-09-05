@@ -59,13 +59,26 @@ func (r *Registry) Monitor(endpoints []string, key string, exactMatch bool, l Up
 	if exists {
 		c.lock.Lock()
 		watcher, ok := c.watchers[wkey]
+		var ready chan struct{}
 		if ok {
-			watcher.listeners = append(watcher.listeners, l)
+			ready = watcher.ready
 		}
 		c.lock.Unlock()
 
 		if ok {
-			kvs := c.getCurrent(wkey)
+			// Wait for the initial load to complete before adding the listener
+			// and replaying values, in case a concurrent first Monitor call is
+			// still loading. This avoids double-notification and empty replays.
+			if ready != nil {
+				<-ready
+			}
+			c.lock.Lock()
+			watcher.listeners = append(watcher.listeners, l)
+			kvs := make([]KV, 0, len(watcher.values))
+			for k, v := range watcher.values {
+				kvs = append(kvs, KV{Key: k, Val: v})
+			}
+			c.lock.Unlock()
 			for _, kv := range kvs {
 				l.OnAdd(kv)
 			}
@@ -150,6 +163,9 @@ type (
 		listeners []UpdateListener
 		values    map[string]string
 		cancel    context.CancelFunc
+		// ready is closed once the initial etcd snapshot load completes,
+		// so concurrent secondary Monitor callers can wait before replaying values.
+		ready chan struct{}
 	}
 
 	cluster struct {
@@ -170,21 +186,6 @@ func newCluster(endpoints []string) *cluster {
 		watchGroup: threading.NewRoutineGroup(),
 		done:       make(chan lang.PlaceholderType),
 	}
-}
-
-func (c *cluster) addListener(key watchKey, l UpdateListener) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	watcher, ok := c.watchers[key]
-	if ok {
-		watcher.listeners = append(watcher.listeners, l)
-		return
-	}
-
-	val := newWatchValue()
-	val.listeners = []UpdateListener{l}
-	c.watchers[key] = val
 }
 
 func (c *cluster) getClient() (EtcdClient, error) {
@@ -337,8 +338,41 @@ func (c *cluster) monitor(key watchKey, l UpdateListener) error {
 		return err
 	}
 
-	c.addListener(key, l)
+	// Pre-create the watcher entry under lock to prevent a concurrent Monitor()
+	// call from also observing ok==false and spawning a second watch goroutine
+	// for the same key (TOCTOU race between the watcher check in Registry.Monitor
+	// and this call site).
+	c.lock.Lock()
+	if watcher, ok := c.watchers[key]; ok {
+		// Another goroutine already set up (or is setting up) a watch for this
+		// key. Save the ready signal, release the lock, then wait for the initial
+		// load to finish before adding the listener and replaying the snapshot.
+		// This avoids both duplicate watch goroutines and double-notification
+		// from a concurrent handleChanges during the initial load.
+		ready := watcher.ready
+		c.lock.Unlock()
+		if ready != nil {
+			<-ready
+		}
+		c.lock.Lock()
+		watcher.listeners = append(watcher.listeners, l)
+		kvs := make([]KV, 0, len(watcher.values))
+		for k, v := range watcher.values {
+			kvs = append(kvs, KV{Key: k, Val: v})
+		}
+		c.lock.Unlock()
+		for _, kv := range kvs {
+			l.OnAdd(kv)
+		}
+		return nil
+	}
+	val := newWatchValue()
+	val.listeners = []UpdateListener{l}
+	c.watchers[key] = val
+	c.lock.Unlock()
+
 	rev := c.load(cli, key)
+	close(val.ready)
 	c.watchGroup.Run(func() {
 		c.watch(cli, key, rev)
 	})
@@ -522,5 +556,6 @@ func makeKeyPrefix(key string) string {
 func newWatchValue() *watchValue {
 	return &watchValue{
 		values: make(map[string]string),
+		ready:  make(chan struct{}),
 	}
 }
