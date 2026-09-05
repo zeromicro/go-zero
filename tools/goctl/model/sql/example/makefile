@@ -19,11 +19,11 @@ fromDDLWithoutCache:
 
 
 # generate model with cache from data source
-user=app_user
-password=PLO75FbcfmFYRuQEGmygZ9PyQCQbmgeD5
-datasource=k8s-istiosys-unifydev-2cdcebd306-b64e09be84220820.elb.ap-southeast-1.amazonaws.com:3306
-database=db_fiat
+user=root
+password=password
+datasource=127.0.0.1:3306
+database=gozero
 
 fromDataSource:
 	goctl template clean
-	goctl model mysql datasource -url="$(user):$(password)@tcp($(datasource))/$(database)" -table="biz_switch" -dir ./model/cache -c -style gozero --prefix gozero
+	goctl model mysql datasource -url="$(user):$(password)@tcp($(datasource))/$(database)" -table="*" -dir ./model/cache -c -style gozero
