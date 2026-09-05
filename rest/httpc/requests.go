@@ -123,22 +123,41 @@ func fillHeader(r *http.Request, val map[string]any) {
 func fillPath(u *nurl.URL, val map[string]any) error {
 	used := make(map[string]lang.PlaceholderType)
 	fields := strings.Split(u.Path, slash)
+	rawFields := strings.Split(u.EscapedPath(), slash)
 
-	for i := range fields {
-		field := fields[i]
-		if len(field) > 0 && field[0] == colon {
-			name := field[1:]
-			ival, ok := val[name]
-			if !ok {
-				return fmt.Errorf("missing path variable %q", name)
+	fill := func(parts []string, escaped bool) error {
+		for i := range parts {
+			field := parts[i]
+			if len(field) > 0 && field[0] == colon {
+				name := field[1:]
+				ival, ok := val[name]
+				if !ok {
+					return fmt.Errorf("missing path variable %q", name)
+				}
+				value := fmt.Sprint(ival)
+				if len(value) == 0 {
+					return fmt.Errorf("empty path variable %q", name)
+				}
+				if strings.Contains(value, slash) {
+					return fmt.Errorf("path variable %q cannot contain '/'", name)
+				}
+				if escaped {
+					parts[i] = nurl.PathEscape(value)
+				} else {
+					parts[i] = value
+				}
+				used[name] = lang.Placeholder
 			}
-			value := fmt.Sprint(ival)
-			if len(value) == 0 {
-				return fmt.Errorf("empty path variable %q", name)
-			}
-			fields[i] = value
-			used[name] = lang.Placeholder
 		}
+
+		return nil
+	}
+
+	if err := fill(fields, false); err != nil {
+		return err
+	}
+	if err := fill(rawFields, true); err != nil {
+		return err
 	}
 
 	if len(val) != len(used) {
@@ -155,6 +174,7 @@ func fillPath(u *nurl.URL, val map[string]any) error {
 	}
 
 	u.Path = strings.Join(fields, slash)
+	u.RawPath = strings.Join(rawFields, slash)
 	return nil
 }
 
