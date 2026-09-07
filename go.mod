@@ -7,7 +7,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/fatih/color v1.18.0
 	github.com/fullstorydev/grpcurl v1.9.4
-	github.com/go-sql-driver/mysql v1.10.0
+	github.com/go-sql-driver/mysql v1.10.1
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
