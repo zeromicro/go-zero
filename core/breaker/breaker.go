@@ -265,9 +265,8 @@ func (ew *errorWindow) add(reason string) {
 }
 
 func (ew *errorWindow) String() string {
-	reasons := make([]string, 0, ew.count)
-
 	ew.lock.Lock()
+	reasons := make([]string, 0, ew.count)
 	// reverse order
 	for i := ew.index - 1; i >= ew.index-ew.count; i-- {
 		reasons = append(reasons, ew.reasons[(i+numHistoryReasons)%numHistoryReasons])
