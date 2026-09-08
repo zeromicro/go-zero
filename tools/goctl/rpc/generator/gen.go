@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -31,6 +32,8 @@ type ZRpcContext struct {
 	Multiple bool
 	// Whether to generate rpc client
 	IsGenClient bool
+	// ClientOnly omits the server skeleton and requires IsGenClient.
+	ClientOnly bool
 	// Module is the custom module name for go.mod
 	Module string
 	// NameFromFilename uses proto filename instead of package name for service naming.
@@ -45,6 +48,10 @@ type ZRpcContext struct {
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
+	if zctx.ClientOnly && !zctx.IsGenClient {
+		return errors.New("--client-only cannot be combined with --client=false")
+	}
+
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
 		return err
@@ -87,9 +94,11 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenEtc(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
+	if !zctx.ClientOnly {
+		err = g.GenEtc(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = g.GenPb(dirCtx, zctx)
@@ -97,29 +106,31 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenConfig(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
-	}
+	if !zctx.ClientOnly {
+		err = g.GenConfig(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenSvc(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
-	}
+		err = g.GenSvc(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenServer(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenMain(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
+		err = g.GenMain(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	if zctx.IsGenClient {
