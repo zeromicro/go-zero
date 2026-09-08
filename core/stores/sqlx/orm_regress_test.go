@@ -322,3 +322,120 @@ func TestRegressDuplicateTagOverwrittenPtrAllocated(t *testing.T) {
 		t.Fatal("overwritten duplicate's pointer must stay allocated (old map-build side effect)")
 	}
 }
+
+// Regress #6: empty result sets must not fail field-count validation. The old
+// implementation validated counts per row inside mapStructFieldsIntoSlice, so
+// a zero-row query returned success no matter how columns and fields mismatched.
+func TestRegressZeroRowsSkipCountValidation(t *testing.T) {
+	// strict mode, tagged struct with more fields than selected columns
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"id"}))
+
+	conn := NewSqlConnFromDB(db)
+	var out []struct {
+		ID   int64  `db:"id"`
+		Name string `db:"name"`
+	}
+	if err := conn.QueryRowsCtx(context.Background(), &out, "SELECT id FROM t"); err != nil {
+		t.Fatalf("strict zero-row scan must succeed, got: %v", err)
+	}
+	if len(out) != 0 {
+		t.Fatalf("expected empty slice, got %+v", out)
+	}
+
+	// untagged struct with more columns than fields, non-strict
+	db2, mock2, _ := sqlmock.New()
+	defer db2.Close()
+	mock2.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"a", "b"}))
+
+	conn2 := NewSqlConnFromDB(db2)
+	var out2 []struct {
+		A int64
+	}
+	if err := conn2.QueryRowsPartialCtx(context.Background(), &out2, "SELECT a, b FROM t"); err != nil {
+		t.Fatalf("untagged zero-row scan must succeed, got: %v", err)
+	}
+}
+
+// Regress #7: an unexported field with a non-empty db tag failed every scanned
+// row with ErrNotReadableValue while the old code built the tagged map per
+// row, even when no column selected the field. Zero rows stayed a success,
+// because the map was never built.
+func TestRegressUnexportedTaggedFieldErrors(t *testing.T) {
+	type row struct {
+		A      int64 `db:"a"`
+		hidden int64 `db:"hidden"`
+	}
+
+	// column not selected, one row: still ErrNotReadableValue
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"a"}).AddRow(int64(1)))
+
+	conn := NewSqlConnFromDB(db)
+	var out []row
+	if err := conn.QueryRowsPartialCtx(context.Background(), &out, "SELECT a FROM t"); !errors.Is(err, ErrNotReadableValue) {
+		t.Fatalf("want ErrNotReadableValue on unexported tagged field, got: %v", err)
+	}
+
+	// same shape on the single-row path
+	db2, mock2, _ := sqlmock.New()
+	defer db2.Close()
+	mock2.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"a"}).AddRow(int64(1)))
+
+	conn2 := NewSqlConnFromDB(db2)
+	one := row{}
+	if err := conn2.QueryRowPartialCtx(context.Background(), &one, "SELECT a FROM t"); !errors.Is(err, ErrNotReadableValue) {
+		t.Fatalf("want ErrNotReadableValue on single-row path, got: %v", err)
+	}
+
+	// zero rows: no error, the old map build never ran
+	db3, mock3, _ := sqlmock.New()
+	defer db3.Close()
+	mock3.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"a"}))
+
+	conn3 := NewSqlConnFromDB(db3)
+	var out3 []row
+	if err := conn3.QueryRowsPartialCtx(context.Background(), &out3, "SELECT a FROM t"); err != nil {
+		t.Fatalf("zero rows must stay success with unexported tagged field, got: %v", err)
+	}
+
+	// strict count mismatch wins over the unexported error, matching the old
+	// order (unwrapFields + strict check ran before the map build)
+	db4, mock4, _ := sqlmock.New()
+	defer db4.Close()
+	mock4.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"a"}).AddRow(int64(1)))
+
+	conn4 := NewSqlConnFromDB(db4)
+	var out4 []struct {
+		A      int64 `db:"a"`
+		B      int64 `db:"b"`
+		hidden int64 `db:"hidden"`
+	}
+	if err := conn4.QueryRowsCtx(context.Background(), &out4, "SELECT a FROM t"); !errors.Is(err, ErrNotMatchDestination) {
+		t.Fatalf("strict count mismatch must win over unexported error, got: %v", err)
+	}
+}
+
+// Regress #7b: an unexported field tagged db:"-" errored as well in the old
+// map build — any non-empty tag counts, "-" is only filtered for name
+// matching, not for the getValueInterface call the old build made.
+func TestRegressUnexportedTagIgnoreFieldErrors(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(
+		sqlmock.NewRows([]string{"a"}).AddRow(int64(1)))
+
+	conn := NewSqlConnFromDB(db)
+	var out []struct {
+		A    int64 `db:"a"`
+		skip int64 `db:"-"`
+	}
+	if err := conn.QueryRowsPartialCtx(context.Background(), &out, "SELECT a FROM t"); !errors.Is(err, ErrNotReadableValue) {
+		t.Fatalf("want ErrNotReadableValue on unexported db:\"-\" field, got: %v", err)
+	}
+}

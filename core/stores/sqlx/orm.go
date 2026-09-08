@@ -45,9 +45,9 @@ type rowsScanner interface {
 //     count, the positional (untagged) path and the pointer init list.
 //   - byName follows getTaggedFieldValueMap: embedded structs are flattened
 //     regardless of their own tag or export status, and every non-empty db tag
-//     (including "-") is kept for name matching. A tagged unexported field is
-//     kept as well; scanning it later fails in getValueInterface with
-//     ErrNotReadableValue, matching the error the old map build returned.
+//     (including "-") is kept for name matching. A tagged unexported field sets
+//     unexportedTagged, so the first scanned row fails with ErrNotReadableValue
+//     like the old map build did, even when no column selects the field.
 //     Paths may cross embedded pointers that ptrIndex cannot pre-allocate
 //     (unexported, or db:"-" so collectFlat skipped the subtree): crossing a
 //     nil one fails with ErrNotReadableValue in fieldByIndex instead of the
@@ -60,6 +60,11 @@ type cachedFields struct {
 	flat   [][]int          // unwrapFields order: strict count + positional path
 	byName map[string][]int // db tag name -> field index path (later fields win)
 	tagged bool             // whether any field carries a db tag
+	// unexportedTagged reports whether any unexported field carries a non-empty
+	// db tag. The old per-row map build ran getValueInterface on every tagged
+	// field, so such a field failed every scanned row with ErrNotReadableValue
+	// even when no column selected it; buildValues retains that error.
+	unexportedTagged bool
 	// ptrIndex lists every settable pointer field (embedded pointer intermediates
 	// first, ordered by path length) that must be initialized before scanning,
 	// preserving the previous side effect of unwrapFields on every row.
@@ -139,12 +144,16 @@ func collectByName(cf *cachedFields, rt reflect.Type, prefix []int) {
 		if len(column) == 0 {
 			continue
 		}
+		if field.PkgPath != "" {
+			cf.unexportedTagged = true
+		}
 		cf.byName[column] = idx
 		// The old map build ran getValueInterface on every visited tagged
 		// field, allocating its nil pointer as a side effect even when the
 		// column was not selected or a later duplicate tag overwrote the map
-		// entry. Unexported tagged leaves errored there and still do at scan
-		// time, so they are not collected for initialization.
+		// entry. Unexported tagged leaves errored there and still do, via
+		// unexportedTagged in buildValues, so they are not collected for
+		// initialization.
 		if field.PkgPath == "" && field.Type.Kind() == reflect.Pointer {
 			cf.taggedPtrIndex = append(cf.taggedPtrIndex, idx)
 		}
@@ -198,16 +207,27 @@ func isScanFailed(err error) bool {
 	return err != nil && !errors.Is(err, context.DeadlineExceeded)
 }
 
+// validateCounts checks the field-count constraints. It is row-dependent: the
+// previous per-row implementation only ran it from mapStructFieldsIntoSlice,
+// so a zero-row result never validated and stayed a success.
+func (cf *cachedFields) validateCounts(columns []string, strict bool) error {
+	if strict && len(columns) < len(cf.flat) {
+		return ErrNotMatchDestination
+	}
+	if !cf.tagged && len(cf.flat) < len(columns) {
+		return ErrNotMatchDestination
+	}
+
+	return nil
+}
+
 func mapStructFieldsIntoSlice(v reflect.Value, columns []string, strict bool) ([]any, error) {
 	cf, err := getCachedFields(mapping.Deref(v.Type()))
 	if err != nil {
 		return nil, err
 	}
-	if strict && len(columns) < len(cf.flat) {
-		return nil, ErrNotMatchDestination
-	}
-	if !cf.tagged && len(cf.flat) < len(columns) {
-		return nil, ErrNotMatchDestination
+	if err = cf.validateCounts(columns, strict); err != nil {
+		return nil, err
 	}
 
 	return cf.buildValues(reflect.Indirect(v), cf.matchColumns(columns))
@@ -251,6 +271,13 @@ func fieldByIndex(v reflect.Value, index []int) (reflect.Value, error) {
 // buildValues assembles the scan targets for a single row.
 func (cf *cachedFields) buildValues(indirect reflect.Value, colIdx [][]int) ([]any, error) {
 	cf.initPtrFields(indirect)
+
+	// The old per-row tagged map build failed on unexported tagged fields with
+	// ErrNotReadableValue after the pointer side effects and before scanning,
+	// regardless of column selection. Keep that error at the same point.
+	if cf.unexportedTagged {
+		return nil, ErrNotReadableValue
+	}
 
 	values := make([]any, len(colIdx))
 	for i, idx := range colIdx {
@@ -387,17 +414,21 @@ func unmarshalRows(v any, scanner rowsScanner, strict bool) error {
 			if err != nil {
 				return err
 			}
-			if strict && len(columns) < len(cf.flat) {
-				return ErrNotMatchDestination
-			}
-			if !cf.tagged && len(cf.flat) < len(columns) {
-				return ErrNotMatchDestination
-			}
 
-			// columns are fixed for the whole result set, match once
-			colIdx := cf.matchColumns(columns)
-
+			// Row-dependent validation is deferred until the first row: with no
+			// row the previous per-row implementation never validated and a
+			// zero-row result stayed a success. It runs once, before scanning
+			// the first row, at the same point the old code validated.
+			var colIdx [][]int
 			for scanner.Next() {
+				if colIdx == nil {
+					if err := cf.validateCounts(columns, strict); err != nil {
+						return err
+					}
+					// columns are fixed for the whole result set, match once
+					colIdx = cf.matchColumns(columns)
+				}
+
 				value := reflect.New(base)
 				values, err := cf.buildValues(value.Elem(), colIdx)
 				if err != nil {
