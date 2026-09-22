@@ -1,6 +1,9 @@
 package discov
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	// errEmptyEtcdHosts indicates that etcd hosts are empty.
@@ -19,7 +22,8 @@ type EtcdConf struct {
 	CertFile           string `json:",optional"`
 	CertKeyFile        string `json:",optional=CertFile"`
 	CACertFile         string `json:",optional=CertFile"`
-	InsecureSkipVerify bool   `json:",optional"`
+	InsecureSkipVerify bool          `json:",optional"`
+	AutoSyncInterval   time.Duration `json:",optional"`
 }
 
 // HasAccount returns if account provided.
