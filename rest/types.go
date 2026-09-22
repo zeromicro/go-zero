@@ -11,6 +11,7 @@ type (
 
 	// A Route is a http route.
 	Route struct {
+		AtDoc   map[string]string
 		Method  string
 		Path    string
 		Handler http.HandlerFunc

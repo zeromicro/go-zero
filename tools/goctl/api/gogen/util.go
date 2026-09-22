@@ -232,3 +232,22 @@ func getDoc(doc string) string {
 
 	return "// " + strings.Trim(doc, "\"")
 }
+
+func getAtDoc(m map[string]string) string {
+	if len(m) <= 0 {
+		return ""
+	}
+	return fmt.Sprintf(`
+	AtDoc: map[string]string{
+			%s
+		},
+	`, getKv(m))
+}
+
+func getKv(m map[string]string) string {
+	kv := ""
+	for k, v := range m {
+		kv += fmt.Sprintf("\"%s\": \"%s\",\n", k, v)
+	}
+	return kv
+}
