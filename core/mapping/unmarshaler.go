@@ -312,7 +312,7 @@ func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
 	target := reflect.New(baseType)
 	switch u.key {
 	case jsonTagKey:
-		unmarshaler, ok := target.Interface().(json.Unmarshaler)
+		unmarshaler, ok := reflect.TypeAssert[json.Unmarshaler](target)
 		if !ok {
 			return errUnsupportedType
 		}
@@ -424,7 +424,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 func (u *Unmarshaler) implementsUnmarshaler(t reflect.Type) bool {
 	switch u.key {
 	case jsonTagKey:
-		return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
+		return t.Implements(reflect.TypeFor[json.Unmarshaler]())
 	default:
 		return false
 	}
@@ -740,12 +740,12 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 		if value.Elem().Kind() == reflect.Ptr {
 			target := reflect.New(Deref(fieldType))
 			SetValue(fieldType.Elem(), value, target)
-			tval, ok = target.Interface().(encoding.TextUnmarshaler)
+			tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](target)
 		} else {
-			tval, ok = value.Interface().(encoding.TextUnmarshaler)
+			tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](value)
 		}
 	} else {
-		tval, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
+		tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](value.Addr())
 	}
 	if ok {
 		switch mv := mapValue.(type) {

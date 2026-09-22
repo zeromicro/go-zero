@@ -94,9 +94,7 @@ func ParseForm(r *http.Request, v any) error {
 // ParseHeader parses the request header and returns a map.
 func ParseHeader(headerValue string) map[string]string {
 	ret := make(map[string]string)
-	fields := strings.Split(headerValue, separator)
-
-	for _, field := range fields {
+	for field := range strings.SplitSeq(headerValue, separator) {
 		field = strings.TrimSpace(field)
 		if len(field) == 0 {
 			continue

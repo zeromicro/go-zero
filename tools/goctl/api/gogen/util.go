@@ -141,7 +141,7 @@ func getMiddleware(api *spec.ApiSpec) []string {
 	for _, g := range api.Service.Groups {
 		middleware := g.GetAnnotation("middleware")
 		if len(middleware) > 0 {
-			for _, item := range strings.Split(middleware, ",") {
+			for item := range strings.SplitSeq(middleware, ",") {
 				result.Add(strings.TrimSpace(item))
 			}
 		}

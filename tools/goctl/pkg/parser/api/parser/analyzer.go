@@ -349,6 +349,17 @@ func (a *Analyzer) fillTypes() error {
 		case spec.DefineStruct:
 			var members []spec.Member
 			for _, member := range v.Members {
+				if member.IsInline {
+					tp, err := a.resolveInlineType(member.Type, map[string]bool{v.RawName: true})
+					if err != nil {
+						return err
+					}
+
+					member.Type = tp
+					members = append(members, member)
+					continue
+				}
+
 				switch v := member.Type.(type) {
 				case spec.DefineStruct:
 					tp, err := a.findDefinedType(v.RawName)
@@ -369,6 +380,62 @@ func (a *Analyzer) fillTypes() error {
 	a.spec.Types = types
 
 	return nil
+}
+
+func (a *Analyzer) resolveInlineType(tp spec.Type, resolving map[string]bool) (spec.Type, error) {
+	switch v := tp.(type) {
+	case spec.DefineStruct:
+		if resolving[v.RawName] {
+			return v, nil
+		}
+
+		tp, err := a.findDefinedType(v.RawName)
+		if err != nil {
+			return nil, err
+		}
+
+		defined, ok := tp.(spec.DefineStruct)
+		if !ok {
+			return nil, fmt.Errorf("type %s is not a struct", v.RawName)
+		}
+
+		resolving[v.RawName] = true
+		defer delete(resolving, v.RawName)
+		for i := range defined.Members {
+			if !defined.Members[i].IsInline {
+				continue
+			}
+
+			resolved, err := a.resolveInlineType(defined.Members[i].Type, resolving)
+			if err != nil {
+				return nil, err
+			}
+			defined.Members[i].Type = resolved
+		}
+		return defined, nil
+	case spec.NestedStruct:
+		for i := range v.Members {
+			if !v.Members[i].IsInline {
+				continue
+			}
+
+			resolved, err := a.resolveInlineType(v.Members[i].Type, resolving)
+			if err != nil {
+				return nil, err
+			}
+			v.Members[i].Type = resolved
+		}
+		return v, nil
+	case spec.PointerType:
+		resolved, err := a.resolveInlineType(v.Type, resolving)
+		if err != nil {
+			return nil, err
+		}
+		v.Type = resolved
+		return v, nil
+	default:
+		return tp, nil
+	}
 }
 
 func (a *Analyzer) fillTypeExpr(expr *ast.TypeExpr) error {

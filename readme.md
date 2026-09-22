@@ -84,53 +84,36 @@ go get -u github.com/zeromicro/go-zero
 
 ## AI-Native Development
 
-The go-zero team provides AI tooling for Claude, GitHub Copilot, Cursor to generate framework-compliant code.
+The go-zero team provides workflow guidance and implementation patterns for AI coding assistants such as Claude Code, GitHub Copilot, and Cursor. For assistants with terminal access, the recommended workflow is to run `goctl` directly to generate framework-compliant code.
 
-### Three Core Projects
+### AI Tooling Projects
 
-**[ai-context](https://github.com/zeromicro/ai-context)** - Workflow guide for AI assistants
-
-**[zero-skills](https://github.com/zeromicro/zero-skills)** - Pattern library with examples
-
-**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - Code generation tools via Model Context Protocol
+- **[ai-context](https://github.com/zeromicro/ai-context)** - Workflow guidance: how to approach go-zero development tasks and when to use goctl.
+- **[zero-skills](https://github.com/zeromicro/zero-skills)** - Implementation patterns, examples, and goctl command reference, loaded as needed.
+- **[mcp-zero](https://github.com/zeromicro/mcp-zero)** - Optional adapter that exposes goctl code generation through the Model Context Protocol (MCP).
 
 ### Quick Setup
 
-#### GitHub Copilot
+Install goctl and ensure it is available in your `$PATH`:
+
 ```bash
-git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context
-ln -s ai-context/00-instructions.md .github/copilot-instructions.md  # macOS/Linux
-# Windows: mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
-git submodule update --remote .github/ai-context  # Update
+go install github.com/zeromicro/go-zero/tools/goctl@latest
+goctl --version
 ```
 
-#### Cursor
-```bash
-git submodule add https://github.com/zeromicro/ai-context.git .cursorrules
-git submodule update --remote .cursorrules  # Update
-```
-
-#### Windsurf
-```bash
-git submodule add https://github.com/zeromicro/ai-context.git .windsurfrules
-git submodule update --remote .windsurfrules  # Update
-```
-
-#### Claude Desktop
-```bash
-git clone https://github.com/zeromicro/mcp-zero.git && cd mcp-zero && go build
-# Configure: ~/Library/Application Support/Claude/claude_desktop_config.json
-# Or: claude mcp add --transport stdio mcp-zero --env GOCTL_PATH=/path/to/goctl -- /path/to/mcp-zero
-```
+Follow the [ai-context setup guide](https://github.com/zeromicro/ai-context#manual-setup) and [zero-skills integration guides](https://github.com/zeromicro/zero-skills/tree/main/getting-started) to configure your assistant's workflow instructions and pattern library.
 
 ### How It Works
 
-AI assistants use these tools together:
-1. **ai-context** - workflow guidance
-2. **zero-skills** - implementation patterns
-3. **mcp-zero** - real-time code generation
+1. Consult **ai-context** for the workflow and **zero-skills** for relevant patterns.
+2. Define the `.api` or `.proto` specification, then run **goctl** in the terminal to generate code.
+3. Implement business logic, resolve dependencies, build, and test the service.
 
-**Example**: Creating a REST API → AI reads **ai-context** for workflow → calls **mcp-zero** to generate code → references **zero-skills** for patterns → produces production-ready code ✅
+**Example**: Create a REST API → write the `.api` specification → run `goctl api go` → implement the logic using **zero-skills** patterns → run `go mod tidy`, `go build ./...`, and `go test ./...`.
+
+### Optional MCP Integration
+
+For clients that use MCP tools, such as Claude Desktop, configure **[mcp-zero](https://github.com/zeromicro/mcp-zero)** to invoke goctl through MCP. It uses the same code generation engine; assistants with terminal access can use the direct workflow above without an MCP server.
 
 ## Quick Start
 

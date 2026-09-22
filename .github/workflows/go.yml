@@ -10,6 +10,9 @@ jobs:
   test-linux:
     name: Linux
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7
@@ -45,7 +48,8 @@ jobs:
           files: ./coverage.txt
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: false
+          use_oidc: true
+          fail_ci_if_error: true
 
   test-win:
     name: Windows
