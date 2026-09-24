@@ -39,6 +39,10 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 
 	var changed bool
 	for _, point := range endpoints.Endpoints {
+		if !isReady(point) {
+			continue
+		}
+
 		for _, address := range point.Addresses {
 			if _, ok := h.endpoints[address]; !ok {
 				h.endpoints[address] = lang.Placeholder
@@ -107,6 +111,10 @@ func (h *EventHandler) Update(endpoints *v1.EndpointSlice) {
 	old := h.endpoints
 	h.endpoints = make(map[string]lang.PlaceholderType)
 	for _, point := range endpoints.Endpoints {
+		if !isReady(point) {
+			continue
+		}
+
 		for _, address := range point.Addresses {
 			h.endpoints[address] = lang.Placeholder
 		}
@@ -125,6 +133,14 @@ func (h *EventHandler) notify() {
 	}
 
 	h.update(targets)
+}
+
+// isReady reports whether the endpoint should receive new traffic, the same
+// set of addresses the Endpoints API listed as ready. Kubernetes reports
+// terminating endpoints as not ready, and a nil Ready condition means unknown,
+// which consumers should treat as ready.
+func isReady(point v1.Endpoint) bool {
+	return point.Conditions.Ready == nil || *point.Conditions.Ready
 }
 
 func diff(o, n map[string]lang.PlaceholderType) bool {
