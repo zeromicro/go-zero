@@ -15,6 +15,7 @@ var _ cache.ResourceEventHandler = (*EventHandler)(nil)
 type EventHandler struct {
 	update    func([]string)
 	endpoints map[string]lang.PlaceholderType
+	slices    map[string]map[string]lang.PlaceholderType
 	lock      sync.Mutex
 }
 
@@ -23,6 +24,7 @@ func NewEventHandler(update func([]string)) *EventHandler {
 	return &EventHandler{
 		update:    update,
 		endpoints: make(map[string]lang.PlaceholderType),
+		slices:    make(map[string]map[string]lang.PlaceholderType),
 	}
 }
 
@@ -37,23 +39,9 @@ func (h *EventHandler) OnAdd(obj any, _ bool) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	var changed bool
-	for _, point := range endpoints.Endpoints {
-		if !isReady(point) {
-			continue
-		}
+	h.slices[sliceKey(endpoints)] = readyAddresses(endpoints)
 
-		for _, address := range point.Addresses {
-			if _, ok := h.endpoints[address]; !ok {
-				h.endpoints[address] = lang.Placeholder
-				changed = true
-			}
-		}
-	}
-
-	if changed {
-		h.notify()
-	}
+	h.rebuildEndpoints()
 }
 
 // OnDelete handles the endpoints delete events.
@@ -67,19 +55,9 @@ func (h *EventHandler) OnDelete(obj any) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	var changed bool
-	for _, point := range endpoints.Endpoints {
-		for _, address := range point.Addresses {
-			if _, ok := h.endpoints[address]; ok {
-				delete(h.endpoints, address)
-				changed = true
-			}
-		}
-	}
+	delete(h.slices, sliceKey(endpoints))
 
-	if changed {
-		h.notify()
-	}
+	h.rebuildEndpoints()
 }
 
 // OnUpdate handles the endpoints update events.
@@ -108,21 +86,37 @@ func (h *EventHandler) Update(endpoints *v1.EndpointSlice) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
+	h.slices[sliceKey(endpoints)] = readyAddresses(endpoints)
+	h.rebuildEndpoints()
+}
+
+func (h *EventHandler) rebuildEndpoints() {
 	old := h.endpoints
 	h.endpoints = make(map[string]lang.PlaceholderType)
-	for _, point := range endpoints.Endpoints {
-		if !isReady(point) {
-			continue
-		}
-
-		for _, address := range point.Addresses {
+	for _, addresses := range h.slices {
+		for address := range addresses {
 			h.endpoints[address] = lang.Placeholder
 		}
 	}
-
 	if diff(old, h.endpoints) {
 		h.notify()
 	}
+}
+
+func readyAddresses(endpoints *v1.EndpointSlice) map[string]lang.PlaceholderType {
+	addresses := make(map[string]lang.PlaceholderType)
+	for _, point := range endpoints.Endpoints {
+		if isReady(point) {
+			for _, address := range point.Addresses {
+				addresses[address] = lang.Placeholder
+			}
+		}
+	}
+	return addresses
+}
+
+func sliceKey(endpoints *v1.EndpointSlice) string {
+	return endpoints.Namespace + "/" + endpoints.Name
 }
 
 func (h *EventHandler) notify() {
