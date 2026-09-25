@@ -20,7 +20,7 @@ func FormatAddr(hosts []string) string {
 func logDuration(ctx context.Context, name, method string, startTime time.Duration, err error) {
 	duration := timex.Since(startTime)
 	logger := logx.WithContext(ctx).WithDuration(duration)
-	if err != nil {
+	if err != nil && !acceptable(err) {
 		logger.Errorf("mongo(%s) - %s - fail(%s)", name, method, err.Error())
 		return
 	}
@@ -40,7 +40,7 @@ func logDurationWithDocs(ctx context.Context, name, method string, startTime tim
 	content, jerr := json.Marshal(docs)
 	// jerr should not be non-nil, but we don't care much on this,
 	// if non-nil, we just log without docs.
-	if jerr != nil {
+	if jerr != nil && !acceptable(err) {
 		if err != nil {
 			logger.Errorf("mongo(%s) - %s - fail(%s)", name, method, err.Error())
 		} else if logSlowMon.True() && duration > slowThreshold.Load() {
