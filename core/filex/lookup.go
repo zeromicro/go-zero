@@ -1,6 +1,7 @@
 package filex
 
 import (
+	"errors"
 	"io"
 	"os"
 )
@@ -51,7 +52,14 @@ func SplitLineChunks(filename string, chunks int) ([]OffsetRange, error) {
 		}
 
 		offsetRange, err := nextRange(file, offset, offset+preferSize)
-		if err != nil {
+		if errors.Is(err, io.EOF) {
+			// the cut point is inside the last line, keep the rest in one chunk
+			offsetRange = OffsetRange{
+				File:  filename,
+				Start: offset,
+				Stop:  info.Size(),
+			}
+		} else if err != nil {
 			return nil, err
 		}
 
