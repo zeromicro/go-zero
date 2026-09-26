@@ -127,6 +127,29 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 			origins:   []string{"safe.com"},
 			reqOrigin: "not-safe.com",
 		},
+		{
+			name:      "allow wildcard prefix pattern",
+			origins:   []string{"*.example.com"},
+			reqOrigin: "sub.example.com",
+			expect:    "sub.example.com",
+		},
+		{
+			name:      "allow wildcard prefix pattern with deep subdomain",
+			origins:   []string{"*.example.com"},
+			reqOrigin: "deep.sub.example.com",
+			expect:    "deep.sub.example.com",
+		},
+		{
+			name:      "wildcard prefix pattern not matching root domain",
+			origins:   []string{"*.example.com"},
+			reqOrigin: "example.com",
+		},
+		{
+			name:      "wildcard prefix pattern case insensitive",
+			origins:   []string{"*.Example.COM"},
+			reqOrigin: "SUB.example.com",
+			expect:    "SUB.example.com",
+		},
 	}
 
 	methods := []string{
