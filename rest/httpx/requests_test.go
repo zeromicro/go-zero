@@ -497,6 +497,38 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Error(t, Parse(r, &v))
 	})
 
+	t.Run("chunked body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		body := `{"name":"kevin", "age": 18}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.ContentTypeJson)
+		r.ContentLength = -1
+
+		if assert.NoError(t, ParseJsonBody(r, &v)) {
+			assert.Equal(t, "kevin", v.Name)
+			assert.Equal(t, 18, v.Age)
+		}
+	})
+
+	t.Run("empty chunked body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name,optional"`
+			Age  int    `json:"age,optional"`
+		}
+
+		r := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
+		r.Header.Set(ContentType, header.ContentTypeJson)
+		r.ContentLength = -1
+
+		assert.NoError(t, ParseJsonBody(r, &v))
+		assert.Equal(t, "", v.Name)
+		assert.Equal(t, 0, v.Age)
+	})
+
 	t.Run("hasn't body", func(t *testing.T) {
 		var v struct {
 			Name string `json:"name,optional"`
