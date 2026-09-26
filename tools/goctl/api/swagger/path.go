@@ -91,7 +91,7 @@ func spec2Path(ctx Context, group apiSpec.Group, route apiSpec.Route) spec.PathI
 			Summary:     getStringFromKVOrDefault(route.AtDoc.Properties, propertyKeySummary, getFirstUsableString(route.AtDoc.Text, route.Handler)),
 			ID:          operationId,
 			Deprecated:  getBoolFromKVOrDefault(route.AtDoc.Properties, propertyKeyDeprecated, false),
-			Parameters:  parametersFromType(ctx, route.Method, route.RequestType),
+			Parameters:  parametersFromType(ctx, route.Method, route.RequestType, route.Path),
 			Security:    security,
 			Responses:   jsonResponseFromType(ctx, route.AtDoc, route.ResponseType),
 		},
