@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/breaker"
 	"github.com/zeromicro/go-zero/zrpc/internal/codes"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
@@ -61,11 +62,11 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		})
 	}
 
-	return &p2cPicker{
+	return breaker.WrapPicker(info, &p2cPicker{
 		conns: conns,
 		r:     rand.New(rand.NewSource(time.Now().UnixNano())),
 		stamp: syncx.NewAtomicDuration(),
-	}
+	}, true)
 }
 
 func newBuilder() balancer.Builder {
