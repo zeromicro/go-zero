@@ -294,7 +294,10 @@ func TestStmtBreaker(t *testing.T) {
 func TestQueryRowsScanTimeout(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rows := sqlmock.NewRows([]string{"foo"})
-		for i := 0; i < 10000; i++ {
+		// 100k rows keep the scan far beyond the 2ms budget; 10k was only
+		// ~1.2x over it after the field-cache speedup, which made the
+		// deadline racable against scan speed.
+		for i := 0; i < 100000; i++ {
 			rows = rows.AddRow("bar" + strconv.Itoa(i))
 		}
 		mock.ExpectQuery("any").WillReturnRows(rows)
