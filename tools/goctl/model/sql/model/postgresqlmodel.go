@@ -41,6 +41,7 @@ type PostgreIndex struct {
 	IsPrimary  sql.NullBool   `db:"is_primary"`
 	ColumnName sql.NullString `db:"column_name"`
 	IndexSort  sql.NullInt32  `db:"index_sort"`
+	Predicate  sql.NullString `db:"predicate"`
 }
 
 // NewPostgreSqlModel creates an instance and return
@@ -202,6 +203,7 @@ func (m *PostgreSqlModel) getIndex(schema, table string) (map[string][]*DbIndex,
 			IndexName:  e.IndexName.String,
 			NonUnique:  nonUnique,
 			SeqInIndex: int(e.IndexSort.Int32),
+			Predicate:  e.Predicate.String,
 		})
 	}
 
@@ -215,7 +217,8 @@ func (m *PostgreSqlModel) FindIndex(schema, table string) ([]*PostgreIndex, erro
        C.INDISUNIQUE AS is_unique,
        C.INDISPRIMARY AS is_primary,
        G.ATTNAME AS column_name,
-       G.attnum AS index_sort
+       G.attnum AS index_sort,
+       pg_get_expr(C.INDPRED, C.INDRELID) AS predicate
 from PG_AM B
          left join PG_CLASS F on
     B.OID = F.RELAM
