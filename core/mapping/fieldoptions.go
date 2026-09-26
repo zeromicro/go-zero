@@ -11,6 +11,7 @@ type (
 		Inherit    bool
 		FromString bool
 		Optional   bool
+		Omitempty  bool
 		Options    []string
 		Default    string
 		EnvVar     string
