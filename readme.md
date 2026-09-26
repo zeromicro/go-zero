@@ -230,6 +230,30 @@ For clients that use MCP tools, such as Claude Desktop, configure **[mcp-zero](h
    ...
    ```
 
+## Kubernetes RPC discovery
+
+RPC clients can discover services inside Kubernetes by using the `k8s` target
+scheme:
+
+```go
+c := zrpc.RpcClientConf{
+    NonBlock: true,
+    Target:   "k8s://dev/demo-rpc:8080",
+}
+```
+
+The target format is `k8s://<namespace>/<service>:<port>`. If the namespace is
+omitted, `default` is used. The resolver runs in-cluster and reads Kubernetes
+EndpointSlices, so the service account used by the client must be allowed to
+read EndpointSlices in the target namespace:
+
+```yaml
+rules:
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["list", "watch"]
+```
+
 ## Benchmark
 
 ![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
