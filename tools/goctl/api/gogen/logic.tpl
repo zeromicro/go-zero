@@ -7,6 +7,7 @@ import (
 	{{.imports}}
 )
 
+{{range .Logics}}
 type {{.logic}} struct {
 	logx.Logger
 	ctx    context.Context
@@ -27,3 +28,4 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 
 	{{.returnString}}
 }
+{{end}}
