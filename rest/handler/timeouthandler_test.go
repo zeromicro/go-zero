@@ -271,6 +271,24 @@ func TestTimeoutFlush(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
 
+func TestTimeoutWriterFlushAfterTimedOut(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	writer := &timeoutWriter{
+		w:        recorder,
+		h:        make(http.Header),
+		timedOut: true,
+	}
+
+	writer.h.Set("foo", "bar")
+	writer.wbuf.WriteString("stale body")
+
+	writer.Flush()
+
+	assert.Empty(t, recorder.Header().Get("foo"))
+	assert.Empty(t, recorder.Body.String())
+	assert.False(t, recorder.Flushed)
+}
+
 func TestTimeoutPusher(t *testing.T) {
 	handler := &timeoutWriter{
 		w: mockedPusher{},
