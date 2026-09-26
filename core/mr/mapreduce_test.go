@@ -15,7 +15,6 @@ import (
 
 var errDummy = errors.New("dummy")
 
-
 func TestFinish(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
@@ -463,6 +462,25 @@ func TestMapReducePanic(t *testing.T) {
 			for range pipe {
 				panic("panic")
 			}
+		})
+	})
+}
+
+func TestMapReduceAfterWritePanic(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	assert.Panics(t, func() {
+		_, _ = MapReduce(func(source chan<- int) {
+			source <- 0
+			source <- 1
+		}, func(i int, writer Writer[int], cancel func(error)) {
+			writer.Write(i)
+		}, func(pipe <-chan int, writer Writer[int], cancel func(error)) {
+			for v := range pipe {
+				writer.Write(v)
+			}
+			// Panic after writing output - this should not cause deadlock
+			panic("reducer panic after write")
 		})
 	})
 }
