@@ -200,6 +200,64 @@ func TestTimingWheel_MoveTimerEarlier(t *testing.T) {
 	assert.True(t, run.True())
 }
 
+func TestTimingWheel_MoveTimerAfterTicks(t *testing.T) {
+	tests := []struct {
+		name     string
+		slots    int
+		elapsed  int
+		initial  int
+		moved    int
+		expected int
+	}{
+		{
+			name:     "old slot behind pointer",
+			slots:    6,
+			elapsed:  3,
+			initial:  20,
+			moved:    14,
+			expected: 17,
+		},
+		{
+			name:     "old slot ahead of pointer",
+			slots:    12,
+			elapsed:  4,
+			initial:  18,
+			moved:    23,
+			expected: 27,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ticker := timex.NewFakeTicker()
+			var tickNow, fireTick int32
+			tw, err := NewTimingWheelWithTicker(time.Second, test.slots, func(key, value any) {
+				atomic.StoreInt32(&fireTick, atomic.LoadInt32(&tickNow))
+				ticker.Done()
+			}, ticker)
+			assert.NoError(t, err)
+			defer tw.Stop()
+
+			assert.NoError(t, tw.SetTimer("key", nil, time.Duration(test.initial)*time.Second))
+			for i := 1; i <= test.elapsed; i++ {
+				atomic.StoreInt32(&tickNow, int32(i))
+				ticker.Tick()
+				time.Sleep(time.Millisecond * 3)
+			}
+			assert.NoError(t, tw.MoveTimer("key", time.Duration(test.moved)*time.Second))
+
+			for i := test.elapsed + 1; i <= test.expected; i++ {
+				atomic.StoreInt32(&tickNow, int32(i))
+				ticker.Tick()
+				time.Sleep(time.Millisecond * 3)
+			}
+
+			assert.NoError(t, ticker.Wait(waitTime))
+			assert.Equal(t, int32(test.expected), atomic.LoadInt32(&fireTick))
+		})
+	}
+}
+
 func TestTimingWheel_RemoveTimer(t *testing.T) {
 	ticker := timex.NewFakeTicker()
 	tw, _ := NewTimingWheelWithTicker(testStep, 10, func(k, v any) {}, ticker)

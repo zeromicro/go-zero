@@ -216,23 +216,23 @@ func (tw *TimingWheel) moveTask(task baseEntry) {
 		return
 	}
 
-	pos, circle := tw.getPositionAndCircle(task.delay)
-	if pos >= timer.pos {
-		timer.item.circle = circle
-		timer.item.diff = pos - timer.pos
-	} else if circle > 0 {
-		circle--
-		timer.item.circle = circle
-		timer.item.diff = tw.numSlots + pos - timer.pos
-	} else {
+	steps := int(task.delay / tw.interval)
+	arc := (timer.pos-tw.tickedPos-1+tw.numSlots)%tw.numSlots + 1
+	if steps < arc {
 		timer.item.removed = true
 		newItem := &timingEntry{
 			baseEntry: task,
 			value:     timer.item.value,
 		}
+		pos, circle := tw.getPositionAndCircle(task.delay)
+		newItem.circle = circle
 		tw.slots[pos].PushBack(newItem)
 		tw.setTimerPosition(pos, newItem)
+		return
 	}
+
+	timer.item.circle = (steps - arc) / tw.numSlots
+	timer.item.diff = (steps - arc) % tw.numSlots
 }
 
 func (tw *TimingWheel) onTick() {
