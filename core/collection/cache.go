@@ -37,6 +37,11 @@ type (
 		barrier        syncx.SingleFlight
 		unstableExpiry mathx.Unstable
 		stats          *cacheStat
+		// generation counts the registrations of each key in timingWheel. The
+		// expiry callback is invoked asynchronously, so a timer may fire and
+		// reach Del after the key has been written again. Recording the
+		// generation lets Del drop only the timer it was scheduled for.
+		generation map[string]uint64
 	}
 )
 
@@ -48,6 +53,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 		lruCache:       emptyLruCache,
 		barrier:        syncx.NewSingleFlight(),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		generation:     make(map[string]uint64),
 	}
 
 	for _, opt := range opts {
@@ -65,7 +71,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 			return
 		}
 
-		cache.Del(key)
+		cache.expireKey(key, v)
 	})
 	if err != nil {
 		return nil, err
@@ -75,10 +81,36 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	return cache, nil
 }
 
+// expireKey removes key on behalf of an expiry that has fired. The value the
+// timing wheel was given carries the generation of the write that scheduled
+// this timer, so an expiry belonging to a superseded write is ignored rather
+// than deleting the key and cancelling the timer of the write that replaced it.
+func (c *Cache) expireKey(key string, v any) {
+	gen, ok := v.(uint64)
+	if !ok {
+		c.Del(key)
+		return
+	}
+
+	c.lock.Lock()
+	if c.generation[key] != gen {
+		// The key was written again after this timer was scheduled.
+		// The newer timer will expire it in turn.
+		c.lock.Unlock()
+		return
+	}
+	delete(c.data, key)
+	c.lruCache.remove(key)
+	c.lock.Unlock()
+
+	c.timingWheel.RemoveTimer(key)
+}
+
 // Del deletes the item with the given key from c.
 func (c *Cache) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
+	delete(c.generation, key)
 	c.lruCache.remove(key)
 	c.lock.Unlock()
 
@@ -108,17 +140,19 @@ func (c *Cache) Set(key string, value any) {
 // SetWithExpire sets value into c with key and expire with the given value.
 func (c *Cache) SetWithExpire(key string, value any, expire time.Duration) {
 	c.lock.Lock()
-	_, ok := c.data[key]
 	c.data[key] = value
 	c.lruCache.add(key)
+	// Record the registration so that an expiry firing for an earlier write
+	// of this key can tell it has been superseded. The timing wheel is the only
+	// channel back to the callback, so the generation is what it carries.
+	c.generation[key]++
+	gen := c.generation[key]
 	c.lock.Unlock()
 
-	expiry := c.unstableExpiry.AroundDuration(expire)
-	if ok {
-		c.timingWheel.MoveTimer(key, expiry)
-	} else {
-		c.timingWheel.SetTimer(key, value, expiry)
-	}
+	// MoveTimer carries no value, so the key is re-armed with SetTimer in order
+	// to hand the new generation to the wheel. SetTimer on an existing key
+	// updates the value and reschedules it, which is what an update needs.
+	c.timingWheel.SetTimer(key, gen, c.unstableExpiry.AroundDuration(expire))
 }
 
 // Take returns the item with the given key.
