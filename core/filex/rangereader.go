@@ -2,6 +2,7 @@ package filex
 
 import (
 	"errors"
+	"io"
 	"os"
 )
 
@@ -31,7 +32,13 @@ func (rr *RangeReader) Read(p []byte) (n int, err error) {
 		return 0, err
 	}
 
-	if rr.stop < rr.start || rr.start >= stat.Size() {
+	if rr.stop < rr.start || rr.start > stat.Size() {
+		return 0, errExceedFileSize
+	}
+	if rr.start == rr.stop {
+		return 0, io.EOF
+	}
+	if rr.start == stat.Size() {
 		return 0, errExceedFileSize
 	}
 
