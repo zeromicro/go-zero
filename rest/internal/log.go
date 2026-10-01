@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -17,7 +16,7 @@ var logContextKey = contextKey("request_logs")
 type (
 	// LogCollector is used to collect logs.
 	LogCollector struct {
-		Messages []string
+		Messages []logx.LogField
 		lock     sync.Mutex
 	}
 
@@ -40,30 +39,22 @@ func LogCollectorFromContext(ctx context.Context) *LogCollector {
 }
 
 // Append appends msg into log context.
-func (lc *LogCollector) Append(msg string) {
+func (lc *LogCollector) Append(msg logx.LogField) {
 	lc.lock.Lock()
 	lc.Messages = append(lc.Messages, msg)
 	lc.lock.Unlock()
 }
 
 // Flush flushes collected logs.
-func (lc *LogCollector) Flush() string {
-	var buffer bytes.Buffer
-
-	start := true
-	for _, message := range lc.takeAll() {
-		if start {
-			start = false
-		} else {
-			buffer.WriteByte('\n')
-		}
-		buffer.WriteString(message)
+func (lc *LogCollector) Flush() []logx.LogField {
+	if lc.Messages == nil {
+		return []logx.LogField{}
 	}
 
-	return buffer.String()
+	return lc.takeAll()
 }
 
-func (lc *LogCollector) takeAll() []string {
+func (lc *LogCollector) takeAll() []logx.LogField {
 	lc.lock.Lock()
 	messages := lc.Messages
 	lc.Messages = nil
@@ -83,16 +74,16 @@ func Errorf(r *http.Request, format string, v ...any) {
 }
 
 // Info logs the given v along with r in access log.
-func Info(r *http.Request, v ...any) {
-	appendLog(r, format(r, v...))
+func Info(r *http.Request, k string, v ...any) {
+	appendLog(r, logx.Field(k, format(r, v...)))
 }
 
 // Infof logs the given v with format along with r in access log.
-func Infof(r *http.Request, format string, v ...any) {
-	appendLog(r, formatf(r, format, v...))
+func Infof(r *http.Request, k string, format string, v ...any) {
+	appendLog(r, logx.Field(k, formatf(r, format, v...)))
 }
 
-func appendLog(r *http.Request, message string) {
+func appendLog(r *http.Request, message logx.LogField) {
 	logs := LogCollectorFromContext(r.Context())
 	if logs != nil {
 		logs.Append(message)
