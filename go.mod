@@ -1,6 +1,6 @@
 module github.com/zeromicro/go-zero
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -21,8 +21,8 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.12.1
 	github.com/titanous/json5 v1.0.0
-	go.etcd.io/etcd/api/v3 v3.5.21
-	go.etcd.io/etcd/client/v3 v3.5.21
+	go.etcd.io/etcd/api/v3 v3.7.2
+	go.etcd.io/etcd/client/v3 v3.7.2
 	go.mongodb.org/mongo-driver/v2 v2.9.1
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.40.0
@@ -58,7 +58,7 @@ require (
 	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.7.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.3 // indirect
@@ -106,9 +106,9 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/petermattis/goid v0.0.0-20260725062400-500c67a39b75 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.66.1 // indirect
+	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/robertkrimen/otto v0.5.1 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
@@ -124,7 +124,7 @@ require (
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/yuin/gopher-lua v1.1.2 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.21 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.7.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0 // indirect
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
