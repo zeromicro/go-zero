@@ -23,6 +23,7 @@ const (
 	optionalOption     = "optional"
 	optionsOption      = "options"
 	rangeOption        = "range"
+	omitemptyOption    = "omitempty"
 	optionSeparator    = "|"
 	equalToken         = "="
 	escapeChar         = '\\'
@@ -386,6 +387,8 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 		default:
 			return fmt.Errorf("field %q has wrong optional", fieldName)
 		}
+	case option == omitemptyOption:
+		fieldOpts.Omitempty = true
 	case strings.HasPrefix(option, optionsOption):
 		val, err := parseProperty(fieldName, optionsOption, option)
 		if err != nil {
