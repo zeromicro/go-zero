@@ -5,6 +5,8 @@ import (
 	"github.com/zeromicro/go-zero/core/proc"
 )
 
+const exemplarLabelTraceID = "trace_id"
+
 type (
 	// A HistogramVecOpts is a histogram vector options.
 	HistogramVecOpts struct {
@@ -23,6 +25,11 @@ type (
 		Observe(v int64, labels ...string)
 		// ObserveFloat allow to observe float64 values.
 		ObserveFloat(v float64, labels ...string)
+		// ObserveWithExemplar allows to observe float64 values with exemplar labels.
+		ObserveWithExemplar(v float64, exemplarLabels prom.Labels, labels ...string)
+		// ObserveWithTrace is shorthand for ObserveWithExemplar with traceID,
+		// will fallback to ObserveFloat if traceID is empty.
+		ObserveWithTrace(v float64, traceID string, labels ...string)
 		close() bool
 	}
 
@@ -66,6 +73,22 @@ func (hv *promHistogramVec) ObserveFloat(v float64, labels ...string) {
 	update(func() {
 		hv.histogram.WithLabelValues(labels...).Observe(v)
 	})
+}
+
+func (hv *promHistogramVec) ObserveWithExemplar(v float64, exemplarLabels prom.Labels, labels ...string) {
+	update(func() {
+		hv.histogram.
+			WithLabelValues(labels...).(prom.ExemplarObserver). // histogram is ExemplarObserver
+			ObserveWithExemplar(v, exemplarLabels)
+	})
+}
+
+func (hv *promHistogramVec) ObserveWithTrace(v float64, traceID string, labels ...string) {
+	if traceID == "" {
+		hv.ObserveFloat(v, labels...)
+		return
+	}
+	hv.ObserveWithExemplar(v, prom.Labels{exemplarLabelTraceID: traceID}, labels...)
 }
 
 func (hv *promHistogramVec) close() bool {
