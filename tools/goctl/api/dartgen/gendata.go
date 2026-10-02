@@ -26,7 +26,7 @@ class {{.Name}}{
 	}
 	Map<String,dynamic> toJson() {
 		return { {{range .Members}}
-			'{{getPropertyFromMember .}}': {{if isDirectType .Type.Name}}{{lowCamelCase .Name}}{{else if isClassListType .Type.Name}}{{lowCamelCase .Name}}.map((i) => i.toJson()){{else}}{{lowCamelCase .Name}}.toJson(){{end}},{{end}}
+			'{{getPropertyFromMember .}}': {{if isDirectType .Type.Name}}{{lowCamelCase .Name}}{{else if isClassListType .Type.Name}}{{lowCamelCase .Name}}.map((i) => i.toJson()).toList(){{else}}{{lowCamelCase .Name}}.toJson(){{end}},{{end}}
 		};
 	}
 
@@ -71,7 +71,7 @@ class {{.Name}} {
 				{{else if isMapType .Type.Name}}
 					{{lowCamelCase .Name}}
 				{{else if isClassListType .Type.Name}}
-					{{lowCamelCase .Name}}{{if isNullableType .Type.Name}}?{{end}}.map((i) => i{{if isListItemsNullable .Type.Name}}?{{end}}.toJson())
+					{{lowCamelCase .Name}}{{if isNullableType .Type.Name}}?{{end}}.map((i) => i{{if isListItemsNullable .Type.Name}}?{{end}}.toJson()).toList()
 				{{else}}
 					{{lowCamelCase .Name}}{{if isNullableType .Type.Name}}?{{end}}.toJson()
 				{{end}}
