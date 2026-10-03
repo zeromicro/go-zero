@@ -6312,3 +6312,59 @@ type mockUnmarshalerWithError struct {
 func (m *mockUnmarshalerWithError) UnmarshalJSON(b []byte) error {
 	return errors.New("foo")
 }
+
+func TestUnmarshalInterfaceField(t *testing.T) {
+	type DataItem struct {
+		Value     any `json:"value,optional"`
+		ValueType int `json:"valueType"`
+	}
+	type UpdateReq struct {
+		Id    string     `json:"id"`
+		Items []DataItem `json:"datas,optional"`
+	}
+
+	content := []byte(`{
+		"id": "123",
+		"datas": [
+			{"value": "string_val", "valueType": 0},
+			{"value": 100, "valueType": 1}
+		]
+	}`)
+
+	var req UpdateReq
+	err := UnmarshalJsonBytes(content, &req)
+	assert.NoError(t, err)
+	assert.Equal(t, "123", req.Id)
+	assert.Equal(t, 2, len(req.Items))
+	assert.Equal(t, "string_val", req.Items[0].Value)
+	assert.Equal(t, 0, req.Items[0].ValueType)
+	assert.Equal(t, json.Number("100"), req.Items[1].Value)
+	assert.Equal(t, 1, req.Items[1].ValueType)
+}
+
+func TestUnmarshalInterfaceFieldHonorsOptionsAndRange(t *testing.T) {
+	t.Run("options", func(t *testing.T) {
+		type payload struct {
+			Value any `key:"value,options=[allowed]"`
+		}
+
+		var got payload
+		err := UnmarshalKey(map[string]any{"value": "denied"}, &got)
+		assert.Error(t, err)
+	})
+
+	t.Run("json number range", func(t *testing.T) {
+		type payload struct {
+			Value any `key:"number_value,range=[1:3]"`
+		}
+
+		var valid payload
+		err := UnmarshalKey(map[string]any{"number_value": json.Number("2")}, &valid)
+		assert.NoError(t, err)
+		assert.Equal(t, json.Number("2"), valid.Value)
+
+		var invalid payload
+		err = UnmarshalKey(map[string]any{"number_value": json.Number("4")}, &invalid)
+		assert.ErrorIs(t, err, errNumberRange)
+	})
+}
