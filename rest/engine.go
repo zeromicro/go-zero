@@ -102,7 +102,10 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 	route Route, verifier func(chain.Chain) chain.Chain) error {
 	chn := ng.chain
 	if chn == nil {
-		chn = ng.buildChainWithNativeMiddlewares(fr, route, metrics)
+		chn = chain.New()
+	}
+	if ng.conf.AddNativeMiddlewares {
+		chn = ng.buildChainWithNativeMiddlewares(chn, fr, route, metrics)
 	}
 
 	chn = ng.appendAuthHandler(fr, chn, verifier)
@@ -127,9 +130,8 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 	return nil
 }
 
-func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route,
+func (ng *engine) buildChainWithNativeMiddlewares(chn chain.Chain, fr featuredRoutes, route Route,
 	metrics *stat.Metrics) chain.Chain {
-	chn := chain.New()
 
 	if ng.conf.Middlewares.Trace {
 		chn = chn.Append(handler.TraceHandler(ng.conf.Name,
@@ -166,8 +168,8 @@ func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route
 	if ng.conf.Middlewares.Gunzip {
 		chn = chn.Append(handler.GunzipHandler)
 	}
-
 	return chn
+
 }
 
 func (ng *engine) checkedMaxBytes(bytes int64) int64 {
