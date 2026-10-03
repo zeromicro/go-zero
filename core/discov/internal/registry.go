@@ -483,6 +483,9 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 	if tlsCfg, ok := GetTLS(endpoints); ok {
 		cfg.TLS = tlsCfg
 	}
+	if interval := GetAutoSyncInterval(endpoints); interval > 0 {
+		cfg.AutoSyncInterval = interval
+	}
 
 	return clientv3.New(cfg)
 }

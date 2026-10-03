@@ -3,6 +3,7 @@ package internal
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -121,6 +122,22 @@ func TestTLSMethods(t *testing.T) {
 
 	assert.Error(t, AddTLS([]string{"bar"}, "bad-file", keyFile, caFile, false))
 	assert.Error(t, AddTLS([]string{"bar"}, certFile, keyFile, "bad-file", false))
+}
+
+func TestAutoSyncInterval(t *testing.T) {
+	endpoints := []string{
+		"192.168.0.2:2379",
+		"192.168.0.3:2379",
+	}
+
+	interval := GetAutoSyncInterval(endpoints)
+	assert.Equal(t, time.Duration(0), interval)
+
+	AddAutoSyncInterval(endpoints, time.Minute)
+	assert.Equal(t, time.Minute, GetAutoSyncInterval(endpoints))
+
+	AddAutoSyncInterval(endpoints, time.Second)
+	assert.Equal(t, time.Second, GetAutoSyncInterval(endpoints))
 }
 
 func createTempFile(t *testing.T, body []byte) string {
