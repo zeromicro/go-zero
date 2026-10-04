@@ -204,3 +204,36 @@ func Test_doMarshalJson(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalRejectsTrailingJSONValue(t *testing.T) {
+	tests := []struct {
+		name      string
+		unmarshal func(v any) error
+	}{
+		{
+			name: "bytes",
+			unmarshal: func(v any) error {
+				return Unmarshal([]byte(`{"first": 1} {"second": 2}`), v)
+			},
+		},
+		{
+			name: "string",
+			unmarshal: func(v any) error {
+				return UnmarshalFromString(`{"first": 1} {"second": 2}`, v)
+			},
+		},
+		{
+			name: "reader",
+			unmarshal: func(v any) error {
+				return UnmarshalFromReader(strings.NewReader(`{"first": 1} {"second": 2}`), v)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var value map[string]any
+			assert.Error(t, tt.unmarshal(&value))
+		})
+	}
+}
