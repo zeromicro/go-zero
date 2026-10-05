@@ -41,8 +41,8 @@ func NewPublisher(endpoints []string, key, value string, opts ...PubOption) *Pub
 		key:        key,
 		value:      value,
 		quit:       syncx.NewDoneChan(),
-		pauseChan:  make(chan lang.PlaceholderType),
-		resumeChan: make(chan lang.PlaceholderType),
+		pauseChan:  make(chan lang.PlaceholderType, 1),
+		resumeChan: make(chan lang.PlaceholderType, 1),
 	}
 
 	for _, opt := range opts {
@@ -68,17 +68,24 @@ func (p *Publisher) KeepAlive() error {
 
 // Pause pauses the renewing of key:value.
 func (p *Publisher) Pause() {
-	p.pauseChan <- lang.Placeholder
+	p.notify(p.pauseChan)
 }
 
 // Resume resumes the renewing of key:value.
 func (p *Publisher) Resume() {
-	p.resumeChan <- lang.Placeholder
+	p.notify(p.resumeChan)
 }
 
 // Stop stops the renewing and revokes the registration.
 func (p *Publisher) Stop() {
 	p.quit.Close()
+}
+
+func (p *Publisher) notify(ch chan lang.PlaceholderType) {
+	select {
+	case ch <- lang.Placeholder:
+	default:
+	}
 }
 
 func (p *Publisher) doKeepAlive() error {
