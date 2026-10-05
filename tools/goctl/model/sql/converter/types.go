@@ -227,7 +227,7 @@ func ConvertDataType(dataBaseType int, isDefaultNull, unsigned, strict bool) (st
 func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict bool) (
 	goType string, thirdPkg string, isPQArray bool, err error) {
 	if env.UseExperimental() {
-		customTp, thirdImport := convertDatatypeWithConfig(dataBaseType, isDefaultNull, unsigned)
+		customTp, thirdImport := convertDatatypeWithConfig(dataBaseType, isDefaultNull, unsigned, strict)
 		if len(customTp) != 0 {
 			return customTp, thirdImport, false, nil
 		}
@@ -257,7 +257,7 @@ func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict 
 	return mayConvertNullType(tp, isDefaultNull, unsigned, strict), "", false, nil
 }
 
-func convertDatatypeWithConfig(dataBaseType string, isDefaultNull, unsigned bool) (string, string) {
+func convertDatatypeWithConfig(dataBaseType string, isDefaultNull, unsigned bool, strict bool) (string, string) {
 	externalConfig, err := config.GetExternalConfig()
 	if err != nil {
 		return "", ""
@@ -272,7 +272,7 @@ func convertDatatypeWithConfig(dataBaseType string, isDefaultNull, unsigned bool
 		if len(opt.NullType) != 0 {
 			return opt.NullType, opt.Pkg
 		}
-	} else if unsigned {
+	} else if unsigned && strict {
 		if len(opt.UnsignedType) != 0 {
 			return opt.UnsignedType, opt.Pkg
 		}
@@ -305,7 +305,7 @@ func mayConvertNullType(goDataType string, isDefaultNull, unsigned, strict bool)
 	case "time.Time":
 		return "sql.NullTime"
 	default:
-		if unsigned {
+		if unsigned && strict {
 			ret, ok := unsignedTypeMap[goDataType]
 			if ok {
 				return ret
