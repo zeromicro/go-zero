@@ -120,7 +120,7 @@ func toStringKeyMap(v any) any {
 		return convertSlice(v)
 	case map[any]any:
 		return convertKeyToString(v)
-	case bool, string:
+	case nil, bool, string:
 		return v
 	case int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64:
 		return convertNumberToJsonNumber(v)
