@@ -11,7 +11,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
-	github.com/grafana/pyroscope-go v1.4.2
+	github.com/grafana/pyroscope-go v1.4.3
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/jhump/protoreflect v1.18.1
 	github.com/modelcontextprotocol/go-sdk v1.8.0
