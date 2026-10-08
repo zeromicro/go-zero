@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -477,6 +478,31 @@ func TestParseJsonBody(t *testing.T) {
 		body := `{"name":"kevin", "age": 18}`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 		r.Header.Set(ContentType, header.ContentTypeJson)
+
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, "kevin", v.Name)
+			assert.Equal(t, 18, v.Age)
+		}
+	})
+
+	t.Run("unknown length body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		body := `{"name":"kevin", "age": 18}`
+
+		// wrap the reader so httptest cannot infer the body length,
+		// which produces a request with ContentLength == -1.
+		r := httptest.NewRequest(
+			http.MethodPost,
+			"/",
+			io.NopCloser(strings.NewReader(body)),
+		)
+		r.Header.Set(ContentType, header.ContentTypeJson)
+
+		assert.Equal(t, int64(-1), r.ContentLength)
 
 		if assert.NoError(t, Parse(r, &v)) {
 			assert.Equal(t, "kevin", v.Name)
