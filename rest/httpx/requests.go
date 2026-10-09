@@ -149,5 +149,5 @@ func getValidator() Validator {
 }
 
 func withJsonBody(r *http.Request) bool {
-	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
+	return r.ContentLength != 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
 }
