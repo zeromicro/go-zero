@@ -171,3 +171,31 @@ func TestReadBytesChunks(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "aaaaa", string(buf))
 }
+
+// eofWithDataReader returns the full payload together with io.EOF on the very
+// first Read. This is a legal io.Reader behavior: a reader may return data and
+// io.EOF in the same call. ReadBytes must treat the buffer as complete instead
+// of erroring out on the EOF.
+type eofWithDataReader struct {
+	data []byte
+}
+
+func (r *eofWithDataReader) Read(p []byte) (int, error) {
+	if len(r.data) == 0 {
+		return 0, io.EOF
+	}
+
+	n := copy(p, r.data)
+	r.data = r.data[n:]
+	return n, io.EOF
+}
+
+func TestReadBytesWithEOFAndData(t *testing.T) {
+	data := []byte("hello")
+	reader := &eofWithDataReader{data: data}
+	buf := make([]byte, len(data))
+
+	err := ReadBytes(reader, buf)
+	assert.Nil(t, err)
+	assert.Equal(t, string(data), string(buf))
+}
