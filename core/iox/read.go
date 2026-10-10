@@ -51,11 +51,14 @@ func ReadBytes(reader io.Reader, buf []byte) error {
 
 	for got < len(buf) {
 		n, err := reader.Read(buf[got:])
+		got += n
+		if got == len(buf) {
+			return nil
+		}
+
 		if err != nil {
 			return err
 		}
-
-		got += n
 	}
 
 	return nil
