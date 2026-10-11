@@ -1,6 +1,7 @@
 package profiling
 
 import (
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -12,6 +13,9 @@ import (
 )
 
 func TestStart(t *testing.T) {
+	originalFactory := newProfiler
+	t.Cleanup(func() { newProfiler = originalFactory })
+
 	t.Run("profiling", func(t *testing.T) {
 		var c Config
 		assert.NoError(t, conf.FillDefault(&c))
@@ -31,7 +35,8 @@ func TestStart(t *testing.T) {
 		Start(Config{})
 
 		Start(Config{
-			ServerAddr: "localhost:4040",
+			ServerAddr:   "localhost:4040",
+			CpuThreshold: math.MaxInt64,
 		})
 	})
 
@@ -48,11 +53,10 @@ func TestStart(t *testing.T) {
 			ProfilingDuration: time.Millisecond * 10,
 			CpuThreshold:      0,
 		}
-		var done = make(chan struct{})
-		go startPyroscope(c, done)
+		stop := startPyroscopeForTest(t, c)
 
 		time.Sleep(time.Millisecond * 50)
-		close(done)
+		stop()
 
 		assert.True(t, mp.started.True())
 		assert.True(t, mp.stopped.True())
@@ -71,11 +75,10 @@ func TestStart(t *testing.T) {
 			ProfilingDuration: time.Millisecond * 10,
 			CpuThreshold:      900,
 		}
-		var done = make(chan struct{})
-		go startPyroscope(c, done)
+		stop := startPyroscopeForTest(t, c)
 
 		time.Sleep(time.Millisecond * 50)
-		close(done)
+		stop()
 
 		assert.False(t, mp.started.True())
 	})
@@ -95,11 +98,10 @@ func TestStart(t *testing.T) {
 			ProfilingDuration: time.Millisecond * 10,
 			CpuThreshold:      0,
 		}
-		var done = make(chan struct{})
-		go startPyroscope(c, done)
+		stop := startPyroscopeForTest(t, c)
 
 		time.Sleep(time.Millisecond * 50)
-		close(done)
+		stop()
 
 		assert.False(t, mp.started.True())
 		assert.False(t, mp.stopped.True())
@@ -149,6 +151,31 @@ func TestNewPyroscopeProfiler(t *testing.T) {
 
 	assert.Error(t, p.Start())
 	assert.NoError(t, p.Stop())
+}
+
+func startPyroscopeForTest(t *testing.T, c Config) func() {
+	t.Helper()
+	done := make(chan struct{})
+	finished := make(chan struct{})
+	go func() {
+		defer close(finished)
+		startPyroscope(c, done)
+	}()
+
+	var stopOnce sync.Once
+	stop := func() {
+		t.Helper()
+		stopOnce.Do(func() {
+			close(done)
+			select {
+			case <-finished:
+			case <-time.After(time.Second):
+				t.Fatal("profiling loop did not stop")
+			}
+		})
+	}
+	t.Cleanup(stop)
+	return stop
 }
 
 type mockProfiler struct {
