@@ -2,6 +2,7 @@ package dartgen
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"text/template"
@@ -12,20 +13,20 @@ import (
 const dataTemplate = `// --{{with .APISpec.Info}}{{.Title}}{{end}}--
 {{ range .APISpec.Types}}
 class {{.Name}}{
-	{{range .Members}}
+	{{range getMembers .}}
 	/// {{.Comment}}
 	final {{if isNumberType .Type.Name}}num{{else}}{{.Type.Name}}{{end}} {{lowCamelCase .Name}};
 	{{end}}
-	{{.Name}}({ {{range .Members}}
+	{{.Name}}({ {{range getMembers .}}
 		this.{{lowCamelCase .Name}},{{end}}
 	});
 	factory {{.Name}}.fromJson(Map<String,dynamic> m) {
-		return {{.Name}}({{range .Members}}
+		return {{.Name}}({{range getMembers .}}
 			{{lowCamelCase .Name}}: {{if isDirectType .Type.Name}}m['{{getPropertyFromMember .}}']{{else if isClassListType .Type.Name}}(m['{{getPropertyFromMember .}}'] as List<dynamic>).map((i) => {{getCoreType .Type.Name}}.fromJson(i)){{else}}{{.Type.Name}}.fromJson(m['{{getPropertyFromMember .}}']){{end}},{{end}}
 		);
 	}
 	Map<String,dynamic> toJson() {
-		return { {{range .Members}}
+		return { {{range getMembers .}}
 			'{{getPropertyFromMember .}}': {{if isDirectType .Type.Name}}{{lowCamelCase .Name}}{{else if isClassListType .Type.Name}}{{lowCamelCase .Name}}.map((i) => i.toJson()){{else}}{{lowCamelCase .Name}}.toJson(){{end}},{{end}}
 		};
 	}
@@ -40,15 +41,15 @@ class {{.Name}}{
 const dataTemplateV2 = `// --{{with .APISpec.Info}}{{.Title}}{{end}}--
 {{ range .APISpec.Types}}
 class {{.Name}} {
-	{{range .Members}}
+	{{range getMembers .}}
 	{{if .Comment}}{{.Comment}}{{end}}
 	final {{if isNumberType .Type.Name}}num{{else}}{{.Type.Name}}{{end}} {{lowCamelCase .Name}};
-  {{end}}{{.Name}}({{if .Members}}{
-	{{range .Members}}  required this.{{lowCamelCase .Name}},
+  {{end}}{{.Name}}({{if getMembers .}}{
+	{{range getMembers .}}  required this.{{lowCamelCase .Name}},
 	{{end}}}{{end}});
 	factory {{.Name}}.fromJson(Map<String,dynamic> m) {
 		return {{.Name}}(
-			{{range .Members}}
+			{{range getMembers .}}
 				{{lowCamelCase .Name}}: {{appendNullCoalescing .}}
 					{{if isAtomicType .Type.Name}}
 						m['{{getPropertyFromMember .}}'] {{appendDefaultEmptyValue .Type.Name}}
@@ -64,7 +65,7 @@ class {{.Name}} {
 		);
 	}
 	Map<String,dynamic> toJson() {
-		return { {{range .Members}}
+		return { {{range getMembers .}}
 			'{{getPropertyFromMember .}}': 
 				{{if isDirectType .Type.Name}}
 					{{lowCamelCase .Name}}
@@ -147,16 +148,42 @@ func genTokens(dir string, isLeagcy bool) error {
 }
 
 func convertDataType(api *spec.ApiSpec, isLegacy bool) (error, *DartSpec) {
+	return convertDataTypeWithResolving(api, isLegacy, make(map[string]bool))
+}
+
+func convertDataTypeWithResolving(api *spec.ApiSpec, isLegacy bool,
+	resolving map[string]bool) (error, *DartSpec) {
 	var result DartSpec
 	types := api.Types
 	if len(types) == 0 {
 		return nil, &result
 	}
 
-	for _, ty := range types {
+	for typeIndex, ty := range types {
 		defineStruct, ok := ty.(spec.DefineStruct)
 		if ok {
+			if resolving[defineStruct.RawName] {
+				return fmt.Errorf("cyclic embedded type %s", defineStruct.RawName), nil
+			}
+			resolving[defineStruct.RawName] = true
+			defineStruct.Members = append([]spec.Member(nil), defineStruct.Members...)
 			for index, member := range defineStruct.Members {
+				if member.IsInline {
+					embedded := member.Type
+					if pointer, ok := embedded.(spec.PointerType); ok {
+						embedded = pointer.Type
+					}
+					err, dartSpec := convertDataTypeWithResolving(&spec.ApiSpec{
+						Types: []spec.Type{embedded},
+					}, isLegacy, resolving)
+					if err != nil {
+						return err, nil
+					}
+					defineStruct.Members[index].Type = dartSpec.APISpec.Types[0]
+					result.InnerClassList = append(result.InnerClassList, dartSpec.InnerClassList...)
+					continue
+				}
+
 				structMember, ok := member.Type.(spec.NestedStruct)
 				if ok {
 					defineStruct.Members[index].Type = spec.PrimitiveType{RawName: member.Name}
@@ -198,6 +225,8 @@ func convertDataType(api *spec.ApiSpec, isLegacy bool) (error, *DartSpec) {
 					defineStruct.Members[index].Type = buildSpecType(member.Type, tp)
 				}
 			}
+			api.Types[typeIndex] = defineStruct
+			delete(resolving, defineStruct.RawName)
 		}
 	}
 	result.APISpec = api
