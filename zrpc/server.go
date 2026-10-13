@@ -15,6 +15,7 @@ import (
 
 // A RpcServer is a rpc server.
 type RpcServer struct {
+	conf     RpcServerConf
 	server   internal.Server
 	register internal.RegisterFn
 }
@@ -57,6 +58,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	}
 
 	rpcServer := &RpcServer{
+		conf:     c,
 		server:   server,
 		register: register,
 	}
@@ -94,6 +96,7 @@ func (rs *RpcServer) Start() {
 
 // Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
+	rs.conf.TearDown()
 	logx.Close()
 }
 
