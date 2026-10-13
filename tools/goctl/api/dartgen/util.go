@@ -44,6 +44,92 @@ func getPropertyFromMember(member spec.Member) string {
 	return name
 }
 
+type promotedMember struct {
+	member spec.Member
+	depth  int
+}
+
+func getMembers(tp spec.Type) ([]spec.Member, error) {
+	members, err := collectMembers(tp, make(map[string]bool), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	selected := make(map[string]int)
+	ambiguous := make(map[string]bool)
+	for i, candidate := range members {
+		name := lowCamelCase(candidate.member.Name)
+		previous, ok := selected[name]
+		if ok {
+			previousProperty, err := members[previous].member.GetPropertyName()
+			if err != nil {
+				return nil, err
+			}
+			property, err := candidate.member.GetPropertyName()
+			if err != nil {
+				return nil, err
+			}
+			if previousProperty != property {
+				return nil, fmt.Errorf("conflicting property names %q and %q for Dart field %s",
+					previousProperty, property, name)
+			}
+		}
+		if !ok || candidate.depth < members[previous].depth {
+			selected[name] = i
+			ambiguous[name] = false
+		} else if candidate.depth == members[previous].depth {
+			ambiguous[name] = true
+		}
+	}
+
+	var result []spec.Member
+	for i, candidate := range members {
+		name := lowCamelCase(candidate.member.Name)
+		if selected[name] != i {
+			continue
+		}
+		if ambiguous[name] {
+			return nil, fmt.Errorf("ambiguous embedded field %s", candidate.member.Name)
+		}
+		result = append(result, candidate.member)
+	}
+	return result, nil
+}
+
+func collectMembers(tp spec.Type, resolving map[string]bool, depth int) ([]promotedMember, error) {
+	var members []spec.Member
+	switch v := tp.(type) {
+	case spec.DefineStruct:
+		members = v.Members
+	case spec.NestedStruct:
+		members = v.Members
+	case spec.PointerType:
+		return collectMembers(v.Type, resolving, depth)
+	default:
+		return nil, fmt.Errorf("type %s is not a struct", tp.Name())
+	}
+
+	if resolving[tp.Name()] {
+		return nil, fmt.Errorf("cyclic embedded type %s", tp.Name())
+	}
+	resolving[tp.Name()] = true
+	defer delete(resolving, tp.Name())
+
+	var result []promotedMember
+	for _, member := range members {
+		if member.IsInline {
+			embedded, err := collectMembers(member.Type, resolving, depth+1)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, embedded...)
+		} else {
+			result = append(result, promotedMember{member: member, depth: depth})
+		}
+	}
+	return result, nil
+}
+
 func isDirectType(s string) bool {
 	return isAtomicType(s) || isListType(s) && isAtomicType(getCoreType(s))
 }
@@ -244,37 +330,53 @@ func hasUrlPathParams(route spec.Route) bool {
 	return len(route.RequestTypeName()) > 0 && len(ds.GetTagMembers(pathTagKey)) > 0
 }
 
-func extractPositionalParamsFromPath(route spec.Route) string {
+func extractPositionalParamsFromPath(route spec.Route) (string, error) {
 	ds, ok := route.RequestType.(spec.DefineStruct)
 	if !ok {
-		return ""
+		return "", nil
 	}
 
-	tagMembers := ds.GetTagMembers(pathTagKey)
-	params := make([]string, 0, len(tagMembers))
-	for _, member := range tagMembers {
-		dartType := member.Type.Name()
+	members, err := getMembers(ds)
+	if err != nil {
+		return "", err
+	}
+	params := make([]string, 0, len(members))
+	for _, member := range members {
+		if !member.IsTagMember(pathTagKey) {
+			continue
+		}
+		dartType, err := specTypeToDart(member.Type)
+		if err != nil {
+			return "", err
+		}
 		params = append(params, fmt.Sprintf("%s %s", dartType, getPropertyFromMember(member)))
 	}
 
-	return strings.Join(params, ", ")
+	return strings.Join(params, ", "), nil
 }
 
-func makeDartRequestUrlPath(route spec.Route) string {
+func makeDartRequestUrlPath(route spec.Route) (string, error) {
 	path := route.Path
 	if route.RequestType == nil {
-		return `"` + path + `"`
+		return `"` + path + `"`, nil
 	}
 
 	ds, ok := route.RequestType.(spec.DefineStruct)
 	if !ok {
-		return path
+		return path, nil
 	}
 
-	for _, member := range ds.GetTagMembers(pathTagKey) {
+	members, err := getMembers(ds)
+	if err != nil {
+		return "", err
+	}
+	for _, member := range members {
+		if !member.IsTagMember(pathTagKey) {
+			continue
+		}
 		paramName := member.Tags()[0].Name
 		path = strings.ReplaceAll(path, ":"+paramName, "${"+getPropertyFromMember(member)+"}")
 	}
 
-	return `"` + path + `"`
+	return `"` + path + `"`, nil
 }
