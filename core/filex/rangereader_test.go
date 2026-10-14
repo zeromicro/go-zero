@@ -1,6 +1,7 @@
 package filex
 
 import (
+	"io"
 	"os"
 	"testing"
 
@@ -25,6 +26,10 @@ world`
 	assert.Equal(t, 3, n)
 	assert.Equal(t, `
 wo`, string(buf[:n]))
+
+	n, err = reader.Read(buf)
+	assert.Zero(t, n)
+	assert.ErrorIs(t, err, io.EOF)
 }
 
 func TestRangeReader_OutOfRange(t *testing.T) {
