@@ -188,3 +188,68 @@ func BenchmarkCache(b *testing.B) {
 		}
 	})
 }
+
+func TestCacheExpiryConcurrentWrites(t *testing.T) {
+	c, err := NewCache(time.Second)
+	assert.Nil(t, err)
+	t.Cleanup(c.timingWheel.Stop)
+
+	const count = 2000
+	keys := make([]string, count)
+	for i := range keys {
+		keys[i] = "key-" + strconv.Itoa(i)
+	}
+
+	var wg sync.WaitGroup
+	deadline := time.Now().Add(3 * time.Second)
+	for worker := 0; worker < 8; worker++ {
+		wg.Add(1)
+		go func(offset int) {
+			defer wg.Done()
+			for i := offset; time.Now().Before(deadline); i++ {
+				c.Set(keys[i%count], 1)
+			}
+		}(worker * 251)
+	}
+	wg.Wait()
+
+	time.Sleep(3 * time.Second)
+	var survivors []string
+	for _, key := range keys {
+		if _, ok := c.Get(key); ok {
+			survivors = append(survivors, key)
+		}
+	}
+	assert.Empty(t, survivors, "cache retained entries beyond TTL")
+
+	time.Sleep(2 * time.Second)
+	orphans, scheduled := 0, 0
+	for _, key := range keys {
+		if _, ok := c.Get(key); ok {
+			if _, hasTimer := c.timingWheel.timers.Get(key); hasTimer {
+				scheduled++
+			} else {
+				orphans++
+			}
+		}
+	}
+	assert.Equal(t, 0, orphans, "cache retained entries with no expiry timer")
+	assert.Equal(t, 0, scheduled, "cache retained entries beyond TTL")
+}
+
+func TestCacheExpiryGet(t *testing.T) {
+	c, err := NewCache(time.Millisecond * 100)
+	assert.Nil(t, err)
+	t.Cleanup(c.timingWheel.Stop)
+
+	c.Set("k1", "v1")
+	val, ok := c.Get("k1")
+	assert.True(t, ok)
+	assert.Equal(t, "v1", val)
+
+	time.Sleep(time.Millisecond * 200)
+	_, ok = c.Get("k1")
+	assert.False(t, ok)
+	assert.Equal(t, 0, c.size())
+}
+
