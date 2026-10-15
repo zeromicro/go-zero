@@ -2,6 +2,7 @@ package filex
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -217,4 +218,50 @@ func TestLastLineLargeFile(t *testing.T) {
 	val, err := LastLine(filename)
 	assert.Nil(t, err)
 	assert.Equal(t, "extra", val)
+}
+
+func TestLastLineMultipleOfBufSizeAfterSeparator(t *testing.T) {
+	tests := []struct {
+		name     string
+		content  string
+		expected string
+	}{
+		{
+			name:     "single block multiple without trailing newline",
+			content:  "previous line\n" + strings.Repeat("C", bufSize),
+			expected: strings.Repeat("C", bufSize),
+		},
+		{
+			name:     "single block multiple with trailing newline",
+			content:  "previous line\n" + strings.Repeat("C", bufSize) + "\n",
+			expected: strings.Repeat("C", bufSize),
+		},
+		{
+			name:     "multi-block multiple without trailing newline",
+			content:  "line 1\nline 2\n" + strings.Repeat("D", 2*bufSize),
+			expected: strings.Repeat("D", 2*bufSize),
+		},
+		{
+			name:     "multi-block multiple with trailing newline",
+			content:  "line 1\nline 2\n" + strings.Repeat("D", 2*bufSize) + "\n",
+			expected: strings.Repeat("D", 2*bufSize),
+		},
+		{
+			name:     "empty line after multiple of bufSize",
+			content:  "previous line\n" + strings.Repeat("E", bufSize) + "\n\n",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filename, err := fs.TempFilenameWithText(tt.content)
+			assert.Nil(t, err)
+			defer os.Remove(filename)
+
+			val, err := LastLine(filename)
+			assert.Nil(t, err)
+			assert.Equal(t, tt.expected, val)
+		})
+	}
 }
