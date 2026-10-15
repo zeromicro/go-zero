@@ -223,6 +223,18 @@ func TestDetailedLogHandler_Hijack(t *testing.T) {
 	})
 }
 
+func TestDetailedLogHandler_ResponseController(t *testing.T) {
+	resp := &mockedWriteDeadlineResponseWriter{
+		ResponseRecorder: httptest.NewRecorder(),
+	}
+	writer := &detailLoggedResponseWriter{
+		writer: response.NewWithCodeResponseWriter(resp),
+	}
+
+	err := http.NewResponseController(writer).SetWriteDeadline(time.Time{})
+	assert.Nil(t, err)
+}
+
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
 	SetSlowThreshold(time.Second)
@@ -287,5 +299,13 @@ func (m mockedReadCloser) Read(_ []byte) (n int, err error) {
 }
 
 func (m mockedReadCloser) Close() error {
+	return nil
+}
+
+type mockedWriteDeadlineResponseWriter struct {
+	*httptest.ResponseRecorder
+}
+
+func (mockedWriteDeadlineResponseWriter) SetWriteDeadline(_ time.Time) error {
 	return nil
 }
