@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"bytes"
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -1046,4 +1047,30 @@ func TestUnmarshalJsonBytesError(t *testing.T) {
 
 	assert.Error(t, UnmarshalJsonBytes([]byte((``)), &v))
 	assert.Error(t, UnmarshalJsonReader(strings.NewReader(``), &v))
+}
+
+func TestUnmarshalJsonInterfaceFieldMixedStringNumber(t *testing.T) {
+	type dataItem struct {
+		Value     interface{} `json:"value,omitempty"`
+		ValueType int         `json:"valueType"`
+	}
+
+	var req struct {
+		ID    uint64     `json:"id"`
+		Items []dataItem `json:"datas,optional"`
+	}
+
+	body := `{
+		"id": 123,
+		"datas": [
+			{"value": "1", "valueType": 0},
+			{"value": 2, "valueType": 1}
+		]
+	}`
+
+	assert.NoError(t, UnmarshalJsonReader(strings.NewReader(body), &req))
+	assert.Equal(t, uint64(123), req.ID)
+	assert.Len(t, req.Items, 2)
+	assert.Equal(t, "1", req.Items[0].Value)
+	assert.Equal(t, json.Number("2"), req.Items[1].Value)
 }
