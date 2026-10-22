@@ -150,6 +150,10 @@ type (
 		listeners []UpdateListener
 		values    map[string]string
 		cancel    context.CancelFunc
+		// rev is the high-water mark of both snapshot and watch event revisions
+		// applied to values. It must never be advanced without applying the
+		// matching mutation, otherwise a newer snapshot could be skipped.
+		rev int64
 	}
 
 	cluster struct {
@@ -218,12 +222,21 @@ func (c *cluster) getCurrent(key watchKey) []KV {
 	return kvs
 }
 
-func (c *cluster) handleChanges(key watchKey, kvs []KV) {
+// handleChanges applies a snapshot of key and returns the revision the watcher
+// should resume from. A snapshot older than the last applied watch event is
+// ignored, so a Get that raced with an event cannot revert it.
+func (c *cluster) handleChanges(key watchKey, kvs []KV, rev int64) int64 {
 	c.lock.Lock()
 	watcher, ok := c.watchers[key]
 	if !ok {
 		c.lock.Unlock()
-		return
+		return rev
+	}
+
+	if rev < watcher.rev {
+		rev = watcher.rev
+		c.lock.Unlock()
+		return rev
 	}
 
 	listeners := append([]UpdateListener(nil), watcher.listeners...)
@@ -235,18 +248,24 @@ func (c *cluster) handleChanges(key watchKey, kvs []KV) {
 	}
 	add, remove := calculateChanges(vals, newVals)
 	watcher.values = newVals
+	watcher.rev = rev
 	c.lock.Unlock()
 
-	for _, kv := range add {
-		for _, l := range listeners {
-			l.OnAdd(kv)
-		}
-	}
+	// Delete before add: a key whose value changed appears in both lists, and
+	// container.OnDelete removes by key, so delivering the add first would
+	// remove the new value again and lose the key until its next change.
 	for _, kv := range remove {
 		for _, l := range listeners {
 			l.OnDelete(kv)
 		}
 	}
+	for _, kv := range add {
+		for _, l := range listeners {
+			l.OnAdd(kv)
+		}
+	}
+
+	return rev
 }
 
 func (c *cluster) handleWatchEvents(ctx context.Context, key watchKey, events []*clientv3.Event) {
@@ -268,6 +287,9 @@ func (c *cluster) handleWatchEvents(ctx context.Context, key watchKey, events []
 			c.lock.Lock()
 			oldVal, exists := watcher.values[evKey]
 			watcher.values[evKey] = evVal
+			if ev.Kv.ModRevision > watcher.rev {
+				watcher.rev = ev.Kv.ModRevision
+			}
 			c.lock.Unlock()
 			if exists && oldVal == evVal {
 				// duplicate PUT with same value, skip to prevent unbounded growth
@@ -285,6 +307,9 @@ func (c *cluster) handleWatchEvents(ctx context.Context, key watchKey, events []
 		case clientv3.EventTypeDelete:
 			c.lock.Lock()
 			delete(watcher.values, string(ev.Kv.Key))
+			if ev.Kv.ModRevision > watcher.rev {
+				watcher.rev = ev.Kv.ModRevision
+			}
 			c.lock.Unlock()
 			for _, l := range listeners {
 				l.OnDelete(KV{
@@ -326,9 +351,7 @@ func (c *cluster) load(cli EtcdClient, key watchKey) int64 {
 		})
 	}
 
-	c.handleChanges(key, kvs)
-
-	return resp.Header.Revision
+	return c.handleChanges(key, kvs, resp.Header.Revision)
 }
 
 func (c *cluster) monitor(key watchKey, l UpdateListener) error {
@@ -368,6 +391,9 @@ func (c *cluster) reload(cli EtcdClient) {
 		if wval.cancel != nil {
 			wval.cancel()
 		}
+		// A store restored from a backup can go back in revision. Without this,
+		// every later load would look older than rev and be skipped forever.
+		wval.rev = 0
 	}
 
 	c.done = make(chan lang.PlaceholderType)
