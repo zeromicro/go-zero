@@ -92,7 +92,11 @@ func (p *Publisher) doKeepAlive() error {
 		default:
 			cli, err := p.doRegister()
 			if err != nil {
-				logc.Errorf(cli.Ctx(), "etcd publisher doRegister: %v", err)
+				if cli != nil {
+					logc.Errorf(cli.Ctx(), "etcd publisher doRegister: %v", err)
+				} else {
+					logx.Errorf("etcd publisher doRegister: %v", err)
+				}
 				break
 			}
 
@@ -106,6 +110,16 @@ func (p *Publisher) doKeepAlive() error {
 	}
 
 	return nil
+}
+
+func (p *Publisher) retryKeepAlive(cli internal.EtcdClient, invalidate bool) {
+	p.revoke(cli)
+	if invalidate {
+		if err := internal.GetRegistry().InvalidateConn(p.endpoints); err != nil {
+			logc.Errorf(cli.Ctx(), "etcd publisher invalidate conn: %v", err)
+		}
+	}
+	p.doKeepAlive()
 }
 
 func (p *Publisher) doRegister() (internal.EtcdClient, error) {
@@ -131,19 +145,14 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 			select {
 			case _, ok := <-ch:
 				if !ok {
-					p.revoke(cli)
-					if err := p.doKeepAlive(); err != nil {
-						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
-					}
+					p.retryKeepAlive(cli, true)
 					return
 				}
 
 			case c := <-wch:
-				if c.Err() != nil {
-					logc.Errorf(cli.Ctx(), "etcd publisher watch: %v", c.Err())
-					if err := p.doKeepAlive(); err != nil {
-						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
-					}
+				if err := c.Err(); err != nil {
+					logc.Errorf(cli.Ctx(), "etcd publisher watch: %v", err)
+					p.retryKeepAlive(cli, true)
 					return
 				}
 
