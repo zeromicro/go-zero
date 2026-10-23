@@ -73,6 +73,21 @@ goctl rpc protoc user.proto \
 
 ---
 
+### 只生成 RPC 客户端
+
+API 网关等项目只需要调用 RPC 服务时，可以使用 `--client-only`：
+
+```bash
+goctl rpc protoc user.proto \
+  --go_out=output --go-grpc_out=output --zrpc_out=output \
+  --go_opt=module=example.com/demo --go-grpc_opt=module=example.com/demo \
+  --module=example.com/demo --client-only -I .
+```
+
+该模式保留 protoc 生成的 `.pb.go`、`_grpc.pb.go` 和 go-zero 客户端封装，但不创建服务器骨架中的 `etc`、`internal`、服务入口或服务器实现文件。它不会删除或修改已有的服务器文件。已有 Go module 会被复用；没有 module 时仍按原规则创建 `go.mod`。
+
+`--multiple`、外部 proto 导入和 protoc 输出选项仍然有效。不传 `--client-only` 时保持完整服务生成行为；`--client=false` 仍表示不生成客户端封装。`--client-only` 与 `--client=false` 同时使用会在创建输出文件前报错。此选项仅适用于 `goctl rpc protoc`。
+
 ## 命令参考
 
 ### `goctl rpc protoc`
@@ -123,6 +138,7 @@ goctl rpc protoc service.proto \
 | `--proto_path` | `-I` | string[] | | proto 导入搜索目录（可多次指定） |
 | `--multiple` | `-m` | bool | `false` | 多服务模式 |
 | `--client` | `-c` | bool | `true` | 是否生成 RPC 客户端代码 |
+| `--client-only` | | bool | `false` | 只生成 protobuf 文件和 RPC 客户端，跳过服务器骨架 |
 | `--style` | | string | `gozero` | 文件命名风格 |
 | `--module` | | string | | 自定义 Go module 名称 |
 | `--name-from-filename` | | bool | `false` | 使用文件名而非 package 名命名服务 |

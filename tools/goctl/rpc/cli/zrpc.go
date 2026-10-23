@@ -21,6 +21,10 @@ var (
 // ZRPC generates grpc code directly by protoc and generates
 // zrpc code by goctl.
 func ZRPC(_ *cobra.Command, args []string) error {
+	if VarBoolClientOnly && !VarBoolClient {
+		return errors.New("--client-only cannot be combined with --client=false")
+	}
+
 	protocArgs := wrapProtocCmd("protoc", args)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -103,6 +107,7 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
 	ctx.IsGenClient = VarBoolClient
+	ctx.ClientOnly = VarBoolClientOnly
 	ctx.Module = VarStringModule
 	ctx.NameFromFilename = VarBoolNameFromFilename
 	ctx.ProtoPaths = VarStringSliceProtoPath
