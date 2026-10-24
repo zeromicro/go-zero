@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -343,6 +344,39 @@ func TestErrorWindow(t *testing.T) {
 				assert.True(t, strings.Contains(ew.String(), reason), fmt.Sprintf("actual: %s", ew.String()))
 			}
 		})
+	}
+}
+
+// Run with -race to detect unsynchronized access between add and String.
+func TestErrorWindowConcurrentAddAndString(t *testing.T) {
+	const iterations = 1000
+	var ew errorWindow
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		<-start
+		for i := 0; i < iterations; i++ {
+			ew.add(strconv.Itoa(i))
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		<-start
+		for i := 0; i < iterations; i++ {
+			_ = ew.String()
+		}
+	}()
+	close(start)
+	wg.Wait()
+
+	reasons := strings.Split(ew.String(), "\n")
+	if assert.Len(t, reasons, numHistoryReasons) {
+		for i, reason := range reasons {
+			assert.True(t, strings.HasSuffix(reason, " "+strconv.Itoa(iterations-1-i)),
+				"unexpected reason at index %d: %q", i, reason)
+		}
 	}
 }
 
