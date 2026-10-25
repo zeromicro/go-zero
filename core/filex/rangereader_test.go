@@ -47,3 +47,40 @@ world`
 	_, err = reader.Read(buf)
 	assert.NotNil(t, err)
 }
+
+func TestRangeReader_AtFileEOF(t *testing.T) {
+	const text = "hello\nworld"
+	file, err := fs.TempFileWithText(text)
+	if !assert.NoError(t, err) {
+		return
+	}
+	t.Cleanup(func() {
+		file.Close()
+		os.Remove(file.Name())
+	})
+
+	for _, test := range []struct {
+		name  string
+		start int64
+		want  string
+		err   error
+	}{
+		{name: "range ending at file EOF", start: 5, want: "\nworld"},
+		{name: "empty range at file EOF", start: int64(len(text)), err: io.EOF},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			reader := NewRangeReader(file, test.start, int64(len(text)))
+			buf := make([]byte, len(text)+1)
+			n, err := reader.Read(buf)
+			assert.Equal(t, len(test.want), n)
+			assert.Equal(t, test.want, string(buf[:n]))
+			assert.ErrorIs(t, err, test.err)
+
+			for i := 0; i < 2; i++ {
+				n, err = reader.Read(buf)
+				assert.Zero(t, n)
+				assert.ErrorIs(t, err, io.EOF)
+			}
+		})
+	}
+}
