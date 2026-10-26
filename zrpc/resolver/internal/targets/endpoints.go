@@ -15,7 +15,7 @@ func GetAuthority(target resolver.Target) string {
 
 // GetEndpoints returns the endpoints from the given target.
 func GetEndpoints(target resolver.Target) string {
-	return strings.Trim(target.URL.Path, slashSeparator)
+	return strings.TrimPrefix(target.URL.Path, slashSeparator)
 }
 
 // GetHosts returns the comma-separated etcd hosts from the target URL.
