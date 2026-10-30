@@ -509,6 +509,39 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Equal(t, 0, v.Age)
 	})
 
+	t.Run("chunked body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"kevin","age":18}`))
+		r.Header.Set(ContentType, header.ContentTypeJson)
+		r.ContentLength = -1
+		r.TransferEncoding = []string{"chunked"}
+
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, "kevin", v.Name)
+			assert.Equal(t, 18, v.Age)
+		}
+	})
+
+	t.Run("empty chunked body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name,optional"`
+			Age  int    `json:"age,optional"`
+		}
+
+		r := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
+		r.Header.Set(ContentType, header.ContentTypeJson)
+		r.ContentLength = -1
+		r.TransferEncoding = []string{"chunked"}
+
+		assert.NoError(t, Parse(r, &v))
+		assert.Empty(t, v.Name)
+		assert.Zero(t, v.Age)
+	})
+
 	t.Run("array body", func(t *testing.T) {
 		var v []struct {
 			Name string `json:"name"`
@@ -564,6 +597,27 @@ func TestParseJsonBody(t *testing.T) {
 		t.Logf("%x", v2.Signature)
 		assert.EqualValues(t, v1.Signature, v2.Signature)
 	})
+}
+
+func TestParseJsonBodyCaseInsensitiveContentType(t *testing.T) {
+	for _, contentType := range []string{
+		"application/json",
+		"Application/JSON",
+		"APPLICATION/JSON; Charset=UTF-8",
+	} {
+		t.Run(contentType, func(t *testing.T) {
+			var v struct {
+				Name string `json:"name"`
+			}
+
+			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"kevin"}`))
+			r.Header.Set(ContentType, contentType)
+
+			if assert.NoError(t, Parse(r, &v)) {
+				assert.Equal(t, "kevin", v.Name)
+			}
+		})
+	}
 }
 
 func TestParseRequired(t *testing.T) {
