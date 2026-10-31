@@ -26,6 +26,7 @@ type (
 
 	// A Server is a http server.
 	Server struct {
+		conf   RestConf
 		ngin   *engine
 		router httpx.Router
 	}
@@ -51,6 +52,7 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 	}
 
 	server := &Server{
+		conf:   c,
 		ngin:   newEngine(c),
 		router: router.NewRouter(),
 	}
@@ -99,6 +101,10 @@ func (s *Server) Routes() []Route {
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) Start() {
+	if err := s.registerToEtcd(); err != nil {
+		handleError(err)
+		return
+	}
 	handleError(s.ngin.start(s.router))
 }
 
@@ -106,6 +112,10 @@ func (s *Server) Start() {
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) StartWithOpts(opts ...StartOption) {
+	if err := s.registerToEtcd(); err != nil {
+		handleError(err)
+		return
+	}
 	handleError(s.ngin.start(s.router, opts...))
 }
 
