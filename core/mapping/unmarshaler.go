@@ -134,6 +134,19 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return errValueNotSettable
 	}
 
+	if str, ok := mapValue.(string); ok && u.key == jsonTagKey &&
+		Deref(fieldType).Elem().Kind() == reflect.Uint8 {
+		decoded, err := base64.StdEncoding.DecodeString(str)
+		if err != nil {
+			return err
+		}
+
+		target := reflect.New(Deref(fieldType)).Elem()
+		target.SetBytes(decoded)
+		SetValue(fieldType, value, target)
+		return nil
+	}
+
 	refValue := reflect.ValueOf(mapValue)
 	if refValue.Kind() != reflect.Slice {
 		return newTypeMismatchErrorWithHint(fullName, reflect.Slice.String(), refValue.Type().String())
