@@ -17,6 +17,8 @@ func RedirectInOut() (restore func(), err error) {
 	restore = func() {
 		os.Stdin = or
 		os.Stdout = ow
+		_ = r.Close()
+		_ = w.Close()
 	}
 
 	return
