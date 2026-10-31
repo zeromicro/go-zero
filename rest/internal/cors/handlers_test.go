@@ -115,7 +115,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 			name:      "allow many origins with all mark",
 			origins:   []string{"http://local", "http://remote", "*"},
 			reqOrigin: "http://another",
-			expect:    "http://another",
+			expect:    "*",
 		},
 		{
 			name:      "not allow origin",
@@ -206,6 +206,27 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 				assert.Equal(t, test.expect, w.Header().Get(allowOrigin))
 				assert.Equal(t, "bar", w.Header().Get("foo"))
 			})
+		}
+	}
+}
+
+func TestWildcardClearsCredentials(t *testing.T) {
+	for _, origins := range [][]string{nil, {"*"}, {"https://trusted.example", "*"}} {
+		for _, origin := range []string{"", "null", "https://attacker.example"} {
+			for _, method := range []string{http.MethodGet, http.MethodOptions} {
+				r := httptest.NewRequest(method, "/", nil)
+				r.Header.Set(originHeader, origin)
+				for _, handler := range []http.Handler{
+					NotAllowedHandler(nil, origins...),
+					Middleware(nil, origins...)(func(w http.ResponseWriter, r *http.Request) {}),
+				} {
+					w := httptest.NewRecorder()
+					w.Header().Set(allowCredentials, allowTrue)
+					handler.ServeHTTP(w, r)
+					assert.Equal(t, allOrigins, w.Header().Get(allowOrigin))
+					assert.Empty(t, w.Header().Get(allowCredentials))
+				}
+			}
 		}
 	}
 }
