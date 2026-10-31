@@ -34,6 +34,8 @@ var (
 	VarStringURL string
 	// VarStringSliceTable describes tables.
 	VarStringSliceTable []string
+	// VarStringSliceIgnoreTable describes tables.
+	VarStringSliceIgnoreTable []string
 	// VarStringStyle describes the style.
 	VarStringStyle string
 	// VarStringDatabase describes the database.
@@ -123,23 +125,24 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 		pathx.RegisterGoctlHome(home)
 	}
 
-	tableValue := VarStringSliceTable
-	patterns := parseTableList(tableValue)
+	patterns := parseTableList(VarStringSliceTable)
+	ignorePatterns := parseTableList(VarStringSliceIgnoreTable)
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
 
 	arg := dataSourceArg{
-		url:           url,
-		dir:           dir,
-		tablePat:      patterns,
-		cfg:           cfg,
-		cache:         cache,
-		idea:          idea,
-		strict:        VarBoolStrict,
-		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
-		prefix:        VarStringCachePrefix,
+		url:            url,
+		dir:            dir,
+		tablePat:       patterns,
+		tableIgnorePat: ignorePatterns,
+		cfg:            cfg,
+		cache:          cache,
+		idea:           idea,
+		strict:         VarBoolStrict,
+		ignoreColumns:  mergeColumns(VarStringSliceIgnoreColumns),
+		prefix:         VarStringCachePrefix,
 	}
 	return fromMysqlDataSource(arg)
 }
@@ -284,13 +287,14 @@ func fromDDL(arg ddlArg) error {
 }
 
 type dataSourceArg struct {
-	url, dir      string
-	tablePat      pattern
-	cfg           *config.Config
-	cache, idea   bool
-	strict        bool
-	ignoreColumns []string
-	prefix        string
+	url, dir       string
+	tablePat       pattern
+	tableIgnorePat pattern
+	cfg            *config.Config
+	cache, idea    bool
+	strict         bool
+	ignoreColumns  []string
+	prefix         string
 }
 
 func fromMysqlDataSource(arg dataSourceArg) error {
@@ -324,6 +328,11 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 	for _, item := range tables {
 		if !arg.tablePat.Match(item) {
 			continue
+		}
+		if len(arg.tableIgnorePat) > 0 {
+			if arg.tableIgnorePat.Match(item) {
+				continue
+			}
 		}
 
 		columnData, err := im.FindColumns(dsn.DBName, item)
