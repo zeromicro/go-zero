@@ -28,6 +28,7 @@ spec:
             volumeMounts:
             - name: timezone
               mountPath: /etc/localtime
+              readOnly: true
           imagePullSecrets:
           - name: # registry secret, if no, remove this
           restartPolicy: OnFailure

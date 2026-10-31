@@ -43,6 +43,7 @@ spec:
         volumeMounts:
         - name: timezone
           mountPath: /etc/localtime
+          readOnly: true
       {{if .Secret}}imagePullSecrets:
       - name: {{.Secret}}
       {{end}}volumes:
