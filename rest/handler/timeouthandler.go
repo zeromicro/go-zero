@@ -141,6 +141,13 @@ func (tw *timeoutWriter) Flush() {
 		return
 	}
 
+	tw.mu.Lock()
+	defer tw.mu.Unlock()
+
+	if tw.timedOut {
+		return
+	}
+
 	header := tw.w.Header()
 	for k, v := range tw.h {
 		header[k] = v
