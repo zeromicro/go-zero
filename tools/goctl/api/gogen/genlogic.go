@@ -25,79 +25,139 @@ var (
 )
 
 func genLogic(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
-	for _, g := range api.Service.Groups {
-		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, rootPkg, projectPkg, cfg, g, r)
+	type fileKey struct {
+		subdir   string
+		filename string
+	}
+
+	type logicFile struct {
+		pkgName   string
+		imports   []string
+		logics    []map[string]any
+		sseEnable bool
+	}
+
+	files := make(map[fileKey]*logicFile)
+
+	for _, group := range api.Service.Groups {
+		sse := group.GetAnnotation("sse") == "true"
+		for _, route := range group.Routes {
+			logic := getLogicName(route)
+
+			fileBase := route.GetAnnotation(filenameProperty)
+			if len(fileBase) == 0 {
+				fileBase = group.GetAnnotation(filenameProperty)
+			}
+			if len(fileBase) == 0 {
+				fileBase = logic
+			}
+
+			goFile, err := format.FileNamingFormat(cfg.NamingFormat, fileBase)
 			if err != nil {
 				return err
 			}
+
+			subDir := getLogicFolderPath(group, route)
+			key := fileKey{
+				subdir:   subDir,
+				filename: goFile + ".go",
+			}
+
+			f, ok := files[key]
+			if !ok {
+				f = &logicFile{
+					pkgName:   subDir[strings.LastIndex(subDir, "/")+1:],
+					imports:   nil,
+					logics:    nil,
+					sseEnable: sse,
+				}
+				files[key] = f
+			}
+
+			imports := genLogicImports(route, rootPkg)
+			importMap := make(map[string]bool)
+			for _, existing := range f.imports {
+				importMap[existing] = true
+			}
+			for _, imp := range strings.Split(imports, "\n\t") {
+				imp = strings.TrimSpace(imp)
+				if len(imp) > 0 && !importMap[imp] {
+					importMap[imp] = true
+					f.imports = append(f.imports, imp)
+				}
+			}
+
+			var responseString string
+			var returnString string
+			var requestString string
+			if len(route.ResponseTypeName()) > 0 {
+				resp := responseGoTypeName(route, typesPacket)
+				responseString = "(resp " + resp + ", err error)"
+				returnString = "return"
+			} else {
+				responseString = "error"
+				returnString = "return nil"
+			}
+			if len(route.RequestTypeName()) > 0 {
+				requestString = "req *" + requestGoTypeName(route, typesPacket)
+			}
+
+			if sse {
+				responseString = "error"
+				returnString = "return nil"
+				resp := responseGoTypeName(route, typesPacket)
+				if len(requestString) == 0 {
+					requestString = "client chan<- " + resp
+				} else {
+					requestString += ", client chan<- " + resp
+				}
+			}
+
+			logicData := map[string]any{
+				"logic":        strings.Title(logic),
+				"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
+				"responseType": responseString,
+				"returnString": returnString,
+				"request":      requestString,
+				"hasDoc":       len(route.JoinedDoc()) > 0,
+				"doc":          getDoc(route.JoinedDoc()),
+			}
+
+			f.logics = append(f.logics, logicData)
 		}
 	}
+
+	for key, f := range files {
+		importsJoined := strings.Join(f.imports, "\n\t")
+
+		builtinTemplate := logicTemplate
+		templateFile := logicTemplateFile
+		if f.sseEnable {
+			builtinTemplate = sseLogicTemplate
+			templateFile = sseLogicTemplateFile
+		}
+
+		if err := genFile(fileGenConfig{
+			dir:             dir,
+			subdir:          key.subdir,
+			filename:        key.filename,
+			templateName:    "logicTemplate",
+			category:        category,
+			templateFile:    templateFile,
+			builtinTemplate: builtinTemplate,
+			data: map[string]any{
+				"pkgName":    f.pkgName,
+				"imports":    importsJoined,
+				"Logics":     f.logics,
+				"projectPkg": projectPkg,
+				"version":    version.BuildVersion,
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
 	return nil
-}
-
-func genLogicByRoute(dir, rootPkg, projectPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
-	logic := getLogicName(route)
-	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
-	if err != nil {
-		return err
-	}
-
-	imports := genLogicImports(route, rootPkg)
-	var responseString string
-	var returnString string
-	var requestString string
-	if len(route.ResponseTypeName()) > 0 {
-		resp := responseGoTypeName(route, typesPacket)
-		responseString = "(resp " + resp + ", err error)"
-		returnString = "return"
-	} else {
-		responseString = "error"
-		returnString = "return nil"
-	}
-	if len(route.RequestTypeName()) > 0 {
-		requestString = "req *" + requestGoTypeName(route, typesPacket)
-	}
-
-	subDir := getLogicFolderPath(group, route)
-	builtinTemplate := logicTemplate
-	templateFile := logicTemplateFile
-	sse := group.GetAnnotation("sse")
-	if sse == "true" {
-		builtinTemplate = sseLogicTemplate
-		templateFile = sseLogicTemplateFile
-		responseString = "error"
-		returnString = "return nil"
-		resp := responseGoTypeName(route, typesPacket)
-		if len(requestString) == 0 {
-			requestString = "client chan<- " + resp
-		} else {
-			requestString += ", client chan<- " + resp
-		}
-	}
-
-	return genFile(fileGenConfig{
-		dir:             dir,
-		subdir:          subDir,
-		filename:        goFile + ".go",
-		templateName:    "logicTemplate",
-		category:        category,
-		templateFile:    templateFile,
-		builtinTemplate: builtinTemplate,
-		data: map[string]any{
-			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
-			"imports":      imports,
-			"logic":        strings.Title(logic),
-			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
-			"responseType": responseString,
-			"returnString": returnString,
-			"request":      requestString,
-			"hasDoc":       len(route.JoinedDoc()) > 0,
-			"doc":          getDoc(route.JoinedDoc()),
-			"projectPkg":   projectPkg,
-			"version":      version.BuildVersion,
-		},
-	})
 }
 
 func getLogicFolderPath(group spec.Group, route spec.Route) string {
