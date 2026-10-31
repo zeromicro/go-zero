@@ -2258,7 +2258,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 			_ = client.Close()
 		}
 	}()
-	fn(newRedis(s.Addr(), WithTLS()))
+	fn(newRedis(s.Addr(), WithTLS(), WithTLSSkipVerify()))
 }
 
 func badType() Option {
