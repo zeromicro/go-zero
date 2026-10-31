@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -15,6 +16,12 @@ const probeNamePrefix = "rest"
 
 // StartOption defines the method to customize http.Server.
 type StartOption func(svr *http.Server)
+
+func StartHttpWithListner(l net.Listener, handler http.Handler, opts ...StartOption) error {
+	return start("", 0, handler, func(svr *http.Server) error {
+		return svr.Serve(l)
+	}, opts...)
+}
 
 // StartHttp starts a http server.
 func StartHttp(host string, port int, handler http.Handler, opts ...StartOption) error {
@@ -35,8 +42,10 @@ func StartHttps(host string, port int, certFile, keyFile string, handler http.Ha
 func start(host string, port int, handler http.Handler, run func(svr *http.Server) error,
 	opts ...StartOption) (err error) {
 	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", host, port),
 		Handler: handler,
+	}
+	if len(host) > 0 {
+		server.Addr = fmt.Sprintf("%s:%d", host, port)
 	}
 	for _, opt := range opts {
 		opt(server)
