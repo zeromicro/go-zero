@@ -62,6 +62,7 @@ type (
 		identity           bool
 		maintNotifications maintnotifications.Mode
 		tls                bool
+		tlsSkipVerify      bool
 		brk                breaker.Breaker
 		hooks              []red.Hook
 	}
@@ -2723,10 +2724,31 @@ func WithPass(pass string) Option {
 	}
 }
 
+// cacheKey returns the client cache key, separating clients by TLS settings
+// so that a skip-verify client is never reused by a verifying caller.
+func (r *Redis) cacheKey() string {
+	switch {
+	case r.tls && r.tlsSkipVerify:
+		return "tls-skip-verify:" + r.Addr
+	case r.tls:
+		return "tls:" + r.Addr
+	default:
+		return r.Addr
+	}
+}
+
 // WithTLS customizes the given Redis with TLS enabled.
 func WithTLS() Option {
 	return func(r *Redis) {
 		r.tls = true
+	}
+}
+
+// WithTLSSkipVerify disables server certificate verification for TLS connections.
+// It is insecure and should only be used for testing.
+func WithTLSSkipVerify() Option {
+	return func(r *Redis) {
+		r.tlsSkipVerify = true
 	}
 }
 

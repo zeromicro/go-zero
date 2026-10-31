@@ -109,7 +109,8 @@ func TestNewRedis(t *testing.T) {
 				Type: NodeType,
 				Tls:  true,
 			},
-			ok: true,
+			ok:       true,
+			redisErr: true,
 		},
 		{
 			name: "node error",
@@ -2248,7 +2249,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 	})
 	assert.Nil(t, err)
 	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+		client, err := clientManager.GetResource((&Redis{Addr: s.Addr(), tls: true, tlsSkipVerify: true}).cacheKey(), func() (io.Closer, error) {
 			return nil, errors.New("should already exist")
 		})
 		if err != nil {
@@ -2258,7 +2259,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 			_ = client.Close()
 		}
 	}()
-	fn(newRedis(s.Addr(), WithTLS()))
+	fn(newRedis(s.Addr(), WithTLS(), WithTLSSkipVerify()))
 }
 
 func badType() Option {
@@ -2485,4 +2486,16 @@ func TestRedisXReadGroup(t *testing.T) {
 		assert.Greater(t, len(streamRes2), 0, "streamRes2 is empty")
 		assert.Equal(t, 0, len(streamRes2[0].Messages))
 	})
+}
+
+func TestRedisCacheKey(t *testing.T) {
+	keys := map[string]struct{}{}
+	for _, r := range []*Redis{
+		{Addr: "a"},
+		{Addr: "a", tls: true},
+		{Addr: "a", tls: true, tlsSkipVerify: true},
+	} {
+		keys[r.cacheKey()] = struct{}{}
+	}
+	assert.Equal(t, 3, len(keys))
 }
