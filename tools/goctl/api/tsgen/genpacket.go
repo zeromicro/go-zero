@@ -212,7 +212,7 @@ func pathHasParams(route spec.Route) bool {
 		return false
 	}
 
-	return len(ds.Members) != len(ds.GetBodyMembers())
+	return hasActualNonBodyMembers(ds)
 }
 
 func hasRequestBody(route spec.Route) bool {
@@ -221,7 +221,7 @@ func hasRequestBody(route spec.Route) bool {
 		return false
 	}
 
-	return len(route.RequestTypeName()) > 0 && len(ds.GetBodyMembers()) > 0
+	return len(route.RequestTypeName()) > 0 && hasActualBodyMembers(ds)
 }
 
 func hasRequestPath(route spec.Route) bool {
@@ -230,7 +230,7 @@ func hasRequestPath(route spec.Route) bool {
 		return false
 	}
 
-	return len(route.RequestTypeName()) > 0 && len(ds.GetTagMembers(pathTagKey)) > 0
+	return len(route.RequestTypeName()) > 0 && hasActualTagMembers(ds, pathTagKey)
 }
 
 func hasRequestHeader(route spec.Route) bool {
@@ -239,5 +239,5 @@ func hasRequestHeader(route spec.Route) bool {
 		return false
 	}
 
-	return len(route.RequestTypeName()) > 0 && len(ds.GetTagMembers(headerTagKey)) > 0
+	return len(route.RequestTypeName()) > 0 && hasActualTagMembers(ds, headerTagKey)
 }
