@@ -36,7 +36,8 @@ func TestAuthHandlerFailed(t *testing.T) {
 
 type countingReadCloser struct {
 	io.Reader
-	total int64
+	total  int64
+	closed bool
 }
 
 func (c *countingReadCloser) Read(p []byte) (int, error) {
@@ -46,7 +47,66 @@ func (c *countingReadCloser) Read(p []byte) (int, error) {
 }
 
 func (c *countingReadCloser) Close() error {
+	c.closed = true
 	return nil
+}
+
+func TestAuthHandlerUnauthorizedCallbackBody(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		size int
+	}{
+		{name: "empty"},
+		{name: "small", size: 128},
+		{name: "limit", size: limitDetailedBodyBytes},
+		{name: "large", size: limitDetailedBodyBytes * 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, encoding := range []string{"plain", "gzip"} {
+				t.Run(encoding, func(t *testing.T) {
+					payload := bytes.Repeat([]byte("a"), tc.size)
+					var packed bytes.Buffer
+					var input io.Reader = bytes.NewReader(payload)
+					if encoding == "gzip" {
+						zw := gzip.NewWriter(&packed)
+						_, err := zw.Write(payload)
+						assert.NoError(t, err)
+						assert.NoError(t, zw.Close())
+						input = &packed
+					}
+
+					body := &countingReadCloser{Reader: input}
+					req := httptest.NewRequest(http.MethodPost, "http://localhost", nil)
+					req.Body = body
+					if encoding == "gzip" {
+						req.Header.Set("Content-Encoding", "gzip")
+					}
+
+					var called bool
+					handler := GunzipHandler(Authorize("secret", WithUnauthorizedCallback(
+						func(w http.ResponseWriter, r *http.Request, err error) {
+							called = true
+							assert.Error(t, err)
+							assert.False(t, body.closed)
+							got, readErr := io.ReadAll(r.Body)
+							assert.NoError(t, readErr)
+							assert.Equal(t, payload, got)
+							assert.NoError(t, r.Body.Close())
+							if encoding == "plain" {
+								assert.True(t, body.closed)
+							}
+						}))(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						t.Error("unauthorized request reached the handler")
+					})))
+
+					resp := httptest.NewRecorder()
+					handler.ServeHTTP(resp, req)
+					assert.True(t, called)
+					assert.Equal(t, http.StatusUnauthorized, resp.Code)
+				})
+			}
+		})
+	}
 }
 
 // TestAuthHandlerFailedWithGzipBody guards against GHSA-h4vj-585c-2r8x: a

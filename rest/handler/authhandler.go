@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -103,7 +104,20 @@ func detailAuthLog(r *http.Request, reason string) {
 	// server to fully read/decompress (e.g. a gzip-encoded) request body
 	// just by failing authentication. See GHSA-h4vj-585c-2r8x.
 	if r.Body != nil {
-		r.Body = io.NopCloser(io.LimitReader(r.Body, limitDetailedBodyBytes))
+		body := r.Body
+		var prefix bytes.Buffer
+		r.Body = io.NopCloser(io.LimitReader(io.TeeReader(body, &prefix), limitDetailedBodyBytes))
+		// Replay only the bytes consumed for logging, then continue reading the
+		// original body so unauthorized callbacks can still read the full request.
+		defer func() {
+			r.Body = struct {
+				io.Reader
+				io.Closer
+			}{
+				Reader: io.MultiReader(&prefix, body),
+				Closer: body,
+			}
+		}()
 	}
 
 	// discard dump error, only for debug purpose
