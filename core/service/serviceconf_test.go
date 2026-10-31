@@ -20,6 +20,7 @@ func TestServiceConf(t *testing.T) {
 			HealthPath: "/healthz",
 		},
 	}
+	defer c.TearDown()
 	c.MustSetUp()
 }
 
@@ -32,5 +33,6 @@ func TestServiceConfWithMetricsUrl(t *testing.T) {
 		Mode:       "dev",
 		MetricsUrl: "http://localhost:8080",
 	}
+	defer c.TearDown()
 	assert.NoError(t, c.SetUp())
 }
