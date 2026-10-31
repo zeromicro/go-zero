@@ -73,6 +73,21 @@ goctl rpc protoc user.proto \
 
 ---
 
+### Generate only the RPC client
+
+For an API gateway or another project that only calls an RPC service, use `--client-only`:
+
+```bash
+goctl rpc protoc user.proto \
+  --go_out=output --go-grpc_out=output --zrpc_out=output \
+  --go_opt=module=example.com/demo --go-grpc_opt=module=example.com/demo \
+  --module=example.com/demo --client-only -I .
+```
+
+This keeps the protoc-generated `.pb.go` and `_grpc.pb.go` files and the go-zero client wrapper, without creating the server skeleton's `etc`, `internal`, service entry point, or server implementation files. Existing server files are left untouched. An existing Go module is reused; standalone output still creates `go.mod` as usual.
+
+`--multiple`, external proto imports, and protoc output options remain available. Omitting `--client-only` keeps full-service generation unchanged, while `--client=false` still disables the client wrapper. Combining `--client-only` with `--client=false` fails before output files are created. This option is only available for `goctl rpc protoc`.
+
 ## Command Reference
 
 ### `goctl rpc protoc`
@@ -123,6 +138,7 @@ goctl rpc protoc service.proto \
 | `--proto_path` | `-I` | string[] | | Proto import search directories (repeatable) |
 | `--multiple` | `-m` | bool | `false` | Multiple services mode |
 | `--client` | `-c` | bool | `true` | Generate RPC client code |
+| `--client-only` | | bool | `false` | Generate protobuf files and the RPC client, without a server skeleton |
 | `--style` | | string | `gozero` | File naming style |
 | `--module` | | string | | Custom Go module name |
 | `--name-from-filename` | | bool | `false` | Use filename instead of package name for service naming |
