@@ -28,6 +28,7 @@ type (
 	Server struct {
 		ngin   *engine
 		router httpx.Router
+		cors   *corsRouter
 	}
 )
 
@@ -129,6 +130,15 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
 }
 
+func (s *Server) getCorsRouter() *corsRouter {
+	if s.cors == nil {
+		s.cors = &corsRouter{Router: s.router}
+		s.router = s.cors
+	}
+
+	return s.cors
+}
+
 // ToMiddleware converts the given handler to a Middleware.
 func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
 	return func(handle http.HandlerFunc) http.HandlerFunc {
@@ -146,21 +156,16 @@ func WithChain(chn chain.Chain) RunOption {
 
 // WithCors returns a func to enable CORS for given origin, or default to all origins (*).
 func WithCors(origin ...string) RunOption {
-	return func(server *Server) {
-		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(nil, origin...))
-		server.router = newCorsRouter(server.router, nil, origin...)
-	}
+	return WithCustomCors(nil, nil, origin...)
 }
 
 // WithCorsHeaders returns a RunOption to enable CORS with given headers.
+// It preserves the origins configured by WithCors or WithCustomCors in either option order.
 func WithCorsHeaders(headers ...string) RunOption {
-	const allDomains = "*"
-
 	return func(server *Server) {
-		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(nil, allDomains))
-		server.router = newCorsRouter(server.router, func(header http.Header) {
-			cors.AddAllowHeaders(header, headers...)
-		}, allDomains)
+		router := server.getCorsRouter()
+		router.headers = append(router.headers, headers...)
+		router.update()
 	}
 }
 
@@ -169,8 +174,11 @@ func WithCorsHeaders(headers ...string) RunOption {
 func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(http.ResponseWriter),
 	origin ...string) RunOption {
 	return func(server *Server) {
-		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(notAllowedFn, origin...))
-		server.router = newCorsRouter(server.router, middlewareFn, origin...)
+		router := server.getCorsRouter()
+		router.origins = origin
+		router.headerFn = middlewareFn
+		router.notAllowedFn = notAllowedFn
+		router.update()
 	}
 }
 
@@ -342,14 +350,30 @@ func validateSecret(secret string) {
 
 type corsRouter struct {
 	httpx.Router
-	middleware Middleware
+	middleware   Middleware
+	origins      []string
+	headers      []string
+	headerFn     func(http.Header)
+	notAllowedFn func(http.ResponseWriter)
 }
 
-func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...string) httpx.Router {
-	return &corsRouter{
-		Router:     router,
-		middleware: cors.Middleware(headerFn, origins...),
-	}
+func (c *corsRouter) update() {
+	c.Router.SetNotAllowedHandler(cors.NotAllowedHandler(func(w http.ResponseWriter) {
+		if len(c.headers) > 0 {
+			cors.AddAllowHeaders(w.Header(), c.headers...)
+		}
+		if c.notAllowedFn != nil {
+			c.notAllowedFn(w)
+		}
+	}, c.origins...))
+	c.middleware = cors.Middleware(func(header http.Header) {
+		if c.headerFn != nil {
+			c.headerFn(header)
+		}
+		if len(c.headers) > 0 {
+			cors.AddAllowHeaders(header, c.headers...)
+		}
+	}, c.origins...)
 }
 
 func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
