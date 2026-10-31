@@ -61,11 +61,7 @@ func (a *Authenticator) validate(app, token string) error {
 		return a.store.Hget(a.key, app)
 	})
 	if err != nil {
-		if a.strict {
-			return status.Error(codes.Internal, err.Error())
-		}
-
-		return nil
+		return status.Error(codes.Unauthenticated, accessDenied)
 	}
 
 	if token != expect {
