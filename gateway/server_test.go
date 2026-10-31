@@ -326,6 +326,122 @@ func (w *badResponseWriter) Write([]byte) (int, error) {
 	return 0, errors.New("bad writer")
 }
 
+func TestHttpToHttpEmptyMapping(t *testing.T) {
+	var c GatewayConf
+	assert.NoError(t, conf.FillDefault(&c))
+	c.DevServer.Host = "localhost"
+	c.Host = "localhost"
+	c.Port = 18886
+
+	s := MustNewServer(c)
+	s.upstreams = []Upstream{
+		{
+			Name: "test-empty",
+			Mappings: []RouteMapping{
+				{}, // empty mapping, no Method/Path
+			},
+			Http: &HttpClientConf{
+				Target: "localhost:45678",
+			},
+		},
+	}
+
+	assert.Error(t, s.build())
+}
+
+func TestHttpToHttpWithMatch(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/ping", pingHandler)
+	backendServer := &http.Server{
+		Addr:    ":45679",
+		Handler: mux,
+	}
+	go func() {
+		if err := backendServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			t.Errorf("failed to start backend server: %v", err)
+		}
+	}()
+	defer backendServer.Close()
+
+	time.Sleep(time.Millisecond * 100)
+
+	var c GatewayConf
+	assert.NoError(t, conf.FillDefault(&c))
+	c.DevServer.Host = "localhost"
+	c.Host = "localhost"
+	c.Port = 18885
+
+	s := MustNewServer(c)
+	s.upstreams = []Upstream{
+		{
+			Name: "test-match",
+			Mappings: []RouteMapping{
+				{
+					// new Match-based config
+					Match: &Match{
+						Method: "GET",
+						Path:   "/api/ping",
+					},
+				},
+			},
+			Http: &HttpClientConf{
+				Target:  "localhost:45679",
+				Timeout: 3000,
+			},
+		},
+		{
+			Mappings: []RouteMapping{
+				{
+					// old flat config still works
+					Method: "get",
+					Path:   "/ping",
+				},
+			},
+			Http: &HttpClientConf{
+				Target: "localhost:45679",
+				Prefix: "/api",
+			},
+		},
+	}
+
+	go s.Start()
+	defer s.Stop()
+
+	time.Sleep(time.Millisecond * 200)
+
+	t.Run("match-based /api/ping", func(t *testing.T) {
+		resp, err := httpc.Do(context.Background(), http.MethodGet,
+			"http://localhost:18885/api/ping", nil)
+		assert.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if assert.NoError(t, err) {
+			assert.Equal(t, "pong", string(body))
+		}
+	})
+
+	t.Run("flat-config /ping", func(t *testing.T) {
+		resp, err := httpc.Do(context.Background(), http.MethodGet,
+			"http://localhost:18885/ping", nil)
+		assert.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if assert.NoError(t, err) {
+			assert.Equal(t, "pong", string(body))
+		}
+	})
+
+	t.Run("match method not allowed", func(t *testing.T) {
+		resp, err := httpc.Do(context.Background(), http.MethodPost,
+			"http://localhost:18885/api/ping", nil)
+		assert.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	})
+}
+
 func TestWithMiddleware(t *testing.T) {
 	var callOrder []string
 
