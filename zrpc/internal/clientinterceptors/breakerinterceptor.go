@@ -10,6 +10,9 @@ import (
 )
 
 // BreakerInterceptor is an interceptor that acts as a circuit breaker.
+//
+// Deprecated: use balancer/breaker instead, which provides both service-level
+// and instance-level circuit breaker capabilities with unified implementation.
 func BreakerInterceptor(ctx context.Context, method string, req, reply any,
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	breakerName := path.Join(cc.Target(), method)
