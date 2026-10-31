@@ -94,6 +94,15 @@ func isOriginAllowed(allows []string, origin string) bool {
 			return true
 		}
 
+		// Support wildcard prefix pattern like "*.example.com"
+		if strings.HasPrefix(allow, "*.") {
+			suffix := allow[1:] // Get ".example.com" from "*.example.com"
+			if strings.HasSuffix(origin, suffix) {
+				return true
+			}
+			continue
+		}
+
 		if strings.HasSuffix(origin, "."+allow) {
 			return true
 		}
