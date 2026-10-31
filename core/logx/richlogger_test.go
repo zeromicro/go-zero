@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -468,4 +469,31 @@ func TestLogWithJson(t *testing.T) {
 	assert.Equal(t, "foo", val.Bar.Name)
 	assert.Equal(t, 1, val.Bar.Age)
 	assert.Equal(t, 1.0, val.Bar.Score)
+}
+
+func TestCacheFunctions(t *testing.T) {
+	EnableCache()
+	if atomic.LoadUint32(&cacheEnabled) != 1 {
+		t.Error("EnableCache failed to set cacheEnabled to 1")
+	}
+	DisableCache()
+	if atomic.LoadUint32(&cacheEnabled) != 0 {
+		t.Error("DisableCache failed to set cacheEnabled to 0")
+	}
+}
+
+func TestCacheConcurrency(t *testing.T) {
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			EnableCache()
+			DisableCache()
+		}()
+	}
+	wg.Wait()
+	if atomic.LoadUint32(&cacheEnabled) != 0 && atomic.LoadUint32(&cacheEnabled) != 1 {
+		t.Error("Concurrent access to cacheEnabled caused unexpected value")
+	}
 }
