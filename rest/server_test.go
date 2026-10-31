@@ -455,9 +455,6 @@ Port: 54321
 			option := WithCorsHeaders(tt.headers...)
 			option(svr)
 
-			// Assuming newCorsRouter sets headers correctly,
-			// we would need to verify the behavior here. Since we don't have
-			// direct access to headers, we'll mock newCorsRouter to capture it.
 			w := httptest.NewRecorder()
 			serve(svr, w, httptest.NewRequest(http.MethodOptions, "/", nil))
 
