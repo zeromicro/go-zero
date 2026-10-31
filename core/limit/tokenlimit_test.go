@@ -89,6 +89,65 @@ func TestTokenLimit_Take(t *testing.T) {
 	assert.True(t, allowed >= burst+rate)
 }
 
+func TestTokenLimit_SharedBurst(t *testing.T) {
+	tests := []struct {
+		name   string
+		rate   int
+		burst  int
+		expect time.Duration
+	}{
+		{
+			name:   "small burst",
+			rate:   100,
+			burst:  10,
+			expect: time.Second,
+		},
+		{
+			name:   "minimum burst",
+			rate:   100,
+			burst:  1,
+			expect: time.Second,
+		},
+		{
+			name:   "ttl boundary",
+			rate:   20,
+			burst:  10,
+			expect: time.Second,
+		},
+		{
+			name:   "fractional ttl",
+			rate:   3,
+			burst:  4,
+			expect: 2 * time.Second,
+		},
+		{
+			name:   "large burst",
+			rate:   5,
+			burst:  10,
+			expect: 4 * time.Second,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			s := miniredis.RunT(t)
+			store := redis.New(s.Addr())
+			l := NewTokenLimiter(test.rate, test.burst, store, "tokenlimit")
+			other := NewTokenLimiter(test.rate, test.burst, store, "tokenlimit")
+			now := time.Now()
+
+			assert.True(t, l.AllowN(now, test.burst))
+			assert.Equal(t, test.expect, s.TTL(l.tokenKey))
+			assert.Equal(t, test.expect, s.TTL(l.timestampKey))
+			assert.False(t, other.AllowN(now, 1))
+
+			now = now.Add(10 * time.Second)
+			assert.True(t, other.AllowN(now, test.burst))
+			assert.False(t, l.AllowN(now, 1))
+		})
+	}
+}
+
 func TestTokenLimit_TakeBurst(t *testing.T) {
 	store := redistest.CreateRedis(t)
 
