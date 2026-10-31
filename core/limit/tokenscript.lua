@@ -6,7 +6,7 @@ local capacity = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
 local requested = tonumber(ARGV[4])
 local fill_time = capacity/rate
-local ttl = math.floor(fill_time*2)
+local ttl = math.max(1, math.floor(fill_time*2))
 local last_tokens = tonumber(redis.call("get", KEYS[1]))
 if last_tokens == nil then
     last_tokens = capacity
