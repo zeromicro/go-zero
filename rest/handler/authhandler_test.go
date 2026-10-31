@@ -2,6 +2,9 @@ package handler
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -29,6 +32,52 @@ func TestAuthHandlerFailed(t *testing.T) {
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+}
+
+type countingReadCloser struct {
+	io.Reader
+	total int64
+}
+
+func (c *countingReadCloser) Read(p []byte) (int, error) {
+	n, err := c.Reader.Read(p)
+	c.total += int64(n)
+	return n, err
+}
+
+func (c *countingReadCloser) Close() error {
+	return nil
+}
+
+// TestAuthHandlerFailedWithGzipBody guards against GHSA-h4vj-585c-2r8x: a
+// failed JWT authentication must not force the server to read/decompress
+// the full (potentially huge) gzip-encoded request body just to log it.
+func TestAuthHandlerFailedWithGzipBody(t *testing.T) {
+	// highly compressible payload, so a small compressed input unpacks to
+	// a payload far larger than the detailed-log limit.
+	plain := bytes.Repeat([]byte("A"), 16<<20) // 16 MiB decompressed
+	var packed bytes.Buffer
+	zw := gzip.NewWriter(&packed)
+	_, err := zw.Write(plain)
+	assert.Nil(t, err)
+	assert.Nil(t, zw.Close())
+
+	counter := &countingReadCloser{Reader: bytes.NewReader(packed.Bytes())}
+	req := httptest.NewRequest(http.MethodPost, "http://localhost", nil)
+	req.Body = counter
+	req.Header.Set("Content-Encoding", "gzip")
+
+	handler := GunzipHandler(Authorize("B63F477D-BBA3-4E52-96D3-C0034C27694A")(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})))
+
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+	// the compressed bytes actually consumed must stay far below the full
+	// compressed payload size, proving the body wasn't fully decompressed.
+	assert.Less(t, counter.total, int64(packed.Len()))
 }
 
 func TestAuthHandler(t *testing.T) {

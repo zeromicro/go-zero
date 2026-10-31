@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httputil"
 
@@ -98,6 +99,13 @@ func WithUnauthorizedCallback(callback UnauthorizedCallback) AuthorizeOption {
 }
 
 func detailAuthLog(r *http.Request, reason string) {
+	// Cap the body read for the dump so that an attacker cannot force the
+	// server to fully read/decompress (e.g. a gzip-encoded) request body
+	// just by failing authentication. See GHSA-h4vj-585c-2r8x.
+	if r.Body != nil {
+		r.Body = io.NopCloser(io.LimitReader(r.Body, limitDetailedBodyBytes))
+	}
+
 	// discard dump error, only for debug purpose
 	details, _ := httputil.DumpRequest(r, true)
 	logc.Errorf(r.Context(), "authorize failed: %s\n=> %+v", reason, string(details))
