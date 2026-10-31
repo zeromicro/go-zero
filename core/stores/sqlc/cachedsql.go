@@ -68,6 +68,34 @@ func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) Cached
 	return NewConnWithCache(db, c)
 }
 
+// NewConnWithMultiLevelCache returns a CachedConn with a multi-level cache.
+// It layers an in-memory collection.Cache (L1) on top of a redis cluster cache (L2)
+// to reduce Redis round-trips for hot keys.
+func NewConnWithMultiLevelCache(db sqlx.SqlConn, c cache.CacheConf, mlOpts []cache.MultiLevelCacheOption,
+	opts ...cache.Option) (CachedConn, error) {
+	cc := cache.New(c, singleFlights, stats, sql.ErrNoRows, opts...)
+	mlc, err := cache.NewMultiLevelCache(cc, sql.ErrNoRows, mlOpts...)
+	if err != nil {
+		return CachedConn{}, err
+	}
+
+	return NewConnWithCache(db, mlc), nil
+}
+
+// NewNodeConnWithMultiLevelCache returns a CachedConn with a multi-level cache.
+// It layers an in-memory collection.Cache (L1) on top of a single redis node cache (L2)
+// to reduce Redis round-trips for hot keys.
+func NewNodeConnWithMultiLevelCache(db sqlx.SqlConn, rds *redis.Redis,
+	mlOpts []cache.MultiLevelCacheOption, opts ...cache.Option) (CachedConn, error) {
+	c := cache.NewNode(rds, singleFlights, stats, sql.ErrNoRows, opts...)
+	mlc, err := cache.NewMultiLevelCache(c, sql.ErrNoRows, mlOpts...)
+	if err != nil {
+		return CachedConn{}, err
+	}
+
+	return NewConnWithCache(db, mlc), nil
+}
+
 // DelCache deletes cache with keys.
 func (cc CachedConn) DelCache(keys ...string) error {
 	return cc.DelCacheCtx(context.Background(), keys...)
