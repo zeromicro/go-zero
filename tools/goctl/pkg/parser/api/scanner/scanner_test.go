@@ -222,7 +222,7 @@ func TestScanner_NextToken_document(t *testing.T) {
 			Text: "/",
 			Position: token.Position{
 				Filename: "foo.api",
-				Line:     5,
+				Line:     6,
 				Column:   1,
 			},
 		},
@@ -236,6 +236,22 @@ func TestScanner_NextToken_document(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	}
+}
+
+func TestScanner_NextToken_afterMultilineDocument(t *testing.T) {
+	s, err := NewScanner("foo.api", "/* first\nsecond */\nservice")
+	assert.NoError(t, err)
+
+	_, err = s.NextToken()
+	assert.NoError(t, err)
+
+	actual, err := s.NextToken()
+	assert.NoError(t, err)
+	assert.Equal(t, token.Position{
+		Filename: "foo.api",
+		Line:     3,
+		Column:   1,
+	}, actual.Position)
 }
 
 func TestScanner_NextToken_invalid_document(t *testing.T) {
