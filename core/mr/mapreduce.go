@@ -383,6 +383,14 @@ type onceChan struct {
 
 func (oc *onceChan) write(val any) {
 	if atomic.CompareAndSwapInt32(&oc.wrote, 0, 1) {
-		oc.channel <- val
+		// Use select with default to avoid blocking if channel is full
+		// This prevents deadlock when panic occurs after reducer has written output
+		select {
+		case oc.channel <- val:
+			// Successfully sent panic info
+		default:
+			// Channel is full or has no receiver, drop the panic info
+			// This is acceptable as we've already recorded the panic in wrote flag
+		}
 	}
 }
