@@ -26,6 +26,9 @@ func NewRpcPubServer(etcd discov.EtcdConf, listenOn string,
 			pubOpts = append(pubOpts, discov.WithPubEtcdTLS(etcd.CertFile, etcd.CertKeyFile,
 				etcd.CACertFile, etcd.InsecureSkipVerify))
 		}
+		if etcd.AutoSyncInterval > 0 {
+			discov.RegisterAutoSyncInterval(etcd.Hosts, etcd.AutoSyncInterval)
+		}
 		if etcd.HasID() {
 			pubOpts = append(pubOpts, discov.WithId(etcd.ID))
 		}
