@@ -5331,6 +5331,79 @@ func TestUnmarshalJsonReaderWithTypeBoolMap(t *testing.T) {
 	})
 }
 
+func TestUnmarshalJsonReaderByteSliceMap(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []byte
+		wantErr  bool
+	}{
+		{
+			name:     "base64",
+			input:    `"b3duZXI="`,
+			expected: []byte("owner"),
+		},
+		{
+			name:     "binary",
+			input:    `"AP8="`,
+			expected: []byte{0, 255},
+		},
+		{
+			name:     "empty string",
+			input:    `""`,
+			expected: []byte{},
+		},
+		{
+			name:     "array",
+			input:    `[0, 255]`,
+			expected: []byte{0, 255},
+		},
+		{
+			name:     "empty array",
+			input:    `[]`,
+			expected: []byte{},
+		},
+		{
+			name:    "invalid base64",
+			input:   `"not-base64"`,
+			wantErr: true,
+		},
+		{
+			name:    "overflow",
+			input:   `[256]`,
+			wantErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var req struct {
+				Extra map[string][]byte `json:"extra"`
+			}
+			input := fmt.Sprintf(`{"extra":{"role":%s}}`, test.input)
+			err := UnmarshalJsonReader(strings.NewReader(input), &req)
+			if test.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, map[string][]byte{"role": test.expected}, req.Extra)
+			}
+		})
+	}
+}
+
+func TestUnmarshalJsonReaderByteSlices(t *testing.T) {
+	var req struct {
+		Data [][]byte `json:"data"`
+	}
+	input := `{"data":["b3duZXI=","AP8=","",[0,255],[]]}`
+	if assert.NoError(t, UnmarshalJsonReader(strings.NewReader(input), &req)) {
+		assert.Equal(t, [][]byte{[]byte("owner"), {0, 255}, {}, {0, 255}, {}}, req.Data)
+	}
+}
+
 func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
 	input := []byte(`{
   "order_id": "1234567",

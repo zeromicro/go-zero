@@ -566,6 +566,32 @@ func TestParseJsonBody(t *testing.T) {
 	})
 }
 
+func TestParseByteSliceMap(t *testing.T) {
+	type request struct {
+		BriefIntro []byte            `json:"brief_intro"`
+		Extra      map[string][]byte `json:"extra"`
+	}
+
+	expected := request{
+		BriefIntro: []byte("Owner"),
+		Extra: map[string][]byte{
+			"role":   []byte("owner"),
+			"binary": {0, 255},
+			"empty":  {},
+		},
+	}
+	body, err := json.Marshal(expected)
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	r.Header.Set(ContentType, header.ContentTypeJson)
+
+	var actual request
+	if assert.NoError(t, Parse(r, &actual)) {
+		assert.Equal(t, expected, actual)
+	}
+}
+
 func TestParseRequired(t *testing.T) {
 	v := struct {
 		Name    string  `form:"name"`
