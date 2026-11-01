@@ -2,13 +2,19 @@ package serverinterceptors
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func TestStreamAuthorizeInterceptor(t *testing.T) {
@@ -22,11 +28,23 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 		{
 			name:     "strict=false",
 			strict:   false,
-			hasError: false,
+			hasError: true,
 		},
 		{
 			name:     "strict=true",
 			strict:   true,
+			hasError: true,
+		},
+		{
+			name:     "strict=false,with token",
+			app:      "foo",
+			token:    "bar",
+			hasError: false,
+		},
+		{
+			name:     "strict=false,with error token",
+			app:      "foo",
+			token:    "error",
 			hasError: true,
 		},
 		{
@@ -63,9 +81,12 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 			stream := mockedStream{ctx: ctx}
+			called := false
 			err = interceptor(nil, stream, nil, func(_ any, _ grpc.ServerStream) error {
+				called = true
 				return nil
 			})
+			assert.Equal(t, !test.hasError, called)
 			if test.hasError {
 				assert.NotNil(t, err)
 			} else {
@@ -86,11 +107,23 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 		{
 			name:     "strict=false",
 			strict:   false,
-			hasError: false,
+			hasError: true,
 		},
 		{
 			name:     "strict=true",
 			strict:   true,
+			hasError: true,
+		},
+		{
+			name:     "strict=false,with token",
+			app:      "foo",
+			token:    "bar",
+			hasError: false,
+		},
+		{
+			name:     "strict=false,with error token",
+			app:      "foo",
+			token:    "error",
 			hasError: true,
 		},
 		{
@@ -126,10 +159,13 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 				"token": "bar",
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
+			called := false
 			_, err = interceptor(ctx, nil, nil,
 				func(ctx context.Context, req any) (any, error) {
+					called = true
 					return nil, nil
 				})
+			assert.Equal(t, !test.hasError, called)
 			if test.hasError {
 				assert.NotNil(t, err)
 			} else {
@@ -190,4 +226,33 @@ func (m mockedStream) SendMsg(_ any) error {
 
 func (m mockedStream) RecvMsg(_ any) error {
 	return nil
+}
+
+func TestAuthorizeInterceptorsRejectLookupErrors(t *testing.T) {
+	for _, strict := range []bool{false, true} {
+		for _, backendError := range []bool{false, true} {
+			t.Run(fmt.Sprintf("strict=%v/backendError=%v", strict, backendError), func(t *testing.T) {
+				mr := miniredis.RunT(t)
+				if backendError {
+					mr.SetError("ERR injected backend failure")
+				}
+				authenticator, err := auth.NewAuthenticator(redis.New(mr.Addr()), "apps", strict)
+				require.NoError(t, err)
+				ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("app", "unknown", "token", "arbitrary"))
+				called := false
+				_, err = UnaryAuthorizeInterceptor(authenticator)(ctx, nil, nil, func(context.Context, any) (any, error) {
+					called = true
+					return nil, nil
+				})
+				assert.Equal(t, codes.Unauthenticated, status.Code(err))
+				assert.False(t, called)
+				err = StreamAuthorizeInterceptor(authenticator)(nil, mockedStream{ctx: ctx}, nil, func(any, grpc.ServerStream) error {
+					called = true
+					return nil
+				})
+				assert.Equal(t, codes.Unauthenticated, status.Code(err))
+				assert.False(t, called)
+			})
+		}
+	}
 }
