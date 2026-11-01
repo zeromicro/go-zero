@@ -9,6 +9,33 @@ on:
     branches: [ master ]
 
 jobs:
+  test-rpc-generation:
+    name: RPC generation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/goctl
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: tools/goctl/go.mod
+          cache-dependency-path: tools/goctl/go.sum
+
+      - name: Install protoc and Go plugins
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@$(go list -m -f '{{.Version}}' google.golang.org/protobuf)
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Test RPC generation
+        run: go test -race ./rpc/...
+
   test-linux:
     name: Linux
     runs-on: ubuntu-latest
