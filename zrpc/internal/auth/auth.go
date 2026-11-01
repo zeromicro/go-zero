@@ -21,8 +21,7 @@ type Authenticator struct {
 }
 
 // NewAuthenticator returns an Authenticator.
-// The strict parameter is ignored; authentication always fails closed on lookup errors.
-func NewAuthenticator(store *redis.Redis, key string, _ bool) (*Authenticator, error) {
+func NewAuthenticator(store *redis.Redis, key string) (*Authenticator, error) {
 	cache, err := collection.NewCache(defaultExpiration)
 	if err != nil {
 		return nil, err
