@@ -43,7 +43,9 @@ type (
 		// daily: daily rotation.
 		// size: size limited rotation.
 		Rotation string `json:",default=daily,options=[daily,size]"`
-		// FileTimeFormat represents the time format for file name, default is `2006-01-02T15:04:05.000Z07:00`.
+		// FileTimeFormat represents the time format for file name, default is `2006-01-02T15-04-05.000000000`.
+		// The layout is used in backup file names, it should not contain characters
+		// that are invalid in file names, such as colons on Windows.
 		FileTimeFormat string `json:",optional"`
 		// FieldKeys represents the field keys.
 		FieldKeys fieldKeyConf `json:",optional"`

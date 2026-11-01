@@ -6,6 +6,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"testing"
@@ -81,13 +83,13 @@ func TestSizeLimitRotateRuleMarkRotated(t *testing.T) {
 	t.Run("size limit rule", func(t *testing.T) {
 		var rule SizeLimitRotateRule
 		rule.MarkRotated()
-		assert.Equal(t, getNowDateInRFC3339Format(), rule.rotatedTime)
+		assert.Equal(t, getNowDateInFileTimeFormat(), rule.rotatedTime)
 	})
 
 	t.Run("size limit rule", func(t *testing.T) {
 		rule := NewSizeLimitRotateRule("foo", "-", 1, 1, 1, false)
 		rule.MarkRotated()
-		assert.Equal(t, getNowDateInRFC3339Format(), rule.(*SizeLimitRotateRule).rotatedTime)
+		assert.Equal(t, getNowDateInFileTimeFormat(), rule.(*SizeLimitRotateRule).rotatedTime)
 	})
 }
 
@@ -632,4 +634,216 @@ func (f *fakeFileSystem) Remove(name string) error {
 
 func (f *fakeFileSystem) Removed() bool {
 	return atomic.LoadInt32(&f.removed) > 0
+}
+
+func TestRotateLoggerRotateByRealFileSize(t *testing.T) {
+	dir := t.TempDir()
+	filename := filepath.Join(dir, "app.log")
+
+	rule := &SizeLimitRotateRule{
+		DailyRotateRule: DailyRotateRule{
+			filename:  filename,
+			delimiter: "-",
+		},
+		maxSize: 100,
+	}
+	logger, err := NewLogger(filename, rule, false)
+	assert.Nil(t, err)
+	defer func() {
+		assert.Nil(t, logger.Close())
+	}()
+
+	// another process appends to the file after this logger started, the
+	// in-memory counter of this logger doesn't know those bytes.
+	const other = 1024
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, defaultFileMode)
+	assert.NoError(t, err)
+	_, err = f.WriteString(strings.Repeat("a", other))
+	assert.NoError(t, err)
+	assert.NoError(t, f.Close())
+
+	// the write refreshes the real size from the file system, the file
+	// exceeds the limit already and must be rotated, even though this
+	// process wrote only one byte.
+	logger.write([]byte("x"))
+	assert.Equal(t, int64(len("x")), logger.currentSize)
+
+	backups, err := filepath.Glob(filepath.Join(dir, "app-*.log"))
+	assert.NoError(t, err)
+	assert.Len(t, backups, 1)
+	content, err := os.ReadFile(backups[0])
+	assert.NoError(t, err)
+	assert.Len(t, content, other)
+}
+
+func TestRotateLoggerMultiWriterRotation(t *testing.T) {
+	dir := t.TempDir()
+	filename := filepath.Join(dir, "app.log")
+
+	newLogger := func() *RotateLogger {
+		rule := &SizeLimitRotateRule{
+			DailyRotateRule: DailyRotateRule{
+				filename:  filename,
+				delimiter: "-",
+			},
+			maxSize: 100,
+		}
+		logger, err := NewLogger(filename, rule, false)
+		assert.NoError(t, err)
+		return logger
+	}
+
+	// two loggers share one file, like two replicas mounting the same volume.
+	l1, l2 := newLogger(), newLogger()
+	for i := 0; i < 50; i++ {
+		// the write calls are synchronized to keep the test deterministic,
+		// the callers cannot be changed to Write, because of DATA RACE.
+		l1.write([]byte(strings.Repeat("a", 30)))
+		l2.write([]byte(strings.Repeat("b", 30)))
+	}
+
+	assert.Nil(t, l1.Close())
+	assert.Nil(t, l2.Close())
+
+	// with the rename-based rotation the size counter of each logger only
+	// knows its own writes, and the rotation never brings the size down for
+	// the other logger, so the rotation never happens at all.
+	backups, err := filepath.Glob(filepath.Join(dir, "app-*.log"))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, backups)
+	for _, f := range backups {
+		fi, err := os.Stat(f)
+		assert.NoError(t, err)
+		assert.NotZero(t, fi.Size())
+	}
+
+	// both loggers keep appending to the active file, not to the backups.
+	fi, err := os.Stat(filename)
+	assert.NoError(t, err)
+	assert.NotZero(t, fi.Size())
+}
+
+func TestRotateLoggerRotateOnExistingBackup(t *testing.T) {
+	dir := t.TempDir()
+	filename := filepath.Join(dir, "app.log")
+	assert.NoError(t, os.WriteFile(filename, []byte("old"), defaultFileMode))
+
+	logger, err := NewLogger(filename, DefaultRotateRule(filename, "-", 0, false), false)
+	assert.Nil(t, err)
+	defer func() {
+		assert.Nil(t, logger.Close())
+	}()
+
+	assert.Nil(t, logger.rotate())
+	logger.write([]byte("new"))
+	backup := logger.getBackupFilename()
+	content, err := os.ReadFile(backup)
+	assert.NoError(t, err)
+	assert.Equal(t, "old", string(content))
+
+	// two processes can pick the same backup name, for instance with the
+	// daily rule, the second one must not overwrite the backup of the
+	// first one.
+	assert.Nil(t, logger.rotate())
+	content, err = os.ReadFile(backup)
+	assert.NoError(t, err)
+	assert.Equal(t, "old", string(content))
+}
+
+func TestRotateLoggerBackupSkipsEmptyFile(t *testing.T) {
+	dir := t.TempDir()
+	filename := filepath.Join(dir, "app.log")
+	assert.NoError(t, os.WriteFile(filename, nil, defaultFileMode))
+
+	logger := &RotateLogger{filename: filename}
+	backup := filepath.Join(dir, "app-backup.log")
+
+	// an empty file means another process has already rotated it, backing
+	// up an empty file would take one of the slots kept by maxBackups.
+	assert.Nil(t, logger.backupAndTruncate(backup))
+	_, err := os.Stat(backup)
+	assert.True(t, os.IsNotExist(err))
+}
+
+func TestBackupNameOrderKey(t *testing.T) {
+	// the legacy layout is time.RFC3339, whose colons sort after the dash of
+	// the current layout, so the raw names of both layouts don't order by
+	// time. The order key makes them order by time again.
+	legacy := filepath.Join("dir", "app-2026-10-31T10:00:00+08:00.log")
+	current := filepath.Join("dir", "app-2026-10-31T10-00-05.000000000.log")
+	assert.Less(t, backupNameOrderKey(legacy), backupNameOrderKey(current))
+
+	// the names without colons keep their previous order.
+	a := filepath.Join("dir", "app-2026-10-31T10-00-05.000000000.log")
+	b := filepath.Join("dir", "app-2026-10-31T10-00-06.000000000.log")
+	assert.Less(t, backupNameOrderKey(a), backupNameOrderKey(b))
+	assert.Equal(t, a, backupNameOrderKey(a))
+}
+
+func TestSizeLimitRotateRuleOutdatedFilesWithLegacyTimeFormat(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("colons are not allowed in file names on Windows")
+	}
+
+	// The time layout used to be time.RFC3339, so after an upgrade both
+	// layouts are found in the same directory. Within the same hour the
+	// legacy backup is the earlier one, the retention rules must keep the
+	// newest one and drop the legacy one.
+	dir := t.TempDir()
+	legacy := filepath.Join(dir, "app-2026-10-31T10:00:00+08:00.log")
+	current := filepath.Join(dir, "app-2026-10-31T10-00-05.000000000.log")
+	for _, name := range []string{legacy, current} {
+		assert.NoError(t, os.WriteFile(name, []byte("log"), defaultFileMode))
+	}
+
+	rule := &SizeLimitRotateRule{
+		DailyRotateRule: DailyRotateRule{
+			filename:  filepath.Join(dir, "app.log"),
+			delimiter: "-",
+		},
+		maxBackups: 1,
+	}
+	outdated := rule.OutdatedFiles()
+	assert.Len(t, outdated, 1)
+	assert.Equal(t, legacy, outdated[0])
+}
+
+func TestRotateLoggerReopenAfterExternalRemoval(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows cannot remove a file while this process holds it open")
+	}
+
+	dir := t.TempDir()
+	filename := filepath.Join(dir, "app.log")
+
+	logger, err := NewLogger(filename, DefaultRotateRule(filename, "-", 0, false), false)
+	assert.Nil(t, err)
+	defer func() {
+		assert.Nil(t, logger.Close())
+	}()
+
+	// another process removed the file, the descriptor of this logger
+	// points to the unlinked inode and the logs would get lost.
+	assert.NoError(t, os.Remove(filename))
+	assert.Nil(t, logger.rotate())
+	logger.write([]byte("x"))
+
+	// the file is recreated, the write goes to the new file and the size
+	// counter starts from the real size of the new file.
+	content, err := os.ReadFile(filename)
+	assert.NoError(t, err)
+	assert.Equal(t, "x", string(content))
+	assert.Equal(t, int64(len("x")), logger.currentSize)
+}
+
+func TestRotateLoggerStatErrorPropagates(t *testing.T) {
+	dir := t.TempDir()
+	// a path below a regular file cannot be stated, on Linux the stat fails
+	// with ENOTDIR, on Windows the recreation fails, either way the error
+	// must be reported instead of being taken as a successful rotation.
+	notADir := filepath.Join(dir, "file")
+	assert.NoError(t, os.WriteFile(notADir, []byte("x"), defaultFileMode))
+
+	logger := &RotateLogger{filename: filepath.Join(notADir, "app.log")}
+	assert.Error(t, logger.backupAndTruncate(filepath.Join(dir, "app-backup.log")))
 }

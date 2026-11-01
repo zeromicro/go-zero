@@ -1059,6 +1059,13 @@ func doTestStructedLogEmpty(t *testing.T, w *mockWriter, level uint32, write fun
 }
 
 func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
+	// SetUp overrides the package-level fileTimeFormat, restore it afterwards,
+	// otherwise the tests that run later get polluted.
+	oldFileTimeFormat := fileTimeFormat
+	defer func() {
+		fileTimeFormat = oldFileTimeFormat
+	}()
+
 	writer.Store(nil)
 	SetUp(LogConf{
 		Mode:           mode,
