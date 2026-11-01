@@ -67,6 +67,7 @@ go-zero integrates engineering best practices:
 * **Resilience** - Built-in circuit breaker, rate limiting, load shedding, timeout control
 * **Service mesh** - Service discovery, load balancing, call tracing
 * **Developer tools** - Auto parameter validation, cache management, metrics and monitoring
+* **[Continuous profiling](internal/profiling/readme.md)** - Collect profiles when CPU, heap memory, or goroutine count reaches a configured threshold
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
