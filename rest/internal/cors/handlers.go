@@ -2,6 +2,7 @@ package cors
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/zeromicro/go-zero/rest/internal/response"
@@ -70,7 +71,7 @@ func Middleware(fn func(w http.Header), origins ...string) func(http.HandlerFunc
 func checkAndSetHeaders(w http.ResponseWriter, r *http.Request, origins []string) {
 	setVaryHeaders(w, r)
 
-	if len(origins) == 0 {
+	if len(origins) == 0 || slices.Contains(origins, allOrigins) {
 		setHeader(w, allOrigins)
 		return
 	}
@@ -110,6 +111,8 @@ func setHeader(w http.ResponseWriter, origin string) {
 	header.Set(exposeHeaders, exposeHeadersVal)
 	if origin != allOrigins {
 		header.Set(allowCredentials, allowTrue)
+	} else {
+		header.Del(allowCredentials)
 	}
 	header.Set(maxAgeHeader, maxAgeHeaderVal)
 }

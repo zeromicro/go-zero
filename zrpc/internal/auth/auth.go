@@ -15,24 +15,22 @@ const defaultExpiration = 5 * time.Minute
 
 // An Authenticator is used to authenticate the rpc requests.
 type Authenticator struct {
-	store  *redis.Redis
-	key    string
-	cache  *collection.Cache
-	strict bool
+	store *redis.Redis
+	key   string
+	cache *collection.Cache
 }
 
 // NewAuthenticator returns an Authenticator.
-func NewAuthenticator(store *redis.Redis, key string, strict bool) (*Authenticator, error) {
+func NewAuthenticator(store *redis.Redis, key string) (*Authenticator, error) {
 	cache, err := collection.NewCache(defaultExpiration)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Authenticator{
-		store:  store,
-		key:    key,
-		cache:  cache,
-		strict: strict,
+		store: store,
+		key:   key,
+		cache: cache,
 	}, nil
 }
 
@@ -61,11 +59,7 @@ func (a *Authenticator) validate(app, token string) error {
 		return a.store.Hget(a.key, app)
 	})
 	if err != nil {
-		if a.strict {
-			return status.Error(codes.Internal, err.Error())
-		}
-
-		return nil
+		return status.Error(codes.Unauthenticated, accessDenied)
 	}
 
 	if token != expect {

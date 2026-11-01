@@ -185,7 +185,6 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 
 func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		req, err := buildRequestWithNewTarget(r, target)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)

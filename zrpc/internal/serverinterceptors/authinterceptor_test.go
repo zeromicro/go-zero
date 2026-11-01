@@ -2,13 +2,19 @@ package serverinterceptors
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func TestStreamAuthorizeInterceptor(t *testing.T) {
@@ -16,31 +22,22 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 		name     string
 		app      string
 		token    string
-		strict   bool
 		hasError bool
 	}{
 		{
-			name:     "strict=false",
-			strict:   false,
-			hasError: false,
-		},
-		{
-			name:     "strict=true",
-			strict:   true,
+			name:     "unknown app",
 			hasError: true,
 		},
 		{
-			name:     "strict=true,with token",
+			name:     "valid token",
 			app:      "foo",
 			token:    "bar",
-			strict:   true,
 			hasError: false,
 		},
 		{
-			name:     "strict=true,with error token",
+			name:     "wrong token",
 			app:      "foo",
 			token:    "error",
-			strict:   true,
 			hasError: true,
 		},
 	}
@@ -54,7 +51,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 				defer store.Hdel("apps", test.app)
 			}
 
-			authenticator, err := auth.NewAuthenticator(store, "apps", test.strict)
+			authenticator, err := auth.NewAuthenticator(store, "apps")
 			assert.Nil(t, err)
 			interceptor := StreamAuthorizeInterceptor(authenticator)
 			md := metadata.New(map[string]string{
@@ -63,9 +60,12 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 			stream := mockedStream{ctx: ctx}
+			called := false
 			err = interceptor(nil, stream, nil, func(_ any, _ grpc.ServerStream) error {
+				called = true
 				return nil
 			})
+			assert.Equal(t, !test.hasError, called)
 			if test.hasError {
 				assert.NotNil(t, err)
 			} else {
@@ -80,31 +80,22 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 		name     string
 		app      string
 		token    string
-		strict   bool
 		hasError bool
 	}{
 		{
-			name:     "strict=false",
-			strict:   false,
-			hasError: false,
-		},
-		{
-			name:     "strict=true",
-			strict:   true,
+			name:     "unknown app",
 			hasError: true,
 		},
 		{
-			name:     "strict=true,with token",
+			name:     "valid token",
 			app:      "foo",
 			token:    "bar",
-			strict:   true,
 			hasError: false,
 		},
 		{
-			name:     "strict=true,with error token",
+			name:     "wrong token",
 			app:      "foo",
 			token:    "error",
-			strict:   true,
 			hasError: true,
 		},
 	}
@@ -118,7 +109,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 				defer store.Hdel("apps", test.app)
 			}
 
-			authenticator, err := auth.NewAuthenticator(store, "apps", test.strict)
+			authenticator, err := auth.NewAuthenticator(store, "apps")
 			assert.Nil(t, err)
 			interceptor := UnaryAuthorizeInterceptor(authenticator)
 			md := metadata.New(map[string]string{
@@ -126,41 +117,42 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 				"token": "bar",
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
+			called := false
 			_, err = interceptor(ctx, nil, nil,
 				func(ctx context.Context, req any) (any, error) {
+					called = true
 					return nil, nil
 				})
+			assert.Equal(t, !test.hasError, called)
 			if test.hasError {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
 			}
-			if test.strict {
-				_, err = interceptor(context.Background(), nil, nil,
-					func(ctx context.Context, req any) (any, error) {
-						return nil, nil
-					})
-				assert.NotNil(t, err)
-
-				var md metadata.MD
-				ctx := metadata.NewIncomingContext(context.Background(), md)
-				_, err = interceptor(ctx, nil, nil,
-					func(ctx context.Context, req any) (any, error) {
-						return nil, nil
-					})
-				assert.NotNil(t, err)
-
-				md = metadata.New(map[string]string{
-					"app":   "",
-					"token": "",
+			_, err = interceptor(context.Background(), nil, nil,
+				func(ctx context.Context, req any) (any, error) {
+					return nil, nil
 				})
-				ctx = metadata.NewIncomingContext(context.Background(), md)
-				_, err = interceptor(ctx, nil, nil,
-					func(ctx context.Context, req any) (any, error) {
-						return nil, nil
-					})
-				assert.NotNil(t, err)
-			}
+			assert.NotNil(t, err)
+
+			md = nil
+			ctx = metadata.NewIncomingContext(context.Background(), md)
+			_, err = interceptor(ctx, nil, nil,
+				func(ctx context.Context, req any) (any, error) {
+					return nil, nil
+				})
+			assert.NotNil(t, err)
+
+			md = metadata.New(map[string]string{
+				"app":   "",
+				"token": "",
+			})
+			ctx = metadata.NewIncomingContext(context.Background(), md)
+			_, err = interceptor(ctx, nil, nil,
+				func(ctx context.Context, req any) (any, error) {
+					return nil, nil
+				})
+			assert.NotNil(t, err)
 		})
 	}
 }
@@ -190,4 +182,31 @@ func (m mockedStream) SendMsg(_ any) error {
 
 func (m mockedStream) RecvMsg(_ any) error {
 	return nil
+}
+
+func TestAuthorizeInterceptorsRejectLookupErrors(t *testing.T) {
+	for _, backendError := range []bool{false, true} {
+		t.Run(fmt.Sprintf("backendError=%v", backendError), func(t *testing.T) {
+			mr := miniredis.RunT(t)
+			if backendError {
+				mr.SetError("ERR injected backend failure")
+			}
+			authenticator, err := auth.NewAuthenticator(redis.New(mr.Addr()), "apps")
+			require.NoError(t, err)
+			ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("app", "unknown", "token", "arbitrary"))
+			called := false
+			_, err = UnaryAuthorizeInterceptor(authenticator)(ctx, nil, nil, func(context.Context, any) (any, error) {
+				called = true
+				return nil, nil
+			})
+			assert.Equal(t, codes.Unauthenticated, status.Code(err))
+			assert.False(t, called)
+			err = StreamAuthorizeInterceptor(authenticator)(nil, mockedStream{ctx: ctx}, nil, func(any, grpc.ServerStream) error {
+				called = true
+				return nil
+			})
+			assert.Equal(t, codes.Unauthenticated, status.Code(err))
+			assert.False(t, called)
+		})
+	}
 }
