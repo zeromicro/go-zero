@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"strconv"
 	"strings"
 	"testing"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/rest/internal/header"
@@ -618,6 +620,55 @@ func TestParseJsonBodyCaseInsensitiveContentType(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseJsonBodyUnknownLength(t *testing.T) {
+	newRequest := func(body io.Reader) *http.Request {
+		r := httptest.NewRequest(http.MethodPost, "/", body)
+		r.Header.Set(ContentType, header.ContentTypeJson)
+		r.ContentLength = -1
+		r.TransferEncoding = []string{"chunked"}
+		return r
+	}
+
+	t.Run("empty body applies defaults", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name,default=kevin"`
+			Age  int    `json:"age,default=18"`
+		}
+
+		if assert.NoError(t, Parse(newRequest(http.NoBody), &v)) {
+			assert.Equal(t, "kevin", v.Name)
+			assert.Equal(t, 18, v.Age)
+		}
+	})
+
+	t.Run("empty body required fields", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name"`
+		}
+
+		err := Parse(newRequest(http.NoBody), &v)
+		assert.ErrorContains(t, err, "name")
+		assert.NotErrorIs(t, err, io.EOF)
+	})
+
+	t.Run("whitespace body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name,optional"`
+		}
+
+		assert.ErrorIs(t, Parse(newRequest(strings.NewReader(" ")), &v), io.EOF)
+	})
+
+	t.Run("read error", func(t *testing.T) {
+		readErr := errors.New("read failed")
+		var v struct {
+			Name string `json:"name,optional"`
+		}
+
+		assert.ErrorIs(t, Parse(newRequest(iotest.ErrReader(readErr)), &v), readErr)
+	})
 }
 
 func TestParseRequired(t *testing.T) {
