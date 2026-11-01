@@ -155,12 +155,20 @@ func WithChain(chn chain.Chain) RunOption {
 }
 
 // WithCors returns a func to enable CORS for given origin, or default to all origins (*).
+// It replaces previously configured origins but keeps callbacks set by WithCustomCors.
+// Wildcard policies respond with "Access-Control-Allow-Origin: *" and never allow credentials,
+// configure trusted origins explicitly for credentialed cross-origin requests.
 func WithCors(origin ...string) RunOption {
-	return WithCustomCors(nil, nil, origin...)
+	return func(server *Server) {
+		router := server.getCorsRouter()
+		router.origins = origin
+		router.update()
+	}
 }
 
 // WithCorsHeaders returns a RunOption to enable CORS with given headers.
 // It preserves the origins configured by WithCors or WithCustomCors in either option order.
+// Without configured origins, it allows all origins (*) without credentials.
 func WithCorsHeaders(headers ...string) RunOption {
 	return func(server *Server) {
 		router := server.getCorsRouter()

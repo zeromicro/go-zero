@@ -171,3 +171,29 @@ func TestCorsWildcardDoesNotAllowCredentials(t *testing.T) {
 		}
 	}
 }
+
+func TestWithCorsKeepsCustomCallbacks(t *testing.T) {
+	logtest.Discard(t)
+	const trusted = "https://trusted.example"
+	s, err := NewServer(RestConf{},
+		WithCustomCors(func(h http.Header) { h.Set("X-Policy", "custom") },
+			func(w http.ResponseWriter) { w.Header().Set("X-Not-Allowed", "custom") }, "https://old.example"),
+		WithCors(trusted))
+	require.NoError(t, err)
+	s.AddRoute(Route{Method: http.MethodGet, Path: "/ok", Handler: func(w http.ResponseWriter, r *http.Request) {}})
+	require.NoError(t, s.build())
+
+	r := httptest.NewRequest(http.MethodGet, "/ok", nil)
+	r.Header.Set("Origin", trusted)
+	w := httptest.NewRecorder()
+	s.serve(w, r)
+	assert.Equal(t, trusted, w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "custom", w.Header().Get("X-Policy"))
+
+	r = httptest.NewRequest(http.MethodPost, "/ok", nil)
+	r.Header.Set("Origin", "https://old.example")
+	w = httptest.NewRecorder()
+	s.serve(w, r)
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "custom", w.Header().Get("X-Not-Allowed"))
+}
