@@ -5,10 +5,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
+	"github.com/zeromicro/go-zero/rest/router"
 )
 
 func TestCorsOptionsPreserveOriginPolicy(t *testing.T) {
@@ -72,6 +74,69 @@ func TestCorsOptionsPreserveOriginPolicy(t *testing.T) {
 								assert.Equal(t, http.StatusNoContent, w.Code)
 							} else if method == http.MethodGet && path == "/private" {
 								assert.Equal(t, "private-for-alice", w.Body.String())
+							}
+						})
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestCorsRoutingOptions(t *testing.T) {
+	logtest.Discard(t)
+	const trusted = "https://trusted.example"
+	assets := http.FS(fstest.MapFS{"hello.txt": &fstest.MapFile{Data: []byte("hello")}})
+	for _, test := range []struct {
+		name string
+		opts []RunOption
+	}{
+		{name: "file server before cors", opts: []RunOption{WithFileServer("/assets", assets), WithCors(trusted), WithCorsHeaders("X-Custom")}},
+		{name: "file server between cors options", opts: []RunOption{WithCors(trusted), WithFileServer("/assets", assets), WithCorsHeaders("X-Custom")}},
+		{name: "file server after cors", opts: []RunOption{WithCors(trusted), WithCorsHeaders("X-Custom"), WithFileServer("/assets", assets)}},
+		{name: "router between cors options", opts: []RunOption{WithCors(trusted), WithRouter(router.NewRouter()), WithCorsHeaders("X-Custom"), WithFileServer("/assets", assets)}},
+		{name: "router after cors", opts: []RunOption{WithCors(trusted), WithCorsHeaders("X-Custom"), WithRouter(router.NewRouter()), WithFileServer("/assets", assets)}},
+		{name: "router after headers before origins", opts: []RunOption{WithCorsHeaders("X-Custom"), WithRouter(router.NewRouter()), WithCors(trusted), WithFileServer("/assets", assets)}},
+		{name: "multiple file servers", opts: []RunOption{WithCors(trusted), WithFileServer("/assets", assets), WithCorsHeaders("X-Custom"), WithFileServer("/other", assets)}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			s, err := NewServer(RestConf{}, test.opts...)
+			require.NoError(t, err)
+			s.AddRoute(Route{Method: http.MethodGet, Path: "/private", Handler: func(w http.ResponseWriter, r *http.Request) {
+				_, _ = w.Write([]byte("private"))
+			}})
+			require.NoError(t, s.build())
+			paths := []string{"/private", "/assets/hello.txt"}
+			if test.name == "multiple file servers" {
+				paths = append(paths, "/other/hello.txt")
+			}
+			for _, path := range paths {
+				for _, method := range []string{http.MethodGet, http.MethodOptions, http.MethodPost} {
+					for _, origin := range []string{trusted, "https://attacker.example"} {
+						t.Run(method+path+"/"+origin, func(t *testing.T) {
+							r := httptest.NewRequest(method, path, nil)
+							r.Header.Set("Origin", origin)
+							r.Header.Set("Access-Control-Request-Method", http.MethodGet)
+							r.Header.Set("Access-Control-Request-Headers", "X-Custom")
+							w := httptest.NewRecorder()
+							s.serve(w, r)
+							if origin == trusted {
+								assert.Equal(t, trusted, w.Header().Get("Access-Control-Allow-Origin"))
+								assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
+								assert.Contains(t, strings.Join(w.Header().Values("Access-Control-Allow-Headers"), ","), "X-Custom")
+							} else {
+								assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
+								assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+							}
+							if method == http.MethodGet {
+								assert.Equal(t, http.StatusOK, w.Code)
+								if path == "/private" {
+									assert.Equal(t, "private", w.Body.String())
+								} else {
+									assert.Equal(t, "hello", w.Body.String())
+								}
+							} else if method == http.MethodOptions {
+								assert.Equal(t, http.StatusNoContent, w.Code)
 							}
 						})
 					}

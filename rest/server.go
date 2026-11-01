@@ -185,7 +185,12 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 // WithFileServer returns a RunOption to serve files from given dir with given path.
 func WithFileServer(path string, fs http.FileSystem) RunOption {
 	return func(server *Server) {
-		server.router = newFileServingRouter(server.router, path, fs)
+		if server.cors != nil {
+			// Keep CORS outside file serving so existing assets receive its headers too.
+			server.cors.Router = newFileServingRouter(server.cors.Router, path, fs)
+		} else {
+			server.router = newFileServingRouter(server.router, path, fs)
+		}
 	}
 }
 
@@ -283,7 +288,13 @@ func WithPriority() RouteOption {
 // WithRouter returns a RunOption that make server run with given router.
 func WithRouter(router httpx.Router) RunOption {
 	return func(server *Server) {
-		server.router = router
+		if server.cors != nil {
+			server.cors.Router = router
+			server.cors.update()
+			server.router = server.cors
+		} else {
+			server.router = router
+		}
 	}
 }
 
