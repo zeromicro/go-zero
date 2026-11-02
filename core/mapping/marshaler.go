@@ -45,6 +45,20 @@ func Marshal(val any) (map[string]map[string]any, error) {
 	return ret, nil
 }
 
+func isEmptyValue(v reflect.Value) bool {
+	if !v.IsValid() {
+		return true
+	}
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		return v.IsNil()
+	case reflect.Slice, reflect.Map:
+		return v.Len() == 0
+	default:
+		return v.IsZero()
+	}
+}
+
 func getTag(field reflect.StructField) (string, bool) {
 	tag := string(field.Tag)
 	if i := strings.Index(tag, tagKVSeparator); i >= 0 {
@@ -77,6 +91,10 @@ func processMember(field reflect.StructField, value reflect.Value,
 		key, opt, err = parseKeyAndOptions(tag, field)
 		if err != nil {
 			return err
+		}
+
+		if opt != nil && opt.Omitempty && isEmptyValue(value) {
+			return nil
 		}
 
 		if err = validate(field, value, opt); err != nil {
