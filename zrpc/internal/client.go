@@ -109,9 +109,6 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 	if c.middlewares.Prometheus {
 		interceptors = append(interceptors, clientinterceptors.PrometheusInterceptor)
 	}
-	if c.middlewares.Breaker {
-		interceptors = append(interceptors, clientinterceptors.BreakerInterceptor)
-	}
 	if c.middlewares.Timeout {
 		interceptors = append(interceptors, clientinterceptors.TimeoutInterceptor(timeout))
 	}
