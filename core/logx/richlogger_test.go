@@ -338,6 +338,23 @@ func TestLogWithDurationCopy(t *testing.T) {
 	assert.Contains(t, w.String(), `"duration":"1000.0ms"`)
 }
 
+func TestWithFieldsDoesNotShareBackingArray(t *testing.T) {
+	base := WithContext(context.Background())
+	base = base.WithFields(Field("a", "1"))
+	base = base.WithFields(Field("b", "2"))
+	base = base.WithFields(Field("c", "3"))
+
+	x := base.WithFields(Field("x", "x"))
+	y := base.WithFields(Field("y", "y"))
+
+	assert.Equal(t, "x", x.(*richLogger).fields[3].Value)
+	assert.Equal(t, "y", y.(*richLogger).fields[3].Value)
+
+	withDuration := base.WithDuration(time.Second)
+	assert.Equal(t, "x", x.(*richLogger).fields[3].Value)
+	assert.Equal(t, durationKey, withDuration.(*richLogger).fields[3].Key)
+}
+
 func TestLogWithFieldsCopy(t *testing.T) {
 	log1 := WithContext(context.Background())
 	log2 := log1.WithFields(Field("foo", "bar"))
