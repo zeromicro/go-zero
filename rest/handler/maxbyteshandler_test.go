@@ -40,7 +40,7 @@ func TestMaxBytesHandlerNoLimit(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
 
-func TestMaxBytesHandler_ReadBody(t *testing.T) {
+func TestMaxBytesHandlerReadBody(t *testing.T) {
 	tests := []struct {
 		name          string
 		body          string
@@ -101,7 +101,7 @@ func TestMaxBytesHandler_ReadBody(t *testing.T) {
 	}
 }
 
-func TestMaxBytesHandler_ReadError(t *testing.T) {
+func TestMaxBytesHandlerReadError(t *testing.T) {
 	handler := MaxBytesHandler(8)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.ReadAll(r.Body)
 		assert.ErrorIs(t, err, io.ErrUnexpectedEOF)
@@ -114,7 +114,7 @@ func TestMaxBytesHandler_ReadError(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 }
 
-func TestMaxBytesHandler_NoRead(t *testing.T) {
+func TestMaxBytesHandlerNoRead(t *testing.T) {
 	body := bytes.NewBufferString("123456789012345")
 	handler := MaxBytesHandler(8)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, 15, body.Len())
@@ -126,4 +126,67 @@ func TestMaxBytesHandler_NoRead(t *testing.T) {
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusNoContent, resp.Code)
 	assert.Equal(t, 15, body.Len())
+}
+
+func TestMaxBytesHandlerChunked(t *testing.T) {
+	tests := []struct {
+		name       string
+		body       string
+		expectCode int
+	}{
+		{
+			name:       "within limit",
+			body:       `{"a":1}`,
+			expectCode: http.StatusOK,
+		},
+		{
+			name:       "at limit",
+			body:       `{"a":12}`,
+			expectCode: http.StatusOK,
+		},
+		{
+			name:       "exceeds limit",
+			body:       `{"a":1234567890}`,
+			expectCode: http.StatusRequestEntityTooLarge,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			handler := MaxBytesHandler(8)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, int64(-1), r.ContentLength)
+				assert.Equal(t, []string{"chunked"}, r.TransferEncoding)
+
+				var v map[string]int
+				if err := jsonx.UnmarshalFromReader(r.Body, &v); err != nil {
+					httpx.ErrorCtx(r.Context(), w, err)
+					return
+				}
+
+				httpx.OkJson(w, v)
+			}))
+			server := httptest.NewServer(handler)
+			defer server.Close()
+
+			req, err := http.NewRequest(http.MethodPost, server.URL,
+				io.NopCloser(bytes.NewBufferString(test.body)))
+			if !assert.NoError(t, err) {
+				return
+			}
+			req.Header.Set(httpx.ContentType, "application/json")
+
+			resp, err := server.Client().Do(req)
+			if !assert.NoError(t, err) {
+				return
+			}
+			defer resp.Body.Close()
+
+			body, err := io.ReadAll(resp.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, test.expectCode, resp.StatusCode)
+			if test.expectCode == http.StatusOK {
+				assert.JSONEq(t, test.body, string(body))
+			}
+		})
+	}
 }
