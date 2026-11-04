@@ -36,7 +36,10 @@ func UnarySheddingInterceptor(shedder load.Shedder, metrics *stat.Metrics) grpc.
 		}
 
 		defer func() {
-			if errors.Is(err, context.DeadlineExceeded) {
+			// UnaryTimeoutInterceptor reports timeouts as a status error rather than
+			// context.DeadlineExceeded, so both forms must be treated as failures,
+			// otherwise the shedder never learns that the service is overloaded.
+			if errors.Is(err, context.DeadlineExceeded) || status.Code(err) == codes.DeadlineExceeded {
 				promise.Fail()
 			} else {
 				sheddingStat.IncrementPass()

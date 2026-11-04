@@ -14,10 +14,11 @@ import (
 
 func TestUnarySheddingInterceptor(t *testing.T) {
 	tests := []struct {
-		name      string
-		allow     bool
-		handleErr error
-		expect    error
+		name       string
+		allow      bool
+		handleErr  error
+		expect     error
+		expectFail bool
 	}{
 		{
 			name:      "allow",
@@ -26,10 +27,20 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 			expect:    nil,
 		},
 		{
-			name:      "allow",
-			allow:     true,
-			handleErr: context.DeadlineExceeded,
-			expect:    context.DeadlineExceeded,
+			name:       "context deadline exceeded",
+			allow:      true,
+			handleErr:  context.DeadlineExceeded,
+			expect:     context.DeadlineExceeded,
+			expectFail: true,
+		},
+		{
+			// UnaryTimeoutInterceptor reports timeouts as a status error instead of
+			// context.DeadlineExceeded, which must be counted as a failure as well.
+			name:       "grpc deadline exceeded",
+			allow:      true,
+			handleErr:  status.Error(codes.DeadlineExceeded, context.DeadlineExceeded.Error()),
+			expect:     status.Error(codes.DeadlineExceeded, context.DeadlineExceeded.Error()),
+			expectFail: true,
 		},
 		{
 			name:      "reject",
@@ -44,7 +55,11 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			shedder := mockedShedder{allow: test.allow}
+			promise := &mockedPromise{}
+			shedder := mockedShedder{
+				allow:   test.allow,
+				promise: promise,
+			}
 			metrics := stat.NewMetrics("mock")
 			interceptor := UnarySheddingInterceptor(shedder, metrics)
 			_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
@@ -53,26 +68,40 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 				return nil, test.handleErr
 			})
 			assert.Equal(t, test.expect, err)
+
+			if test.expectFail {
+				assert.True(t, promise.failed)
+				assert.False(t, promise.passed)
+			} else if test.allow {
+				assert.True(t, promise.passed)
+				assert.False(t, promise.failed)
+			}
 		})
 	}
 }
 
 type mockedShedder struct {
-	allow bool
+	allow   bool
+	promise load.Promise
 }
 
 func (m mockedShedder) Allow() (load.Promise, error) {
 	if m.allow {
-		return mockedPromise{}, nil
+		return m.promise, nil
 	}
 
 	return nil, load.ErrServiceOverloaded
 }
 
-type mockedPromise struct{}
-
-func (m mockedPromise) Pass() {
+type mockedPromise struct {
+	passed bool
+	failed bool
 }
 
-func (m mockedPromise) Fail() {
+func (m *mockedPromise) Pass() {
+	m.passed = true
+}
+
+func (m *mockedPromise) Fail() {
+	m.failed = true
 }
