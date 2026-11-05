@@ -46,6 +46,8 @@ var (
 	VarBoolMultiple bool
 	// VarBoolClient describes whether to generate rpc client
 	VarBoolClient bool
+	// VarBoolClientOnly describes whether to omit the RPC server skeleton.
+	VarBoolClientOnly bool
 	// VarStringModule describes the module name for go.mod.
 	VarStringModule string
 	// VarBoolNameFromFilename describes whether to derive service name from proto filename

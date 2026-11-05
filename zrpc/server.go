@@ -118,7 +118,7 @@ func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
 		return err
 	}
 
-	authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
+	authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key)
 	if err != nil {
 		return err
 	}

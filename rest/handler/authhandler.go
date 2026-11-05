@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httputil"
 
@@ -98,6 +100,26 @@ func WithUnauthorizedCallback(callback UnauthorizedCallback) AuthorizeOption {
 }
 
 func detailAuthLog(r *http.Request, reason string) {
+	// Cap the body read for the dump so that an attacker cannot force the
+	// server to fully read/decompress (e.g. a gzip-encoded) request body
+	// just by failing authentication. See GHSA-h4vj-585c-2r8x.
+	if r.Body != nil {
+		body := r.Body
+		var prefix bytes.Buffer
+		r.Body = io.NopCloser(io.LimitReader(io.TeeReader(body, &prefix), limitDetailedBodyBytes))
+		// Replay only the bytes consumed for logging, then continue reading the
+		// original body so unauthorized callbacks can still read the full request.
+		defer func() {
+			r.Body = struct {
+				io.Reader
+				io.Closer
+			}{
+				Reader: io.MultiReader(&prefix, body),
+				Closer: body,
+			}
+		}()
+	}
+
 	// discard dump error, only for debug purpose
 	details, _ := httputil.DumpRequest(r, true)
 	logc.Errorf(r.Context(), "authorize failed: %s\n=> %+v", reason, string(details))

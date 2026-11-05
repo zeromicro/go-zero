@@ -193,7 +193,10 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 		},
 	}
 
-	for _, v := range inner {
+	for key, v := range inner {
+		if c.ClientOnly && key != wd && key != call && key != pb && key != protoGo {
+			continue
+		}
 		err := pathx.MkdirIfNotExist(v.Filename)
 		if err != nil {
 			return nil, err

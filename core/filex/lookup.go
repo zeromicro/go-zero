@@ -87,7 +87,8 @@ func skipPartialLine(file *os.File, offset int64) (int64, error) {
 			return 0, err
 		}
 		if n == 0 {
-			return 0, io.EOF
+			// Cut fell inside the last line: no following line to skip to.
+			return offset, nil
 		}
 
 		for i := 0; i < n; i++ {

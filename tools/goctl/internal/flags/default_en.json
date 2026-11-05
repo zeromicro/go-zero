@@ -259,7 +259,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "verbose": "Enable log output",
-        "client": "Whether to generate rpc client"
+        "client": "Whether to generate rpc client",
+        "client-only": "Generate protobuf files and the RPC client without a server skeleton"
       }
     },
     "template": {

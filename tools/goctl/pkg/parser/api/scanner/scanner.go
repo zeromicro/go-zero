@@ -484,9 +484,12 @@ func (s *Scanner) scanLineComment() token.Token {
 
 func (s *Scanner) scanDocument() (token.Token, error) {
 	position := s.position
+	tokenPosition := s.newPosition(position)
 	var documentMode = initMode
 	for {
 		switch s.ch {
+		case '\n':
+			s.lines = append(s.lines, s.position)
 		case '*':
 			switch documentMode {
 			case documentHalfOpen:
@@ -516,7 +519,7 @@ func (s *Scanner) scanDocument() (token.Token, error) {
 				tok := token.Token{
 					Type:     token.DOCUMENT,
 					Text:     string(s.data[position:s.position]),
-					Position: s.newPosition(position),
+					Position: tokenPosition,
 				}
 				return tok, nil
 			}
