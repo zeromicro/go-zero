@@ -177,6 +177,81 @@ func TestGenCacheKeys(t *testing.T) {
 			})
 		}())
 	})
+	t.Run("partial unique index with different predicates", func(t *testing.T) {
+		emailField := &parser.Field{
+			Name:       stringx.From("email"),
+			DataType:   "string",
+			Comment:    "邮箱",
+			SeqInIndex: 1,
+		}
+		_, uniqueKeys := genCacheKeys("cache", parser.Table{
+			Name: stringx.From("user"),
+			Db:   stringx.From("go_zero"),
+			PrimaryKey: parser.Primary{
+				Field:         *primaryField,
+				AutoIncrement: true,
+			},
+			UniqueIndex: map[string][]*parser.Field{
+				"idx_active_email":  {emailField},
+				"idx_deleted_email": {emailField},
+			},
+			UniqueIndexPredicate: map[string]string{
+				"idx_active_email":  "status = 1",
+				"idx_deleted_email": "deleted_at IS NULL",
+			},
+			Fields: []*parser.Field{
+				primaryField,
+				emailField,
+			},
+		})
+
+		// Same column, different predicates → different cache key variable names,
+		// disambiguated by the CamelCase index name suffix.
+		// Both Go variable names and Redis key prefix values must differ.
+		assert.Equal(t, 2, len(uniqueKeys))
+		assert.NotEqual(t, uniqueKeys[0].VarLeft, uniqueKeys[1].VarLeft,
+			"partial indexes with different predicates must have different cache keys")
+		assert.NotEqual(t, uniqueKeys[0].KeyLeft, uniqueKeys[1].KeyLeft)
+		assert.NotEqual(t, uniqueKeys[0].VarRight, uniqueKeys[1].VarRight,
+			"partial indexes with different predicates must have different Redis key prefixes")
+		assert.Contains(t, uniqueKeys[0].VarLeft, "IdxActiveEmail")
+		assert.Contains(t, uniqueKeys[0].KeyLeft, "IdxActiveEmail")
+		assert.Contains(t, uniqueKeys[0].VarRight, "IdxActiveEmail")
+		assert.Contains(t, uniqueKeys[1].VarLeft, "IdxDeletedEmail")
+		assert.Contains(t, uniqueKeys[1].KeyLeft, "IdxDeletedEmail")
+		assert.Contains(t, uniqueKeys[1].VarRight, "IdxDeletedEmail")
+		assert.NotEmpty(t, uniqueKeys[0].Predicate)
+		assert.NotEmpty(t, uniqueKeys[1].Predicate)
+	})
+	t.Run("partial unique index backward compatible", func(t *testing.T) {
+		emailField := &parser.Field{
+			Name:       stringx.From("email"),
+			DataType:   "string",
+			Comment:    "邮箱",
+			SeqInIndex: 1,
+		}
+		_, uniqueKeys := genCacheKeys("cache", parser.Table{
+			Name: stringx.From("user"),
+			Db:   stringx.From("go_zero"),
+			PrimaryKey: parser.Primary{
+				Field:         *primaryField,
+				AutoIncrement: true,
+			},
+			UniqueIndex: map[string][]*parser.Field{
+				"email_unique": {emailField},
+			},
+			UniqueIndexPredicate: map[string]string{},
+			Fields: []*parser.Field{
+				primaryField,
+				emailField,
+			},
+		})
+
+		// No predicate → no suffix → same as original cache key name
+		assert.Equal(t, 1, len(uniqueKeys))
+		assert.Equal(t, "cacheGoZeroUserEmailPrefix", uniqueKeys[0].VarLeft)
+		assert.Equal(t, "goZeroUserEmailKey", uniqueKeys[0].KeyLeft)
+	})
 }
 
 func cacheKeyEqual(k1, k2 Key) bool {
@@ -202,5 +277,6 @@ func cacheKeyEqual(k1, k2 Key) bool {
 		k1.KeyRight == k2.KeyRight &&
 		k1.DataKeyRight == k2.DataKeyRight &&
 		k1.DataKeyExpression == k2.DataKeyExpression &&
-		k1.KeyExpression == k2.KeyExpression
+		k1.KeyExpression == k2.KeyExpression &&
+		k1.Predicate == k2.Predicate
 }
