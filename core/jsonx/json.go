@@ -3,6 +3,7 @@ package jsonx
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -73,7 +74,20 @@ func UnmarshalFromReader(reader io.Reader, v any) error {
 
 func unmarshalUseNumber(decoder *json.Decoder, v any) error {
 	decoder.UseNumber()
-	return decoder.Decode(v)
+	if err := decoder.Decode(v); err != nil {
+		return err
+	}
+
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
+		if err == nil {
+			return errors.New("multiple JSON values")
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func formatError(v string, err error) error {
