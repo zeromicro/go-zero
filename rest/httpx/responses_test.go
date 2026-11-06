@@ -112,6 +112,31 @@ func TestErrorWithGrpcError(t *testing.T) {
 	assert.True(t, strings.Contains(w.builder.String(), "foo"))
 }
 
+func TestErrorWithMaxBytesError(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "direct error",
+			err:  &http.MaxBytesError{Limit: 8},
+		},
+		{
+			name: "wrapped error",
+			err:  fmt.Errorf("parse body: %w", &http.MaxBytesError{Limit: 8}),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			Error(resp, test.err)
+			assert.Equal(t, http.StatusRequestEntityTooLarge, resp.Code)
+			assert.Contains(t, resp.Body.String(), test.err.Error())
+		})
+	}
+}
+
 func TestErrorWithHandler(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
@@ -422,6 +447,31 @@ func TestErrorWithGrpcErrorCtx(t *testing.T) {
 	assert.True(t, strings.Contains(w.builder.String(), "foo"))
 }
 
+func TestErrorWithMaxBytesErrorCtx(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "direct error",
+			err:  &http.MaxBytesError{Limit: 8},
+		},
+		{
+			name: "wrapped error",
+			err:  fmt.Errorf("parse body: %w", &http.MaxBytesError{Limit: 8}),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			ErrorCtx(context.Background(), resp, test.err)
+			assert.Equal(t, http.StatusRequestEntityTooLarge, resp.Code)
+			assert.Contains(t, resp.Body.String(), test.err.Error())
+		})
+	}
+}
+
 func TestErrorWithHandlerCtx(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
@@ -442,4 +492,29 @@ func TestWriteJsonCtxMarshalFailed(t *testing.T) {
 		"Data": complex(0, 0),
 	})
 	assert.Equal(t, http.StatusInternalServerError, w.code)
+}
+
+func TestErrorWithMaxBytesErrorCustomHandler(t *testing.T) {
+	errorLock.RLock()
+	prev := errorHandler
+	errorLock.RUnlock()
+	defer func() {
+		errorLock.Lock()
+		errorHandler = prev
+		errorLock.Unlock()
+	}()
+
+	SetErrorHandlerCtx(func(context.Context, error) (int, any) {
+		return http.StatusUnprocessableEntity, "custom error"
+	})
+	err := &http.MaxBytesError{Limit: 8}
+	resp := httptest.NewRecorder()
+	Error(resp, err)
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.Code)
+	assert.JSONEq(t, `"custom error"`, resp.Body.String())
+
+	resp = httptest.NewRecorder()
+	ErrorCtx(context.Background(), resp, err)
+	assert.Equal(t, http.StatusUnprocessableEntity, resp.Code)
+	assert.JSONEq(t, `"custom error"`, resp.Body.String())
 }

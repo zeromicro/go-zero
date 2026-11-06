@@ -21,6 +21,7 @@ func MaxBytesHandler(n int64) func(http.Handler) http.Handler {
 					n, r.ContentLength, http.StatusRequestEntityTooLarge)
 				w.WriteHeader(http.StatusRequestEntityTooLarge)
 			} else {
+				r.Body = http.MaxBytesReader(w, r.Body, n)
 				next.ServeHTTP(w, r)
 			}
 		})
