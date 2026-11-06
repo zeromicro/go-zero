@@ -1,6 +1,8 @@
 package httpx
 
 import (
+	"bufio"
+	"errors"
 	"io"
 	"net/http"
 	"reflect"
@@ -113,12 +115,26 @@ func ParseHeader(headerValue string) map[string]string {
 
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v any) error {
-	if withJsonBody(r) {
-		reader := io.LimitReader(r.Body, maxBodyLen)
-		return mapping.UnmarshalJsonReader(reader, v)
+	if !withJsonBody(r) {
+		return mapping.UnmarshalJsonMap(nil, v)
 	}
 
-	return mapping.UnmarshalJsonMap(nil, v)
+	reader := io.LimitReader(r.Body, maxBodyLen)
+	if r.ContentLength <= 0 {
+		// The body length is unknown (e.g. chunked transfer encoding).
+		// Peek one byte so that an empty body keeps the same behavior as
+		// a zero-length body instead of failing with io.EOF.
+		br := bufio.NewReader(reader)
+		if _, err := br.Peek(1); err != nil {
+			if errors.Is(err, io.EOF) {
+				return mapping.UnmarshalJsonMap(nil, v)
+			}
+			return err
+		}
+		reader = br
+	}
+
+	return mapping.UnmarshalJsonReader(reader, v)
 }
 
 // ParsePath parses the symbols reside in url path.
@@ -149,5 +165,12 @@ func getValidator() Validator {
 }
 
 func withJsonBody(r *http.Request) bool {
-	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
+	// A media type is case-insensitive, see RFC 9110 section 8.3.1.
+	if !strings.Contains(strings.ToLower(r.Header.Get(header.ContentType)), header.ApplicationJson) {
+		return false
+	}
+
+	// ContentLength is -1 when the body length is unknown, which is common
+	// for chunked requests. Do not treat that as an empty body.
+	return r.ContentLength != 0 || len(r.TransferEncoding) > 0
 }
