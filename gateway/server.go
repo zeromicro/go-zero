@@ -34,6 +34,7 @@ type (
 		conns         []zrpc.Client
 		processHeader func(http.Header) []string
 		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
+		middlewares   []rest.Middleware
 	}
 
 	// Option defines the method to customize Server.
@@ -69,9 +70,6 @@ func (s *Server) Stop() {
 
 	group := threading.NewRoutineGroup()
 	for _, conn := range s.conns {
-		// new variable to avoid closure problems, can be removed after go 1.22
-		// see https://golang.org/doc/faq#closures_and_goroutines
-		conn := conn
 		group.Run(func() {
 			// ignore the error when closing the connection
 			_ = conn.Conn().Close()
@@ -103,9 +101,16 @@ func (s *Server) build() error {
 	})
 }
 
+func (s *Server) buildChainHandler(handler http.HandlerFunc) http.HandlerFunc {
+	for i := len(s.middlewares) - 1; i >= 0; i-- {
+		handler = s.middlewares[i](handler)
+	}
+	return handler
+}
+
 func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
 	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -124,6 +129,8 @@ func (s *Server) buildGrpcHandler(source grpcurl.DescriptorSource, resolver json
 			httpx.ErrorCtx(r.Context(), w, st.Err())
 		}
 	}
+
+	return s.buildChainHandler(handler)
 }
 
 func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
@@ -177,8 +184,7 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 }
 
 func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		req, err := buildRequestWithNewTarget(r, target)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -213,6 +219,7 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 			logc.Error(r.Context(), err)
 		}
 	}
+	return s.buildChainHandler(handler)
 }
 
 func (s *Server) buildHttpRoute(up Upstream, writer mr.Writer[rest.Route]) {
@@ -263,6 +270,14 @@ func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server)
 	}
 }
 
+// WithMiddleware adds one or more middleware functions to process HTTP requests.
+// Multiple middlewares will be executed in the order they were passed (like an onion model).
+func WithMiddleware(middlewares ...rest.Middleware) func(*Server) {
+	return func(s *Server) {
+		s.middlewares = append(s.middlewares, middlewares...)
+	}
+}
+
 func buildRequestWithNewTarget(r *http.Request, target *HttpClientConf) (*http.Request, error) {
 	u := *r.URL
 	u.Host = target.Target
@@ -310,8 +325,9 @@ func createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.DescriptorSou
 	return source, nil
 }
 
-// withDialer sets a dialer to create a gRPC client.
-func withDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
+// WithDialer sets a dialer to create a gRPC client.
+// This allows customization of gRPC client options, such as message size limits.
+func WithDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
 	return func(s *Server) {
 		s.dialer = dialer
 	}

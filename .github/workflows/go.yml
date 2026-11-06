@@ -1,21 +1,53 @@
 name: Go
 
 on:
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 
 jobs:
+  test-rpc-generation:
+    name: RPC generation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/goctl
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: tools/goctl/go.mod
+          cache-dependency-path: tools/goctl/go.sum
+
+      - name: Install protoc and Go plugins
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@$(go list -m -f '{{.Version}}' google.golang.org/protobuf)
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Test RPC generation
+        run: go test -race ./rpc/...
+
   test-linux:
     name: Linux
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           check-latest: true
@@ -40,17 +72,23 @@ jobs:
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./coverage.txt
+          flags: unittests
+          name: codecov-umbrella
+          use_oidc: true
+          fail_ci_if_error: true
 
   test-win:
     name: Windows
     runs-on: windows-latest
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           # make sure Go version compatible with go-zero
           go-version-file: go.mod

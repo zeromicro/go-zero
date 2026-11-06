@@ -26,11 +26,11 @@ func NewRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 
 	body, ok := getBody(r)
 	if !ok {
-		return buildJsonRequestParser(params, resolver)
+		return buildJsonRequestParserFromMap(params, resolver)
 	}
 
 	if len(params) == 0 {
-		return grpcurl.NewJSONRequestParser(body, resolver), nil
+		return buildJsonRequestParserFromReader(body, resolver)
 	}
 
 	m := make(map[string]any)
@@ -42,17 +42,28 @@ func NewRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 		m[k] = v
 	}
 
-	return buildJsonRequestParser(m, resolver)
+	return buildJsonRequestParserFromMap(m, resolver)
 }
 
-func buildJsonRequestParser(m map[string]any, resolver jsonpb.AnyResolver) (
+func buildJsonRequestParserFromMap(data map[string]any, resolver jsonpb.AnyResolver) (
 	grpcurl.RequestParser, error) {
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(m); err != nil {
+	if err := json.NewEncoder(&buf).Encode(data); err != nil {
 		return nil, err
 	}
 
-	return grpcurl.NewJSONRequestParser(&buf, resolver), nil
+	return buildJsonRequestParserFromReader(&buf, resolver)
+}
+
+// buildJsonRequestParserFromReader creates a JSON request parser with ignoring unknown fields.
+func buildJsonRequestParserFromReader(data io.Reader, resolver jsonpb.AnyResolver) (
+	grpcurl.RequestParser, error) {
+	unmarshaler := jsonpb.Unmarshaler{
+		AllowUnknownFields: true,
+		AnyResolver:        resolver,
+	}
+
+	return grpcurl.NewJSONRequestParserWithUnmarshaler(data, unmarshaler), nil
 }
 
 func getBody(r *http.Request) (io.Reader, bool) {

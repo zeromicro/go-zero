@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	fatihcolor "github.com/fatih/color"
 	"github.com/zeromicro/go-zero/core/color"
@@ -211,7 +212,6 @@ func newFileWriter(c LogConf) (Writer, error) {
 	statFile := path.Join(c.Path, statFilename)
 
 	handleOptions(opts)
-	setupLogLevel(c)
 
 	if infoLog, err = createOutput(accessFile); err != nil {
 		return nil, err
@@ -365,19 +365,25 @@ func mergeGlobalFields(fields []LogField) []LogField {
 }
 
 func output(writer io.Writer, level string, val any, fields ...LogField) {
-	// only truncate string content, don't know how to truncate the values of other types.
-	if v, ok := val.(string); ok {
+	switch v := val.(type) {
+	case string:
+		// only truncate string content, don't know how to truncate the values of other types.
 		maxLen := atomic.LoadUint32(&maxContentLength)
 		if maxLen > 0 && len(v) > int(maxLen) {
 			val = v[:maxLen]
 			fields = append(fields, truncatedField)
 		}
+	case Sensitive:
+		val = v.MaskSensitive()
 	}
 
 	// +3 for timestamp, level and content
 	entry := make(logEntry, len(fields)+3)
 	for _, field := range fields {
-		entry[field.Key] = field.Value
+		// mask sensitive data before processing types,
+		// in case field.Value is a sensitive type and also implemented fmt.Stringer.
+		mval := maskSensitive(field.Value)
+		entry[field.Key] = processFieldValue(mval)
 	}
 
 	switch atomic.LoadUint32(&encoding) {
@@ -392,12 +398,53 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 	}
 }
 
+func processFieldValue(value any) any {
+	switch val := value.(type) {
+	case error:
+		return encodeError(val)
+	case []error:
+		var errs []string
+		for _, err := range val {
+			errs = append(errs, encodeError(err))
+		}
+		return errs
+	case time.Duration:
+		return fmt.Sprint(val)
+	case []time.Duration:
+		var durs []string
+		for _, dur := range val {
+			durs = append(durs, fmt.Sprint(dur))
+		}
+		return durs
+	case []time.Time:
+		var times []string
+		for _, t := range val {
+			times = append(times, fmt.Sprint(t))
+		}
+		return times
+	case json.Marshaler:
+		return val
+	case fmt.Stringer:
+		return encodeStringer(val)
+	case []fmt.Stringer:
+		var strs []string
+		for _, str := range val {
+			strs = append(strs, encodeStringer(str))
+		}
+		return strs
+	default:
+		return val
+	}
+}
+
 func wrapLevelWithColor(level string) string {
 	var colour color.Color
 	switch level {
 	case levelAlert:
 		colour = color.FgRed
 	case levelError:
+		colour = color.FgRed
+	case levelSevere:
 		colour = color.FgRed
 	case levelFatal:
 		colour = color.FgRed

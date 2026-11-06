@@ -268,7 +268,7 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) any {
 				v.panic(lit.Expr(), fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", lit.Expr().Text()))
 			}
 		default:
-			v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
+			v.panic(dt.Expr(), fmt.Sprintf("unsupported %s", dt.Expr().Text()))
 		}
 	case *Literal:
 		lit := dataType.Literal.Text()
@@ -276,7 +276,7 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) any {
 			v.panic(dataType.Literal, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", lit))
 		}
 	default:
-		v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
+		v.panic(dt.Expr(), fmt.Sprintf("unsupported %s", dt.Expr().Text()))
 	}
 
 	return &Body{

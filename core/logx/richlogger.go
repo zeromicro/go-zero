@@ -224,7 +224,7 @@ func (l *richLogger) buildFields(fields ...LogField) []LogField {
 		fields = append(fields, Field(spanKey, spanID))
 	}
 
-	val := l.ctx.Value(fieldsContextKey)
+	val := l.ctx.Value(fieldsKey{})
 	if val != nil {
 		if arr, ok := val.([]LogField); ok {
 			fields = append(fields, arr...)

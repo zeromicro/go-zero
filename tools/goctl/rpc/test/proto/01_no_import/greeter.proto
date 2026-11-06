@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+// 场景01：无任何 import，验证基础向后兼容性
+package greeter;
+
+option go_package = "example.com/demo/greeter";
+
+message HelloReq {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}
+
+service Greeter {
+  rpc Hello(HelloReq) returns (HelloReply);
+  rpc SayHello(HelloReq) returns (HelloReply);
+}

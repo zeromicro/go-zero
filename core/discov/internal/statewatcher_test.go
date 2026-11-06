@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/connectivity"
 )
 

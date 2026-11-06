@@ -39,8 +39,8 @@ type Join []string
 
 func genCacheKeys(prefix string, table parser.Table) (Key, []Key) {
 	var primaryKey Key
-	var uniqueKey []Key
 	primaryKey = genCacheKey(prefix, table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field})
+	uniqueKey := make([]Key, 0, len(table.UniqueIndex))
 	for _, each := range table.UniqueIndex {
 		uniqueKey = append(uniqueKey, genCacheKey(prefix, table.Db, table.Name, each))
 	}

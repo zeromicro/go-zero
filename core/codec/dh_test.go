@@ -94,3 +94,32 @@ func TestDHOnErrors(t *testing.T) {
 
 	assert.NotNil(t, NewPublicKey([]byte("")))
 }
+
+func TestDHPubKeyBoundary(t *testing.T) {
+	key, err := GenerateKey()
+	assert.Nil(t, err)
+
+	// pubKey = 0 should be rejected
+	_, err = ComputeKey(big.NewInt(0), key.PriKey)
+	assert.ErrorIs(t, err, ErrPubKeyOutOfBound)
+
+	// pubKey = -1 should be rejected
+	_, err = ComputeKey(big.NewInt(-1), key.PriKey)
+	assert.ErrorIs(t, err, ErrPubKeyOutOfBound)
+
+	// pubKey = p should be rejected
+	_, err = ComputeKey(new(big.Int).Set(p), key.PriKey)
+	assert.ErrorIs(t, err, ErrPubKeyOutOfBound)
+
+	// pubKey = p+1 should be rejected
+	_, err = ComputeKey(new(big.Int).Add(p, big.NewInt(1)), key.PriKey)
+	assert.ErrorIs(t, err, ErrPubKeyOutOfBound)
+
+	// pubKey = 1 should be accepted
+	_, err = ComputeKey(big.NewInt(1), key.PriKey)
+	assert.NoError(t, err)
+
+	// pubKey = p-1 should be accepted
+	_, err = ComputeKey(new(big.Int).Sub(p, big.NewInt(1)), key.PriKey)
+	assert.NoError(t, err)
+}

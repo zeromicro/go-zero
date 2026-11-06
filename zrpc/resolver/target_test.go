@@ -13,5 +13,10 @@ func TestBuildDirectTarget(t *testing.T) {
 
 func TestBuildDiscovTarget(t *testing.T) {
 	target := BuildDiscovTarget([]string{"localhost:123", "localhost:456"}, "foo")
-	assert.Equal(t, "etcd://localhost:123,localhost:456/foo", target)
+	assert.Equal(t, "etcd:///localhost:123,localhost:456?key=foo", target)
+}
+
+func TestBuildDiscovTargetWithSlashKey(t *testing.T) {
+	target := BuildDiscovTarget([]string{"localhost:2379"}, "/grpc/my-service")
+	assert.Equal(t, "etcd:///localhost:2379?key=%2Fgrpc%2Fmy-service", target)
 }

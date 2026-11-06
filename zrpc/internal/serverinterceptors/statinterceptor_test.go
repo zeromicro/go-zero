@@ -88,7 +88,7 @@ func TestLogDuration(t *testing.T) {
 
 			assert.NotPanics(t, func() {
 				logDuration(test.ctx, "foo", test.req, test.duration,
-					collection.NewSet(), test.durationThreshold)
+					collection.NewSet[string](), test.durationThreshold)
 			})
 		})
 	}
@@ -150,7 +150,7 @@ func TestLogDurationWithoutContent(t *testing.T) {
 
 			assert.NotPanics(t, func() {
 				logDuration(test.ctx, "foo", test.req, test.duration,
-					collection.NewSet(), test.durationThreshold)
+					collection.NewSet[string](), test.durationThreshold)
 			})
 		})
 	}
@@ -206,9 +206,10 @@ func Test_shouldLogContent(t *testing.T) {
 			t.Cleanup(func() {
 				ignoreContentMethods = sync.Map{}
 			})
-			set := collection.NewSet()
-			set.AddStr(tt.args.staticNotLoggingContentMethods...)
-			assert.Equalf(t, tt.want, shouldLogContent(tt.args.method, set), "shouldLogContent(%v, %v)", tt.args.method, tt.args.staticNotLoggingContentMethods)
+			set := collection.NewSet[string]()
+			set.Add(tt.args.staticNotLoggingContentMethods...)
+			assert.Equalf(t, tt.want, shouldLogContent(tt.args.method, set),
+				"shouldLogContent(%v, %v)", tt.args.method, tt.args.staticNotLoggingContentMethods)
 		})
 	}
 }
@@ -250,6 +251,15 @@ func Test_isSlow(t *testing.T) {
 			func() {
 				SetSlowThreshold(time.Millisecond * 100)
 			},
+		},
+		{
+			"config_priority_fix",
+			args{
+				duration:            time.Millisecond * 600,
+				staticSlowThreshold: time.Millisecond * 1000,
+			},
+			false,
+			nil,
 		},
 	}
 	for _, tt := range tests {

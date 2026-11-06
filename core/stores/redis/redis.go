@@ -8,6 +8,7 @@ import (
 	"time"
 
 	red "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9/maintnotifications"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -53,19 +54,22 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr  string
-		Type  string
-		User  string
-		Pass  string
-		tls   bool
-		brk   breaker.Breaker
-		hooks []red.Hook
+		Addr               string
+		Type               string
+		User               string
+		Pass               string
+		protocol           int
+		identity           bool
+		maintNotifications maintnotifications.Mode
+		tls                bool
+		brk                breaker.Breaker
+		hooks              []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
 		red.Cmdable
-		red.BitMapCmdable
+		Do(ctx context.Context, args ...any) *red.Cmd
 	}
 
 	// GeoLocation is used with GeoAdd to add geospatial location.
@@ -136,6 +140,15 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
 	}
+	if conf.Protocol > 0 {
+		opts = append([]Option{WithProtocol(conf.Protocol)}, opts...)
+	}
+	if conf.DisableIdentity {
+		opts = append([]Option{WithIdentity()}, opts...)
+	}
+	if len(conf.MaintNotifications) > 0 {
+		opts = append([]Option{WithMaintNotifications(conf.MaintNotifications)}, opts...)
+	}
 
 	rds := newRedis(conf.Host, opts...)
 	if !conf.NonBlock {
@@ -145,20 +158,6 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 
 	return rds, nil
-}
-
-func newRedis(addr string, opts ...Option) *Redis {
-	r := &Redis{
-		Addr: addr,
-		Type: NodeType,
-		brk:  breaker.NewBreaker(),
-	}
-
-	for _, opt := range opts {
-		opt(r)
-	}
-
-	return r
 }
 
 // NewScript returns a new Script instance.
@@ -260,12 +259,34 @@ func (s *Redis) BitPosCtx(ctx context.Context, key string, bit, start, end int64
 }
 
 // Blpop uses passed in redis connection to execute blocking queries.
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode to avoid
+// exhausting the connection pool. Blocking commands hold connections for extended periods and should
+// not share the regular connection pool.
+//
+// Example usage:
+//
+//	node, err := redis.CreateBlockingNode(rds)
+//	if err != nil {
+//	    // handle error
+//	}
+//	defer node.Close()
+//
+//	value, err := rds.Blpop(node, "mylist")
+//	if err != nil {
+//	    // handle error
+//	}
+//
 // Doesn't benefit from pooling redis connections of blocking queries
 func (s *Redis) Blpop(node RedisNode, key string) (string, error) {
 	return s.BlpopCtx(context.Background(), node, key)
 }
 
 // BlpopCtx uses passed in redis connection to execute blocking queries.
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode.
+// See Blpop for usage examples.
+//
 // Doesn't benefit from pooling redis connections of blocking queries
 func (s *Redis) BlpopCtx(ctx context.Context, node RedisNode, key string) (string, error) {
 	return s.BlpopWithTimeoutCtx(ctx, node, blockingQueryTimeout, key)
@@ -273,12 +294,18 @@ func (s *Redis) BlpopCtx(ctx context.Context, node RedisNode, key string) (strin
 
 // BlpopEx uses passed in redis connection to execute blpop command.
 // The difference against Blpop is that this method returns a bool to indicate success.
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode.
+// See Blpop for usage examples.
 func (s *Redis) BlpopEx(node RedisNode, key string) (string, bool, error) {
 	return s.BlpopExCtx(context.Background(), node, key)
 }
 
 // BlpopExCtx uses passed in redis connection to execute blpop command.
 // The difference against Blpop is that this method returns a bool to indicate success.
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode.
+// See Blpop for usage examples.
 func (s *Redis) BlpopExCtx(ctx context.Context, node RedisNode, key string) (string, bool, error) {
 	if node == nil {
 		return "", false, ErrNilNode
@@ -298,12 +325,18 @@ func (s *Redis) BlpopExCtx(ctx context.Context, node RedisNode, key string) (str
 
 // BlpopWithTimeout uses passed in redis connection to execute blpop command.
 // Control blocking query timeout
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode.
+// See Blpop for usage examples.
 func (s *Redis) BlpopWithTimeout(node RedisNode, timeout time.Duration, key string) (string, error) {
 	return s.BlpopWithTimeoutCtx(context.Background(), node, timeout, key)
 }
 
 // BlpopWithTimeoutCtx uses passed in redis connection to execute blpop command.
 // Control blocking query timeout
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode.
+// See Blpop for usage examples.
 func (s *Redis) BlpopWithTimeoutCtx(ctx context.Context, node RedisNode, timeout time.Duration,
 	key string) (string, error) {
 	if node == nil {
@@ -370,6 +403,25 @@ func (s *Redis) DelCtx(ctx context.Context, keys ...string) (int, error) {
 	}
 
 	return int(v), nil
+}
+
+// Do executes a generic redis command with given arguments.
+func (s *Redis) Do(args ...any) (any, error) {
+	return s.DoCtx(context.Background(), args...)
+}
+
+// DoCtx executes a generic redis command with given arguments using the provided context.
+func (s *Redis) DoCtx(ctx context.Context, args ...any) (any, error) {
+	if len(args) == 0 {
+		return nil, errors.New("missing redis command")
+	}
+
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.Do(ctx, args...).Result()
 }
 
 // Eval is the implementation of redis eval command.
@@ -624,6 +676,28 @@ func (s *Redis) GetDelCtx(ctx context.Context, key string) (string, error) {
 	}
 
 	val, err := conn.GetDel(ctx, key).Result()
+	if errors.Is(err, red.Nil) {
+		return "", nil
+	}
+
+	return val, err
+}
+
+// GetEx is the implementation of redis getex command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetEx(key string, seconds int) (string, error) {
+	return s.GetExCtx(context.Background(), key, seconds)
+}
+
+// GetExCtx is the implementation of redis getex command.
+// Available since: redis version 6.2.0
+func (s *Redis) GetExCtx(ctx context.Context, key string, seconds int) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	val, err := conn.GetEx(ctx, key, time.Duration(seconds)*time.Second).Result()
 	if errors.Is(err, red.Nil) {
 		return "", nil
 	}
@@ -1285,10 +1359,12 @@ func (s *Redis) RpushCtx(ctx context.Context, key string, values ...any) (int, e
 	return int(v), nil
 }
 
+// RPopLPush atomically removes the last element from source list and prepends it to destination list.
 func (s *Redis) RPopLPush(source string, destination string) (string, error) {
 	return s.RPopLPushCtx(context.Background(), source, destination)
 }
 
+// RPopLPushCtx is the context-aware version of RPopLPush.
 func (s *Redis) RPopLPushCtx(ctx context.Context, source string, destination string) (string, error) {
 	conn, err := getRedis(s)
 	if err != nil {
@@ -1695,14 +1771,17 @@ func (s *Redis) TtlCtx(ctx context.Context, key string) (int, error) {
 	return int(duration), nil
 }
 
+// TxPipeline returns a Redis transaction pipeline for executing multiple commands atomically.
 func (s *Redis) TxPipeline() (pipe Pipeliner, err error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return nil, err
 	}
+
 	return conn.TxPipeline(), nil
 }
 
+// Unlink is similar to Del but removes keys asynchronously in a separate thread.
 func (s *Redis) Unlink(keys ...string) (int64, error) {
 	return s.UnlinkCtx(context.Background(), keys...)
 }
@@ -1712,7 +1791,194 @@ func (s *Redis) UnlinkCtx(ctx context.Context, keys ...string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return conn.Unlink(ctx, keys...).Result()
+}
+
+// XAck acknowledges one or more messages in a Redis stream consumer group.
+// It marks the specified messages as successfully processed.
+func (s *Redis) XAck(stream string, group string, ids ...string) (int64, error) {
+	return s.XAckCtx(context.Background(), stream, group, ids...)
+}
+
+// XAckCtx is the context-aware version of XAck.
+func (s *Redis) XAckCtx(ctx context.Context, stream string, group string, ids ...string) (int64, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return 0, err
+	}
+
+	return conn.XAck(ctx, stream, group, ids...).Result()
+}
+
+// XAdd adds a new entry to a Redis stream with the specified ID and field-value pairs.
+// If noMkStream is true, the command will fail if the stream doesn't exist.
+func (s *Redis) XAdd(stream string, noMkStream bool, id string, values any) (string, error) {
+	return s.XAddCtx(context.Background(), stream, noMkStream, id, values)
+}
+
+// XAddCtx is the context-aware version of XAdd.
+func (s *Redis) XAddCtx(ctx context.Context, stream string, noMkStream bool, id string, values any) (
+	string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XAdd(ctx, &red.XAddArgs{
+		Stream:     stream,
+		ID:         id,
+		Values:     values,
+		NoMkStream: noMkStream,
+	}).Result()
+}
+
+// XGroupCreateMkStream creates a consumer group for a Redis stream.
+// If the stream doesn't exist, it will be created automatically.
+func (s *Redis) XGroupCreateMkStream(stream string, group string, start string) (string, error) {
+	return s.XGroupCreateMkStreamCtx(context.Background(), stream, group, start)
+}
+
+// XGroupCreateMkStreamCtx is the context-aware version of XGroupCreateMkStream.
+func (s *Redis) XGroupCreateMkStreamCtx(ctx context.Context, stream string, group string,
+	start string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XGroupCreateMkStream(ctx, stream, group, start).Result()
+}
+
+// XGroupCreate creates a consumer group for a Redis stream.
+// The stream must already exist, otherwise the command will fail.
+func (s *Redis) XGroupCreate(stream string, group string, start string) (string, error) {
+	return s.XGroupCreateCtx(context.Background(), stream, group, start)
+}
+
+// XGroupCreateCtx is the context-aware version of XGroupCreate.
+func (s *Redis) XGroupCreateCtx(ctx context.Context, stream string, group string, start string) (
+	string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XGroupCreate(ctx, stream, group, start).Result()
+}
+
+// XGroupSetID sets the last delivered ID for a Redis stream consumer group.
+func (s *Redis) XGroupSetID(stream, group, start string) (string, error) {
+	return s.XGroupSetIDCtx(context.Background(), stream, group, start)
+}
+
+// XGroupSetIDCtx is the context-aware version of XGroupSetID.
+func (s *Redis) XGroupSetIDCtx(ctx context.Context, stream, group, start string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.XGroupSetID(ctx, stream, group, start).Result()
+}
+
+// XInfoConsumers returns information about consumers in a Redis stream consumer group.
+func (s *Redis) XInfoConsumers(stream string, group string) ([]red.XInfoConsumer, error) {
+	return s.XInfoConsumersCtx(context.Background(), stream, group)
+}
+
+// XInfoConsumersCtx is the context-aware version of XInfoConsumers.
+func (s *Redis) XInfoConsumersCtx(ctx context.Context, stream string, group string) (
+	[]red.XInfoConsumer, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.XInfoConsumers(ctx, stream, group).Result()
+}
+
+// XInfoGroups returns information about consumer groups for a Redis stream.
+func (s *Redis) XInfoGroups(stream string) ([]red.XInfoGroup, error) {
+	return s.XInfoGroupsCtx(context.Background(), stream)
+}
+
+// XInfoGroupsCtx is the context-aware version of XInfoGroups.
+func (s *Redis) XInfoGroupsCtx(ctx context.Context, stream string) ([]red.XInfoGroup, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.XInfoGroups(ctx, stream).Result()
+}
+
+// XInfoStream returns general information about a Redis stream.
+func (s *Redis) XInfoStream(stream string) (*red.XInfoStream, error) {
+	return s.XInfoStreamCtx(context.Background(), stream)
+}
+
+// XInfoStreamCtx is the context-aware version of XInfoStream.
+func (s *Redis) XInfoStreamCtx(ctx context.Context, stream string) (*red.XInfoStream, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.XInfoStream(ctx, stream).Result()
+}
+
+// XReadGroup reads messages from Redis streams as part of a consumer group.
+// It allows for distributed processing of stream messages with automatic message delivery semantics.
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode to avoid
+// exhausting the connection pool. Blocking commands hold connections for extended periods and should
+// not share the regular connection pool.
+//
+// Example usage:
+//
+//	node, err := redis.CreateBlockingNode(rds)
+//	if err != nil {
+//	    // handle error
+//	}
+//	defer node.Close()
+//
+//	streams, err := rds.XReadGroup(
+//	    node,              // RedisNode created with CreateBlockingNode
+//	    "mygroup",         // consumer group name
+//	    "consumer1",       // consumer ID
+//	    10,                // max number of messages to read
+//	    5*time.Second,     // block duration
+//	    false,             // noAck flag
+//	    "mystream",        // stream name
+//	)
+//
+// Doesn't benefit from pooling redis connections of blocking queries.
+func (s *Redis) XReadGroup(node RedisNode, group string, consumerId string, count int64,
+	block time.Duration, noAck bool, streams ...string) ([]red.XStream, error) {
+	return s.XReadGroupCtx(context.Background(), node, group, consumerId, count, block, noAck, streams...)
+}
+
+// XReadGroupCtx is the context-aware version of XReadGroup.
+//
+// For blocking operations, you must create a dedicated RedisNode using CreateBlockingNode to avoid
+// exhausting the connection pool. See XReadGroup for usage examples.
+//
+// Doesn't benefit from pooling redis connections of blocking queries.
+func (s *Redis) XReadGroupCtx(ctx context.Context, node RedisNode, group string, consumerId string,
+	count int64, block time.Duration, noAck bool, streams ...string) ([]red.XStream, error) {
+	if node == nil {
+		return nil, ErrNilNode
+	}
+
+	return node.XReadGroup(ctx, &red.XReadGroupArgs{
+		Group:    group,
+		Consumer: consumerId,
+		Count:    count,
+		Block:    block,
+		NoAck:    noAck,
+		Streams:  streams,
+	}).Result()
 }
 
 // Zadd is the implementation of redis zadd command.
@@ -1761,7 +2027,7 @@ func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value st
 
 // ZaddnxFloat is the implementation of redis zaddnx command.
 func (s *Redis) ZaddnxFloat(key string, score float64, value string) (bool, error) {
-	return s.ZaddFloatCtx(context.Background(), key, score, value)
+	return s.ZaddnxFloatCtx(context.Background(), key, score, value)
 }
 
 // ZaddnxFloatCtx is the implementation of redis zaddnx command.
@@ -1795,7 +2061,7 @@ func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (int64, er
 		return 0, err
 	}
 
-	var zs []red.Z
+	zs := make([]red.Z, 0, len(ps))
 	for _, p := range ps {
 		z := red.Z{Score: float64(p.Score), Member: p.Key}
 		zs = append(zs, z)
@@ -2419,6 +2685,18 @@ func (s *Redis) checkConnection(pingTimeout time.Duration) error {
 	return conn.Ping(ctx).Err()
 }
 
+// maintNotificationsConfig builds the go-redis maintenance notifications config
+// from the configured mode, defaulting to disabled when unset so that the
+// CLIENT MAINT_NOTIFICATIONS command is not issued on connect.
+func (r *Redis) maintNotificationsConfig() *maintnotifications.Config {
+	mode := r.maintNotifications
+	if len(mode) == 0 {
+		mode = maintnotifications.ModeDisabled
+	}
+
+	return &maintnotifications.Config{Mode: mode}
+}
+
 // Cluster customizes the given Redis as a cluster.
 func Cluster() Option {
 	return func(r *Redis) {
@@ -2459,6 +2737,28 @@ func WithUser(user string) Option {
 	}
 }
 
+// WithProtocol customizes the given Redis with protocol.
+func WithProtocol(protocol int) Option {
+	return func(r *Redis) {
+		r.protocol = protocol
+	}
+}
+
+// WithIdentity customizes the given Redis with Identity enabled.
+func WithIdentity() Option {
+	return func(r *Redis) {
+		r.identity = true
+	}
+}
+
+// WithMaintNotifications customizes the given Redis with the maintenance
+// notifications mode (disabled, enabled or auto).
+func WithMaintNotifications(mode string) Option {
+	return func(r *Redis) {
+		r.maintNotifications = maintnotifications.Mode(mode)
+	}
+}
+
 func acceptable(err error) bool {
 	return err == nil || errorx.In(err, red.Nil, context.Canceled)
 }
@@ -2472,6 +2772,20 @@ func getRedis(r *Redis) (RedisNode, error) {
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
+}
+
+func newRedis(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
 func toPairs(vals []red.Z) []Pair {

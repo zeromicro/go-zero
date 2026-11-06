@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package svc;
+
+option go_package = "example.com/demo/pb";
+
+import "ext.proto";
+
+service QueryService {
+  rpc Query(ext.ExtReq) returns (ext.ExtReply);
+}

@@ -99,12 +99,12 @@ func (conn *MockConn) RawDB() (*sql.DB, error) {
 	return conn.db, nil
 }
 
-// Transact is the implemention of sqlx.SqlConn, nothing to do
+// Transact is the implementation of sqlx.SqlConn, nothing to do
 func (conn *MockConn) Transact(func(session sqlx.Session) error) error {
 	return nil
 }
 
-// TransactCtx is the implemention of sqlx.SqlConn, nothing to do
+// TransactCtx is the implementation of sqlx.SqlConn, nothing to do
 func (conn *MockConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	return nil
 }

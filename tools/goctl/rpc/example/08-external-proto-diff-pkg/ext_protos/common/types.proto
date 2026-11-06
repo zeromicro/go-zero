@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "example.com/demo/pb/common";
+
+message ExtReq {
+  string key    = 1;
+  string source = 2;
+}
+
+message ExtReply {
+  string value = 1;
+  int32  code  = 2;
+}

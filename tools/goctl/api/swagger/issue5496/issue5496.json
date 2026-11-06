@@ -1,0 +1,81 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "title": "Issue 5496 Reproduce",
+    "version": "v1"
+  },
+  "host": "localhost",
+  "basePath": "/",
+  "paths": {
+    "/user/{name}": {
+      "get": {
+        "description": "Demonstrate that example is missing in path/form swagger params",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "issue5496"
+        ],
+        "summary": "getUser",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "enum": [
+              "you",
+              "me"
+            ],
+            "type": "string",
+            "example": "nihao",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "example": 18,
+            "name": "age",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "age": {
+                  "type": "integer",
+                  "example": 18
+                },
+                "name": {
+                  "type": "string",
+                  "example": "nihao"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-date": "2026-03-19 22:52:34",
+  "x-description": "This is a goctl generated swagger file.",
+  "x-github": "https://github.com/zeromicro/go-zero",
+  "x-go-zero-doc": "https://go-zero.dev/",
+  "x-goctl-version": "1.10.0"
+}

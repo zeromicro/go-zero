@@ -19,7 +19,7 @@ func fillAllStructs(api *spec.ApiSpec) {
 	}
 
 	for _, group := range api.Service.Groups {
-		var routes []spec.Route
+		routes := make([]spec.Route, 0, len(group.Routes))
 		for _, route := range group.Routes {
 			route.RequestType = fillStruct("", route.RequestType, structTypes)
 			route.ResponseType = fillStruct("", route.ResponseType, structTypes)
@@ -74,7 +74,7 @@ func fillStruct(parent string, tp spec.Type, allTypes map[string]spec.DefineStru
 		val.Members = members
 		return val
 	case spec.NestedStruct:
-		var members []spec.Member
+		members := make([]spec.Member, 0, len(val.Members))
 		for _, member := range val.Members {
 			switch memberType := member.Type.(type) {
 			case spec.PointerType:

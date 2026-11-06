@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+// 场景08：外部目录的 proto（不同 pkg）
+// 位于 ext_protos/common/ 子目录，通过 --proto_path=./ext_protos 引入
+// go_package 与主 proto 不同，生成跨包 import
+package common;
+
+option go_package = "example.com/demo/s08_ext_diff_pkg/pb/common";
+
+message ExtReq {
+  string key    = 1;
+  string source = 2;
+}
+
+message ExtReply {
+  string value = 1;
+  int32  code  = 2;
+}

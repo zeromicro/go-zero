@@ -156,7 +156,7 @@ func begin(db *sql.DB) (trans, error) {
 
 func transact(ctx context.Context, db *commonSqlConn, b beginnable,
 	fn func(context.Context, Session) error) (err error) {
-	conn, err := db.connProv()
+	conn, err := db.connProv(ctx)
 	if err != nil {
 		db.onError(ctx, err)
 		return err

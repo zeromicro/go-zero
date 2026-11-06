@@ -18,6 +18,10 @@
     prefix2: v1/v2_test/v2-beta
     prefix3: v1/v2_
     prefix4: a-b-c
+    prefix5: /-
+    prefix6: /-/
+    prefix7: /abc/
+    prefix8: /comment/ // trailing slash before a comment and the next key
     summary:"test"
     key:"bar"
 )

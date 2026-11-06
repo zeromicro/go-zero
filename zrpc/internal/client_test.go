@@ -34,6 +34,13 @@ func TestWithNonBlock(t *testing.T) {
 	assert.True(t, options.NonBlock)
 }
 
+func TestWithBlock(t *testing.T) {
+	var options ClientOptions
+	opt := WithBlock()
+	opt(&options)
+	assert.False(t, options.NonBlock)
+}
+
 func TestWithStreamClientInterceptor(t *testing.T) {
 	var options ClientOptions
 	opt := WithStreamClientInterceptor(func(ctx context.Context, desc *grpc.StreamDesc,

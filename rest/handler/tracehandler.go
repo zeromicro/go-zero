@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	// TraceOption defines the method to customize an traceOptions.
+	// TraceOption defines the method to customize a traceOptions.
 	TraceOption func(options *traceOptions)
 
 	// traceOptions is TraceHandler options.
@@ -29,8 +29,8 @@ func TraceHandler(serviceName, path string, opts ...TraceOption) func(http.Handl
 		opt(&options)
 	}
 
-	ignorePaths := collection.NewSet()
-	ignorePaths.AddStr(options.traceIgnorePaths...)
+	ignorePaths := collection.NewSet[string]()
+	ignorePaths.Add(options.traceIgnorePaths...)
 
 	return func(next http.Handler) http.Handler {
 		tracer := otel.Tracer(trace.TraceName)

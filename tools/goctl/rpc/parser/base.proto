@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package base;
+
+option go_package = "github.com/zeromicro/go-zero/tools/goctl/rpc/parser/base";
+
+message BaseMessage {
+  string id = 1;
+}

@@ -43,7 +43,7 @@ func Install(cacheDir string) (string, error) {
 		case vars.OsLinux:
 			downloadUrl = url[fmt.Sprintf("%s_%d", vars.OsLinux, bit)]
 		default:
-			return "", fmt.Errorf("unsupport OS: %q", goos)
+			return "", fmt.Errorf("unsupported OS: %q", goos)
 		}
 
 		err := downloader.Download(downloadUrl, tempFile)

@@ -25,6 +25,29 @@ func TestMd5Hex(t *testing.T) {
 	assert.Equal(t, md5Digest, actual)
 }
 
+func TestHash(t *testing.T) {
+	result := Hash([]byte(text))
+	assert.NotEqual(t, uint64(0), result)
+}
+
+func TestHash_Deterministic(t *testing.T) {
+	data := []byte("consistent-hash-test")
+	first := Hash(data)
+	second := Hash(data)
+	assert.Equal(t, first, second)
+}
+
+func TestHash_Empty(t *testing.T) {
+	// Hash should not panic on empty input.
+	result := Hash([]byte{})
+	_ = result
+}
+
+func TestMd5Hex_Empty(t *testing.T) {
+	result := Md5Hex([]byte{})
+	assert.Equal(t, 32, len(result))
+}
+
 func BenchmarkHashFnv(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		h := fnv.New32()

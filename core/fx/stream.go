@@ -168,7 +168,7 @@ func (s Stream) Count() (count int) {
 	return
 }
 
-// Distinct removes the duplicated items base on the given KeyFunc.
+// Distinct removes the duplicated items based on the given KeyFunc.
 func (s Stream) Distinct(fn KeyFunc) Stream {
 	source := make(chan any)
 
@@ -459,7 +459,7 @@ func (s Stream) Tail(n int64) Stream {
 	return Range(source)
 }
 
-// Walk lets the callers handle each item, the caller may write zero, one or more items base on the given item.
+// Walk lets the callers handle each item, the caller may write zero, one or more items based on the given item.
 func (s Stream) Walk(fn WalkFunc, opts ...Option) Stream {
 	option := buildOptions(opts...)
 	if option.unlimitedWorkers {
@@ -477,8 +477,6 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 		pool := make(chan lang.PlaceholderType, option.workers)
 
 		for item := range s.source {
-			// important, used in another goroutine
-			val := item
 			pool <- lang.Placeholder
 			wg.Add(1)
 
@@ -489,7 +487,7 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 					<-pool
 				}()
 
-				fn(val, pipe)
+				fn(item, pipe)
 			})
 		}
 
@@ -507,13 +505,11 @@ func (s Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
 		var wg sync.WaitGroup
 
 		for item := range s.source {
-			// important, used in another goroutine
-			val := item
 			wg.Add(1)
 			// better to safely run caller defined method
 			threading.GoSafe(func() {
 				defer wg.Done()
-				fn(val, pipe)
+				fn(item, pipe)
 			})
 		}
 

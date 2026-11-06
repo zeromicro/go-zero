@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+// 场景07：外部目录的 proto（同 pkg）
+// 被 service.proto 通过额外 --proto_path 引入
+// go_package 与 service.proto 相同，最终合并到同一 pb 包
+package ext;
+
+option go_package = "example.com/demo/s07_ext_same_pkg/pb";
+
+message ExtReq {
+  string key = 1;
+}
+
+message ExtReply {
+  string value = 1;
+  int32  code  = 2;
+}

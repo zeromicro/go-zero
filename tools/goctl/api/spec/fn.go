@@ -3,9 +3,9 @@ package spec
 import (
 	"errors"
 	"path"
+	"slices"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
@@ -20,11 +20,11 @@ const (
 var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey, headerTagKey}
 
 func (s Service) JoinPrefix() Service {
-	var groups []Group
+	groups := make([]Group, 0, len(s.Groups))
 	for _, g := range s.Groups {
 		prefix := strings.TrimSpace(g.GetAnnotation(RoutePrefixKey))
 		prefix = strings.ReplaceAll(prefix, `"`, "")
-		var routes []Route
+		routes := make([]Route, 0, len(g.Routes))
 		for _, r := range g.Routes {
 			r.Path = path.Join("/", prefix, r.Path)
 			routes = append(routes, r)
@@ -64,7 +64,7 @@ func (m Member) IsOptional() bool {
 	tag := m.Tags()
 	for _, item := range tag {
 		if item.Key == bodyTagKey || item.Key == formTagKey {
-			if stringx.Contains(item.Options, "optional") {
+			if slices.Contains(item.Options, "optional") {
 				return true
 			}
 		}
@@ -81,7 +81,7 @@ func (m Member) IsOmitEmpty() bool {
 	tag := m.Tags()
 	for _, item := range tag {
 		if item.Key == bodyTagKey {
-			if stringx.Contains(item.Options, "omitempty") {
+			if slices.Contains(item.Options, "omitempty") {
 				return true
 			}
 		}
@@ -93,7 +93,7 @@ func (m Member) IsOmitEmpty() bool {
 func (m Member) GetPropertyName() (string, error) {
 	tags := m.Tags()
 	for _, tag := range tags {
-		if stringx.Contains(definedKeys, tag.Key) {
+		if slices.Contains(definedKeys, tag.Key) {
 			if tag.Name == "-" {
 				return util.Untitle(m.Name), nil
 			}
@@ -139,15 +139,40 @@ func (m Member) IsFormMember() bool {
 	return false
 }
 
-// IsTagMember returns true if contains given tag
+// IsTagMember returns true if the member contains the given tag.
+// For inline members, it recursively checks the members of the referenced
+// struct, since inline members themselves carry no tag and any matching tag
+// must live on one of their children. This avoids spuriously reporting the
+// presence of a tag (e.g. `header`) for an inline struct whose children do
+// not actually use that tag. See go-zero #4800.
 func (m Member) IsTagMember(tagKey string) bool {
-	if m.IsInline {
-		return true
-	}
-
 	tags := m.Tags()
 	for _, tag := range tags {
 		if tag.Key == tagKey {
+			return true
+		}
+	}
+	if m.IsInline {
+		return typeContainsTag(m.Type, tagKey)
+	}
+	return false
+}
+
+func typeContainsTag(tp Type, tagKey string) bool {
+	var members []Member
+	switch v := tp.(type) {
+	case DefineStruct:
+		members = v.Members
+	case NestedStruct:
+		members = v.Members
+	case PointerType:
+		return typeContainsTag(v.Type, tagKey)
+	default:
+		return false
+	}
+
+	for _, child := range members {
+		if child.IsTagMember(tagKey) {
 			return true
 		}
 	}

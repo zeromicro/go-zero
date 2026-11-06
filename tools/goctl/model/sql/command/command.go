@@ -145,14 +145,14 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 }
 
 func mergeColumns(columns []string) []string {
-	set := collection.NewSet()
+	set := collection.NewSet[string]()
 	for _, v := range columns {
 		fields := strings.FieldsFunc(v, func(r rune) bool {
 			return r == ','
 		})
-		set.AddStr(fields...)
+		set.Add(fields...)
 	}
-	return set.KeysStr()
+	return set.Keys()
 }
 
 type pattern map[string]struct{}
@@ -172,7 +172,7 @@ func (p pattern) Match(s string) bool {
 }
 
 func (p pattern) list() []string {
-	var ret []string
+	ret := make([]string, 0, len(p))
 	for v := range p {
 		ret = append(ret, v)
 	}

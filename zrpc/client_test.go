@@ -12,6 +12,8 @@ import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/internal/mock"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -63,7 +65,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 			name:    "valid request with long handling time",
 			amount:  2000.00,
 			errCode: codes.DeadlineExceeded,
-			errMsg:  "context deadline exceeded",
+			// gRPC error message format varies across versions; only check the code
 		},
 		{
 			name:    "valid request with timeout call option",
@@ -188,7 +190,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 						if e.Code() != tt.errCode {
 							t.Error("error code: expected", codes.InvalidArgument, "received", e.Code())
 						}
-						if e.Message() != tt.errMsg {
+						if tt.errMsg != "" && e.Message() != tt.errMsg {
 							t.Error("error message: expected", tt.errMsg, "received", e.Message())
 						}
 					}
@@ -244,4 +246,43 @@ func TestNewClientWithTarget(t *testing.T) {
 		}))
 
 	assert.NotNil(t, err)
+}
+
+func TestMakeLBServiceConfig(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "empty name uses default p2c",
+			input:    "",
+			expected: fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, p2c.Name),
+		},
+		{
+			name:     "custom balancer name",
+			input:    "consistent_hash",
+			expected: `{"loadBalancingPolicy":"consistent_hash"}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := makeLBServiceConfig(tt.input)
+			if got != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, got)
+			}
+		})
+	}
+}
+
+func TestSetHashKey(t *testing.T) {
+	ctx := context.Background()
+	key := "abc123"
+
+	ctx = SetHashKey(ctx, key)
+	got := consistenthash.GetHashKey(ctx)
+	assert.Equal(t, key, got)
+
+	assert.Empty(t, consistenthash.GetHashKey(context.Background()))
 }

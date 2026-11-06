@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+// 场景04：最底层基础类型（C 层）
+package base;
+
+option go_package = "example.com/demo/s04_transitive/pb";
+
+message BaseResp {
+  int32  code = 1;
+  string msg  = 2;
+}

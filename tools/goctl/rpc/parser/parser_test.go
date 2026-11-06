@@ -2,7 +2,6 @@ package parser
 
 import (
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,20 +43,21 @@ func TestDefaultProtoParse(t *testing.T) {
 	}())
 }
 
-func TestDefaultProtoParseCaseInvalidRequestType(t *testing.T) {
+func TestDefaultProtoParseDottedRequestType(t *testing.T) {
+	// Dotted types (e.g. "base.Req") are now valid — they refer to messages in
+	// imported protos. Parsing should succeed.
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./test_invalid_request.proto")
-	assert.True(t, true, func() bool {
-		return strings.Contains(err.Error(), "request type must defined in")
-	}())
+	data, err := p.Parse("./test_invalid_request.proto")
+	assert.NoError(t, err)
+	assert.Equal(t, "base.Req", data.Service[0].RPC[0].RequestType)
 }
 
-func TestDefaultProtoParseCaseInvalidResponseType(t *testing.T) {
+func TestDefaultProtoParseDottedResponseType(t *testing.T) {
+	// Dotted return types (e.g. "base.Reply") are now valid.
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./test_invalid_response.proto")
-	assert.True(t, true, func() bool {
-		return strings.Contains(err.Error(), "response type must defined in")
-	}())
+	data, err := p.Parse("./test_invalid_response.proto")
+	assert.NoError(t, err)
+	assert.Equal(t, "base.Reply", data.Service[0].RPC[0].ReturnsType)
 }
 
 func TestDefaultProtoParseError(t *testing.T) {

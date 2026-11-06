@@ -293,7 +293,7 @@ OPTIONS:
 
 	```
 
-	示例用法请参考[用法](./example/generator.sh)
+	示例用法请参考[用法](./example/makefile)
   
 	> NOTE: goctl model mysql ddl/datasource 均新增了一个`--style`参数，用于标记文件命名风格。
 

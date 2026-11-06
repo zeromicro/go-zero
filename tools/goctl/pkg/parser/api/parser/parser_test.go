@@ -130,7 +130,7 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 			"author":  `"type author here"`,
 			"email":   `"type email here"`,
 			"version": `"type version here"`,
-			"enable": `true`,
+			"enable":  `true`,
 			"disable": `false`,
 		}
 		p := New("foo.api", infoTestAPI)
@@ -306,6 +306,10 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"prefix2":    "v1/v2_test/v2-beta",
 			"prefix3":    "v1/v2_",
 			"prefix4":    "a-b-c",
+			"prefix5":    "/-",
+			"prefix6":    "/-/",
+			"prefix7":    "/abc/",
+			"prefix8":    "/comment/",
 			"summary":    `"test"`,
 			"key":        `"bar"`,
 		}
@@ -359,6 +363,8 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server(foo: m1,`,
 			`@server(foo: m1,)`,
 			`@server(foo: v1/v2-)`,
+			`@server(prefix:/--)`,
+			`@server(prefix:/-abc)`,
 			`@server(foo:"test")`,
 		}
 		for _, v := range testData {
@@ -762,6 +768,11 @@ func TestParser_Parse_service(t *testing.T) {
 								}),
 							},
 							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
 								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
 									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),

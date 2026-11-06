@@ -54,7 +54,7 @@ func TestMustNewServer(t *testing.T) {
 	c.Host = "localhost"
 	c.Port = 18881
 
-	s := MustNewServer(c, withDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
+	s := MustNewServer(c, WithDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
 		return zrpc.MustNewClient(conf, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
 	}), WithHeaderProcessor(func(header http.Header) []string {
 		return []string{"foo"}
@@ -210,6 +210,57 @@ func TestHttpToHttp(t *testing.T) {
 	})
 }
 
+func TestHttpToHttpContentType(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		body        string
+	}{
+		{
+			name:        "csv",
+			contentType: "text/csv; charset=utf-8",
+			body:        "id,amount\n1,100\n",
+		},
+		{
+			name:        "html",
+			contentType: "text/html; charset=utf-8",
+			body:        "<html><body>Login</body></html>",
+		},
+		{
+			name:        "json",
+			contentType: "application/json; charset=utf-8",
+			body:        `{"code":0}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			upstream := httptest.NewServer(http.HandlerFunc(
+				func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", test.contentType)
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write([]byte(test.body))
+				}))
+			defer upstream.Close()
+
+			handler := new(Server).buildHttpHandler(&HttpClientConf{
+				Target: upstream.Listener.Addr().String(),
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/test", nil)
+			handler.ServeHTTP(w, r)
+
+			resp := w.Result()
+			defer resp.Body.Close()
+
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			assert.Equal(t, []string{test.contentType}, resp.Header.Values("Content-Type"))
+			assert.Equal(t, test.body, w.Body.String())
+		})
+	}
+}
+
 func TestHttpToHttpBadUpstream(t *testing.T) {
 	var c GatewayConf
 	assert.NoError(t, conf.FillDefault(&c))
@@ -324,4 +375,51 @@ type badResponseWriter struct {
 
 func (w *badResponseWriter) Write([]byte) (int, error) {
 	return 0, errors.New("bad writer")
+}
+
+func TestWithMiddleware(t *testing.T) {
+	var callOrder []string
+
+	firstMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			callOrder = append(callOrder, "first-start")
+			w.Header().Set("X-First-Middleware", "called")
+			next(w, r)
+			callOrder = append(callOrder, "first-end")
+		}
+	}
+
+	secondMiddleware := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			callOrder = append(callOrder, "second-start")
+			w.Header().Set("X-Second-Middleware", "called")
+			next(w, r)
+			callOrder = append(callOrder, "second-end")
+		}
+	}
+
+	var c GatewayConf
+	err := conf.FillDefault(&c)
+	assert.Nil(t, err)
+	// Test multiple middlewares in one call
+	server1 := MustNewServer(c, WithMiddleware(firstMiddleware, secondMiddleware))
+	assert.Len(t, server1.middlewares, 2, "Should have 2 middlewares from one call")
+	// Test multiple middleware calls
+	server2 := MustNewServer(c, WithMiddleware(firstMiddleware), WithMiddleware(secondMiddleware))
+	assert.Len(t, server2.middlewares, 2, "Should have 2 middlewares from separate calls")
+	// Test execution order (onion model)
+	finalHandler := func(w http.ResponseWriter, r *http.Request) {
+		callOrder = append(callOrder, "handler")
+		w.WriteHeader(http.StatusOK)
+	}
+
+	testHandler := server1.buildChainHandler(finalHandler)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/test", nil)
+	testHandler(w, r)
+
+	expectedOrder := []string{"first-start", "second-start", "handler", "second-end", "first-end"}
+	assert.Equal(t, expectedOrder, callOrder, "Middleware execution should follow onion model")
+	assert.Equal(t, "called", w.Header().Get("X-First-Middleware"))
+	assert.Equal(t, "called", w.Header().Get("X-Second-Middleware"))
 }

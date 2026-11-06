@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package middleware;
+
+option go_package = "example.com/demo/pb";
+
+import "base.proto";
+
+message RequestMeta {
+  string        trace_id = 1;
+  base.BaseResp base     = 2;
+}

@@ -16,6 +16,22 @@ import (
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
+func redirectStdoutToDevNull(t *testing.T) {
+	t.Helper()
+
+	devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	old := os.Stdout
+	os.Stdout = devNull
+	t.Cleanup(func() {
+		os.Stdout = old
+		assert.NoError(t, devNull.Close())
+	})
+}
+
 func TestDailyRotateRuleMarkRotated(t *testing.T) {
 	t.Run("daily rule", func(t *testing.T) {
 		var rule DailyRotateRule
@@ -52,7 +68,7 @@ func TestDailyRotateRuleOutdatedFiles(t *testing.T) {
 	})
 
 	t.Run("temp files", func(t *testing.T) {
-		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(time.DateOnly)
 		f1, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
 		assert.NoError(t, err)
 		_ = f1.Close()
@@ -73,7 +89,7 @@ func TestDailyRotateRuleOutdatedFiles(t *testing.T) {
 
 func TestDailyRotateRuleShallRotate(t *testing.T) {
 	var rule DailyRotateRule
-	rule.rotatedTime = time.Now().Add(time.Hour * 24).Format(dateFormat)
+	rule.rotatedTime = time.Now().Add(time.Hour * 24).Format(time.DateOnly)
 	assert.True(t, rule.ShallRotate(0))
 }
 
@@ -117,12 +133,12 @@ func TestSizeLimitRotateRuleOutdatedFiles(t *testing.T) {
 	})
 
 	t.Run("temp files", func(t *testing.T) {
-		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(time.DateOnly)
 		f1, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
 		assert.NoError(t, err)
 		f2, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
 		assert.NoError(t, err)
-		boundary1 := time.Now().Add(time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		boundary1 := time.Now().Add(time.Hour * time.Duration(hoursPerDay) * 2).Format(time.DateOnly)
 		f3, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary1)
 		assert.NoError(t, err)
 		t.Cleanup(func() {
@@ -144,12 +160,12 @@ func TestSizeLimitRotateRuleOutdatedFiles(t *testing.T) {
 	})
 
 	t.Run("no backups", func(t *testing.T) {
-		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay) * 2).Format(time.DateOnly)
 		f1, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
 		assert.NoError(t, err)
 		f2, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary)
 		assert.NoError(t, err)
-		boundary1 := time.Now().Add(time.Hour * time.Duration(hoursPerDay) * 2).Format(dateFormat)
+		boundary1 := time.Now().Add(time.Hour * time.Duration(hoursPerDay) * 2).Format(time.DateOnly)
 		f3, err := os.CreateTemp(os.TempDir(), "go-zero-test-"+boundary1)
 		assert.NoError(t, err)
 		t.Cleanup(func() {
@@ -243,11 +259,7 @@ func TestRotateLoggerGetBackupFilename(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFile(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -262,11 +274,7 @@ func TestRotateLoggerMayCompressFile(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -319,7 +327,7 @@ func TestRotateLoggerWrite(t *testing.T) {
 	}
 	// the following write calls cannot be changed to Write, because of DATA RACE.
 	logger.write([]byte(`foo`))
-	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(dateFormat)
+	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(time.DateOnly)
 	logger.write([]byte(`bar`))
 	logger.Close()
 	logger.write([]byte(`baz`))
@@ -354,11 +362,7 @@ func TestRotateLoggerGetBackupWithSizeLimitRotateRuleFilename(t *testing.T) {
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFile(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -373,11 +377,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFile(t *testing.T) {
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileTrue(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -392,11 +392,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileTrue(t *testing.T) {
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileFailed(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename := stringx.RandId()
 	logger, err := NewLogger(filename, new(SizeLimitRotateRule), true)
@@ -447,7 +443,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleWrite(t *testing.T) {
 	}
 	// the following write calls cannot be changed to Write, because of DATA RACE.
 	logger.write([]byte(`foo`))
-	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(dateFormat)
+	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(time.DateOnly)
 	logger.write([]byte(`bar`))
 	logger.Close()
 	logger.write([]byte(`baz`))

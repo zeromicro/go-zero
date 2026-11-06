@@ -32,7 +32,7 @@ import '../vars/vars.dart';
 /// Send GET request.
 ///
 /// ok: the function that will be called on success.
-/// fail：the fuction that will be called on failure.
+/// fail：the function that will be called on failure.
 /// eventually：the function that will be called regardless of success or failure.
 Future apiGet(String path,
     {Map<String, String> header,
@@ -47,7 +47,7 @@ Future apiGet(String path,
 ///
 /// data: the data to post, it will be marshaled to json automatically.
 /// ok: the function that will be called on success.
-/// fail：the fuction that will be called on failure.
+/// fail：the function that will be called on failure.
 /// eventually：the function that will be called regardless of success or failure.
 Future apiPost(String path, dynamic data,
     {Map<String, String> header,
@@ -132,7 +132,7 @@ Future _apiRequest(String method, String path, dynamic data,
 	/// data: any request class that will be converted to json automatically
 	/// ok: is called when request succeeds
 	/// fail: is called when request fails
-	/// eventually: is always called until the nearby functions returns
+	/// eventually: is always called after the nearby function returns
 	Future apiPost(String path, dynamic data,
 			{Map<String, String>? header,
 			Function(Map<String, dynamic>)? ok,
@@ -146,7 +146,7 @@ Future _apiRequest(String method, String path, dynamic data,
 	///
 	/// ok: is called when request succeeds
 	/// fail: is called when request fails
-	/// eventually: is always called until the nearby functions returns
+	/// eventually: is always called after the nearby function returns
 	Future apiGet(String path,
 			{Map<String, String>? header,
 			Function(Map<String, dynamic>)? ok,

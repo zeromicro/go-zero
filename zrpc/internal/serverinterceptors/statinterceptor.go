@@ -43,8 +43,8 @@ func SetSlowThreshold(threshold time.Duration) {
 
 // UnaryStatInterceptor returns a func that uses given metrics to report stats.
 func UnaryStatInterceptor(metrics *stat.Metrics, conf StatConf) grpc.UnaryServerInterceptor {
-	staticNotLoggingContentMethods := collection.NewSet()
-	staticNotLoggingContentMethods.AddStr(conf.IgnoreContentMethods...)
+	staticNotLoggingContentMethods := collection.NewSet[string]()
+	staticNotLoggingContentMethods.Add(conf.IgnoreContentMethods...)
 
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (resp any, err error) {
@@ -63,12 +63,16 @@ func UnaryStatInterceptor(metrics *stat.Metrics, conf StatConf) grpc.UnaryServer
 }
 
 func isSlow(duration, durationThreshold time.Duration) bool {
-	return duration > slowThreshold.Load() ||
-		(durationThreshold > 0 && duration > durationThreshold)
+	// Prioritize explicit config over global setting
+	if durationThreshold > 0 {
+		return duration > durationThreshold
+	}
+
+	return duration > slowThreshold.Load()
 }
 
 func logDuration(ctx context.Context, method string, req any, duration time.Duration,
-	ignoreMethods *collection.Set, durationThreshold time.Duration) {
+	ignoreMethods *collection.Set[string], durationThreshold time.Duration) {
 	var addr string
 	client, ok := peer.FromContext(ctx)
 	if ok {
@@ -92,7 +96,7 @@ func logDuration(ctx context.Context, method string, req any, duration time.Dura
 	}
 }
 
-func shouldLogContent(method string, ignoreMethods *collection.Set) bool {
+func shouldLogContent(method string, ignoreMethods *collection.Set[string]) bool {
 	_, ok := ignoreContentMethods.Load(method)
 	return !ok && !ignoreMethods.Contains(method)
 }

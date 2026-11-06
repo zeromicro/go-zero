@@ -47,6 +47,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "module": "Custom module name for go.mod (default: directory name)",
         "style": "{{.global.style}}"
       },
       "validate": {
@@ -206,6 +207,7 @@
         "short": "Generate mongo model",
         "type": "Specified model type name",
         "cache": "Generate code with cache [optional]",
+        "prefix": "Generate code with cache prefix [optional]",
         "easy": "Generate code with auto generated CollectionName for easy declare [optional]",
         "dir": "{{.goctl.model.dir}}",
         "style": "{{.global.style}}",
@@ -237,6 +239,7 @@
         "home": "{{.global.home}}",
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
+        "module": "Custom module name for go.mod (default: directory name)",
         "verbose": "Enable log output",
         "client": "Whether to generate rpc client"
       },
@@ -256,7 +259,8 @@
         "remote": "{{.global.remote}}",
         "branch": "{{.global.branch}}",
         "verbose": "Enable log output",
-        "client": "Whether to generate rpc client"
+        "client": "Whether to generate rpc client",
+        "client-only": "Generate protobuf files and the RPC client without a server skeleton"
       }
     },
     "template": {

@@ -284,7 +284,7 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 		}
 		// import cycle check
 		if err := api.importManager.Push(impPath); err != nil {
-			return nil, ast.SyntaxError(tok.Position, err.Error())
+			return nil, ast.SyntaxError(tok.Position, "%s", err.Error())
 		}
 
 		if _, ok := api.importSet[impPath]; ok {

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package streamsvc;
+
+option go_package = "example.com/demo/pb";
+
+message StreamReq {
+  string input = 1;
+}
+
+message StreamReply {
+  string output = 1;
+}
+
+service StreamService {
+  // ServerStream: client sends one request, server returns a stream of responses.
+  rpc ServerStream(StreamReq) returns (stream StreamReply);
+
+  // ClientStream: client sends a stream of requests, server returns one response.
+  rpc ClientStream(stream StreamReq) returns (StreamReply);
+
+  // BidiStream: both client and server send streams of messages.
+  rpc BidiStream(stream StreamReq) returns (stream StreamReply);
+}

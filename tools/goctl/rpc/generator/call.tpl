@@ -7,6 +7,7 @@ import (
 
 	{{.pbPackage}}
 	{{if ne .pbPackage .protoGoPackage}}{{.protoGoPackage}}{{end}}
+	{{.extraImports}}
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"

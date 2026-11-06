@@ -8,9 +8,25 @@ import (
 	"strings"
 )
 
-// Marshal marshals v into json bytes.
+// Marshal marshals v into json bytes, without escaping HTML and removes the trailing newline.
 func Marshal(v any) ([]byte, error) {
-	return json.Marshal(v)
+	// why not use json.Marshal?  https://github.com/golang/go/issues/28453
+	// it changes the behavior of json.Marshal, like & -> \u0026, < -> \u003c, > -> \u003e
+	// which is not what we want in API responses
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	bs := buf.Bytes()
+	// Remove trailing newline added by json.Encoder.Encode
+	if len(bs) > 0 && bs[len(bs)-1] == '\n' {
+		bs = bs[:len(bs)-1]
+	}
+
+	return bs, nil
 }
 
 // MarshalToString marshals v into a string.

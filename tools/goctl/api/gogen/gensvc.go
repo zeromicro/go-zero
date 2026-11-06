@@ -7,6 +7,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
@@ -17,7 +18,7 @@ const contextFilename = "service_context"
 //go:embed svc.tpl
 var contextTemplate string
 
-func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genServiceContext(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
@@ -53,6 +54,8 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
 			"middlewareAssignment": middlewareAssignment,
+			"projectPkg":           projectPkg,
+			"version":              version.BuildVersion,
 		},
 	})
 }

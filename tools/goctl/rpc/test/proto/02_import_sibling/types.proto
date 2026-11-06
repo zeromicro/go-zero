@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+// 场景02：被 import 的共享类型定义文件
+package types;
+
+option go_package = "example.com/demo/s02_import_sibling/pb";
+
+message User {
+  string id   = 1;
+  string name = 2;
+  int32  age  = 3;
+}

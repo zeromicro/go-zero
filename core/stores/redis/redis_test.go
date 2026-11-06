@@ -11,7 +11,9 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	red "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9/maintnotifications"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -150,6 +152,84 @@ func TestNewRedis(t *testing.T) {
 	}
 }
 
+func TestGetClientWithProtocolAndIdentity(t *testing.T) {
+	r := miniredis.RunT(t)
+	defer r.Close()
+	c, err := getClient(&Redis{
+		brk:      breaker.NewBreaker(),
+		Addr:     r.Addr(),
+		Type:     NodeType,
+		protocol: 2,
+		identity: true,
+	})
+	if assert.NoError(t, err) {
+		assert.NotNil(t, c)
+		assert.Equal(t, 2, c.Options().Protocol)
+		assert.True(t, c.Options().DisableIdentity)
+	}
+}
+
+func TestNewRedis_ProtocolAndIdentity(t *testing.T) {
+	logx.Disable()
+
+	s := miniredis.RunT(t)
+	rds, err := NewRedis(RedisConf{
+		Host:            s.Addr(),
+		Type:            NodeType,
+		Protocol:        2,
+		DisableIdentity: true,
+	})
+	if assert.NoError(t, err) {
+		assert.Equal(t, 2, rds.protocol)
+		assert.True(t, rds.identity)
+	}
+}
+
+func TestGetClientWithMaintNotifications(t *testing.T) {
+	tests := []struct {
+		name string
+		mode maintnotifications.Mode
+		want maintnotifications.Mode
+	}{
+		{name: "unset falls back to disabled", mode: "", want: maintnotifications.ModeDisabled},
+		{name: "disabled", mode: maintnotifications.ModeDisabled, want: maintnotifications.ModeDisabled},
+		{name: "enabled", mode: maintnotifications.ModeEnabled, want: maintnotifications.ModeEnabled},
+		{name: "auto", mode: maintnotifications.ModeAuto, want: maintnotifications.ModeAuto},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			r := miniredis.RunT(t)
+			defer r.Close()
+			c, err := getClient(&Redis{
+				brk:                breaker.NewBreaker(),
+				Addr:               r.Addr(),
+				Type:               NodeType,
+				maintNotifications: test.mode,
+			})
+			if assert.NoError(t, err) {
+				assert.NotNil(t, c)
+				assert.NotNil(t, c.Options().MaintNotificationsConfig)
+				assert.Equal(t, test.want, c.Options().MaintNotificationsConfig.Mode)
+			}
+		})
+	}
+}
+
+func TestNewRedis_MaintNotifications(t *testing.T) {
+	logx.Disable()
+
+	s := miniredis.RunT(t)
+	rds, err := NewRedis(RedisConf{
+		Host:               s.Addr(),
+		Type:               NodeType,
+		MaintNotifications: string(maintnotifications.ModeAuto),
+	})
+	if assert.NoError(t, err) {
+		assert.Equal(t, maintnotifications.ModeAuto, rds.maintNotifications)
+	}
+}
+
 func TestRedis_NonBlock(t *testing.T) {
 	logx.Disable()
 
@@ -272,6 +352,36 @@ func TestRedis_Eval(t *testing.T) {
 		val, err := client.Eval(`return redis.call("EXISTS", KEYS[1])`, []string{"key1"})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), val)
+	})
+}
+
+func TestRedis_Do(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).Do("PING")
+		assert.NotNil(t, err)
+
+		pong, err := client.Do("PING")
+		assert.Nil(t, err)
+		assert.Equal(t, "PONG", pong)
+
+		ok, err := client.Do("SET", "key1", "value1")
+		assert.Nil(t, err)
+		assert.Equal(t, "OK", ok)
+
+		val, err := client.Do("GET", "key1")
+		assert.Nil(t, err)
+		assert.Equal(t, "value1", val)
+
+		_, err = client.Do("GET", "not_exist")
+		assert.Equal(t, Nil, err)
+
+		_, err = client.Do()
+		assert.NotNil(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err = client.DoCtx(ctx, "PING")
+		assert.Equal(t, context.Canceled, err)
 	})
 }
 
@@ -916,6 +1026,11 @@ func TestRedis_Ping(t *testing.T) {
 			ok := client.Ping()
 			assert.True(t, ok)
 		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			ok := client.Ping()
+			assert.False(t, ok)
+		})
 	})
 }
 
@@ -1094,6 +1209,45 @@ func TestRedis_GetDel(t *testing.T) {
 	t.Run("get_del_with_error", func(t *testing.T) {
 		runOnRedisWithError(t, func(client *Redis) {
 			_, err := newRedis(client.Addr, badType()).GetDel("hello")
+			assert.Error(t, err)
+		})
+	})
+}
+
+func TestRedis_GetEx(t *testing.T) {
+	t.Run("get_ex", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			val, err := client.GetEx("getex_key", 10)
+			assert.Equal(t, "", val)
+			assert.Nil(t, err)
+
+			err = client.Set("getex_key", "getex_value")
+			assert.Nil(t, err)
+
+			val, err = client.GetEx("getex_key", 10)
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+			val, err = client.Get("getex_key")
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+
+			ttl, err := client.Ttl("getex_key")
+			assert.Nil(t, err)
+			assert.True(t, ttl > 0 && ttl <= 10)
+
+			val, err = client.GetEx("getex_key", 5)
+			assert.Nil(t, err)
+			assert.Equal(t, "getex_value", val)
+
+			ttl, err = client.Ttl("getex_key")
+			assert.Nil(t, err)
+			assert.True(t, ttl > 0 && ttl <= 5)
+		})
+	})
+
+	t.Run("get_ex_with_error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := newRedis(client.Addr, badType()).GetEx("hello", 10)
 			assert.Error(t, err)
 		})
 	})
@@ -2029,6 +2183,16 @@ func TestRedis_WithUserPass(t *testing.T) {
 		err := newRedis(client.Addr, WithUser("any"), WithPass("any")).Ping()
 		assert.NotNil(t, err)
 	})
+
+	runOnRedisWithAccount(t, "foo", "bar", func(client *Redis) {
+		err := client.Set("key1", "value1")
+		assert.Nil(t, err)
+		_, err = newRedis(client.Addr, badType()).Keys("*")
+		assert.NotNil(t, err)
+		keys, err := client.Keys("*")
+		assert.Nil(t, err)
+		assert.ElementsMatch(t, []string{"key1"}, keys)
+	})
 }
 
 func TestRedis_checkConnection(t *testing.T) {
@@ -2054,6 +2218,19 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	fn(MustNewRedis(RedisConf{
 		Host: s.Addr(),
 		Type: NodeType,
+	}))
+}
+
+func runOnRedisWithAccount(t *testing.T, user, pass string, fn func(client *Redis)) {
+	logx.Disable()
+
+	s := miniredis.RunT(t)
+	s.RequireUserAuth(user, pass)
+	fn(MustNewRedis(RedisConf{
+		Host: s.Addr(),
+		Type: NodeType,
+		User: user,
+		Pass: pass,
 	}))
 }
 
@@ -2173,5 +2350,142 @@ func TestRedisTxPipeline(t *testing.T) {
 		value, err := getCmd.Result()
 		assert.Nil(t, err)
 		assert.Equal(t, hashValue, value)
+	})
+}
+
+func TestRedisXGroupCreate(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XGroupCreate("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+
+		_, err = redisCli.XGroupCreate("aa", "bb", "0")
+		assert.NotNil(t, err)
+
+		_, err = newRedis(client.Addr, badType()).XGroupCreateMkStream("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
+		_, err = redisCli.XGroupCreateMkStream("aa", "bb", "0")
+		assert.Nil(t, err)
+
+		_, err = redisCli.XGroupCreate("aa", "cc", "0")
+		assert.Nil(t, err)
+	})
+}
+
+func TestRedisXGroupSetID(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XGroupSetID("Source", "Destination", "0")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "0")
+		assert.Nil(t, err)
+
+		res, err := redisCli.XGroupSetID(stream, group, "0")
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "not supported")
+
+		_, err = newRedis(client.Addr, badType()).XGroupSetIDCtx(context.Background(), stream, group, "0")
+		assert.NotNil(t, err)
+
+		res, err = redisCli.XGroupSetIDCtx(context.Background(), stream, group, "0")
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "not supported")
+	})
+}
+
+func TestRedisXInfo(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XInfoStream("Source")
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XInfoGroups("Source")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "$")
+		assert.Nil(t, err)
+
+		_, err = redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.Nil(t, err)
+
+		infoStream, err := redisCli.XInfoStream(stream)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), infoStream.Length)
+
+		infoGroups, err := redisCli.XInfoGroups(stream)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), infoGroups[0].Lag)
+		assert.Equal(t, group, infoGroups[0].Name)
+
+		node, err := getRedis(redisCli)
+		assert.NoError(t, err)
+		redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		streamRes, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, ">")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(streamRes))
+		assert.Equal(t, "value1", streamRes[0].Messages[0].Values["key1"])
+
+		infoConsumers, err := redisCli.XInfoConsumers(stream, group)
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(infoConsumers))
+
+		_, err = newRedis(client.Addr, badType()).XInfoConsumers(stream, group)
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisXReadGroup(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := newRedis(client.Addr, badType()).XAdd("bb", true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.NotNil(t, err)
+		_, err = newRedis(client.Addr, badType()).XAck("bb", "aa", "123")
+		assert.NotNil(t, err)
+
+		redisCli := newRedis(client.Addr)
+
+		stream := "aa"
+		group := "bb"
+
+		_, err = redisCli.XGroupCreateMkStream(stream, group, "$")
+		assert.Nil(t, err)
+
+		_, err = redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		assert.Nil(t, err)
+
+		node, err := getRedis(redisCli)
+		assert.NoError(t, err)
+		redisCli.XAdd(stream, true, "*", []string{"key1", "value1", "key2", "value2"})
+		_, err = redisCli.XReadGroup(nil, group, "consumer", 1, 2000, false, stream, ">")
+		assert.Error(t, err)
+		streamRes, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, ">")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(streamRes))
+		assert.Equal(t, "value1", streamRes[0].Messages[0].Values["key1"])
+
+		_, err = redisCli.XReadGroup(nil, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Error(t, err)
+		streamRes1, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(streamRes1))
+		assert.Equal(t, "value1", streamRes1[0].Messages[0].Values["key1"])
+
+		_, err = redisCli.XAck(stream, group, streamRes[0].Messages[0].ID)
+		assert.Nil(t, err)
+
+		_, err = redisCli.XReadGroup(nil, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Error(t, err)
+		streamRes2, err := redisCli.XReadGroup(node, group, "consumer", 1, 2000, false, stream, "0")
+		assert.Nil(t, err)
+		assert.Greater(t, len(streamRes2), 0, "streamRes2 is empty")
+		assert.Equal(t, 0, len(streamRes2[0].Messages))
 	})
 }

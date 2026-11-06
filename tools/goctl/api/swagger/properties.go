@@ -24,6 +24,19 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 				example, defaultValue              any
 				enum                               []any
 			)
+			pathTag, _ := tag.Get(tagPath)
+			if pathTag != nil {
+				return
+			}
+			formTag, _ := tag.Get(tagForm)
+			if formTag != nil {
+				return
+			}
+			headerTag, _ := tag.Get(tagHeader)
+			if headerTag != nil {
+				return
+			}
+
 			jsonTag, _ := tag.Get(tagJson)
 			if jsonTag != nil {
 				jsonTagString = jsonTag.Name
@@ -57,15 +70,40 @@ func propertiesFromType(ctx Context, tp apiSpec.Type) (spec.SchemaProperties, []
 			switch sampleTypeFromGoType(ctx, member.Type) {
 			case swaggerTypeArray:
 				schema.Items = itemsFromGoType(ctx, member.Type)
+				// Special handling for arrays with useDefinitions
+				if ctx.UseDefinitions {
+					// For arrays, check if the array element (not the array itself) contains a struct
+					if arrayType, ok := member.Type.(apiSpec.ArrayType); ok {
+						if structName, containsStruct := containsStruct(arrayType.Value); containsStruct {
+							// Set the $ref inside the items, not at the schema level
+							schema.Items = &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: spec.MustCreateRef(getRefName(structName)),
+									},
+								},
+							}
+						}
+					}
+				}
 			case swaggerTypeObject:
 				p, r := propertiesFromType(ctx, member.Type)
 				schema.Properties = p
 				schema.Required = r
-			}
-			if ctx.UseDefinitions {
-				structName, containsStruct := containsStruct(member.Type)
-				if containsStruct {
-					schema.SchemaProps.Ref = spec.MustCreateRef(getRefName(structName))
+				// For objects with useDefinitions, set $ref at schema level
+				if ctx.UseDefinitions {
+					structName, containsStruct := containsStruct(member.Type)
+					if containsStruct {
+						schema.SchemaProps.Ref = spec.MustCreateRef(getRefName(structName))
+					}
+				}
+			default:
+				// For non-array, non-object types, apply useDefinitions logic
+				if ctx.UseDefinitions {
+					structName, containsStruct := containsStruct(member.Type)
+					if containsStruct {
+						schema.SchemaProps.Ref = spec.MustCreateRef(getRefName(structName))
+					}
 				}
 			}
 

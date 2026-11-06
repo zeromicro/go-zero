@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+// 场景07：外部 proto（同 Go pkg）—— 请求/响应直接使用 ext.ExtReq / ext.ExtReply
+// 两个 proto 的 go_package 相同，最终生成到同一 Go 包（pb），无跨包 import。
+package svc;
+
+option go_package = "example.com/demo/s07_ext_same_pkg/pb";
+
+import "ext.proto";
+
+service QueryService {
+  rpc Query(ext.ExtReq) returns (ext.ExtReply);
+}
+

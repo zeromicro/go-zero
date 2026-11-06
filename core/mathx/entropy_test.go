@@ -29,3 +29,10 @@ func TestCalcDiffEntropy(t *testing.T) {
 	}
 	assert.True(t, CalcEntropy(m) < .99)
 }
+
+func TestCalcEntropySingleItem(t *testing.T) {
+	m := map[any]int{
+		"only": 42,
+	}
+	assert.Equal(t, float64(1), CalcEntropy(m))
+}

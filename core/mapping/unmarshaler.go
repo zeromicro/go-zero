@@ -154,11 +154,11 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return nil
 	}
 
-	baseType := fieldType.Elem()
+	baseType := Deref(fieldType).Elem()
 	dereffedBaseType := Deref(baseType)
 	dereffedBaseKind := dereffedBaseType.Kind()
 	if refValue.Len() == 0 {
-		value.Set(reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
+		SetValue(fieldType, value, reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
 		return nil
 	}
 
@@ -191,7 +191,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	}
 
 	if valid {
-		value.Set(conv)
+		SetValue(fieldType, value, conv)
 	}
 
 	return nil
@@ -213,7 +213,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 		return errUnsupportedType
 	}
 
-	baseFieldType := fieldType.Elem()
+	baseFieldType := Deref(fieldType).Elem()
 	baseFieldKind := baseFieldType.Kind()
 	conv := reflect.MakeSlice(reflect.SliceOf(baseFieldType), len(slice), cap(slice))
 
@@ -223,7 +223,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 		}
 	}
 
-	value.Set(conv)
+	SetValue(fieldType, value, conv)
 	return nil
 }
 
@@ -324,7 +324,7 @@ func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
 	target := reflect.New(baseType)
 	switch u.key {
 	case jsonTagKey:
-		unmarshaler, ok := target.Interface().(json.Unmarshaler)
+		unmarshaler, ok := reflect.TypeAssert[json.Unmarshaler](target)
 		if !ok {
 			return errUnsupportedType
 		}
@@ -436,7 +436,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 func (u *Unmarshaler) implementsUnmarshaler(t reflect.Type) bool {
 	switch u.key {
 	case jsonTagKey:
-		return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
+		return t.Implements(reflect.TypeFor[json.Unmarshaler]())
 	default:
 		return false
 	}
@@ -634,9 +634,19 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 
 		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
 	case valueKind == reflect.String && derefedFieldType == durationType:
-		return fillDurationValue(fieldType, value, mapValue.(string))
+		v, err := convertToString(mapValue, fullName)
+		if err != nil {
+			return err
+		}
+
+		return fillDurationValue(fieldType, value, v)
 	case valueKind == reflect.String && typeKind == reflect.Struct && u.implementsUnmarshaler(fieldType):
-		return u.fillUnmarshalerStruct(fieldType, value, mapValue.(string))
+		v, err := convertToString(mapValue, fullName)
+		if err != nil {
+			return err
+		}
+
+		return u.fillUnmarshalerStruct(fieldType, value, v)
 	default:
 		return u.processFieldPrimitive(fieldType, value, mapValue, opts, fullName)
 	}
@@ -742,12 +752,12 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 		if value.Elem().Kind() == reflect.Ptr {
 			target := reflect.New(Deref(fieldType))
 			SetValue(fieldType.Elem(), value, target)
-			tval, ok = target.Interface().(encoding.TextUnmarshaler)
+			tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](target)
 		} else {
-			tval, ok = value.Interface().(encoding.TextUnmarshaler)
+			tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](value)
 		}
 	} else {
-		tval, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
+		tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](value.Addr())
 	}
 	if ok {
 		switch mv := mapValue.(type) {
@@ -767,24 +777,26 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 		return err
 	}
 
-	fieldKind := fieldType.Kind()
-	switch fieldKind {
-	case reflect.Bool:
+	derefType := Deref(fieldType)
+	derefKind := derefType.Kind()
+	switch {
+	case derefKind == reflect.String:
+		SetValue(fieldType, value, toReflectValue(derefType, envVal))
+		return nil
+	case derefKind == reflect.Bool:
 		val, err := strconv.ParseBool(envVal)
 		if err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
-		value.SetBool(val)
+		SetValue(fieldType, value, toReflectValue(derefType, val))
 		return nil
-	case durationType.Kind():
+	case derefType == durationType:
+		// time.Duration is a special case, its derefKind is reflect.Int64.
 		if err := fillDurationValue(fieldType, value, envVal); err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
-		return nil
-	case reflect.String:
-		value.SetString(envVal)
 		return nil
 	default:
 		return u.processFieldPrimitiveWithJSONNumber(fieldType, value, json.Number(envVal), opts, fullName)

@@ -6,9 +6,9 @@ import (
 )
 
 // BuildVersion is the version of goctl.
-const BuildVersion = "1.8.4-alpha"
+const BuildVersion = "1.10.2"
 
-var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
+var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-beta": 2, "beta": 3, "released": 4, "": 5}
 
 // GetGoctlVersion returns BuildVersion
 func GetGoctlVersion() string {

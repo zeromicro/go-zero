@@ -135,9 +135,8 @@ func readEnv(goctlHome string) *sortedmap.SortedMap {
 		return nil
 	}
 	dataStr := string(data)
-	lines := strings.Split(dataStr, "\n")
 	sm := sortedmap.New()
-	for _, line := range lines {
+	for line := range strings.SplitSeq(dataStr, "\n") {
 		_, _, err = sm.SetExpression(line)
 		if err != nil {
 			continue

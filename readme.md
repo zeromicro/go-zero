@@ -7,7 +7,6 @@ go-zero is a web and rpc framework with lots of builtin engineering practices. I
 
 <div align=center>
 
-[![Go](https://github.com/zeromicro/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/zeromicro/go-zero/actions)
 [![codecov](https://codecov.io/gh/zeromicro/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/zeromicro/go-zero)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zeromicro/go-zero)](https://goreportcard.com/report/github.com/zeromicro/go-zero)
 [![Release](https://img.shields.io/github/v/release/zeromicro/go-zero.svg?style=flat-square)](https://github.com/zeromicro/go-zero)
@@ -20,7 +19,7 @@ go-zero is a web and rpc framework with lots of builtin engineering practices. I
 
 
 ## 🤷‍ What is go-zero?
-English | [简体中文](readme-cn.md)
+English | [简体中文](readme-cn.md) | [한국어](readme-ko.md)
 
 <a href="https://trendshift.io/repositories/3263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3263" alt="zeromicro%2Fgo-zero | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
@@ -43,61 +42,39 @@ go-zero contains simple API description syntax and code generation tool called `
 
 ## Backgrounds of go-zero
 
-In early 2018, we embarked on a transformative journey to redesign our system, transitioning from a monolithic architecture built with Java and MongoDB to a microservices architecture. After careful research and comparison, we made a deliberate choice to:
+In early 2018, we transitioned from a Java+MongoDB monolithic architecture to microservices, choosing:
 
-* Go Beyond with Golang
-  * Great performance
-  * Simple syntax
-  * Proven engineering efficiency
-  * Extreme deployment experience
-  * Less server resource consumption
-
-* Self-Design Our Microservice Architecture
-  * Microservice architecture facilitates the creation of scalable, flexible, and maintainable software systems with independent, reusable components.
-  * Easy to locate the problems within microservices.
-  * Easy to extend the features by adding or modifying specific microservices without impacting the entire system.
+* **Golang** - High performance, simple syntax, excellent deployment experience, and low resource consumption
+* **Self-designed microservice framework** - Better problem isolation, easier feature extension, and faster issue resolution
 
 ## Design considerations on go-zero
 
-By designing the microservice architecture, we expected to ensure stability, as well as productivity. And from just the beginning, we have the following design principles:
+go-zero follows these core design principles:
 
-* Keep it simple
-* High availability
-* Stable on high concurrency
-* Easy to extend
-* Resilience design, failure-oriented programming
-* Try best to be friendly to the business logic development, encapsulate the complexity
-* One thing, one way
-
-After almost half a year, we finished the transfer from a monolithic system to microservice system and deployed on August 2018. The new system guaranteed business growth and system stability.
+* **Simplicity** - Keep it simple, first principle
+* **High availability** - Stable under high concurrency
+* **Resilience** - Failure-oriented programming with adaptive protection
+* **Developer friendly** - Encapsulate complexity, one way to do one thing
+* **Easy to extend** - Flexible architecture for growth
 
 ## The implementation and features of go-zero
 
-go-zero is a web and rpc framework that integrates lots of engineering practices. The features are mainly listed below:
+go-zero integrates engineering best practices:
 
-* Powerful tool included, less code to write
-* Simple interfaces
-* Fully compatible with net/http
-* Middlewares are supported, easy to extend
-* High performance
-* Failure-oriented programming, resilience design
-* Builtin service discovery, load balancing
-* Builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto-trigger, auto recover
-* Auto validation of API request parameters
-* Chained timeout control
-* Auto management of data caching
-* Call tracing, metrics, and monitoring
-* High concurrency protected
-
-As below, go-zero protects the system with a couple of layers and mechanisms:
+* **Code generation** - Powerful tools to minimize boilerplate
+* **Simple API** - Clean interfaces, fully compatible with net/http
+* **High performance** - Optimized for speed and efficiency
+* **Resilience** - Built-in circuit breaker, rate limiting, load shedding, timeout control
+* **Service mesh** - Service discovery, load balancing, call tracing
+* **Developer tools** - Auto parameter validation, cache management, metrics and monitoring
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-##  The simplified architecture that we use with go-zero
+## Architecture with go-zero
 
 <img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
-##  Installation
+## Installation
 
 Run the following command under your project:
 
@@ -105,9 +82,42 @@ Run the following command under your project:
 go get -u github.com/zeromicro/go-zero
 ```
 
-##  Quick Start
+## AI-Native Development
 
-1. Full examples can be checked out from below:
+The go-zero team provides workflow guidance and implementation patterns for AI coding assistants such as Claude Code, GitHub Copilot, and Cursor. For assistants with terminal access, the recommended workflow is to run `goctl` directly to generate framework-compliant code.
+
+### AI Tooling Projects
+
+- **[ai-context](https://github.com/zeromicro/ai-context)** - Workflow guidance: how to approach go-zero development tasks and when to use goctl.
+- **[zero-skills](https://github.com/zeromicro/zero-skills)** - Implementation patterns, examples, and goctl command reference, loaded as needed.
+- **[mcp-zero](https://github.com/zeromicro/mcp-zero)** - Optional adapter that exposes goctl code generation through the Model Context Protocol (MCP).
+
+### Quick Setup
+
+Install goctl and ensure it is available in your `$PATH`:
+
+```bash
+go install github.com/zeromicro/go-zero/tools/goctl@latest
+goctl --version
+```
+
+Follow the [ai-context setup guide](https://github.com/zeromicro/ai-context#manual-setup) and [zero-skills integration guides](https://github.com/zeromicro/zero-skills/tree/main/getting-started) to configure your assistant's workflow instructions and pattern library.
+
+### How It Works
+
+1. Consult **ai-context** for the workflow and **zero-skills** for relevant patterns.
+2. Define the `.api` or `.proto` specification, then run **goctl** in the terminal to generate code.
+3. Implement business logic, resolve dependencies, build, and test the service.
+
+**Example**: Create a REST API → write the `.api` specification → run `goctl api go` → implement the logic using **zero-skills** patterns → run `go mod tidy`, `go build ./...`, and `go test ./...`.
+
+### Optional MCP Integration
+
+For clients that use MCP tools, such as Claude Desktop, configure **[mcp-zero](https://github.com/zeromicro/mcp-zero)** to invoke goctl through MCP. It uses the same code generation engine; assistants with terminal access can use the direct workflow above without an MCP server.
+
+## Quick Start
+
+1. Full examples:
 
      [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 
@@ -115,24 +125,22 @@ go get -u github.com/zeromicro/go-zero
 
 2. Install goctl
 
-   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve productivity, and make our lives easier.
-
    ```shell
    # for Go
    go install github.com/zeromicro/go-zero/tools/goctl@latest
-   
+
    # For Mac
    brew install goctl
-   
+
    # docker for all platforms
    docker pull kevinwan/goctl
    # run goctl
    docker run --rm -it -v `pwd`:/app kevinwan/goctl --help
    ```
-   
-   make sure goctl is executable and in your $PATH.
-   
-3. Create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
+
+   Ensure goctl is executable and in your $PATH.
+
+3. Create the API file (greet.api):
 
    ```go
    type (
@@ -151,19 +159,19 @@ go get -u github.com/zeromicro/go-zero
    }
    ```
 
-   the .api files also can be generated by goctl, like below:
+   Generate .api template:
 
    ```shell
    goctl api -o greet.api
    ```
 
-4. Generate the go server-side code
+4. Generate Go server code
 
    ```shell
    goctl api go -api greet.api -dir greet
    ```
 
-   the generated files look like:
+   Generated structure:
 
    ```Plain Text
    ├── greet
@@ -185,7 +193,7 @@ go get -u github.com/zeromicro/go-zero
    └── greet.api                     // api description file
    ```
 
-   the generated code can be run directly:
+   Run the service:
 
    ```shell
    cd greet
@@ -193,15 +201,15 @@ go get -u github.com/zeromicro/go-zero
    go run greet.go -f etc/greet-api.yaml
    ```
 
-   by default, it’s listening on port 8888, while it can be changed in the configuration file.
+   Default port: 8888 (configurable in etc/greet-api.yaml)
 
-   you can check it by curl:
+   Test with curl:
 
    ```shell
    curl -i http://localhost:8888/greet/from/you
    ```
 
-   the response looks like below:
+   Response:
 
    ```http
    HTTP/1.1 200 OK
@@ -209,18 +217,42 @@ go get -u github.com/zeromicro/go-zero
    Content-Length: 0
    ```
 
-5. Write the business logic code
+5. Write business logic
 
-    * the dependencies can be passed into the logic within servicecontext.go, like mysql, redis, etc.
-    * add the logic code in a logic package according to .api file
+    * Pass dependencies (mysql, redis, etc.) via servicecontext.go
+    * Add logic code in the logic package per .api definition
 
-6. Generate code like Java, TypeScript, Dart, JavaScript, etc. just from the api file
+6. Generate client code for multiple languages
 
    ```shell
    goctl api java -api greet.api -dir greet
    goctl api dart -api greet.api -dir greet
    ...
    ```
+
+## Kubernetes RPC discovery
+
+RPC clients can discover services inside Kubernetes by using the `k8s` target
+scheme:
+
+```go
+c := zrpc.RpcClientConf{
+    NonBlock: true,
+    Target:   "k8s://dev/demo-rpc:8080",
+}
+```
+
+The target format is `k8s://<namespace>/<service>:<port>`. If the namespace is
+omitted, `default` is used. The resolver runs in-cluster and reads Kubernetes
+EndpointSlices, so the service account used by the client must be allowed to
+read EndpointSlices in the target namespace:
+
+```yaml
+rules:
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["list", "watch"]
+```
 
 ## Benchmark
 
@@ -235,11 +267,11 @@ go get -u github.com/zeromicro/go-zero
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
 
-##  Chat group
+## Chat group
 
 Join the chat via https://discord.gg/4JQvC5A4Fe
 
-##  Cloud Native Landscape
+## Cloud Native Landscape
 
 <p float="left">
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/cncf-logo.svg" width="200"/>&nbsp;&nbsp;&nbsp;
@@ -251,7 +283,3 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 ## Give a Star! ⭐
 
 If you like this project or are using it to learn or start your own solution, give it a star to get updates on new releases. Your support matters!
-
-## Buy me a coffee
-
-<a href="https://www.buymeacoffee.com/kevwan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>

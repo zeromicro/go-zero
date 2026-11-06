@@ -164,11 +164,18 @@ func (tw *TimingWheel) Stop() {
 
 func (tw *TimingWheel) drainAll(fn func(key, value any)) {
 	runner := threading.NewTaskRunner(drainWorkers)
+
 	for _, slot := range tw.slots {
 		for e := slot.Front(); e != nil; {
 			task := e.Value.(*timingEntry)
 			next := e.Next()
 			slot.Remove(e)
+			if val, ok := tw.timers.Get(task.key); ok {
+				timer := val.(*positionEntry)
+				if timer.item == task {
+					tw.timers.Del(task.key)
+				}
+			}
 			e = next
 			if !task.removed {
 				runner.Schedule(func() {
@@ -177,6 +184,8 @@ func (tw *TimingWheel) drainAll(fn func(key, value any)) {
 			}
 		}
 	}
+
+	runner.Wait()
 }
 
 func (tw *TimingWheel) getPositionAndCircle(d time.Duration) (pos, circle int) {

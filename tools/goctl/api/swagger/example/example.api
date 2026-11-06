@@ -82,6 +82,7 @@ type (
 service Swagger {
 	@doc (
 		description: "form demo"
+		respCode: "201" // HTTP status code corresponding to Swagger
 	)
 	@handler form
 	post /form (FormReq) returns (FormResp)
@@ -101,6 +102,27 @@ type (
 		Avatar   string `json:"avatar"`
 		Language string `json:"language"`
 		Gender   string `json:"gender"`
+	}
+	EmbeddedUser {
+		UserId   int    `json:"userId,example=10"`
+		Username string `json:"username,example=keson.an"`
+	}
+	EmbeddedAudit {
+		TraceId   string `json:"traceId,example=trace-001"`
+		CreatedBy string `json:"createdBy,optional,example=system"`
+	}
+	EmbeddedProfile {
+		EmbeddedUser
+		*EmbeddedAudit
+		Nickname string `json:"nickname,optional,example=keson"`
+	}
+	EmbeddedJsonReq {
+		EmbeddedProfile
+		RequestId string `json:"requestId,example=req-001"`
+	}
+	EmbeddedJsonResp {
+		EmbeddedProfile
+		Success bool `json:"success,example=true"`
 	}
 	ComplexJsonLevel2 {
 		// basic
@@ -237,5 +259,10 @@ service Swagger {
 	)
 	@handler jsonComplex
 	post /json/complex (ComplexJsonReq) returns (ComplexJsonResp)
-}
 
+	@doc (
+		description: "embedded json request body API"
+	)
+	@handler jsonEmbedded
+	post /json/embedded (EmbeddedJsonReq) returns (EmbeddedJsonResp)
+}

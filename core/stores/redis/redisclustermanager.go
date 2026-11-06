@@ -27,12 +27,15 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			}
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        splitClusterAddrs(r.Addr),
-			Username:     r.User,
-			Password:     r.Pass,
-			MaxRetries:   maxRetries,
-			MinIdleConns: idleConns,
-			TLSConfig:    tlsConfig,
+			Addrs:                    splitClusterAddrs(r.Addr),
+			Username:                 r.User,
+			Password:                 r.Pass,
+			MaxRetries:               maxRetries,
+			MinIdleConns:             idleConns,
+			TLSConfig:                tlsConfig,
+			Protocol:                 r.protocol,
+			DisableIdentity:          r.identity,
+			MaintNotificationsConfig: r.maintNotificationsConfig(),
 		})
 
 		hooks := append([]red.Hook{defaultDurationHook, breakerHook{

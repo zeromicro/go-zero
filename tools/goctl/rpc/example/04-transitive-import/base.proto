@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package base;
+
+option go_package = "example.com/demo/pb";
+
+message BaseResp {
+  int32  code = 1;
+  string msg  = 2;
+}

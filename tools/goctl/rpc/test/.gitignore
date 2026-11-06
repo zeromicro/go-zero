@@ -1,0 +1,4 @@
+# Ignore generated output from test scripts
+proto/*/output/
+proto/*/output_old/
+proto/*/output_new/

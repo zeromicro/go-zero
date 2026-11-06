@@ -94,3 +94,16 @@ func Update() error {
 
 	return pathx.InitTemplates(category, templates)
 }
+
+// hasField returns a function that checks if a field exists in the table.
+// It uses a pre-built map for O(1) lookup performance.
+func hasField(table Table) func(string) bool {
+	fieldSet := make(map[string]struct{}, len(table.Fields))
+	for _, field := range table.Fields {
+		fieldSet[field.NameOriginal] = struct{}{}
+	}
+	return func(f string) bool {
+		_, ok := fieldSet[f]
+		return ok
+	}
+}

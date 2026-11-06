@@ -27,16 +27,31 @@ type ProjectContext struct {
 // workDir parameter is the directory of the source of generating code,
 // where can be found the project path and the project module,
 func Prepare(workDir string) (*ProjectContext, error) {
+	return PrepareWithModule(workDir, "")
+}
+
+// PrepareWithModule checks the project which module belongs to,and returns the path and module.
+// workDir parameter is the directory of the source of generating code,
+// where can be found the project path and the project module,
+// moduleName parameter is the custom module name to use if creating a new go.mod
+func PrepareWithModule(workDir string, moduleName string) (*ProjectContext, error) {
 	ctx, err := background(workDir)
 	if err == nil {
 		return ctx, nil
 	}
 
-	name := filepath.Base(workDir)
+	var name string
+	if len(moduleName) > 0 {
+		name = moduleName
+	} else {
+		name = filepath.Base(workDir)
+	}
+
 	_, err = execx.Run("go mod init "+name, workDir)
 	if err != nil {
 		return nil, err
 	}
+
 	return background(workDir)
 }
 

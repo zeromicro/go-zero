@@ -40,7 +40,7 @@ type (
 	}
 )
 
-// New create a Filter, store is the backed redis, key is the key for the bloom filter,
+// New creates a Filter, store is the backed redis, key is the key for the bloom filter,
 // bits is how many bits will be used, maps is how many hashes for each addition.
 // best practices:
 // elements - means how many actual elements

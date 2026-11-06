@@ -29,6 +29,40 @@ func TestContainsString(t *testing.T) {
 	}
 }
 
+func TestHasEmpty(t *testing.T) {
+	cases := []struct {
+		args   []string
+		expect bool
+	}{
+		{
+			args:   []string{"a", "b", "c"},
+			expect: false,
+		},
+		{
+			args:   []string{"a", "", "c"},
+			expect: true,
+		},
+		{
+			args:   []string{""},
+			expect: true,
+		},
+		{
+			args:   []string{},
+			expect: false,
+		},
+		{
+			args:   nil,
+			expect: false,
+		},
+	}
+
+	for _, each := range cases {
+		t.Run(path.Join(each.args...), func(t *testing.T) {
+			assert.Equal(t, each.expect, HasEmpty(each.args...))
+		})
+	}
+}
+
 func TestNotEmpty(t *testing.T) {
 	cases := []struct {
 		args   []string
@@ -92,6 +126,24 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func BenchmarkFilter(b *testing.B) {
+	b.Run("true", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			Filter(`ab,cd,ef`, func(r rune) bool { return r == ',' })
+		}
+	})
+
+	b.Run("false", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			Filter(`ab,cd,ef`, func(r rune) bool { return r == '!' })
+		}
+	})
+}
+
 func TestFirstN(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -137,6 +189,18 @@ func TestFirstN(t *testing.T) {
 			input:  "我是中国人",
 			n:      10,
 			expect: "我是中国人",
+		},
+		{
+			name:   "negative n returns empty string",
+			input:  "hello world",
+			n:      -1,
+			expect: "",
+		},
+		{
+			name:   "negative n with utf8 returns empty string",
+			input:  "我是中国人",
+			n:      -5,
+			expect: "",
 		},
 	}
 
@@ -289,6 +353,13 @@ func TestSubstr(t *testing.T) {
 			input:  "abcdefg",
 			start:  1,
 			stop:   100,
+			err:    ErrInvalidStopPosition,
+			expect: "",
+		},
+		{
+			input:  "hello",
+			start:  3,
+			stop:   2,
 			err:    ErrInvalidStopPosition,
 			expect: "",
 		},

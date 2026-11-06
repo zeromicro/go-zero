@@ -1,6 +1,8 @@
 package generator
 
 import (
+	"errors"
+	"os"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -30,12 +32,26 @@ type ZRpcContext struct {
 	Multiple bool
 	// Whether to generate rpc client
 	IsGenClient bool
+	// ClientOnly omits the server skeleton and requires IsGenClient.
+	ClientOnly bool
+	// Module is the custom module name for go.mod
+	Module string
+	// NameFromFilename uses proto filename instead of package name for service naming.
+	// Default is false (uses package name, which supports multi-proto files).
+	NameFromFilename bool
+	// ProtoPaths are the directories to search for imported proto files,
+	// equivalent to protoc -I flags. When empty the directory of Src is used.
+	ProtoPaths []string
 }
 
 // Generate generates a rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
+	if zctx.ClientOnly && !zctx.IsGenClient {
+		return errors.New("--client-only cannot be combined with --client=false")
+	}
+
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
 		return err
@@ -51,7 +67,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	projectCtx, err := ctx.Prepare(abs)
+	var projectCtx *ctx.ProjectContext
+	if len(zctx.Module) > 0 {
+		projectCtx, err = ctx.PrepareWithModule(abs, zctx.Module)
+	} else {
+		projectCtx, err = ctx.Prepare(abs)
+	}
 	if err != nil {
 		return err
 	}
@@ -62,14 +83,22 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
+	// Populate ImportedProtos so that generators can resolve dotted type references.
+	proto.ImportedProtos, err = resolveImportedProtos(zctx)
+	if err != nil {
+		return err
+	}
+
 	dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenEtc(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
+	if !zctx.ClientOnly {
+		err = g.GenEtc(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = g.GenPb(dirCtx, zctx)
@@ -77,29 +106,31 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenConfig(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
-	}
+	if !zctx.ClientOnly {
+		err = g.GenConfig(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenSvc(dirCtx, proto, g.cfg)
-	if err != nil {
-		return err
-	}
+		err = g.GenSvc(dirCtx, proto, g.cfg)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
+		err = g.GenServer(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 
-	err = g.GenMain(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
+		err = g.GenMain(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	if zctx.IsGenClient {
@@ -109,4 +140,28 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	console.NewColorConsole().MarkDone()
 
 	return err
+}
+
+// resolveImportedProtos builds the full list of transitively imported proto
+// files for zctx and returns their parsed metadata. This mirrors the proto
+// path computation in genpb.go so both use the same search paths.
+func resolveImportedProtos(zctx *ZRpcContext) ([]parser.ImportedProto, error) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	protoPaths := make([]string, 0, len(zctx.ProtoPaths)+1)
+	srcDir := filepath.Dir(zctx.Src)
+	if !filepath.IsAbs(srcDir) {
+		srcDir = filepath.Join(pwd, srcDir)
+	}
+	protoPaths = append(protoPaths, srcDir)
+	for _, p := range zctx.ProtoPaths {
+		if !filepath.IsAbs(p) {
+			p = filepath.Join(pwd, p)
+		}
+		protoPaths = append(protoPaths, p)
+	}
+	return parser.ParseImportedProtos(zctx.Src, protoPaths)
 }

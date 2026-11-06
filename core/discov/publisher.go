@@ -92,12 +92,12 @@ func (p *Publisher) doKeepAlive() error {
 		default:
 			cli, err := p.doRegister()
 			if err != nil {
-				logc.Errorf(cli.Ctx(), "etcd publisher doRegister: %s", err.Error())
+				logc.Errorf(cli.Ctx(), "etcd publisher doRegister: %v", err)
 				break
 			}
 
 			if err := p.keepAliveAsync(cli); err != nil {
-				logc.Errorf(cli.Ctx(), "etcd publisher keepAliveAsync: %s", err.Error())
+				logc.Errorf(cli.Ctx(), "etcd publisher keepAliveAsync: %v", err)
 				break
 			}
 
@@ -125,15 +125,40 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 	}
 
 	threading.GoSafe(func() {
+		wch := cli.Watch(cli.Ctx(), p.fullKey, clientv3.WithFilterPut())
+
 		for {
 			select {
 			case _, ok := <-ch:
 				if !ok {
 					p.revoke(cli)
 					if err := p.doKeepAlive(); err != nil {
-						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
+						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
 					}
 					return
+				}
+
+			case c := <-wch:
+				if c.Err() != nil {
+					logc.Errorf(cli.Ctx(), "etcd publisher watch: %v", c.Err())
+					if err := p.doKeepAlive(); err != nil {
+						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
+					}
+					return
+				}
+
+				for _, evt := range c.Events {
+					if evt.Type == clientv3.EventTypeDelete {
+						logc.Infof(cli.Ctx(), "etcd publisher watch: %s, event: %v",
+							evt.Kv.Key, evt.Type)
+						_, err := cli.Put(cli.Ctx(), p.fullKey, p.value, clientv3.WithLease(p.lease))
+						if err != nil {
+							logc.Errorf(cli.Ctx(), "etcd publisher re-put key: %v", err)
+						} else {
+							logc.Infof(cli.Ctx(), "etcd publisher re-put key: %s, value: %s",
+								p.fullKey, p.value)
+						}
+					}
 				}
 			case <-p.pauseChan:
 				logc.Infof(cli.Ctx(), "paused etcd renew, key: %s, value: %s", p.key, p.value)
@@ -141,7 +166,7 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 				select {
 				case <-p.resumeChan:
 					if err := p.doKeepAlive(); err != nil {
-						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %s", err.Error())
+						logc.Errorf(cli.Ctx(), "etcd publisher KeepAlive: %v", err)
 					}
 					return
 				case <-p.quit.Done():
@@ -176,7 +201,7 @@ func (p *Publisher) register(client internal.EtcdClient) (clientv3.LeaseID, erro
 
 func (p *Publisher) revoke(cli internal.EtcdClient) {
 	if _, err := cli.Revoke(cli.Ctx(), p.lease); err != nil {
-		logc.Errorf(cli.Ctx(), "etcd publisher revoke: %s", err.Error())
+		logc.Errorf(cli.Ctx(), "etcd publisher revoke: %v", err)
 	}
 }
 

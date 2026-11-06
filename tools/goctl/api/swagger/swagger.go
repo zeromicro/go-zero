@@ -172,13 +172,12 @@ func sampleTypeFromGoType(ctx Context, tp apiSpec.Type) string {
 	}
 }
 
-func typeContainsTag(_ Context, structType apiSpec.DefineStruct, tag string) bool {
-	for _, field := range structType.Members {
-		tags, _ := apiSpec.Parse(field.Tag)
-		for _, t := range tags.Tags() {
-			if t.Key == tag {
-				return true
-			}
+func typeContainsTag(ctx Context, structType apiSpec.DefineStruct, tag string) bool {
+	members := expandMembers(ctx, structType)
+	for _, member := range members {
+		tags, _ := apiSpec.Parse(member.Tag)
+		if _, err := tags.Get(tag); err == nil {
+			return true
 		}
 	}
 	return false
@@ -203,6 +202,8 @@ func expandMembers(ctx Context, tp apiSpec.Type) []apiSpec.Member {
 			}
 			members = append(members, v)
 		}
+	case apiSpec.PointerType:
+		members = expandMembers(ctx, val.Type)
 	}
 
 	return members
@@ -245,7 +246,7 @@ func isOptional(_ Context, options []string) bool {
 
 func pathVariable2SwaggerVariable(_ Context, path string) string {
 	pathItems := strings.FieldsFunc(path, slashRune)
-	var resp []string
+	resp := make([]string, 0, len(pathItems))
 	for _, v := range pathItems {
 		if strings.HasPrefix(v, ":") {
 			resp = append(resp, "{"+v[1:]+"}")
@@ -294,7 +295,7 @@ func specExtensions(api apiSpec.Info) (spec.Extensions, *spec.Info) {
 	ext := spec.Extensions{}
 	ext.Add("x-goctl-version", version.BuildVersion)
 	ext.Add("x-description", "This is a goctl generated swagger file.")
-	ext.Add("x-date", time.Now().Format("2006-01-02 15:04:05"))
+	ext.Add("x-date", time.Now().Format(time.DateTime))
 	ext.Add("x-github", "https://github.com/zeromicro/go-zero")
 	ext.Add("x-go-zero-doc", "https://go-zero.dev/")
 

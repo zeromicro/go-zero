@@ -225,6 +225,48 @@ func TestWritePlainDuplicate(t *testing.T) {
 	assert.Contains(t, buf.String(), "second=c")
 }
 
+func TestLogWithSensitive(t *testing.T) {
+	old := atomic.SwapUint32(&encoding, plainEncodingType)
+	t.Cleanup(func() {
+		atomic.StoreUint32(&encoding, old)
+	})
+
+	t.Run("sensitive", func(t *testing.T) {
+		var buf bytes.Buffer
+		output(&buf, levelInfo, User{
+			Name: "kevin",
+			Pass: "123",
+		}, LogField{
+			Key:   "first",
+			Value: "a",
+		}, LogField{
+			Key:   "first",
+			Value: "b",
+		})
+		assert.Contains(t, buf.String(), maskedContent)
+		assert.NotContains(t, buf.String(), "first=a")
+		assert.Contains(t, buf.String(), "first=b")
+	})
+
+	t.Run("sensitive fields", func(t *testing.T) {
+		var buf bytes.Buffer
+		output(&buf, levelInfo, "foo", LogField{
+			Key: "first",
+			Value: User{
+				Name: "kevin",
+				Pass: "123",
+			},
+		}, LogField{
+			Key:   "second",
+			Value: "b",
+		})
+		assert.Contains(t, buf.String(), "foo")
+		assert.Contains(t, buf.String(), "first")
+		assert.Contains(t, buf.String(), maskedContent)
+		assert.Contains(t, buf.String(), "second=b")
+	})
+}
+
 func TestLogWithLimitContentLength(t *testing.T) {
 	maxLen := atomic.LoadUint32(&maxContentLength)
 	atomic.StoreUint32(&maxContentLength, 10)
