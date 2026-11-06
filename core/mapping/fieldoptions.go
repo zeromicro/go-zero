@@ -103,10 +103,12 @@ func (o *fieldOptions) toOptionsWithContext(key string, m Valuer, fullName strin
 	}
 
 	return &fieldOptionsWithContext{
+		Inherit:    o.Inherit,
 		FromString: o.FromString,
 		Optional:   optional,
 		Options:    o.Options,
 		Default:    o.Default,
 		EnvVar:     o.EnvVar,
+		Range:      o.Range,
 	}, nil
 }
