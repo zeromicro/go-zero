@@ -66,9 +66,6 @@ func (sc ServiceConf) SetUp() error {
 	}
 	trace.StartAgent(sc.Telemetry)
 	proc.Setup(sc.Shutdown)
-	proc.AddShutdownListener(func() {
-		trace.StopAgent()
-	})
 
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
@@ -78,6 +75,11 @@ func (sc ServiceConf) SetUp() error {
 	profiling.Start(sc.Profiling)
 
 	return nil
+}
+
+// TearDown tear down the service.
+func (sc ServiceConf) TearDown() {
+	trace.StopAgent()
 }
 
 func (sc ServiceConf) initMode() {

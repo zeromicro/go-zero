@@ -112,6 +112,7 @@ func (s *Server) StartWithOpts(opts ...StartOption) {
 
 // Stop stops the Server.
 func (s *Server) Stop() {
+	s.ngin.conf.TearDown()
 	logx.Close()
 }
 
