@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"reflect"
@@ -115,6 +116,18 @@ func ParseHeader(headerValue string) map[string]string {
 func ParseJsonBody(r *http.Request, v any) error {
 	if withJsonBody(r) {
 		reader := io.LimitReader(r.Body, maxBodyLen)
+		if r.ContentLength < 0 {
+			var first [1]byte
+			if _, err := io.ReadFull(reader, first[:]); err != nil {
+				if err == io.EOF {
+					return mapping.UnmarshalJsonMap(nil, v)
+				}
+				return err
+			}
+
+			reader = io.MultiReader(bytes.NewReader(first[:]), reader)
+		}
+
 		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
@@ -149,5 +162,5 @@ func getValidator() Validator {
 }
 
 func withJsonBody(r *http.Request) bool {
-	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
+	return r.ContentLength != 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
 }
