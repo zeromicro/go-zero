@@ -31,6 +31,7 @@ var (
 	errValueNotStruct   = errors.New("value type is not struct")
 	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
 	durationType        = reflect.TypeOf(time.Duration(0))
+	emptyInterfaceType  = reflect.TypeOf((*any)(nil)).Elem()
 	cacheKeys           = make(map[string][]string)
 	cacheKeysLock       sync.Mutex
 	defaultCache        = make(map[string]any)
@@ -587,6 +588,8 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	valueKind := reflect.TypeOf(mapValue).Kind()
 
 	switch {
+	case derefedFieldType == emptyInterfaceType:
+		return fillWithSameType(fieldType, value, mapValue, opts)
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		mv, ok := mapValue.(map[string]any)
 		if !ok {
