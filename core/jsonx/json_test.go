@@ -1,6 +1,7 @@
 package jsonx
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -201,6 +202,58 @@ func Test_doMarshalJson(t *testing.T) {
 			}
 
 			assert.Equalf(t, string(tt.want), string(got), "Marshal(%v)", tt.args.v)
+		})
+	}
+}
+
+func TestUnmarshalTrailingData(t *testing.T) {
+	tests := []struct {
+		name      string
+		unmarshal func(input string, v any) error
+	}{
+		{
+			name: "bytes",
+			unmarshal: func(input string, v any) error {
+				return Unmarshal([]byte(input), v)
+			},
+		},
+		{
+			name: "string",
+			unmarshal: func(input string, v any) error {
+				return UnmarshalFromString(input, v)
+			},
+		},
+		{
+			name: "reader",
+			unmarshal: func(input string, v any) error {
+				return UnmarshalFromReader(strings.NewReader(input), v)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, test := range []struct {
+				name    string
+				input   string
+				wantErr bool
+			}{
+				{name: "second value", input: `{"first": 1} {"second": 2}`, wantErr: true},
+				{name: "trailing whitespace", input: "{\"first\": 1} \t\r\n"},
+				{name: "malformed trailing data", input: `{"first": 1} garbage`, wantErr: true},
+				{name: "incomplete trailing value", input: `{"first": 1} {`, wantErr: true},
+			} {
+				t.Run(test.name, func(t *testing.T) {
+					var value map[string]any
+					err := tt.unmarshal(test.input, &value)
+					if test.wantErr {
+						assert.Error(t, err)
+					} else {
+						assert.NoError(t, err)
+						assert.Equal(t, json.Number("1"), value["first"])
+					}
+				})
+			}
 		})
 	}
 }
