@@ -233,8 +233,8 @@ go.etcd.io/etcd/client/pkg/v3 v3.6.14 h1:kqZf/BCRDWk9u5cNwBn1mTA+4GIZAU0POFPHmWH
 go.etcd.io/etcd/client/pkg/v3 v3.6.14/go.mod h1:Po3WXW01VRS7/gSDf8xjiY2rJTLmAwq/YmKAEz6u1+E=
 go.etcd.io/etcd/client/v3 v3.6.14 h1:3hjJbZCFJ3nFR47dZ/jjVu1/z6BRUHN1AA34pRbUW8Q=
 go.etcd.io/etcd/client/v3 v3.6.14/go.mod h1:rQqHPE7ju1B1nmaqpGdhRgBHqOTiVaUeymlY1/ATcoM=
-go.mongodb.org/mongo-driver/v2 v2.9.2 h1:OCAdjI37pC/SVxucz/9CM8zD4jCdegtsY5QcKzYFCgE=
-go.mongodb.org/mongo-driver/v2 v2.9.2/go.mod h1:SHKN0IWkKmEVGHLjXnni6s4wPKX4v86FTgOeJJFuXcA=
+go.mongodb.org/mongo-driver/v2 v2.9.3 h1:wyiWaPGYaFqRmhjNOXwlK6Cu8Qf35zFH4euH2NBBj34=
+go.mongodb.org/mongo-driver/v2 v2.9.3/go.mod h1:SHKN0IWkKmEVGHLjXnni6s4wPKX4v86FTgOeJJFuXcA=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/otel v1.46.0 h1:FHt5/CDyVxi/8IM1CH7VE/rRgq3kLHa2mSTVMO8AWyc=
