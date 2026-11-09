@@ -2,6 +2,7 @@ package profiling
 
 import (
 	"runtime"
+	"runtime/metrics"
 	"sync"
 	"time"
 
@@ -34,8 +35,15 @@ type (
 		CheckInterval time.Duration `json:",default=10s"`
 		// ProfilingDuration is the duration for which profiling data is collected.
 		ProfilingDuration time.Duration `json:",default=2m"`
-		// CpuThreshold the collection is allowed only when the current service cpu > CpuThreshold
+		// CpuThreshold is the CPU usage threshold on a scale of 0 to 1000 (1000 = 100%).
+		// A value of 0 triggers profiling unconditionally.
 		CpuThreshold int64 `json:",default=700,range=[0:1000)"`
+		// HeapThreshold is the allocated heap memory threshold in bytes.
+		// A value of 0 disables the heap trigger.
+		HeapThreshold uint64 `json:",default=0"`
+		// GoroutineThreshold is the threshold for the number of live goroutines.
+		// A value of 0 disables the goroutine trigger.
+		GoroutineThreshold int `json:",default=0,range=[0:)"`
 
 		// ProfileType is the type of profiling to be performed.
 		ProfileType ProfileType
@@ -72,6 +80,18 @@ var (
 
 	newProfiler = func(c Config) profiler {
 		return newPyroscopeProfiler(c)
+	}
+	numGoroutine  = runtime.NumGoroutine
+	readHeapAlloc = func() uint64 {
+		samples := []metrics.Sample{
+			{Name: "/memory/classes/heap/objects:bytes"},
+		}
+		metrics.Read(samples)
+		if samples[0].Value.Kind() == metrics.KindUint64 {
+			return samples[0].Value.Uint64()
+		}
+
+		return 0
 	}
 )
 
@@ -122,7 +142,7 @@ func startPyroscope(c Config, done <-chan struct{}) {
 		select {
 		case <-intervalTicker.C:
 			// Check if the machine is overloaded and if the profiler is not running
-			if pr == nil && isCpuOverloaded(c) {
+			if pr == nil && isOverloaded(c) {
 				pr = newProfiler(c)
 				if err := pr.Start(); err != nil {
 					logx.Errorf("failed to start profiler: %v", err)
@@ -202,6 +222,31 @@ func isCpuOverloaded(c Config) bool {
 	if currentValue >= c.CpuThreshold {
 		logx.Infof("continuous profiling cpu overload, cpu: %d", currentValue)
 		return true
+	}
+
+	return false
+}
+
+// isOverloaded checks whether any enabled profiling threshold has been reached.
+func isOverloaded(c Config) bool {
+	if isCpuOverloaded(c) {
+		return true
+	}
+
+	if c.HeapThreshold > 0 {
+		currentValue := readHeapAlloc()
+		if currentValue >= c.HeapThreshold {
+			logx.Infof("continuous profiling heap overload, heap: %d bytes", currentValue)
+			return true
+		}
+	}
+
+	if c.GoroutineThreshold > 0 {
+		currentValue := numGoroutine()
+		if currentValue >= c.GoroutineThreshold {
+			logx.Infof("continuous profiling goroutine overload, goroutines: %d", currentValue)
+			return true
+		}
 	}
 
 	return false
