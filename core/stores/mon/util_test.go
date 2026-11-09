@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/core/timex"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func TestFormatAddrs(t *testing.T) {
@@ -88,6 +89,30 @@ func Test_logDuration(t *testing.T) {
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "bar")
 	assert.Contains(t, buf.String(), "fail")
+}
+
+func Test_logDuration_acceptableErr(t *testing.T) {
+	defer func() {
+		logMon.Set(true)
+		logSlowMon.Set(true)
+	}()
+	logMon.Set(true)
+	logSlowMon.Set(true)
+
+	buf := logtest.NewCollector(t)
+
+	buf.Reset()
+	logDuration(context.Background(), "foo", "bar", timex.Now(), mongo.ErrNoDocuments)
+	assert.NotContains(t, buf.String(), "fail")
+	assert.Contains(t, buf.String(), "ok")
+	assert.Contains(t, buf.String(), "foo")
+	assert.Contains(t, buf.String(), "bar")
+
+	buf.Reset()
+	logDuration(context.Background(), "foo", "bar", timex.Now()-slowThreshold.Load()*2, mongo.ErrNoDocuments)
+	assert.NotContains(t, buf.String(), "fail")
+	assert.Contains(t, buf.String(), "slow")
+	assert.Contains(t, buf.String(), "ok")
 }
 
 func Test_logDurationWithDoc(t *testing.T) {
