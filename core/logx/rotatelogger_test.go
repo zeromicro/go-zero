@@ -16,6 +16,22 @@ import (
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
+func redirectStdoutToDevNull(t *testing.T) {
+	t.Helper()
+
+	devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	old := os.Stdout
+	os.Stdout = devNull
+	t.Cleanup(func() {
+		os.Stdout = old
+		assert.NoError(t, devNull.Close())
+	})
+}
+
 func TestDailyRotateRuleMarkRotated(t *testing.T) {
 	t.Run("daily rule", func(t *testing.T) {
 		var rule DailyRotateRule
@@ -243,11 +259,7 @@ func TestRotateLoggerGetBackupFilename(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFile(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -262,11 +274,7 @@ func TestRotateLoggerMayCompressFile(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -354,11 +362,7 @@ func TestRotateLoggerGetBackupWithSizeLimitRotateRuleFilename(t *testing.T) {
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFile(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -373,11 +377,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFile(t *testing.T) {
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileTrue(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
@@ -392,11 +392,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileTrue(t *testing.T) {
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileFailed(t *testing.T) {
-	old := os.Stdout
-	os.Stdout = os.NewFile(0, os.DevNull)
-	defer func() {
-		os.Stdout = old
-	}()
+	redirectStdoutToDevNull(t)
 
 	filename := stringx.RandId()
 	logger, err := NewLogger(filename, new(SizeLimitRotateRule), true)
