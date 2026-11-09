@@ -474,3 +474,168 @@ func TestMarshal_Array(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "[1]", m["json"]["h"].(string))
 }
+
+func TestMarshal_Omitempty(t *testing.T) {
+	t.Run("string zero value", func(t *testing.T) {
+		v := struct {
+			Name string `json:"name,omitempty"`
+		}{
+			Name: "",
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["name"]
+		assert.False(t, ok)
+	})
+
+	t.Run("string with value", func(t *testing.T) {
+		v := struct {
+			Name string `json:"name,omitempty"`
+		}{
+			Name: "test",
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		assert.Equal(t, "test", m["json"]["name"])
+	})
+
+	t.Run("int zero value", func(t *testing.T) {
+		v := struct {
+			Age int `json:"age,omitempty"`
+		}{
+			Age: 0,
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["age"]
+		assert.False(t, ok)
+	})
+
+	t.Run("int with value", func(t *testing.T) {
+		v := struct {
+			Age int `json:"age,omitempty"`
+		}{
+			Age: 18,
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		assert.Equal(t, 18, m["json"]["age"])
+	})
+
+	t.Run("bool zero value", func(t *testing.T) {
+		v := struct {
+			Active bool `json:"active,omitempty"`
+		}{
+			Active: false,
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["active"]
+		assert.False(t, ok)
+	})
+
+	t.Run("bool with value", func(t *testing.T) {
+		v := struct {
+			Active bool `json:"active,omitempty"`
+		}{
+			Active: true,
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		assert.Equal(t, true, m["json"]["active"])
+	})
+
+	t.Run("slice nil value", func(t *testing.T) {
+		v := struct {
+			Items []string `json:"items,omitempty"`
+		}{
+			Items: nil,
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["items"]
+		assert.False(t, ok)
+	})
+
+	t.Run("slice empty value", func(t *testing.T) {
+		v := struct {
+			Items []string `json:"items,omitempty"`
+		}{
+			Items: []string{},
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["items"]
+		assert.False(t, ok)
+	})
+
+	t.Run("slice with value", func(t *testing.T) {
+		v := struct {
+			Items []string `json:"items,omitempty"`
+		}{
+			Items: []string{"a", "b"},
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		assert.Equal(t, []string{"a", "b"}, m["json"]["items"])
+	})
+
+	t.Run("pointer nil value", func(t *testing.T) {
+		type Item struct {
+			Name string `json:"name"`
+		}
+		v := struct {
+			Item *Item `json:"item,omitempty"`
+		}{
+			Item: nil,
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["item"]
+		assert.False(t, ok)
+	})
+
+	t.Run("pointer with value", func(t *testing.T) {
+		type Item struct {
+			Name string `json:"name"`
+		}
+		v := struct {
+			Item *Item `json:"item,omitempty"`
+		}{
+			Item: &Item{Name: "test"},
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		assert.Equal(t, "test", m["json"]["item"].(*Item).Name)
+	})
+
+	t.Run("mixed omitempty and non-omitempty", func(t *testing.T) {
+		v := struct {
+			Name    string `json:"name,omitempty"`
+			Age     int    `json:"age"`
+			Address string `json:"address,omitempty"`
+		}{
+			Name:    "",
+			Age:     20,
+			Address: "beijing",
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["name"]
+		assert.False(t, ok)
+		assert.Equal(t, 20, m["json"]["age"])
+		assert.Equal(t, "beijing", m["json"]["address"])
+	})
+
+	t.Run("omitempty with other options", func(t *testing.T) {
+		v := struct {
+			Token string `json:"token,omitempty,options=[abc,xyz]"`
+		}{
+			Token: "",
+		}
+		m, err := Marshal(v)
+		assert.Nil(t, err)
+		_, ok := m["json"]["token"]
+		assert.False(t, ok)
+	})
+}
