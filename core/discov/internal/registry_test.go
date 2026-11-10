@@ -22,6 +22,15 @@ import (
 
 var mockLock sync.Mutex
 
+type trackedCloser struct {
+	closeCount int
+}
+
+func (tc *trackedCloser) Close() error {
+	tc.closeCount++
+	return nil
+}
+
 func init() {
 	logx.Disable()
 }
@@ -49,6 +58,19 @@ func TestGetCluster(t *testing.T) {
 func TestGetClusterKey(t *testing.T) {
 	assert.Equal(t, getClusterKey([]string{"localhost:1234", "remotehost:5678"}),
 		getClusterKey([]string{"remotehost:5678", "localhost:1234"}))
+}
+
+func TestRegistry_InvalidateConn(t *testing.T) {
+	endpoints := []string{"invalidate-" + stringx.Rand()}
+	closer := new(trackedCloser)
+
+	connManager.Inject(getClusterKey(endpoints), closer)
+
+	assert.NoError(t, GetRegistry().InvalidateConn(endpoints))
+	assert.Equal(t, 1, closer.closeCount)
+
+	assert.NoError(t, GetRegistry().InvalidateConn(endpoints))
+	assert.Equal(t, 1, closer.closeCount)
 }
 
 func TestUnmonitor(t *testing.T) {
