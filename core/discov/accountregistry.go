@@ -1,6 +1,10 @@
 package discov
 
-import "github.com/zeromicro/go-zero/core/discov/internal"
+import (
+	"time"
+
+	"github.com/zeromicro/go-zero/core/discov/internal"
+)
 
 // RegisterAccount registers the username/password to the given etcd cluster.
 func RegisterAccount(endpoints []string, user, pass string) {
@@ -11,4 +15,9 @@ func RegisterAccount(endpoints []string, user, pass string) {
 func RegisterTLS(endpoints []string, certFile, certKeyFile, caFile string,
 	insecureSkipVerify bool) error {
 	return internal.AddTLS(endpoints, certFile, certKeyFile, caFile, insecureSkipVerify)
+}
+
+// RegisterAutoSyncInterval registers the auto sync interval for the given etcd cluster.
+func RegisterAutoSyncInterval(endpoints []string, interval time.Duration) {
+	internal.AddAutoSyncInterval(endpoints, interval)
 }
