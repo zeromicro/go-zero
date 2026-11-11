@@ -5010,6 +5010,24 @@ func TestUnmarshalJsonReaderNamedBytes(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJsonReaderBytesPtrInMapAndSlice(t *testing.T) {
+	t.Run("map", func(t *testing.T) {
+		var res struct {
+			Map map[string]*[]byte `json:"map"`
+		}
+		err := UnmarshalJsonReader(strings.NewReader(`{"map": {"role": "b3duZXI="}}`), &res)
+		assert.Error(t, err)
+	})
+
+	t.Run("slice", func(t *testing.T) {
+		var res struct {
+			Slice []*[]byte `json:"slice"`
+		}
+		err := UnmarshalJsonReader(strings.NewReader(`{"slice": ["b3duZXI="]}`), &res)
+		assert.Error(t, err)
+	})
+}
+
 func TestUnmarshalJsonReaderPtrMultiArrayString(t *testing.T) {
 	var res struct {
 		A string      `json:"a"`

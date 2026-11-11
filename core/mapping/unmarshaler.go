@@ -134,8 +134,11 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return errValueNotSettable
 	}
 
-	// map values and slice elements of []byte are base64-encoded strings in json
-	if str, ok := mapValue.(string); ok && Deref(fieldType).Elem().Kind() == reflect.Uint8 {
+	// map values and slice elements of []byte are base64-encoded strings in json.
+	// Pointer elements like *[]byte reach here with fieldType and value of different
+	// types, so leave them to the type check below.
+	if str, ok := mapValue.(string); ok && fieldType == value.Type() &&
+		fieldType.Elem().Kind() == reflect.Uint8 {
 		return u.fillByteSliceFromString(fieldType, value, str, fullName)
 	}
 
