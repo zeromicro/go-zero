@@ -125,7 +125,7 @@ func TestCluster_HandleChanges(t *testing.T) {
 			Key: "second",
 			Val: "2",
 		},
-	})
+	}, 1)
 	assert.EqualValues(t, map[string]string{
 		"first":  "1",
 		"second": "2",
@@ -139,11 +139,116 @@ func TestCluster_HandleChanges(t *testing.T) {
 			Key: "fourth",
 			Val: "4",
 		},
-	})
+	}, 2)
 	assert.EqualValues(t, map[string]string{
 		"third":  "3",
 		"fourth": "4",
 	}, c.watchers[key].values)
+}
+
+func TestCluster_handleChanges_ValueChangeKeepsKey(t *testing.T) {
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"any"})
+	l := newContainerListener()
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{l},
+		values:    make(map[string]string),
+	}
+
+	c.handleChanges(key, []KV{{Key: "hello", Val: "world1"}}, 1)
+	c.handleChanges(key, []KV{{Key: "hello", Val: "world2"}}, 2)
+
+	// A changed value is in both the add and the remove list. OnDelete removes
+	// by key, so delivering the add first would delete the new value again.
+	assert.Equal(t, map[string]string{"hello": "world2"}, l.values)
+	assert.Equal(t, map[string]string{"hello": "world2"}, c.watchers[key].values)
+}
+
+func TestCluster_handleChanges_EqualRevisionApplies(t *testing.T) {
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"any"})
+	c.watchers[key] = &watchValue{
+		values: map[string]string{"hello": "world1"},
+		rev:    2,
+	}
+
+	// Only a strictly older snapshot is stale: the revision of a Get response
+	// includes every mutation at that revision.
+	assert.Equal(t, int64(2), c.handleChanges(key, []KV{{Key: "hello", Val: "world2"}}, 2))
+	assert.Equal(t, "world2", c.watchers[key].values["hello"])
+}
+
+func TestCluster_handleChanges_DeleteBumpsRev(t *testing.T) {
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"any"})
+	c.watchers[key] = &watchValue{
+		values: map[string]string{"hello": "world1"},
+	}
+
+	c.handleWatchEvents(context.Background(), key, []*clientv3.Event{
+		{
+			Type: clientv3.EventTypeDelete,
+			Kv: &mvccpb.KeyValue{
+				Key:         []byte("hello"),
+				ModRevision: 100,
+			},
+		},
+	})
+
+	assert.Empty(t, c.watchers[key].values)
+	// A snapshot before the delete must not resurrect the key.
+	assert.Equal(t, int64(100), c.handleChanges(key, []KV{{Key: "hello", Val: "world1"}}, 90))
+	assert.Empty(t, c.watchers[key].values)
+	assert.Equal(t, int64(100), c.watchers[key].rev)
+}
+
+func TestCluster_Load_SkipsOlderSnapshot(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background())
+	cli.EXPECT().Get(gomock.Any(), "any/", gomock.Any()).Return(&clientv3.GetResponse{
+		Header: &etcdserverpb.ResponseHeader{Revision: 90},
+		Kvs: []*mvccpb.KeyValue{
+			{
+				Key:   []byte("hello"),
+				Value: []byte("world1"),
+			},
+			{
+				Key:   []byte("only-in-snapshot"),
+				Value: []byte("stale"),
+			},
+		},
+	}, nil)
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"any"})
+	l := newContainerListener()
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{l},
+		values:    make(map[string]string),
+	}
+
+	// A watch event newer than the snapshot is applied while Get is in flight.
+	c.handleWatchEvents(context.Background(), key, []*clientv3.Event{
+		{
+			Type: clientv3.EventTypePut,
+			Kv: &mvccpb.KeyValue{
+				Key:         []byte("hello"),
+				Value:       []byte("world2"),
+				ModRevision: 100,
+			},
+		},
+	})
+
+	rev := c.load(cli, key)
+
+	// The whole snapshot is stale, including keys the event did not mention:
+	// the event's revision proves the watcher state is at least that new.
+	assert.Equal(t, int64(100), rev)
+	assert.Equal(t, map[string]string{"hello": "world2"}, c.watchers[key].values)
+	assert.Equal(t, map[string]string{"hello": "world2"}, l.values)
 }
 
 func TestCluster_Load(t *testing.T) {
@@ -358,6 +463,56 @@ func TestCluster_reload(t *testing.T) {
 	assert.NotPanics(t, func() {
 		c.reload(cli)
 	})
+}
+
+func TestCluster_Reload_ResetsRev(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	restore := setMockClient(cli)
+	defer restore()
+
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), "any/", gomock.Any()).Return(&clientv3.GetResponse{
+		Header: &etcdserverpb.ResponseHeader{Revision: 50},
+		Kvs: []*mvccpb.KeyValue{
+			{
+				Key:   []byte("hello"),
+				Value: []byte("world2"),
+			},
+		},
+	}, nil).AnyTimes()
+	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(make(chan clientv3.WatchResponse)).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := &cluster{
+		watchers: map[watchKey]*watchValue{
+			key: {
+				values: map[string]string{"hello": "world1"},
+				rev:    100,
+			},
+		},
+		watchGroup: threading.NewRoutineGroup(),
+		done:       make(chan lang.PlaceholderType),
+	}
+
+	c.reload(cli)
+
+	// The store can come back with a lower revision (restored from a backup),
+	// so reload has to accept the snapshot instead of treating it as stale.
+	assert.Eventually(t, func() bool {
+		c.lock.Lock()
+		defer c.lock.Unlock()
+
+		return c.watchers[key].rev == 50
+	}, time.Second, time.Millisecond)
+	c.lock.Lock()
+	assert.Equal(t, map[string]string{"hello": "world2"}, c.watchers[key].values)
+	c.lock.Unlock()
+
+	close(c.done)
+	c.watchGroup.Wait()
 }
 
 func TestClusterWatch_CloseChan(t *testing.T) {
@@ -594,4 +749,25 @@ func (m *mockListener) OnAdd(_ KV) {
 }
 
 func (m *mockListener) OnDelete(_ KV) {
+}
+
+// containerListener mirrors the key->value mapping in discov.container, where
+// OnDelete removes by key regardless of the value. The real container lives in
+// discov, which imports this package, so using it here would be an import cycle.
+type containerListener struct {
+	values map[string]string
+}
+
+func newContainerListener() *containerListener {
+	return &containerListener{
+		values: make(map[string]string),
+	}
+}
+
+func (l *containerListener) OnAdd(kv KV) {
+	l.values[kv.Key] = kv.Val
+}
+
+func (l *containerListener) OnDelete(kv KV) {
+	delete(l.values, kv.Key)
 }
