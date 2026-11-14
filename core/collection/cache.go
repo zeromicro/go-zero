@@ -80,12 +80,8 @@ func (c *Cache) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
 	c.lruCache.remove(key)
-	c.lock.Unlock()
-
-	// RemoveTimer is called outside the lock to avoid performance impact from this
-	// potentially time-consuming operation. Data integrity is maintained by lruCache,
-	// which will eventually evict any remaining entries when capacity is exceeded.
 	c.timingWheel.RemoveTimer(key)
+	c.lock.Unlock()
 }
 
 // Get returns the item with the given key from c.
@@ -107,18 +103,18 @@ func (c *Cache) Set(key string, value any) {
 
 // SetWithExpire sets value into c with key and expire with the given value.
 func (c *Cache) SetWithExpire(key string, value any, expire time.Duration) {
+	expiry := c.unstableExpiry.AroundDuration(expire)
+
 	c.lock.Lock()
 	_, ok := c.data[key]
 	c.data[key] = value
 	c.lruCache.add(key)
-	c.lock.Unlock()
-
-	expiry := c.unstableExpiry.AroundDuration(expire)
 	if ok {
 		c.timingWheel.MoveTimer(key, expiry)
 	} else {
 		c.timingWheel.SetTimer(key, value, expiry)
 	}
+	c.lock.Unlock()
 }
 
 // Take returns the item with the given key.
