@@ -152,7 +152,12 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, a
 			// it hides the rpc error headers.
 			http.Error(w, err.Error(), errcode.CodeFromGrpcError(err))
 		} else {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			code := http.StatusBadRequest
+			var maxBytesErr *http.MaxBytesError
+			if errors.As(err, &maxBytesErr) {
+				code = http.StatusRequestEntityTooLarge
+			}
+			http.Error(w, err.Error(), code)
 		}
 
 		return
