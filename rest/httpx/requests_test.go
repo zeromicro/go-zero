@@ -564,6 +564,21 @@ func TestParseJsonBody(t *testing.T) {
 		t.Logf("%x", v2.Signature)
 		assert.EqualValues(t, v1.Signature, v2.Signature)
 	})
+
+	t.Run("bytes map field", func(t *testing.T) {
+		var v struct {
+			BriefIntro []byte            `json:"brief_intro"`
+			Extra      map[string][]byte `json:"extra"`
+		}
+		body := `{"brief_intro": "T3duZXI=", "extra": {"role": "b3duZXI="}}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.ContentTypeJson)
+
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, []byte("Owner"), v.BriefIntro)
+			assert.Equal(t, map[string][]byte{"role": []byte("owner")}, v.Extra)
+		}
+	})
 }
 
 func TestParseRequired(t *testing.T) {

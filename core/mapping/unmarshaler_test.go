@@ -4962,6 +4962,72 @@ func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
 	})
 }
 
+func TestUnmarshalJsonReaderBytesInMapAndSlice(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		expect  []byte
+		wantErr bool
+	}{
+		{"base64", `"b3duZXI="`, []byte("owner"), false},
+		{"binary", `"Af8A"`, []byte{0x01, 0xff, 0x00}, false},
+		{"array", `[1, 255, 0]`, []byte{0x01, 0xff, 0x00}, false},
+		{"invalid base64", `"not base64"`, nil, true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var res struct {
+				Map   map[string][]byte `json:"map"`
+				Slice [][]byte          `json:"slice"`
+			}
+			payload := fmt.Sprintf(`{"map": {"role": %s}, "slice": [%s]}`, test.input, test.input)
+			err := UnmarshalJsonReader(strings.NewReader(payload), &res)
+			if test.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, map[string][]byte{"role": test.expect}, res.Map)
+				assert.Equal(t, [][]byte{test.expect}, res.Slice)
+			}
+		})
+	}
+}
+
+func TestUnmarshalJsonReaderNamedBytes(t *testing.T) {
+	type myByte uint8
+	var res struct {
+		Plain []myByte            `json:"plain"`
+		Map   map[string][]myByte `json:"map"`
+	}
+	payload := `{"plain": "b3duZXI=", "map": {"role": "b3duZXI="}}`
+	if assert.NoError(t, UnmarshalJsonReader(strings.NewReader(payload), &res)) {
+		expect := []myByte("owner")
+		assert.Equal(t, expect, res.Plain)
+		assert.Equal(t, map[string][]myByte{"role": expect}, res.Map)
+	}
+}
+
+func TestUnmarshalJsonReaderBytesPtrInMapAndSlice(t *testing.T) {
+	t.Run("map", func(t *testing.T) {
+		var res struct {
+			Map map[string]*[]byte `json:"map"`
+		}
+		err := UnmarshalJsonReader(strings.NewReader(`{"map": {"role": "b3duZXI="}}`), &res)
+		assert.Error(t, err)
+	})
+
+	t.Run("slice", func(t *testing.T) {
+		var res struct {
+			Slice []*[]byte `json:"slice"`
+		}
+		err := UnmarshalJsonReader(strings.NewReader(`{"slice": ["b3duZXI="]}`), &res)
+		assert.Error(t, err)
+	})
+}
+
 func TestUnmarshalJsonReaderPtrMultiArrayString(t *testing.T) {
 	var res struct {
 		A string      `json:"a"`

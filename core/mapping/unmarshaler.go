@@ -134,6 +134,14 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return errValueNotSettable
 	}
 
+	// map values and slice elements of []byte are base64-encoded strings in json.
+	// Pointer elements like *[]byte reach here with fieldType and value of different
+	// types, so leave them to the type check below.
+	if str, ok := mapValue.(string); ok && fieldType == value.Type() &&
+		fieldType.Elem().Kind() == reflect.Uint8 {
+		return u.fillByteSliceFromString(fieldType, value, str, fullName)
+	}
+
 	refValue := reflect.ValueOf(mapValue)
 	if refValue.Kind() != reflect.Slice {
 		return newTypeMismatchErrorWithHint(fullName, reflect.Slice.String(), refValue.Type().String())
@@ -183,6 +191,18 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	}
 
 	return nil
+}
+
+func (u *Unmarshaler) fillByteSliceFromString(fieldType reflect.Type, value reflect.Value,
+	str, fullName string) error {
+	if decodedBytes, err := base64.StdEncoding.DecodeString(str); err == nil {
+		target := reflect.New(Deref(fieldType)).Elem()
+		target.SetBytes(decodedBytes)
+		SetValue(fieldType, value, target)
+		return nil
+	}
+
+	return u.fillSliceFromString(fieldType, value, str, fullName)
 }
 
 func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
@@ -613,10 +633,7 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 		if fieldType.Elem().Kind() == reflect.Uint8 {
 			// check whether string type, because the kind of some other types can be string
 			if strVal, ok := mapValue.(string); ok {
-				if decodedBytes, err := base64.StdEncoding.DecodeString(strVal); err == nil {
-					value.Set(reflect.ValueOf(decodedBytes))
-					return nil
-				}
+				return u.fillByteSliceFromString(fieldType, value, strVal, fullName)
 			}
 		}
 
