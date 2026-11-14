@@ -26,6 +26,12 @@ type (
 	// CacheOption defines the method to customize a Cache.
 	CacheOption func(cache *Cache)
 
+	cacheEntry struct {
+		value    any
+		id       uint64
+		deadline time.Time
+	}
+
 	// A Cache object is an in-memory cache.
 	Cache struct {
 		name           string
@@ -37,6 +43,7 @@ type (
 		barrier        syncx.SingleFlight
 		unstableExpiry mathx.Unstable
 		stats          *cacheStat
+		id             uint64
 	}
 )
 
@@ -64,8 +71,12 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 		if !ok {
 			return
 		}
+		id, ok := v.(uint64)
+		if !ok {
+			return
+		}
 
-		cache.Del(key)
+		cache.delIfMatch(key, id)
 	})
 	if err != nil {
 		return nil, err
@@ -80,12 +91,8 @@ func (c *Cache) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
 	c.lruCache.remove(key)
-	c.lock.Unlock()
-
-	// RemoveTimer is called outside the lock to avoid performance impact from this
-	// potentially time-consuming operation. Data integrity is maintained by lruCache,
-	// which will eventually evict any remaining entries when capacity is exceeded.
 	c.timingWheel.RemoveTimer(key)
+	c.lock.Unlock()
 }
 
 // Get returns the item with the given key from c.
@@ -107,18 +114,19 @@ func (c *Cache) Set(key string, value any) {
 
 // SetWithExpire sets value into c with key and expire with the given value.
 func (c *Cache) SetWithExpire(key string, value any, expire time.Duration) {
-	c.lock.Lock()
-	_, ok := c.data[key]
-	c.data[key] = value
-	c.lruCache.add(key)
-	c.lock.Unlock()
-
 	expiry := c.unstableExpiry.AroundDuration(expire)
-	if ok {
-		c.timingWheel.MoveTimer(key, expiry)
-	} else {
-		c.timingWheel.SetTimer(key, value, expiry)
+
+	c.lock.Lock()
+	c.id++
+	id := c.id
+	c.data[key] = cacheEntry{
+		value:    value,
+		id:       id,
+		deadline: time.Now().Add(expiry),
 	}
+	c.lruCache.add(key)
+	c.timingWheel.SetTimer(key, id, expiry)
+	c.lock.Unlock()
 }
 
 // Take returns the item with the given key.
@@ -161,16 +169,42 @@ func (c *Cache) Take(key string, fetch func() (any, error)) (any, error) {
 	return val, nil
 }
 
+func (c *Cache) delIfMatch(key string, id uint64) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	val, ok := c.data[key]
+	if !ok {
+		return
+	}
+
+	entry := val.(cacheEntry)
+	if entry.id != id {
+		return
+	}
+
+	delete(c.data, key)
+	c.lruCache.remove(key)
+}
+
 func (c *Cache) doGet(key string) (any, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	value, ok := c.data[key]
-	if ok {
-		c.lruCache.add(key)
+	val, ok := c.data[key]
+	if !ok {
+		return nil, false
 	}
 
-	return value, ok
+	entry := val.(cacheEntry)
+	if !entry.deadline.IsZero() && time.Now().After(entry.deadline) {
+		delete(c.data, key)
+		c.lruCache.remove(key)
+		return nil, false
+	}
+
+	c.lruCache.add(key)
+	return entry.value, true
 }
 
 func (c *Cache) onEvict(key string) {
