@@ -76,6 +76,7 @@ type (
 		path    string
 		handler string
 		doc     string
+		atDoc   map[string]string
 	}
 )
 
@@ -98,14 +99,15 @@ func genRoutes(dir, rootPkg, projectPkg string, cfg *config.Config, api *spec.Ap
 		gbuilder.WriteString("[]rest.Route{")
 		for _, r := range g.routes {
 			var routeString string
-			if len(r.doc) > 0 {
+			if len(r.doc) > 0 || len(r.atDoc) > 0 {
 				routeString = fmt.Sprintf(`
 					{
+						%s
 						%s
 						Method:  %s,
 						Path:    "%s",
 						Handler: %s,
-					},`, getDoc(r.doc), r.method, r.path, r.handler)
+					},`, getDoc(r.doc), getAtDoc(r.atDoc), r.method, r.path, r.handler)
 			} else {
 				routeString = fmt.Sprintf(`
 					{
@@ -271,6 +273,7 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				path:    r.Path,
 				handler: handler,
 				doc:     r.JoinedDoc(),
+				atDoc:   r.JoinedAtDoc(),
 			})
 		}
 
