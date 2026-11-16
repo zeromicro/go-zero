@@ -633,6 +633,62 @@ func TestTimingWheel_ElapsedAndSetThenMove(t *testing.T) {
 	}
 }
 
+func TestTimingWheel_MoveTimerAfterTicks(t *testing.T) {
+	tests := []struct {
+		slots  int
+		setAt  time.Duration
+		ticks  int
+		moveAt time.Duration
+	}{
+		{slots: 6, setAt: 20, ticks: 3, moveAt: 14},
+		{slots: 12, setAt: 18, ticks: 4, moveAt: 23},
+		{slots: 3, setAt: 2, ticks: 1, moveAt: 6},
+		{slots: 3, setAt: 4, ticks: 1, moveAt: 1},
+		{slots: 5, setAt: 7, ticks: 2, moveAt: 3},
+		{slots: 5, setAt: 9, ticks: 6, moveAt: 8},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
+			var count int32
+			ticker := timex.NewFakeTicker()
+			tick := func() {
+				atomic.AddInt32(&count, 1)
+				ticker.Tick()
+				time.Sleep(time.Millisecond * 10)
+			}
+			var actual int32
+			done := make(chan lang.PlaceholderType)
+			tw, err := NewTimingWheelWithTicker(testStep, test.slots, func(key, value any) {
+				actual = atomic.LoadInt32(&count)
+				close(done)
+			}, ticker)
+			assert.Nil(t, err)
+			defer tw.Stop()
+
+			tw.SetTimer(1, 2, testStep*test.setAt)
+			for i := 0; i < test.ticks; i++ {
+				tick()
+			}
+			tw.MoveTimer(1, testStep*test.moveAt)
+			time.Sleep(time.Millisecond * 10)
+
+			for {
+				select {
+				case <-done:
+					assert.Equal(t, int32(test.ticks)+int32(test.moveAt), actual)
+					return
+				default:
+					tick()
+				}
+			}
+		})
+	}
+}
+
 func TestMoveAndRemoveTask(t *testing.T) {
 	ticker := timex.NewFakeTicker()
 	tick := func(v int) {
