@@ -71,6 +71,12 @@ func (w *detailLoggedResponseWriter) Header() http.Header {
 	return w.writer.Header()
 }
 
+// Unwrap returns the underlying http.ResponseWriter.
+// This is used by http.ResponseController to unwrap the response writer.
+func (w *detailLoggedResponseWriter) Unwrap() http.ResponseWriter {
+	return w.writer
+}
+
 // Hijack implements the http.Hijacker interface.
 // This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
 func (w *detailLoggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
