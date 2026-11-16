@@ -266,3 +266,37 @@ func BenchmarkCache(b *testing.B) {
 		}
 	})
 }
+
+func TestCacheExpiryConcurrentWritesRegression(t *testing.T) {
+	c, err := NewCache(time.Second)
+	assert.NoError(t, err)
+	t.Cleanup(c.timingWheel.Stop)
+
+	const count = 2000
+	keys := make([]string, count)
+	for i := range keys {
+		keys[i] = "key-" + strconv.Itoa(i)
+	}
+
+	var wg sync.WaitGroup
+	deadline := time.Now().Add(3 * time.Second)
+	for worker := 0; worker < 8; worker++ {
+		wg.Add(1)
+		go func(offset int) {
+			defer wg.Done()
+			for i := offset; time.Now().Before(deadline); i++ {
+				c.Set(keys[i%count], 1)
+			}
+		}(worker * (count / 8))
+	}
+	wg.Wait()
+
+	// Wait for TTL (1s) + timing wheel tick margin
+	time.Sleep(4 * time.Second)
+
+	c.lock.Lock()
+	surviving := len(c.data)
+	c.lock.Unlock()
+
+	assert.Equal(t, 0, surviving, "cache should retain 0 entries with no expiry timer after TTL")
+}
