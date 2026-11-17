@@ -382,6 +382,39 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 	})
 }
 
+func TestParser_Parse_middlewareSelectors(t *testing.T) {
+	tests := []struct {
+		value   string
+		invalid bool
+	}{
+		{value: "Shared.Auth"},
+		{value: "Shared.Nested.Auth"},
+		{value: "Local,Shared.Auth"},
+		{value: "Shared.Auth,Local"},
+		{value: "Shared.Auth,Shared.Log"},
+		{value: `"Shared.Auth,Local"`},
+		{value: "Shared..Auth", invalid: true},
+		{value: "Shared.Auth.", invalid: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			p := New("middleware.api", "@server(\n middleware: "+tt.value+"\n)")
+			result := p.ParseForUintTest()
+			if tt.invalid {
+				assert.NotEmpty(t, p.errors)
+				return
+			}
+			if !assert.Empty(t, p.errors) || !assert.NotNil(t, result) {
+				return
+			}
+			stmt, ok := result.Stmts[0].(*ast.AtServerStmt)
+			if assert.True(t, ok) && assert.Len(t, stmt.Values, 1) {
+				assert.Equal(t, tt.value, stmt.Values[0].Value.Token.Text)
+			}
+		})
+	}
+}
+
 //go:embed testdata/athandler_test.api
 var atHandlerTestAPI string
 

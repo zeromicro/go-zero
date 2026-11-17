@@ -79,7 +79,7 @@ func (s *Scanner) NextToken() (token.Token, error) {
 		s.readRune()
 		peekOne = s.peekRune()
 		if peekOne != '.' {
-			return s.newToken(token.DOT), nil
+			return token.Token{}, fmt.Errorf("%s: unexpected '..'", s.newPosition(position))
 		}
 		s.readRune()
 		s.readRune()
