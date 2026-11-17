@@ -13,6 +13,7 @@ import (
 	red "github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/maintnotifications"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -155,6 +156,7 @@ func TestGetClientWithProtocolAndIdentity(t *testing.T) {
 	r := miniredis.RunT(t)
 	defer r.Close()
 	c, err := getClient(&Redis{
+		brk:      breaker.NewBreaker(),
 		Addr:     r.Addr(),
 		Type:     NodeType,
 		protocol: 2,
@@ -200,6 +202,7 @@ func TestGetClientWithMaintNotifications(t *testing.T) {
 			r := miniredis.RunT(t)
 			defer r.Close()
 			c, err := getClient(&Redis{
+				brk:                breaker.NewBreaker(),
 				Addr:               r.Addr(),
 				Type:               NodeType,
 				maintNotifications: test.mode,

@@ -161,6 +161,84 @@ func TestCacheWithLruEvicted(t *testing.T) {
 	assert.Equal(t, "second element", value)
 }
 
+func TestKeyLruRemove(t *testing.T) {
+	tests := []struct {
+		name      string
+		keys      []string
+		removeKey string
+		want      []string
+		wantEvict []string
+	}{
+		{
+			name:      "remove existing key",
+			keys:      []string{"first", "second", "third"},
+			removeKey: "second",
+			want:      []string{"first", "third"},
+			wantEvict: []string{"second"},
+		},
+		{
+			name:      "remove missing key",
+			keys:      []string{"first", "second"},
+			removeKey: "not-exists",
+			want:      []string{"first", "second"},
+		},
+		{
+			name:      "remove the only key",
+			keys:      []string{"only"},
+			removeKey: "only",
+			wantEvict: []string{"only"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var evicted []string
+			lru := newKeyLru(len(test.keys), func(key string) {
+				evicted = append(evicted, key)
+			})
+
+			for _, key := range test.keys {
+				lru.add(key)
+			}
+
+			lru.remove(test.removeKey)
+
+			assert.Equal(t, len(test.want), lru.evicts.Len())
+			assert.Equal(t, len(test.want), len(lru.elements))
+			assert.Equal(t, test.wantEvict, evicted)
+			for _, key := range test.want {
+				_, ok := lru.elements[key]
+				assert.True(t, ok, "key %q should still be tracked by lru", key)
+			}
+		})
+	}
+}
+
+func TestCacheWithLruDel(t *testing.T) {
+	cache, err := NewCache(time.Minute, WithLimit(3))
+	assert.Nil(t, err)
+
+	cache.Set("first", "first element")
+	cache.Set("second", "second element")
+	cache.Set("third", "third element")
+
+	cache.Del("second")
+
+	_, ok := cache.Get("second")
+	assert.False(t, ok)
+	_, ok = cache.Get("first")
+	assert.True(t, ok)
+	_, ok = cache.Get("third")
+	assert.True(t, ok)
+
+	klru, ok := cache.lruCache.(*keyLru)
+	assert.True(t, ok)
+	assert.Equal(t, 2, klru.evicts.Len())
+	assert.Equal(t, 2, len(klru.elements))
+	_, ok = klru.elements["second"]
+	assert.False(t, ok)
+}
+
 func BenchmarkCache(b *testing.B) {
 	cache, err := NewCache(time.Second*5, WithLimit(100000))
 	if err != nil {

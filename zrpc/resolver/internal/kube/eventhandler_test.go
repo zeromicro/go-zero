@@ -36,6 +36,7 @@ func TestDelete(t *testing.T) {
 		endpoints = change
 	})
 	h.OnAdd(&discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{Name: "first"},
 		Endpoints: []discoveryv1.Endpoint{
 			{
 				Addresses: []string{"0.0.0.1"},
@@ -43,6 +44,11 @@ func TestDelete(t *testing.T) {
 			{
 				Addresses: []string{"0.0.0.2"},
 			},
+		},
+	}, false)
+	h.OnAdd(&discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{Name: "second"},
+		Endpoints: []discoveryv1.Endpoint{
 			{
 				Addresses: []string{"0.0.0.3"},
 			},
@@ -50,14 +56,7 @@ func TestDelete(t *testing.T) {
 	}, false)
 	h.OnDelete("bad")
 	h.OnDelete(&discoveryv1.EndpointSlice{
-		Endpoints: []discoveryv1.Endpoint{
-			{
-				Addresses: []string{"0.0.0.1"},
-			},
-			{
-				Addresses: []string{"0.0.0.2"},
-			},
-		},
+		ObjectMeta: metav1.ObjectMeta{Name: "first"},
 	})
 	assert.ElementsMatch(t, []string{"0.0.0.3"}, endpoints)
 }
@@ -227,4 +226,120 @@ func TestUpdateNoChangeWithDifferentVersion(t *testing.T) {
 		},
 	})
 	assert.ElementsMatch(t, []string{"0.0.0.1", "0.0.0.2"}, endpoints)
+}
+
+func TestAddSkipsNotReadyEndpoints(t *testing.T) {
+	var endpoints []string
+	h := NewEventHandler(func(change []string) {
+		endpoints = change
+	})
+	h.OnAdd(&discoveryv1.EndpointSlice{
+		Endpoints: notReadyTestEndpoints(),
+	}, false)
+	assert.ElementsMatch(t, []string{"0.0.0.1", "0.0.0.2"}, endpoints)
+}
+
+func TestUpdateSkipsNotReadyEndpoints(t *testing.T) {
+	var endpoints []string
+	h := NewEventHandler(func(change []string) {
+		endpoints = change
+	})
+	h.OnAdd(&discoveryv1.EndpointSlice{
+		Endpoints: []discoveryv1.Endpoint{
+			{
+				Addresses: []string{"0.0.0.1"},
+			},
+			{
+				Addresses: []string{"0.0.0.3"},
+			},
+		},
+	}, false)
+	h.OnUpdate(&discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{
+			ResourceVersion: "1",
+		},
+	}, &discoveryv1.EndpointSlice{
+		Endpoints: notReadyTestEndpoints(),
+		ObjectMeta: metav1.ObjectMeta{
+			ResourceVersion: "2",
+		},
+	})
+	assert.ElementsMatch(t, []string{"0.0.0.1", "0.0.0.2"}, endpoints)
+}
+
+func TestUpdatePreservesOtherEndpointSlices(t *testing.T) {
+	var endpoints []string
+	h := NewEventHandler(func(change []string) {
+		endpoints = change
+	})
+	ready, notReady := true, false
+	first := &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{Name: "first", ResourceVersion: "1"},
+		Endpoints: []discoveryv1.Endpoint{{
+			Addresses:  []string{"0.0.0.1"},
+			Conditions: discoveryv1.EndpointConditions{Ready: &ready},
+		}},
+	}
+	second := &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{Name: "second"},
+		Endpoints:  []discoveryv1.Endpoint{{Addresses: []string{"0.0.0.2"}}},
+	}
+	h.OnAdd(first, false)
+	h.OnAdd(second, false)
+	assert.ElementsMatch(t, []string{"0.0.0.1", "0.0.0.2"}, endpoints)
+
+	updatedFirst := first.DeepCopy()
+	updatedFirst.ResourceVersion = "2"
+	updatedFirst.Endpoints[0].Conditions.Ready = &notReady
+	h.OnUpdate(first, updatedFirst)
+	assert.ElementsMatch(t, []string{"0.0.0.2"}, endpoints)
+}
+
+func TestDeletePreservesAddressInOtherEndpointSlice(t *testing.T) {
+	var endpoints []string
+	h := NewEventHandler(func(change []string) {
+		endpoints = change
+	})
+	first := &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{Name: "first"},
+		Endpoints:  []discoveryv1.Endpoint{{Addresses: []string{"0.0.0.1"}}},
+	}
+	second := &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{Name: "second"},
+		Endpoints:  []discoveryv1.Endpoint{{Addresses: []string{"0.0.0.1", "0.0.0.2"}}},
+	}
+	h.OnAdd(first, false)
+	h.OnAdd(second, false)
+	h.OnDelete(first)
+	assert.ElementsMatch(t, []string{"0.0.0.1", "0.0.0.2"}, endpoints)
+}
+
+func notReadyTestEndpoints() []discoveryv1.Endpoint {
+	ready, notReady, terminating := true, false, true
+	return []discoveryv1.Endpoint{
+		{
+			Addresses: []string{"0.0.0.1"},
+			Conditions: discoveryv1.EndpointConditions{
+				Ready: &ready,
+			},
+		},
+		{
+			// A nil Ready condition means unknown and is treated as ready.
+			Addresses: []string{"0.0.0.2"},
+		},
+		{
+			Addresses: []string{"0.0.0.3"},
+			Conditions: discoveryv1.EndpointConditions{
+				Ready: &notReady,
+			},
+		},
+		{
+			Addresses: []string{"0.0.0.4"},
+			Conditions: discoveryv1.EndpointConditions{
+				Ready:       &notReady,
+				Serving:     &ready,
+				Terminating: &terminating,
+			},
+		},
+	}
 }

@@ -154,7 +154,14 @@ func (a *Analyzer) convert2Spec() error {
 		groups = append(groups, v)
 	}
 	sort.SliceStable(groups, func(i, j int) bool {
-		return groups[i].Annotation.Properties[groupKeyText] < groups[j].Annotation.Properties[groupKeyText]
+		gi := groups[i].Annotation.Properties[groupKeyText]
+		gj := groups[j].Annotation.Properties[groupKeyText]
+		if gi != gj {
+			return gi < gj
+		}
+		// Same @server group: keep output stable by prefix (import
+		// order alone is not enough if groups are later reshuffled).
+		return groups[i].Annotation.Properties[atServerPrefixKey] < groups[j].Annotation.Properties[atServerPrefixKey]
 	})
 	a.spec.Service.Groups = groups
 

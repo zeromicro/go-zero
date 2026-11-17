@@ -7,6 +7,7 @@ import (
 	red "github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/maintnotifications"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/breaker"
 )
 
 func TestSplitClusterAddrs(t *testing.T) {
@@ -49,6 +50,7 @@ func TestGetCluster(t *testing.T) {
 	r := miniredis.RunT(t)
 	defer r.Close()
 	c, err := getCluster(&Redis{
+		brk:   breaker.NewBreaker(),
 		Addr:  r.Addr(),
 		Type:  ClusterType,
 		tls:   true,
@@ -63,6 +65,7 @@ func TestGetClusterWithProtocolAndIdentity(t *testing.T) {
 	r := miniredis.RunT(t)
 	defer r.Close()
 	c, err := getCluster(&Redis{
+		brk:      breaker.NewBreaker(),
 		Addr:     r.Addr(),
 		Type:     ClusterType,
 		protocol: 2,
@@ -92,6 +95,7 @@ func TestGetClusterWithMaintNotifications(t *testing.T) {
 			r := miniredis.RunT(t)
 			defer r.Close()
 			c, err := getCluster(&Redis{
+				brk:                breaker.NewBreaker(),
 				Addr:               r.Addr(),
 				Type:               ClusterType,
 				maintNotifications: test.mode,

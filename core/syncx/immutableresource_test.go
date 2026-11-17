@@ -5,6 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -121,4 +122,36 @@ func TestImmutableResourceErrorRefreshAlways(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, "any", err.Error())
 	assert.Equal(t, 2, count)
+}
+
+func TestImmutableResourceErrorRefreshWithoutClockAdvance(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		var count int
+		fetchErr := errors.New("fetch failed")
+		r := NewImmutableResource(func() (any, error) {
+			count++
+			if count == 1 {
+				return nil, fetchErr
+			}
+
+			return "hello", nil
+		}, WithRefreshIntervalOnFailure(0))
+
+		res, err := r.Get()
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, fetchErr)
+		assert.Equal(t, 1, count)
+
+		// The synctest clock stays fixed between calls, reproducing identical clock readings.
+		res, err = r.Get()
+		assert.NoError(t, err)
+		assert.Equal(t, "hello", res)
+		assert.Equal(t, 2, count)
+
+		// A successful fetch stays cached even with a zero refresh interval.
+		res, err = r.Get()
+		assert.NoError(t, err)
+		assert.Equal(t, "hello", res)
+		assert.Equal(t, 2, count)
+	})
 }

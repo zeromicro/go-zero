@@ -2027,7 +2027,7 @@ func (s *Redis) ZaddnxCtx(ctx context.Context, key string, score int64, value st
 
 // ZaddnxFloat is the implementation of redis zaddnx command.
 func (s *Redis) ZaddnxFloat(key string, score float64, value string) (bool, error) {
-	return s.ZaddFloatCtx(context.Background(), key, score, value)
+	return s.ZaddnxFloatCtx(context.Background(), key, score, value)
 }
 
 // ZaddnxFloatCtx is the implementation of redis zaddnx command.

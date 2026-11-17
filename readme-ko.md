@@ -84,53 +84,36 @@ go get -u github.com/zeromicro/go-zero
 
 ## AI 네이티브 개발
 
-go-zero 팀은 Claude, GitHub Copilot, Cursor가 프레임워크 규칙을 따르는 코드를 생성할 수 있도록 AI 도구를 제공합니다.
+go-zero 팀은 Claude Code, GitHub Copilot, Cursor 등의 AI 코딩 어시스턴트를 위한 워크플로 가이드와 구현 패턴을 제공합니다. 터미널을 사용할 수 있는 어시스턴트에는 `goctl`을 직접 실행하여 프레임워크 규칙을 따르는 코드를 생성하는 방식을 권장합니다.
 
-### 세 가지 핵심 프로젝트
+### AI 도구 프로젝트
 
-**[ai-context](https://github.com/zeromicro/ai-context)** - AI 어시스턴트를 위한 워크플로 가이드
-
-**[zero-skills](https://github.com/zeromicro/zero-skills)** - 예제가 포함된 패턴 라이브러리
-
-**[mcp-zero](https://github.com/zeromicro/mcp-zero)** - Model Context Protocol을 통한 코드 생성 도구
+- **[ai-context](https://github.com/zeromicro/ai-context)** - go-zero 개발 작업의 진행 방식과 goctl 사용 시점을 안내하는 워크플로 가이드.
+- **[zero-skills](https://github.com/zeromicro/zero-skills)** - 필요할 때 참조하는 구현 패턴, 예제, goctl 명령어 레퍼런스.
+- **[mcp-zero](https://github.com/zeromicro/mcp-zero)** - Model Context Protocol(MCP)을 통해 goctl 코드 생성 기능을 제공하는 선택적 어댑터.
 
 ### 빠른 설정
 
-#### GitHub Copilot
+goctl을 설치하고 `$PATH`에 포함되어 있는지 확인하세요.
+
 ```bash
-git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context
-ln -s ai-context/00-instructions.md .github/copilot-instructions.md  # macOS/Linux
-# Windows: mklink .github\copilot-instructions.md .github\ai-context\00-instructions.md
-git submodule update --remote .github/ai-context  # 업데이트
+go install github.com/zeromicro/go-zero/tools/goctl@latest
+goctl --version
 ```
 
-#### Cursor
-```bash
-git submodule add https://github.com/zeromicro/ai-context.git .cursorrules
-git submodule update --remote .cursorrules  # 업데이트
-```
-
-#### Windsurf
-```bash
-git submodule add https://github.com/zeromicro/ai-context.git .windsurfrules
-git submodule update --remote .windsurfrules  # 업데이트
-```
-
-#### Claude Desktop
-```bash
-git clone https://github.com/zeromicro/mcp-zero.git && cd mcp-zero && go build
-# 설정: ~/Library/Application Support/Claude/claude_desktop_config.json
-# 또는: claude mcp add --transport stdio mcp-zero --env GOCTL_PATH=/path/to/goctl -- /path/to/mcp-zero
-```
+[ai-context 설정 가이드](https://github.com/zeromicro/ai-context#manual-setup)와 [zero-skills 통합 가이드](https://github.com/zeromicro/zero-skills/tree/main/getting-started)를 참고하여 어시스턴트의 워크플로 지침과 패턴 라이브러리를 설정하세요.
 
 ### 동작 방식
 
-AI 어시스턴트는 다음 도구를 함께 사용합니다.
-1. **ai-context** - 워크플로 안내
-2. **zero-skills** - 구현 패턴
-3. **mcp-zero** - 실시간 코드 생성
+1. **ai-context**에서 워크플로를 확인하고 **zero-skills**에서 관련 패턴을 참조합니다.
+2. `.api` 또는 `.proto` 명세를 작성한 뒤 터미널에서 **goctl**을 실행하여 코드를 생성합니다.
+3. 비즈니스 로직을 구현하고 의존성을 정리한 뒤 서비스를 빌드하고 테스트합니다.
 
-**예시**: REST API 생성 → AI가 **ai-context**에서 워크플로를 읽음 → **mcp-zero**를 호출해 코드 생성 → **zero-skills**에서 패턴 참조 → 프로덕션 준비가 된 코드 생성 ✅
+**예시**: REST API 생성 → `.api` 명세 작성 → `goctl api go` 실행 → **zero-skills** 패턴을 참고하여 로직 구현 → `go mod tidy`, `go build ./...`, `go test ./...` 실행.
+
+### 선택적 MCP 통합
+
+Claude Desktop처럼 MCP 도구를 사용하는 클라이언트에서는 **[mcp-zero](https://github.com/zeromicro/mcp-zero)**를 설정하여 MCP를 통해 goctl을 호출할 수 있습니다. 두 방식은 같은 코드 생성 엔진을 사용하며, 터미널을 사용할 수 있는 어시스턴트는 MCP 서버 없이 위의 직접 실행 워크플로를 사용할 수 있습니다.
 
 ## 빠른 시작
 

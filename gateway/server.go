@@ -70,9 +70,6 @@ func (s *Server) Stop() {
 
 	group := threading.NewRoutineGroup()
 	for _, conn := range s.conns {
-		// new variable to avoid closure problems, can be removed after go 1.22
-		// see https://golang.org/doc/faq#closures_and_goroutines
-		conn := conn
 		group.Run(func() {
 			// ignore the error when closing the connection
 			_ = conn.Conn().Close()
@@ -188,7 +185,6 @@ func (s *Server) buildGrpcRoute(up Upstream, writer mr.Writer[rest.Route], cance
 
 func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		req, err := buildRequestWithNewTarget(r, target)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)

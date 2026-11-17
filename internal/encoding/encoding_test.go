@@ -118,6 +118,15 @@ func TestYamlToJsonSlice(t *testing.T) {
 `, string(b))
 }
 
+func TestYamlToJsonNull(t *testing.T) {
+	b, err := YamlToJson([]byte(`top: null
+nested:
+  value: ~
+items: [null]`))
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{"top":null,"nested":{"value":null},"items":[null]}`, string(b))
+}
+
 func TestJson5ToJson(t *testing.T) {
 	tests := []struct {
 		name   string
