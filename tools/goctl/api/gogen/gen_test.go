@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
@@ -147,6 +148,47 @@ func TestApiHasMiddleware(t *testing.T) {
 	assert.Nil(t, err)
 
 	validate(t, filename)
+}
+
+func TestApiHasSharedMiddleware(t *testing.T) {
+	for _, middleware := range []string{
+		"Shared.Auth",
+		"TokenValidate,Shared.Auth",
+		"Shared.Auth,TokenValidate",
+		"Shared.Nested.Auth,Shared.Log",
+	} {
+		t.Run(middleware, func(t *testing.T) {
+			dir := t.TempDir()
+			filename := filepath.Join(dir, "greet.api")
+			content := "syntax = \"v1\"\n@server(\n middleware: " + middleware +
+				"\n)\nservice demo-api {\n @handler Ping\n get /ping\n}\n"
+			require.NoError(t, os.WriteFile(filename, []byte(content), 0o600))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"),
+				[]byte("module example.com/demo\n"), 0o600))
+			require.NoError(t, DoGenProject(filename, dir, "gozero", false))
+
+			routes, err := os.ReadFile(filepath.Join(dir, "internal/handler/routes.go"))
+			require.NoError(t, err)
+			for _, name := range strings.Split(middleware, ",") {
+				assert.Contains(t, string(routes), "serverCtx."+name)
+			}
+
+			context, err := os.ReadFile(filepath.Join(dir, "internal/svc/servicecontext.go"))
+			require.NoError(t, err)
+			assert.NotContains(t, string(context), "Shared")
+			files, err := filepath.Glob(filepath.Join(dir, "internal/middleware/*.go"))
+			require.NoError(t, err)
+			if strings.Contains(middleware, "TokenValidate") {
+				assert.Equal(t, []string{filepath.Join(dir, "internal/middleware/tokenvalidatemiddleware.go")}, files)
+				assert.Contains(t, string(context), "TokenValidate rest.Middleware")
+				assert.Contains(t, string(context), "middleware.NewTokenValidateMiddleware().Handle")
+			} else {
+				assert.Empty(t, files)
+				assert.NotContains(t, string(context), "rest.Middleware")
+				assert.NotContains(t, string(context), "internal/middleware")
+			}
+		})
+	}
 }
 
 func TestApiHasJwt(t *testing.T) {
