@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	_ "embed"
-	"errors"
 	"fmt"
 	"io"
 	"path"
@@ -145,7 +144,7 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 func (c *componentsContext) checkStruct(ty spec.Type) (spec.DefineStruct, bool, error) {
 	defineStruct, ok := ty.(spec.DefineStruct)
 	if !ok {
-		return spec.DefineStruct{}, true, errors.New("unsupported type %s" + ty.Name())
+		return spec.DefineStruct{}, true, fmt.Errorf("unsupported type %s", ty.Name())
 	}
 
 	for _, item := range c.requestTypes {
