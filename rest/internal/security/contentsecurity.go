@@ -78,6 +78,9 @@ func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Requ
 	timestamp := attrs[timeField]
 	contentType := attrs[httpx.TypeField]
 
+	// Strip newlines for cross-platform Base64 compatibility.
+	// Some platforms (e.g. Android) produce Base64 with line breaks by default.
+	base64Key = strings.NewReplacer("\n", "", "\r", "").Replace(base64Key)
 	key, err := base64.StdEncoding.DecodeString(base64Key)
 	if err != nil {
 		return nil, ErrInvalidKey
@@ -87,6 +90,10 @@ func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Requ
 	if err != nil {
 		return nil, ErrInvalidContentType
 	}
+
+	// Strip newlines from signature for cross-platform Base64 compatibility.
+	// Some platforms (e.g. Android) produce Base64 with line breaks by default.
+	signature = strings.NewReplacer("\n", "", "\r", "").Replace(signature)
 
 	return &ContentSecurityHeader{
 		Key:         key,
