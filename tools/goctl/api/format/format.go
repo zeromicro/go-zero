@@ -63,7 +63,7 @@ func GoFormatApi(_ *cobra.Command, _ []string) error {
 
 		_, err := os.Lstat(VarStringDir)
 		if err != nil {
-			return errors.New(VarStringDir + ": No such file or directory")
+			return fmt.Errorf("%s: No such file or directory", VarStringDir)
 		}
 
 		err = filepath.Walk(VarStringDir, func(path string, fi os.FileInfo, errBack error) (err error) {
@@ -211,7 +211,7 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 			if tokenCount == 0 {
 				ts, err := format.Source([]byte(typeBuilder.String()))
 				if err != nil {
-					return false, errors.New("error format \n" + typeBuilder.String())
+					return false, fmt.Errorf("error format \n%s", typeBuilder.String())
 				}
 
 				result := strings.ReplaceAll(string(ts), " struct ", " ")

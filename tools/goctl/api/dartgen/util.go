@@ -167,7 +167,7 @@ func specTypeToDart(tp spec.Type) (string, error) {
 	case spec.PrimitiveType:
 		r, ok := primitiveType(tp.Name())
 		if !ok {
-			return "", errors.New("unsupported primitive type " + tp.Name())
+			return "", fmt.Errorf("unsupported primitive type %s", tp.Name())
 		}
 		return r, nil
 	case spec.MapType:
@@ -202,7 +202,7 @@ func specTypeToDart(tp spec.Type) (string, error) {
 		return fmt.Sprintf("%s?", valueType), nil
 	}
 
-	return "", errors.New("unsupported primitive type " + tp.Name())
+	return "", fmt.Errorf("unsupported primitive type %s", tp.Name())
 }
 
 func getBaseType(valueType string) string {

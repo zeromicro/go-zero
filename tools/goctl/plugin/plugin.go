@@ -123,7 +123,7 @@ func getCommand(arg string) (string, bool, error) {
 		return abs, false, nil
 	}
 
-	defaultErr := errors.New("invalid plugin value " + arg)
+	defaultErr := fmt.Errorf("invalid plugin value %s", arg)
 	if strings.HasPrefix(arg, "http") {
 		items := strings.Split(arg, "/")
 		if len(items) == 0 {
