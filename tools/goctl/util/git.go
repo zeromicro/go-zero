@@ -17,7 +17,6 @@ func CloneIntoGitHome(url, branch string) (dir string, err error) {
 	if err != nil {
 		return "", err
 	}
-	os.RemoveAll(gitHome)
 	ext := filepath.Ext(url)
 	repo := strings.TrimSuffix(filepath.Base(url), ext)
 	dir = filepath.Join(gitHome, repo)
