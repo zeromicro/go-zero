@@ -1,7 +1,6 @@
 package javagen
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -76,7 +75,7 @@ func specTypeToJava(tp spec.Type) (string, error) {
 	case spec.PrimitiveType:
 		r, ok := primitiveType(tp.Name())
 		if !ok {
-			return "", errors.New("unsupported primitive type " + tp.Name())
+			return "", fmt.Errorf("unsupported primitive type %s", tp.Name())
 		}
 		return r, nil
 	case spec.MapType:
@@ -98,7 +97,7 @@ func specTypeToJava(tp spec.Type) (string, error) {
 
 		s := getBaseType(valueType)
 		if len(s) == 0 {
-			return s, errors.New("unsupported primitive type " + tp.Name())
+			return s, fmt.Errorf("unsupported primitive type %s", tp.Name())
 		}
 
 		return fmt.Sprintf("java.util.ArrayList<%s>", util.Title(valueType)), nil
@@ -108,7 +107,7 @@ func specTypeToJava(tp spec.Type) (string, error) {
 		return specTypeToJava(v.Type)
 	}
 
-	return "", errors.New("unsupported primitive type " + tp.Name())
+	return "", fmt.Errorf("unsupported primitive type %s", tp.Name())
 }
 
 func getBaseType(valueType string) string {

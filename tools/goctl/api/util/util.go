@@ -1,7 +1,6 @@
 package util
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -29,7 +28,7 @@ func MaybeCreateFile(dir, subdir, file string) (fp *os.File, created bool, err e
 
 // WrapErr wraps an error with message
 func WrapErr(err error, message string) error {
-	return errors.New(message + ", " + err.Error())
+	return fmt.Errorf("%s, %s", message, err.Error())
 }
 
 // Copy calls io.Copy if the source file and destination file exists

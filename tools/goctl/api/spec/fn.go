@@ -1,7 +1,7 @@
 package spec
 
 import (
-	"errors"
+	"fmt"
 	"path"
 	"slices"
 	"strings"
@@ -101,7 +101,7 @@ func (m Member) GetPropertyName() (string, error) {
 		}
 	}
 
-	return "", errors.New("json property name not exist, member: " + m.Name)
+	return "", fmt.Errorf("json property name not exist, member: %s", m.Name)
 }
 
 // GetComment returns comment value of Member

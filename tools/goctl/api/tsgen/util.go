@@ -2,7 +2,6 @@ package tsgen
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -97,7 +96,7 @@ func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
 	case spec.PrimitiveType:
 		r, ok := primitiveType(tp.Name())
 		if !ok {
-			return "", errors.New("unsupported primitive type " + tp.Name())
+			return "", fmt.Errorf("unsupported primitive type %s", tp.Name())
 		}
 
 		return r, nil
@@ -125,7 +124,7 @@ func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
 		return goTypeToTs(v.Type, fromPacket)
 	}
 
-	return "", errors.New("unsupported type " + tp.Name())
+	return "", fmt.Errorf("unsupported type %s", tp.Name())
 }
 
 func addPrefix(tp spec.Type, fromPacket bool) string {
@@ -166,7 +165,7 @@ func writeType(writer io.Writer, tp spec.Type) error {
 func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 	definedType, ok := tp.(spec.DefineStruct)
 	if !ok {
-		return errors.New("no members of type " + tp.Name())
+		return fmt.Errorf("no members of type %s", tp.Name())
 	}
 
 	members := definedType.GetNonBodyMembers()
