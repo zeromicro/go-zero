@@ -27,13 +27,6 @@ var (
 )
 
 type (
-	innerResult struct {
-		key   string
-		value string
-		named bool
-		found bool
-	}
-
 	node struct {
 		item     any
 		children [2]map[string]*node
@@ -102,39 +95,31 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 		}
 
 		token := route[:i]
-		return n.forEach(func(k string, v *node) bool {
-			r := match(k, token)
-			if !r.found || !t.next(v, route[i+1:], result) {
-				return false
-			}
-			if r.named {
-				addParam(result, r.key, r.value)
-			}
-
-			return true
-		})
-	}
-
-	return n.forEach(func(k string, v *node) bool {
-		if r := match(k, route); r.found && v.item != nil {
-			result.Item = v.item
-			if r.named {
-				addParam(result, r.key, r.value)
-			}
-
+		rest := route[i+1:]
+		if child, ok := n.children[0][token]; ok && t.next(child, rest, result) {
 			return true
 		}
 
-		return false
-	})
-}
-
-func (nd *node) forEach(fn func(string, *node) bool) bool {
-	for _, children := range nd.children {
-		for k, v := range children {
-			if fn(k, v) {
+		for k, v := range n.children[1] {
+			if t.next(v, rest, result) {
+				addParam(result, k[1:], token)
 				return true
 			}
+		}
+
+		return false
+	}
+
+	if child, ok := n.children[0][route]; ok && child.item != nil {
+		result.Item = child.item
+		return true
+	}
+
+	for k, v := range n.children[1] {
+		if v.item != nil {
+			result.Item = v.item
+			addParam(result, k[1:], route)
+			return true
 		}
 	}
 
@@ -211,21 +196,6 @@ func duplicatedItem(item string) error {
 
 func duplicatedSlash(item string) error {
 	return fmt.Errorf("duplicated slash for %s", item)
-}
-
-func match(pat, token string) innerResult {
-	if pat[0] == colon {
-		return innerResult{
-			key:   pat[1:],
-			value: token,
-			named: true,
-			found: true,
-		}
-	}
-
-	return innerResult{
-		found: pat == token,
-	}
 }
 
 func newNode(item any) *node {
