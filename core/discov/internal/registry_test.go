@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -165,7 +166,9 @@ func TestCluster_Load(t *testing.T) {
 	c := &cluster{
 		watchers: make(map[watchKey]*watchValue),
 	}
-	c.load(cli, watchKey{
+	done := make(chan lang.PlaceholderType)
+	defer close(done)
+	c.load(done, cli, watchKey{
 		key: "any",
 	})
 }
@@ -217,7 +220,10 @@ func TestCluster_Watch(t *testing.T) {
 			listener.EXPECT().OnDelete(gomock.Any()).Do(func(_ any) {
 				wg.Done()
 			}).MaxTimes(1)
-			go c.watch(cli, key, 0)
+			done := make(chan lang.PlaceholderType)
+			defer close(done)
+			c.done = done
+			go c.watch(done, cli, key, c.watchers[key], 0)
 			ch <- clientv3.WatchResponse{
 				Events: []*clientv3.Event{
 					{
@@ -259,14 +265,15 @@ func TestClusterWatch_RespFailures(t *testing.T) {
 				watchers: make(map[watchKey]*watchValue),
 			}
 			c.done = make(chan lang.PlaceholderType)
+			key := watchKey{
+				key: "any",
+			}
+			c.watchers[key] = newWatchValue()
 			go func() {
 				ch <- resp
 				close(c.done)
 			}()
-			key := watchKey{
-				key: "any",
-			}
-			c.watch(cli, key, 0)
+			c.watch(c.done, cli, key, c.watchers[key], 0)
 		})
 	}
 }
@@ -360,6 +367,468 @@ func TestCluster_reload(t *testing.T) {
 	})
 }
 
+func TestCluster_ReloadDoesNotHoldLockWhileWaiting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+		&clientv3.GetResponse{Header: &etcdserverpb.ResponseHeader{}}, nil).AnyTimes()
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(make(chan clientv3.WatchResponse)).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"reload-lock-test"})
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{new(mockListener)},
+		values:    make(map[string]string),
+	}
+
+	// A watcher finishing a load takes c.lock in handleChanges, then keeps
+	// running until it is done. reload must wait for it without holding the lock.
+	startHandle := make(chan struct{})
+	handleDone := make(chan struct{})
+	finishWatcher := make(chan struct{})
+	watcherDone := make(chan struct{})
+	c.watchGroup.Run(func() {
+		<-startHandle
+		c.handleChanges(key, nil)
+		close(handleDone)
+		<-finishWatcher
+		close(watcherDone)
+	})
+
+	done := c.currentDone()
+	reloaded := make(chan struct{})
+	go func() {
+		c.reload(cli)
+		close(reloaded)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("reload did not replace the generation")
+	}
+
+	// The watcher now reaches handleChanges, which takes c.lock. reload must not
+	// be holding it while waiting for the watcher to exit.
+	close(startHandle)
+
+	select {
+	case <-handleDone:
+	case <-time.After(3 * time.Second):
+		t.Fatal("reload deadlocked waiting for the watcher")
+	}
+
+	// The watcher is still running, so reload must not have returned yet.
+	select {
+	case <-reloaded:
+		t.Fatal("reload returned before the old watcher exited")
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	close(finishWatcher)
+	select {
+	case <-reloaded:
+	case <-time.After(3 * time.Second):
+		t.Fatal("reload did not wait for the watcher")
+	}
+
+	select {
+	case <-watcherDone:
+	case <-time.After(time.Second):
+		t.Fatal("reload returned before the old watcher exited")
+	}
+
+	c.lock.Lock()
+	group := c.watchGroup
+	close(c.done)
+	c.lock.Unlock()
+	group.Wait()
+}
+
+func TestCluster_StartWatchOncePerGeneration(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	watchCalled := make(chan struct{}, 2)
+	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			watchCalled <- struct{}{}
+
+			return make(chan clientv3.WatchResponse)
+		}).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"start-watch-test"})
+	c.watchers[key] = newWatchValue()
+
+	done := c.currentDone()
+	if !c.startWatch(done, cli, key, 0) {
+		t.Fatal("the current generation should accept the watcher")
+	}
+
+	select {
+	case <-watchCalled:
+	case <-time.After(2 * time.Second):
+		t.Fatal("watcher did not start")
+	}
+
+	if !c.startWatch(done, cli, key, 0) {
+		t.Fatal("the generation is still current")
+	}
+
+	select {
+	case <-watchCalled:
+		t.Fatal("a second watcher was started for the same key and generation")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	c.lock.Lock()
+	c.done = make(chan lang.PlaceholderType)
+	c.lock.Unlock()
+	assert.False(t, c.startWatch(done, cli, key, 0))
+
+	close(done)
+	c.watchGroup.Wait()
+}
+
+func TestCluster_ReloadDoesNotDuplicateWatcher(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	var watches int32
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			atomic.AddInt32(&watches, 1)
+
+			return make(chan clientv3.WatchResponse)
+		}).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+		&clientv3.GetResponse{Header: &etcdserverpb.ResponseHeader{}}, nil).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"reload-remonitor-test"})
+	listener := new(mockListener)
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{listener},
+		values:    make(map[string]string),
+	}
+
+	// Keep reload inside oldGroup.Wait while the key is unmonitored and
+	// monitored again.
+	gate := make(chan struct{})
+	c.watchGroup.Run(func() {
+		<-gate
+	})
+
+	oldDone := c.currentDone()
+	reloaded := make(chan struct{})
+	go func() {
+		c.reload(cli)
+		close(reloaded)
+	}()
+
+	select {
+	case <-oldDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("reload did not replace the generation")
+	}
+
+	// Unmonitor, then monitor again: this creates a new watchValue and lets its
+	// own monitor start the watcher for the new generation.
+	c.lock.Lock()
+	delete(c.watchers, key)
+	c.lock.Unlock()
+	c.addListener(key, listener)
+	assert.True(t, c.startWatch(c.currentDone(), cli, key, 0))
+
+	assert.Eventually(t, func() bool {
+		return atomic.LoadInt32(&watches) == 1
+	}, time.Second, time.Millisecond)
+
+	close(gate)
+	select {
+	case <-reloaded:
+	case <-time.After(3 * time.Second):
+		t.Fatal("reload did not finish")
+	}
+
+	// The reload must leave the key to the watcher that already owns it.
+	time.Sleep(100 * time.Millisecond)
+	assert.EqualValues(t, 1, atomic.LoadInt32(&watches))
+
+	c.lock.Lock()
+	group := c.watchGroup
+	close(c.done)
+	c.lock.Unlock()
+	group.Wait()
+}
+
+func TestCluster_ReloadStartsWatcher(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), "any/", gomock.Any()).Return(
+		&clientv3.GetResponse{Header: &etcdserverpb.ResponseHeader{}}, nil).AnyTimes()
+	var watches int32
+	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			atomic.AddInt32(&watches, 1)
+
+			return make(chan clientv3.WatchResponse)
+		}).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"reload-start-test"})
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{new(mockListener)},
+		values:    make(map[string]string),
+	}
+
+	c.reload(cli)
+
+	assert.Eventually(t, func() bool {
+		return atomic.LoadInt32(&watches) == 1
+	}, time.Second, time.Millisecond)
+
+	c.lock.Lock()
+	group := c.watchGroup
+	close(c.done)
+	c.lock.Unlock()
+	group.Wait()
+}
+
+func TestCluster_ReloadSkipsUnmonitoredKey(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+		&clientv3.GetResponse{Header: &etcdserverpb.ResponseHeader{}}, nil).AnyTimes()
+	var watches int32
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			atomic.AddInt32(&watches, 1)
+
+			return make(chan clientv3.WatchResponse)
+		}).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"reload-unmonitor-test"})
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{new(mockListener)},
+		values:    make(map[string]string),
+	}
+
+	gate := make(chan struct{})
+	c.watchGroup.Run(func() {
+		<-gate
+	})
+
+	oldDone := c.currentDone()
+	reloaded := make(chan struct{})
+	go func() {
+		c.reload(cli)
+		close(reloaded)
+	}()
+
+	select {
+	case <-oldDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("reload did not replace the generation")
+	}
+
+	c.lock.Lock()
+	delete(c.watchers, key)
+	c.lock.Unlock()
+	close(gate)
+
+	select {
+	case <-reloaded:
+	case <-time.After(3 * time.Second):
+		t.Fatal("reload did not finish")
+	}
+
+	// The key has no listeners anymore, so reload must not start a watcher for
+	// it; that stream would live until the next reload.
+	time.Sleep(100 * time.Millisecond)
+	assert.EqualValues(t, 0, atomic.LoadInt32(&watches))
+
+	c.lock.Lock()
+	group := c.watchGroup
+	close(c.done)
+	c.lock.Unlock()
+	group.Wait()
+}
+
+func TestCluster_ReloadDoesNotStartWatcherAfterReplacement(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+
+	// Hold reload's load until the key has been replaced.
+	getEntered := make(chan struct{})
+	releaseGet := make(chan struct{})
+	var once sync.Once
+	cli.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) (*clientv3.GetResponse, error) {
+			once.Do(func() {
+				close(getEntered)
+			})
+			<-releaseGet
+
+			return &clientv3.GetResponse{Header: &etcdserverpb.ResponseHeader{}}, nil
+		}).AnyTimes()
+
+	var watches int32
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			atomic.AddInt32(&watches, 1)
+
+			return make(chan clientv3.WatchResponse)
+		}).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"reload-replace-test"})
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{new(mockListener)},
+		values:    make(map[string]string),
+	}
+
+	gate := make(chan struct{})
+	c.watchGroup.Run(func() {
+		<-gate
+	})
+
+	oldDone := c.currentDone()
+	reloaded := make(chan struct{})
+	go func() {
+		c.reload(cli)
+		close(reloaded)
+	}()
+
+	select {
+	case <-oldDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("reload did not replace the generation")
+	}
+
+	close(gate)
+	select {
+	case <-getEntered:
+	case <-time.After(2 * time.Second):
+		t.Fatal("reload did not reach load")
+	}
+
+	// Replace the watcher while reload's load is in flight.
+	c.lock.Lock()
+	delete(c.watchers, key)
+	c.lock.Unlock()
+	c.addListener(key, new(mockListener))
+	assert.True(t, c.startWatch(c.currentDone(), cli, key, 0))
+
+	assert.Eventually(t, func() bool {
+		return atomic.LoadInt32(&watches) == 1
+	}, time.Second, time.Millisecond)
+
+	close(releaseGet)
+	select {
+	case <-reloaded:
+	case <-time.After(3 * time.Second):
+		t.Fatal("reload did not finish")
+	}
+
+	// The replaced watcher owns the key now; reload must not open a second
+	// stream with the stale one.
+	time.Sleep(100 * time.Millisecond)
+	assert.EqualValues(t, 1, atomic.LoadInt32(&watches))
+
+	c.lock.Lock()
+	group := c.watchGroup
+	close(c.done)
+	c.lock.Unlock()
+	group.Wait()
+}
+
+func TestCluster_ReloadClaimsKeysForItsGeneration(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cli := NewMockEtcdClient(ctrl)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+	cli.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+		&clientv3.GetResponse{Header: &etcdserverpb.ResponseHeader{}}, nil).AnyTimes()
+
+	var watches int32
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan {
+			atomic.AddInt32(&watches, 1)
+
+			return make(chan clientv3.WatchResponse)
+		}).AnyTimes()
+
+	key := watchKey{key: "any"}
+	c := newCluster([]string{"reload-claim-test"})
+	c.watchers[key] = &watchValue{
+		listeners: []UpdateListener{new(mockListener)},
+		values:    make(map[string]string),
+	}
+
+	gate := make(chan struct{})
+	c.watchGroup.Run(func() {
+		<-gate
+	})
+
+	oldDone := c.currentDone()
+	reloaded := make(chan struct{})
+	go func() {
+		c.reload(cli)
+		close(reloaded)
+	}()
+
+	select {
+	case <-oldDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("reload did not replace the generation")
+	}
+
+	// A monitor for the same key reaches startWatch before reload's goroutine
+	// runs. reload has already claimed the key for this generation, so
+	// startWatch must not start a second watcher.
+	assert.True(t, c.startWatch(c.currentDone(), cli, key, 0))
+
+	close(gate)
+	select {
+	case <-reloaded:
+	case <-time.After(3 * time.Second):
+		t.Fatal("reload did not finish")
+	}
+
+	assert.Eventually(t, func() bool {
+		return atomic.LoadInt32(&watches) == 1
+	}, time.Second, time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
+	assert.EqualValues(t, 1, atomic.LoadInt32(&watches))
+
+	c.lock.Lock()
+	group := c.watchGroup
+	close(c.done)
+	c.lock.Unlock()
+	group.Wait()
+}
+
 func TestClusterWatch_CloseChan(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -373,13 +842,15 @@ func TestClusterWatch_CloseChan(t *testing.T) {
 		watchers: make(map[watchKey]*watchValue),
 	}
 	c.done = make(chan lang.PlaceholderType)
+	key := watchKey{
+		key: "any",
+	}
+	c.watchers[key] = newWatchValue()
 	go func() {
 		close(ch)
 		close(c.done)
 	}()
-	c.watch(cli, watchKey{
-		key: "any",
-	}, 0)
+	c.watch(c.done, cli, key, c.watchers[key], 0)
 }
 
 func TestValueOnlyContext(t *testing.T) {
@@ -523,7 +994,7 @@ func TestCluster_ConcurrentMonitor(t *testing.T) {
 				c.addListener(key, &mockListener{})
 			} else {
 				// Half the goroutines setup watches (read operation)
-				_, _ = c.setupWatch(cli, key, 0)
+				_, _, _, _ = c.setupWatch(c.currentDone(), cli, key, newWatchValue(), 0)
 			}
 		}()
 	}

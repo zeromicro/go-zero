@@ -150,6 +150,10 @@ type (
 		listeners []UpdateListener
 		values    map[string]string
 		cancel    context.CancelFunc
+		// gen is the watch generation this key is covered in. reload marks it
+		// before the watcher starts, so a monitor racing with the reload does
+		// not start a second watcher for the same key.
+		gen chan lang.PlaceholderType
 	}
 
 	cluster struct {
@@ -158,6 +162,9 @@ type (
 		watchers   map[watchKey]*watchValue
 		watchGroup *threading.RoutineGroup
 		done       chan lang.PlaceholderType
+		// reloadLock serializes generations, so the group and channel are
+		// replaced once and a reload does not schedule a key twice.
+		reloadLock sync.Mutex
 		lock       sync.RWMutex
 	}
 )
@@ -298,9 +305,15 @@ func (c *cluster) handleWatchEvents(ctx context.Context, key watchKey, events []
 	}
 }
 
-func (c *cluster) load(cli EtcdClient, key watchKey) int64 {
+func (c *cluster) load(done chan lang.PlaceholderType, cli EtcdClient, key watchKey) int64 {
 	var resp *clientv3.GetResponse
 	for {
+		select {
+		case <-done:
+			return 0
+		default:
+		}
+
 		var err error
 		ctx, cancel := context.WithTimeout(cli.Ctx(), RequestTimeout)
 		if key.exactMatch {
@@ -315,7 +328,13 @@ func (c *cluster) load(cli EtcdClient, key watchKey) int64 {
 		}
 
 		logc.Errorf(cli.Ctx(), "%s, key: %s, exactMatch: %t", err.Error(), key.key, key.exactMatch)
-		time.Sleep(coolDownUnstable.AroundDuration(coolDownInterval))
+		// The cooldown is interruptible, so reload does not have to wait for a
+		// failing load to finish before it can replace the generation.
+		select {
+		case <-time.After(coolDownUnstable.AroundDuration(coolDownInterval)):
+		case <-done:
+			return 0
+		}
 	}
 
 	kvs := make([]KV, 0, len(resp.Kvs))
@@ -338,12 +357,53 @@ func (c *cluster) monitor(key watchKey, l UpdateListener) error {
 	}
 
 	c.addListener(key, l)
-	rev := c.load(cli, key)
+
+	// load() seeds the listener with the current values, and startWatch() only
+	// accepts the generation load() ran against. When a reload wins the race,
+	// load() returns at once and the snapshot is taken again in the new
+	// generation, so the key ends up with exactly one watcher.
+	for {
+		done := c.currentDone()
+		rev := c.load(done, cli, key)
+		if c.startWatch(done, cli, key, rev) {
+			return nil
+		}
+	}
+}
+
+func (c *cluster) currentDone() chan lang.PlaceholderType {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+
+	return c.done
+}
+
+// startWatch starts a watcher for key in the given generation. It reports
+// false only when that generation has been replaced; true means the generation
+// is current and the key has or will get a watcher, unless it is no longer
+// watched at all.
+func (c *cluster) startWatch(done chan lang.PlaceholderType, cli EtcdClient, key watchKey, rev int64) bool {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	if c.done != done {
+		return false
+	}
+
+	watcher, ok := c.watchers[key]
+	if !ok {
+		return true
+	}
+	if watcher.gen == done {
+		return true
+	}
+
+	watcher.gen = done
 	c.watchGroup.Run(func() {
-		c.watch(cli, key, rev)
+		c.watch(done, cli, key, watcher, rev)
 	})
 
-	return nil
+	return true
 }
 
 func (c *cluster) newClient() (EtcdClient, error) {
@@ -358,52 +418,100 @@ func (c *cluster) newClient() (EtcdClient, error) {
 }
 
 func (c *cluster) reload(cli EtcdClient) {
-	c.lock.Lock()
-	// cancel the previous watches
-	close(c.done)
-	c.watchGroup.Wait()
-	keys := make([]watchKey, 0, len(c.watchers))
-	for wk, wval := range c.watchers {
-		keys = append(keys, wk)
-		if wval.cancel != nil {
-			wval.cancel()
-		}
+	c.reloadLock.Lock()
+	defer c.reloadLock.Unlock()
+
+	// Swap the generation under the lock, but wait for the previous one outside
+	// it: watchers take c.lock in handleChanges and handleWatchEvents, so
+	// waiting while holding it deadlocks with them.
+	type watchStart struct {
+		key     watchKey
+		watcher *watchValue
 	}
 
-	c.done = make(chan lang.PlaceholderType)
-	c.watchGroup = threading.NewRoutineGroup()
+	c.lock.Lock()
+	oldDone := c.done
+	oldGroup := c.watchGroup
+	done := make(chan lang.PlaceholderType)
+	group := threading.NewRoutineGroup()
+	c.done = done
+	c.watchGroup = group
+	starts := make([]watchStart, 0, len(c.watchers))
+	for key, watcher := range c.watchers {
+		starts = append(starts, watchStart{key: key, watcher: watcher})
+		if watcher.cancel != nil {
+			watcher.cancel()
+		}
+		// Mark the key as covered by this generation before releasing the lock,
+		// so a monitor racing with the reload cannot start a duplicate watcher.
+		watcher.gen = done
+	}
 	c.lock.Unlock()
 
+	close(oldDone)
+	oldGroup.Wait()
+
 	// start new watches
-	for _, key := range keys {
-		k := key
-		c.watchGroup.Run(func() {
-			rev := c.load(cli, k)
-			c.watch(cli, k, rev)
+	for _, start := range starts {
+		s := start
+		group.Run(func() {
+			// The key may have been unmonitored and monitored again while the
+			// previous generation was draining. That new watcher owns the key;
+			// starting another one here would watch it twice.
+			if !c.owns(done, s.key, s.watcher) {
+				return
+			}
+
+			rev := c.load(done, cli, s.key)
+			c.watch(done, cli, s.key, s.watcher, rev)
 		})
 	}
 }
 
-func (c *cluster) watch(cli EtcdClient, key watchKey, rev int64) {
+// owns reports whether watcher still serves key in the given generation.
+func (c *cluster) owns(done chan lang.PlaceholderType, key watchKey, watcher *watchValue) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+
+	return c.done == done && c.watchers[key] == watcher
+}
+
+func (c *cluster) watch(done chan lang.PlaceholderType, cli EtcdClient, key watchKey, watcher *watchValue, rev int64) {
 	for {
-		err := c.watchStream(cli, key, rev)
+		err := c.watchStream(done, cli, key, watcher, rev)
 		if err == nil {
 			return
 		}
 
 		if rev != 0 && errors.Is(err, rpctypes.ErrCompacted) {
 			logc.Errorf(cli.Ctx(), "etcd watch stream has been compacted, try to reload, rev %d", rev)
-			rev = c.load(cli, key)
+			rev = c.load(done, cli, key)
+			select {
+			case <-done:
+				return
+			default:
+			}
 		}
 
-		// log the error and retry with cooldown to prevent CPU/disk exhaustion
+		// log the error and retry with an interruptible cooldown to prevent
+		// CPU/disk exhaustion
 		logc.Error(cli.Ctx(), err)
-		time.Sleep(coolDownUnstable.AroundDuration(coolDownInterval))
+		select {
+		case <-time.After(coolDownUnstable.AroundDuration(coolDownInterval)):
+		case <-done:
+			return
+		}
 	}
 }
 
-func (c *cluster) watchStream(cli EtcdClient, key watchKey, rev int64) error {
-	ctx, rch := c.setupWatch(cli, key, rev)
+func (c *cluster) watchStream(done chan lang.PlaceholderType, cli EtcdClient, key watchKey, watcher *watchValue, rev int64) error {
+	ctx, cancel, rch, ok := c.setupWatch(done, cli, key, watcher, rev)
+	if !ok {
+		return nil
+	}
+	// Cancel the stream once this watcher stops consuming it, otherwise clientv3
+	// keeps the substream attached to the shared client.
+	defer cancel()
 
 	for {
 		select {
@@ -421,13 +529,13 @@ func (c *cluster) watchStream(cli EtcdClient, key watchKey, rev int64) error {
 			c.handleWatchEvents(ctx, key, wresp.Events)
 		case <-ctx.Done():
 			return nil
-		case <-c.done:
+		case <-done:
 			return nil
 		}
 	}
 }
 
-func (c *cluster) setupWatch(cli EtcdClient, key watchKey, rev int64) (context.Context, clientv3.WatchChan) {
+func (c *cluster) setupWatch(done chan lang.PlaceholderType, cli EtcdClient, key watchKey, watcher *watchValue, rev int64) (context.Context, context.CancelFunc, clientv3.WatchChan, bool) {
 	var (
 		rch  clientv3.WatchChan
 		ops  []clientv3.OpOption
@@ -444,19 +552,22 @@ func (c *cluster) setupWatch(cli EtcdClient, key watchKey, rev int64) (context.C
 
 	ctx, cancel := context.WithCancel(cli.Ctx())
 
+	// Only the watcher that still owns the key may open a stream. Between the
+	// ownership checks in reload and this point the key can be unmonitored and
+	// monitored again; that new watcher owns the key now.
 	c.lock.Lock()
-	if watcher, ok := c.watchers[key]; ok {
-		watcher.cancel = cancel
-	} else {
-		val := newWatchValue()
-		val.cancel = cancel
-		c.watchers[key] = val
+	if c.done != done || c.watchers[key] != watcher {
+		c.lock.Unlock()
+		cancel()
+
+		return nil, nil, nil, false
 	}
+	watcher.cancel = cancel
 	c.lock.Unlock()
 
 	rch = cli.Watch(clientv3.WithRequireLeader(ctx), wkey, ops...)
 
-	return ctx, rch
+	return ctx, cancel, rch, true
 }
 
 func (c *cluster) watchConnState(cli EtcdClient) {
