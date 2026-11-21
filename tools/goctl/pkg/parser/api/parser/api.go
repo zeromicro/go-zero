@@ -265,20 +265,37 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 		return list, nil
 	}
 
-	var importValueSet = map[string]token.Token{}
+	// Keep declaration order. A map iteration made the merge (and later
+	// group order) depend on randomized map walk when several imports
+	// share the same @server group.
+	type importRef struct {
+		path string
+		tok  token.Token
+	}
+	var importList []importRef
+	seen := make(map[string]struct{})
+	addImport := func(tok token.Token) {
+		impPath := strings.ReplaceAll(tok.Text, `"`, "")
+		if _, ok := seen[impPath]; ok {
+			return
+		}
+		seen[impPath] = struct{}{}
+		importList = append(importList, importRef{path: impPath, tok: tok})
+	}
 	for _, imp := range imports {
 		switch val := imp.(type) {
 		case *ast.ImportLiteralStmt:
-			importValueSet[strings.ReplaceAll(val.Value.Token.Text, `"`, "")] = val.Value.Token
+			addImport(val.Value.Token)
 		case *ast.ImportGroupStmt:
 			for _, v := range val.Values {
-				importValueSet[strings.ReplaceAll(v.Token.Text, `"`, "")] = v.Token
+				addImport(v.Token)
 			}
 		}
 	}
 
 	dir := filepath.Dir(api.Filename)
-	for impPath, tok := range importValueSet {
+	for _, ref := range importList {
+		impPath, tok := ref.path, ref.tok
 		if !filepath.IsAbs(impPath) {
 			impPath = filepath.Join(dir, impPath)
 		}
