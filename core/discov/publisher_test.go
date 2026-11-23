@@ -118,6 +118,20 @@ func TestPublisher_register(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestWithPubEtcdAutoSyncInterval(t *testing.T) {
+	endpoints := []string{stringx.Rand()}
+
+	_, ok := internal.GetAutoSyncInterval(endpoints)
+	assert.False(t, ok)
+
+	WithPubEtcdAutoSyncInterval(time.Minute)(&Publisher{
+		endpoints: endpoints,
+	})
+	interval, ok := internal.GetAutoSyncInterval(endpoints)
+	assert.True(t, ok)
+	assert.Equal(t, time.Minute, interval)
+}
+
 func TestPublisher_registerWithOptions(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

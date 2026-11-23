@@ -2,6 +2,7 @@ package zrpc
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	zconf "github.com/zeromicro/go-zero/core/conf"
@@ -40,6 +41,15 @@ func TestRpcClientConf(t *testing.T) {
 		conf.Etcd.CACertFile = "ca"
 		_, err := conf.BuildTarget()
 		assert.Error(t, err)
+	})
+
+	t.Run("etcd with auto sync interval", func(t *testing.T) {
+		conf := NewEtcdClientConf([]string{"localhost:1234", "localhost:5678"},
+			"key", "foo", "bar")
+		interval := time.Minute
+		conf.Etcd.AutoSyncInterval = &interval
+		_, err := conf.BuildTarget()
+		assert.NoError(t, err)
 	})
 
 	t.Run("default balancer name", func(t *testing.T) {

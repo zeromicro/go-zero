@@ -3,6 +3,7 @@ package discov
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -88,6 +89,14 @@ func WithSubEtcdAccount(user, pass string) SubOption {
 func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) SubOption {
 	return func(sub *Subscriber) {
 		logx.Must(RegisterTLS(sub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
+	}
+}
+
+// WithSubEtcdAutoSyncInterval provides the etcd client auto sync interval,
+// a zero interval disables the auto sync.
+func WithSubEtcdAutoSyncInterval(interval time.Duration) SubOption {
+	return func(sub *Subscriber) {
+		RegisterAutoSyncInterval(sub.endpoints, interval)
 	}
 }
 

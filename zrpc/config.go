@@ -110,6 +110,9 @@ func (cc RpcClientConf) BuildTarget() (string, error) {
 			return "", err
 		}
 	}
+	if cc.Etcd.AutoSyncInterval != nil {
+		discov.RegisterAutoSyncInterval(cc.Etcd.Hosts, *cc.Etcd.AutoSyncInterval)
+	}
 
 	return resolver.BuildDiscovTarget(cc.Etcd.Hosts, cc.Etcd.Key), nil
 }

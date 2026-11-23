@@ -16,6 +16,11 @@ const (
 // NewRpcPubServer returns a Server.
 func NewRpcPubServer(etcd discov.EtcdConf, listenOn string,
 	opts ...ServerOption) (Server, error) {
+	// register the auto sync interval explicitly, including a zero one,
+	// to override the built-in default when dialing the etcd cluster.
+	if etcd.AutoSyncInterval != nil {
+		discov.RegisterAutoSyncInterval(etcd.Hosts, *etcd.AutoSyncInterval)
+	}
 	registerEtcd := func() error {
 		pubListenOn := figureOutListenOn(listenOn)
 		var pubOpts []discov.PubOption

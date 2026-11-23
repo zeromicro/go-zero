@@ -50,6 +50,9 @@ func buildSubOptions(conf EtcdConf) []discov.SubOption {
 		opts = append(opts, discov.WithSubEtcdTLS(conf.CertFile, conf.CertKeyFile,
 			conf.CACertFile, conf.InsecureSkipVerify))
 	}
+	if conf.AutoSyncInterval != nil {
+		opts = append(opts, discov.WithSubEtcdAutoSyncInterval(*conf.AutoSyncInterval))
+	}
 
 	return opts
 }

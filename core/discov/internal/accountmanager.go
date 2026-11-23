@@ -5,12 +5,14 @@ import (
 	"crypto/x509"
 	"os"
 	"sync"
+	"time"
 )
 
 var (
-	accounts   = make(map[string]Account)
-	tlsConfigs = make(map[string]*tls.Config)
-	lock       sync.RWMutex
+	accounts          = make(map[string]Account)
+	tlsConfigs        = make(map[string]*tls.Config)
+	autoSyncIntervals = make(map[string]time.Duration)
+	lock              sync.RWMutex
 )
 
 // Account holds the username/password for an etcd cluster.
@@ -63,6 +65,25 @@ func GetAccount(endpoints []string) (Account, bool) {
 
 	account, ok := accounts[getClusterKey(endpoints)]
 	return account, ok
+}
+
+// AddAutoSyncInterval adds the auto sync interval for the given etcd cluster,
+// a zero interval disables the auto sync of the etcd client.
+func AddAutoSyncInterval(endpoints []string, interval time.Duration) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	autoSyncIntervals[getClusterKey(endpoints)] = interval
+}
+
+// GetAutoSyncInterval gets the registered auto sync interval for the given
+// etcd cluster, the second return value tells if it is registered.
+func GetAutoSyncInterval(endpoints []string) (time.Duration, bool) {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	interval, ok := autoSyncIntervals[getClusterKey(endpoints)]
+	return interval, ok
 }
 
 // GetTLS gets the tls config for the given etcd cluster.
