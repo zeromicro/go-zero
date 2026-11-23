@@ -225,3 +225,11 @@ func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }
+
+// WithPubEtcdAutoSyncInterval provides the etcd client auto sync interval,
+// a zero interval disables the auto sync.
+func WithPubEtcdAutoSyncInterval(interval time.Duration) PubOption {
+	return func(pub *Publisher) {
+		RegisterAutoSyncInterval(pub.endpoints, interval)
+	}
+}

@@ -467,8 +467,8 @@ func (c *cluster) watchConnState(cli EtcdClient) {
 	watcher.watch(cli.ActiveConnection())
 }
 
-// DialClient dials an etcd cluster with given endpoints.
-func DialClient(endpoints []string) (EtcdClient, error) {
+// buildClientConfig builds the etcd client config with the given endpoints.
+func buildClientConfig(endpoints []string) clientv3.Config {
 	cfg := clientv3.Config{
 		Endpoints:           endpoints,
 		AutoSyncInterval:    autoSyncInterval,
@@ -483,8 +483,17 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 	if tlsCfg, ok := GetTLS(endpoints); ok {
 		cfg.TLS = tlsCfg
 	}
+	// an explicitly registered interval, including a zero one, overrides the default.
+	if interval, ok := GetAutoSyncInterval(endpoints); ok {
+		cfg.AutoSyncInterval = interval
+	}
 
-	return clientv3.New(cfg)
+	return cfg
+}
+
+// DialClient dials an etcd cluster with given endpoints.
+func DialClient(endpoints []string) (EtcdClient, error) {
+	return clientv3.New(buildClientConfig(endpoints))
 }
 
 func calculateChanges(oldVals, newVals map[string]string) (add, remove []KV) {

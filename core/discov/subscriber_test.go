@@ -3,6 +3,7 @@ package discov
 import (
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/discov/internal"
@@ -301,6 +302,20 @@ func TestWithSubEtcdAccount(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, user, account.User)
 	assert.Equal(t, "bar", account.Pass)
+}
+
+func TestWithSubEtcdAutoSyncInterval(t *testing.T) {
+	endpoints := []string{stringx.Rand()}
+
+	_, ok := internal.GetAutoSyncInterval(endpoints)
+	assert.False(t, ok)
+
+	WithSubEtcdAutoSyncInterval(time.Minute)(&Subscriber{
+		endpoints: endpoints,
+	})
+	interval, ok := internal.GetAutoSyncInterval(endpoints)
+	assert.True(t, ok)
+	assert.Equal(t, time.Minute, interval)
 }
 
 func TestWithExactMatch(t *testing.T) {

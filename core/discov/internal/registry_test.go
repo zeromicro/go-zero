@@ -413,6 +413,22 @@ func TestDialClient(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestBuildClientConfig(t *testing.T) {
+	endpoints := []string{stringx.Rand()}
+
+	cfg := buildClientConfig(endpoints)
+	assert.Equal(t, endpoints, cfg.Endpoints)
+	assert.Equal(t, autoSyncInterval, cfg.AutoSyncInterval)
+
+	AddAutoSyncInterval(endpoints, 5*time.Minute)
+	cfg = buildClientConfig(endpoints)
+	assert.Equal(t, 5*time.Minute, cfg.AutoSyncInterval)
+
+	AddAutoSyncInterval(endpoints, 0)
+	cfg = buildClientConfig(endpoints)
+	assert.Equal(t, time.Duration(0), cfg.AutoSyncInterval)
+}
+
 func TestRegistry_Monitor(t *testing.T) {
 	svr, err := mockserver.StartMockServers(1)
 	assert.NoError(t, err)

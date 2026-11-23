@@ -2,6 +2,7 @@ package discov
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -42,6 +43,56 @@ func TestConfig(t *testing.T) {
 		} else {
 			assert.NotNil(t, test.EtcdConf.Validate())
 		}
+	}
+}
+
+func TestEtcdConf_ValidateAutoSyncInterval(t *testing.T) {
+	negative := -time.Second
+	zero := time.Duration(0)
+	positive := time.Minute
+
+	tests := []struct {
+		name string
+		conf EtcdConf
+		pass bool
+	}{
+		{
+			name: "zero interval is valid",
+			conf: EtcdConf{
+				Hosts:            []string{"any"},
+				Key:              "key",
+				AutoSyncInterval: &zero,
+			},
+			pass: true,
+		},
+		{
+			name: "positive interval is valid",
+			conf: EtcdConf{
+				Hosts:            []string{"any"},
+				Key:              "key",
+				AutoSyncInterval: &positive,
+			},
+			pass: true,
+		},
+		{
+			name: "negative interval is invalid",
+			conf: EtcdConf{
+				Hosts:            []string{"any"},
+				Key:              "key",
+				AutoSyncInterval: &negative,
+			},
+			pass: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.pass {
+				assert.Nil(t, test.conf.Validate())
+			} else {
+				assert.NotNil(t, test.conf.Validate())
+			}
+		})
 	}
 }
 

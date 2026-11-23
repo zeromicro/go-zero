@@ -2,6 +2,7 @@ package subscriber
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/discov"
@@ -183,4 +184,17 @@ func TestConfigCenterContainer(t *testing.T) {
 			assert.ElementsMatch(t, test.expect, c.GetValues())
 		})
 	}
+}
+
+func TestBuildSubOptionsWithAutoSyncInterval(t *testing.T) {
+	interval := time.Minute
+	conf := EtcdConf{
+		Hosts:            []string{"localhost:2379"},
+		Key:              "key",
+		AutoSyncInterval: &interval,
+	}
+
+	base := buildSubOptions(EtcdConf{Hosts: conf.Hosts, Key: conf.Key})
+	opts := buildSubOptions(conf)
+	assert.Equal(t, len(base)+1, len(opts))
 }

@@ -1,12 +1,17 @@
 package discov
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	// errEmptyEtcdHosts indicates that etcd hosts are empty.
 	errEmptyEtcdHosts = errors.New("empty etcd hosts")
 	// errEmptyEtcdKey indicates that etcd key is empty.
 	errEmptyEtcdKey = errors.New("empty etcd key")
+	// errNegativeAutoSyncInterval indicates that the auto sync interval is negative.
+	errNegativeAutoSyncInterval = errors.New("negative etcd auto sync interval")
 )
 
 // EtcdConf is the config item with the given key on etcd.
@@ -20,6 +25,10 @@ type EtcdConf struct {
 	CertKeyFile        string `json:",optional=CertFile"`
 	CACertFile         string `json:",optional=CertFile"`
 	InsecureSkipVerify bool   `json:",optional"`
+	// AutoSyncInterval is the interval to update the endpoints with the latest
+	// cluster members. Leave it unset to use the built-in default (time.Minute),
+	// set it to zero to disable the auto sync.
+	AutoSyncInterval *time.Duration `json:",optional"`
 }
 
 // HasAccount returns if account provided.
@@ -43,6 +52,8 @@ func (c EtcdConf) Validate() error {
 		return errEmptyEtcdHosts
 	} else if len(c.Key) == 0 {
 		return errEmptyEtcdKey
+	} else if c.AutoSyncInterval != nil && *c.AutoSyncInterval < 0 {
+		return errNegativeAutoSyncInterval
 	} else {
 		return nil
 	}
