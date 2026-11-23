@@ -32,6 +32,8 @@ type Key struct {
 	FieldNameJoin Join
 	// Fields describes the fields of table
 	Fields []*parser.Field
+	// Predicate describes the partial index WHERE clause, e.g. "status = 1 AND deleted_at IS NULL"
+	Predicate string
 }
 
 // Join describes an alias of string slice
@@ -41,8 +43,18 @@ func genCacheKeys(prefix string, table parser.Table) (Key, []Key) {
 	var primaryKey Key
 	primaryKey = genCacheKey(prefix, table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field})
 	uniqueKey := make([]Key, 0, len(table.UniqueIndex))
-	for _, each := range table.UniqueIndex {
-		uniqueKey = append(uniqueKey, genCacheKey(prefix, table.Db, table.Name, each))
+	for indexName, each := range table.UniqueIndex {
+		var suffix string
+		if table.UniqueIndexPredicate != nil {
+			if pred := table.UniqueIndexPredicate[indexName]; pred != "" {
+				suffix = stringx.From(indexName).ToCamel()
+			}
+		}
+		key := genCacheKey(prefix, table.Db, table.Name, each, suffix)
+		if table.UniqueIndexPredicate != nil {
+			key.Predicate = table.UniqueIndexPredicate[indexName]
+		}
+		uniqueKey = append(uniqueKey, key)
 	}
 	sort.Slice(uniqueKey, func(i, j int) bool {
 		return uniqueKey[i].VarLeft < uniqueKey[j].VarLeft
@@ -51,7 +63,7 @@ func genCacheKeys(prefix string, table parser.Table) (Key, []Key) {
 	return primaryKey, uniqueKey
 }
 
-func genCacheKey(prefix string, db, table stringx.String, in []*parser.Field) Key {
+func genCacheKey(prefix string, db, table stringx.String, in []*parser.Field, suffix ...string) Key {
 	var (
 		varLeftJoin, varRightJoin, fieldNameJoin Join
 		varLeft, varRight, varExpression         string
@@ -84,10 +96,21 @@ func genCacheKey(prefix string, db, table stringx.String, in []*parser.Field) Ke
 	keyLeftJoin = append(keyLeftJoin, "key")
 
 	varLeft = util.SafeString(varLeftJoin.Camel().With("").Untitle())
-	varRight = fmt.Sprintf(`"%s"`, varRightJoin.Camel().Untitle().With(":").Source()+":")
+	keyLeft = util.SafeString(keyLeftJoin.Camel().With("").Untitle())
+
+	// Append uniqueness suffix to disambiguate cache keys for partial indexes
+	// sharing the same column set but with different WHERE predicates.
+	// Applied to both Go variable names (varLeft/keyLeft) and Redis key prefix value (varRight).
+	suffixPart := ""
+	if len(suffix) > 0 && suffix[0] != "" {
+		suffixPart = suffix[0] + ":"
+		varLeft += suffix[0]
+		keyLeft += suffix[0]
+	}
+
+	varRight = fmt.Sprintf(`"%s"`, varRightJoin.Camel().Untitle().With(":").Source()+":"+suffixPart)
 	varExpression = fmt.Sprintf(`%s = %s`, varLeft, varRight)
 
-	keyLeft = util.SafeString(keyLeftJoin.Camel().With("").Untitle())
 	keyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With(":").Source(), varLeft, keyRightJoin.With(", ").Source())
 	dataKeyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With(":").Source(), varLeft, dataRightJoin.With(", ").Source())
 	keyExpression = fmt.Sprintf("%s := %s", keyLeft, keyRight)
