@@ -207,11 +207,7 @@ func (s *Server) buildHttpHandler(target *HttpClientConf) http.HandlerFunc {
 		}
 		defer resp.Body.Close()
 
-		for key, values := range resp.Header {
-			for _, value := range values {
-				w.Header().Add(key, value)
-			}
-		}
+		copyResponseHeaders(w.Header(), resp.Header)
 
 		w.WriteHeader(resp.StatusCode)
 		if _, err = io.Copy(w, resp.Body); err != nil {
