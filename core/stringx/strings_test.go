@@ -512,6 +512,30 @@ func TestToCamelCase(t *testing.T) {
 			input:  "Hello World",
 			expect: "hello World",
 		},
+		{
+			input:  "Äpfel",
+			expect: "äpfel",
+		},
+		{
+			input:  "Éclair",
+			expect: "éclair",
+		},
+		{
+			input:  "Ωmega",
+			expect: "ωmega",
+		},
+		{
+			input:  "İst",
+			expect: "ist",
+		},
+		{
+			input:  "Ü",
+			expect: "ü",
+		},
+		{
+			input:  "äpfel",
+			expect: "äpfel",
+		},
 	}
 
 	for _, test := range tests {
