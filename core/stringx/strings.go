@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/zeromicro/go-zero/core/lang"
 )
@@ -163,11 +164,12 @@ func TakeWithPriority(fns ...func() string) string {
 
 // ToCamelCase returns the string that converts the first letter to lowercase.
 func ToCamelCase(s string) string {
-	for i, v := range s {
-		return string(unicode.ToLower(v)) + s[i+1:]
+	if len(s) == 0 {
+		return ""
 	}
 
-	return ""
+	r, size := utf8.DecodeRuneInString(s)
+	return string(unicode.ToLower(r)) + s[size:]
 }
 
 // Union merges the strings in first and second.
