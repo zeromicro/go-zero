@@ -83,7 +83,7 @@ func (b *googleBreaker) allow() (internalPromise, error) {
 	if err := b.accept(); err != nil {
 		// ErrServiceUnavailable means the breaker rejected the request itself,
 		// which is not a real backend failure, so don't count it in statistics
-		// to avoid the markDrop feedback loop that prevents breaker recovery.
+		// to avoid the markDrop feedback loop that delays breaker recovery.
 		if err != ErrServiceUnavailable {
 			b.markDrop()
 		}
@@ -99,7 +99,7 @@ func (b *googleBreaker) doReq(req func() error, fallback Fallback, acceptable Ac
 	if err := b.accept(); err != nil {
 		// ErrServiceUnavailable means the breaker rejected the request itself,
 		// which is not a real backend failure, so don't count it in statistics
-		// to avoid the markDrop feedback loop that prevents breaker recovery.
+		// to avoid the markDrop feedback loop that delays breaker recovery.
 		if err != ErrServiceUnavailable {
 			b.markDrop()
 		}
