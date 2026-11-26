@@ -94,6 +94,127 @@ func TestGoogleBreakerRecover(t *testing.T) {
 	})
 }
 
+func TestGoogleBreakerSelfRejectionNotCounted(t *testing.T) {
+	// a long window, so no bucket expires while the test is running.
+	st := collection.NewRollingWindow[int64, *bucket](func() *bucket {
+		return new(bucket)
+	}, testBuckets, time.Second)
+	b := &googleBreaker{
+		stat:     st,
+		k:        k,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
+	}
+	markFailed(b, 1000)
+
+	var passed int
+	before := b.history().total
+	for i := 0; i < 100; i++ {
+		promise, err := b.allow()
+		if err != nil {
+			assert.ErrorIs(t, err, ErrServiceUnavailable)
+			continue
+		}
+
+		passed++
+		promise.Reject()
+	}
+
+	for i := 0; i < 100; i++ {
+		err := b.doReq(func() error {
+			return errors.New("service down")
+		}, nil, defaultAcceptable)
+		if !errors.Is(err, ErrServiceUnavailable) {
+			passed++
+		}
+	}
+
+	// rejections by the breaker itself are not backend outcomes,
+	// they must not be counted in the statistics.
+	assert.Equal(t, before+int64(passed), b.history().total)
+}
+
+func TestGoogleBreakerRecoverAfterSelfRejection(t *testing.T) {
+	calls := map[string]func(b *googleBreaker, healthy bool) bool{
+		"doReq": func(b *googleBreaker, healthy bool) bool {
+			return b.doReq(func() error {
+				if healthy {
+					return nil
+				}
+
+				return errors.New("service down")
+			}, nil, defaultAcceptable) == nil
+		},
+		"allow": func(b *googleBreaker, healthy bool) bool {
+			promise, err := b.allow()
+			if err != nil {
+				return false
+			}
+
+			if healthy {
+				promise.Accept()
+			} else {
+				promise.Reject()
+			}
+
+			return true
+		},
+	}
+
+	for name, call := range calls {
+		t.Run(name, func(t *testing.T) {
+			// same bucket count as production, so the recovery damping
+			// (buckets-workingBuckets)/buckets behaves like production.
+			// without the fix the breaker needs more than half a window to recover.
+			timeout := testInterval * buckets / 4
+
+			// retries tolerate a slow machine.
+			var recovered bool
+			for i := 0; i < 3 && !recovered; i++ {
+				recovered = recoversWithin(call, timeout)
+			}
+
+			assert.True(t, recovered, "breaker should recover within %v", timeout)
+		})
+	}
+}
+
+func recoversWithin(call func(b *googleBreaker, healthy bool) bool, timeout time.Duration) bool {
+	st := collection.NewRollingWindow[int64, *bucket](func() *bucket {
+		return new(bucket)
+	}, buckets, testInterval)
+	b := &googleBreaker{
+		stat:     st,
+		k:        k,
+		proba:    mathx.NewProba(),
+		lastPass: syncx.NewAtomicDuration(),
+	}
+
+	// backend is down under heavy load: real failures open the breaker,
+	// then the breaker itself rejects most of the requests.
+	for i := 0; i < buckets; i++ {
+		for j := 0; j < 1000; j++ {
+			call(b, false)
+		}
+
+		time.Sleep(testInterval)
+	}
+
+	// backend recovers, the breaker must pass traffic again long before
+	// the forced probe (forcePassDuration is 1s).
+	var consecutive int
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) && consecutive < 50 {
+		if call(b, true) {
+			consecutive++
+		} else {
+			consecutive = 0
+		}
+	}
+
+	return consecutive >= 50
+}
+
 func TestGoogleBreakerFallback(t *testing.T) {
 	b := getGoogleBreaker()
 	markSuccess(b, 1)
