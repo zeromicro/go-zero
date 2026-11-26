@@ -1,5 +1,7 @@
 # 示例 04：传递性导入
 
+[English](README.md) | 中文 | [한국어](README-ko.md)
+
 本示例演示 proto 的传递性导入，即 A 导入 B，B 导入 C。
 
 ## Proto 定义
@@ -65,7 +67,7 @@ output/
 
 ## 要点说明
 
-- 三个 proto 文件（`base.proto` → `middleware.proto` → `main.proto`）形成传递导入链。
+- 三个 proto 文件（`main.proto` → `middleware.proto` → `base.proto`）形成传递导入链。
 - goctl 自动递归解析所有传递导入。
 - 三个文件共享相同的 `go_package = "example.com/demo/pb"`。
 - 只需指定入口 proto 文件，goctl 和 protoc 会自动处理其余部分。

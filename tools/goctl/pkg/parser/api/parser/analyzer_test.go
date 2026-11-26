@@ -108,3 +108,34 @@ func Test_Parse(t *testing.T) {
 		},
 	)
 }
+
+func TestParse_importedGroupOrderIsStable(t *testing.T) {
+	dir := t.TempDir()
+	for i, prefix := range []string{"/s1", "/s2", "/s3", "/s4"} {
+		n := i + 1
+		body := fmt.Sprintf("syntax = \"v1\"\n\n@server(\n    group: demo\n    prefix: %s\n)\nservice demo-api {\n	@handler H%d\n	get /h%d returns (Resp)\n}\n", prefix, n, n)
+		err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("svc%d.api", n)), []byte(body), 0o666)
+		assert.NoError(t, err)
+	}
+	mainAPI := "syntax = \"v1\"\n\nimport (\n	\"svc1.api\"\n	\"svc2.api\"\n	\"svc3.api\"\n	\"svc4.api\"\n)\n\ntype Resp {\n	Msg string `json:\"msg\"`\n}\n"
+	mainPath := filepath.Join(dir, "main.api")
+	assert.NoError(t, os.WriteFile(mainPath, []byte(mainAPI), 0o666))
+
+	var first []string
+	for i := 0; i < 20; i++ {
+		apiSpec, err := Parse(mainPath, nil)
+		if !assert.NoError(t, err) {
+			return
+		}
+		var prefixes []string
+		for _, g := range apiSpec.Service.Groups {
+			prefixes = append(prefixes, g.Annotation.Properties["prefix"])
+		}
+		if first == nil {
+			first = prefixes
+			continue
+		}
+		assert.Equal(t, first, prefixes)
+	}
+	assert.Equal(t, []string{"/s1", "/s2", "/s3", "/s4"}, first)
+}

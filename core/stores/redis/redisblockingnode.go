@@ -50,25 +50,31 @@ func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 	switch r.Type {
 	case NodeType:
 		client := red.NewClient(&red.Options{
-			Addr:         r.Addr,
-			Username:     r.User,
-			Password:     r.Pass,
-			DB:           defaultDatabase,
-			MaxRetries:   maxRetries,
-			PoolSize:     1,
-			MinIdleConns: 1,
-			ReadTimeout:  timeout,
+			Addr:                     r.Addr,
+			Username:                 r.User,
+			Password:                 r.Pass,
+			DB:                       defaultDatabase,
+			MaxRetries:               maxRetries,
+			PoolSize:                 1,
+			MinIdleConns:             1,
+			ReadTimeout:              timeout,
+			Protocol:                 r.protocol,
+			DisableIdentity:          r.identity,
+			MaintNotificationsConfig: r.maintNotificationsConfig(),
 		})
 		return &clientBridge{client}, nil
 	case ClusterType:
 		client := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        splitClusterAddrs(r.Addr),
-			Username:     r.User,
-			Password:     r.Pass,
-			MaxRetries:   maxRetries,
-			PoolSize:     1,
-			MinIdleConns: 1,
-			ReadTimeout:  timeout,
+			Addrs:                    splitClusterAddrs(r.Addr),
+			Username:                 r.User,
+			Password:                 r.Pass,
+			MaxRetries:               maxRetries,
+			PoolSize:                 1,
+			MinIdleConns:             1,
+			ReadTimeout:              timeout,
+			Protocol:                 r.protocol,
+			DisableIdentity:          r.identity,
+			MaintNotificationsConfig: r.maintNotificationsConfig(),
 		})
 		return &clusterBridge{client}, nil
 	default:

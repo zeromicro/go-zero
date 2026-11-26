@@ -10,6 +10,7 @@ import (
 
 var ignoreCmds = map[string]lang.PlaceholderType{
 	"blpop": {},
+	"hello": {},
 }
 
 type breakerHook struct {

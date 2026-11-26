@@ -1,5 +1,7 @@
 # 示例 01：基础 RPC 服务
 
+[English](README.md) | 中文 | [한국어](README-ko.md)
+
 这是使用 goctl 生成 RPC 服务的最简单示例。
 
 ## Proto 定义

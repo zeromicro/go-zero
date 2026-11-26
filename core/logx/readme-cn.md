@@ -2,7 +2,7 @@
 
 # logx
 
-[English](readme.md) | 简体中文
+[English](readme.md) | 简体中文 | [한국어](readme-ko.md)
 
 ## logx 配置
 

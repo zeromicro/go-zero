@@ -142,11 +142,11 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 		return nil
 	}
 
-	baseType := fieldType.Elem()
+	baseType := Deref(fieldType).Elem()
 	dereffedBaseType := Deref(baseType)
 	dereffedBaseKind := dereffedBaseType.Kind()
 	if refValue.Len() == 0 {
-		value.Set(reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
+		SetValue(fieldType, value, reflect.MakeSlice(reflect.SliceOf(baseType), 0, 0))
 		return nil
 	}
 
@@ -179,7 +179,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value,
 	}
 
 	if valid {
-		value.Set(conv)
+		SetValue(fieldType, value, conv)
 	}
 
 	return nil
@@ -201,7 +201,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 		return errUnsupportedType
 	}
 
-	baseFieldType := fieldType.Elem()
+	baseFieldType := Deref(fieldType).Elem()
 	baseFieldKind := baseFieldType.Kind()
 	conv := reflect.MakeSlice(reflect.SliceOf(baseFieldType), len(slice), cap(slice))
 
@@ -211,7 +211,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 		}
 	}
 
-	value.Set(conv)
+	SetValue(fieldType, value, conv)
 	return nil
 }
 
@@ -312,7 +312,7 @@ func (u *Unmarshaler) fillUnmarshalerStruct(fieldType reflect.Type,
 	target := reflect.New(baseType)
 	switch u.key {
 	case jsonTagKey:
-		unmarshaler, ok := target.Interface().(json.Unmarshaler)
+		unmarshaler, ok := reflect.TypeAssert[json.Unmarshaler](target)
 		if !ok {
 			return errUnsupportedType
 		}
@@ -424,7 +424,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any,
 func (u *Unmarshaler) implementsUnmarshaler(t reflect.Type) bool {
 	switch u.key {
 	case jsonTagKey:
-		return t.Implements(reflect.TypeOf((*json.Unmarshaler)(nil)).Elem())
+		return t.Implements(reflect.TypeFor[json.Unmarshaler]())
 	default:
 		return false
 	}
@@ -740,12 +740,12 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 		if value.Elem().Kind() == reflect.Ptr {
 			target := reflect.New(Deref(fieldType))
 			SetValue(fieldType.Elem(), value, target)
-			tval, ok = target.Interface().(encoding.TextUnmarshaler)
+			tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](target)
 		} else {
-			tval, ok = value.Interface().(encoding.TextUnmarshaler)
+			tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](value)
 		}
 	} else {
-		tval, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
+		tval, ok = reflect.TypeAssert[encoding.TextUnmarshaler](value.Addr())
 	}
 	if ok {
 		switch mv := mapValue.(type) {

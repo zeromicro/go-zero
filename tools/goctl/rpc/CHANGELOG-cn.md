@@ -1,5 +1,7 @@
 # 变更日志
 
+[English](CHANGELOG.md) | 中文 | [한국어](CHANGELOG-ko.md)
+
 ## 未发布
 
 ### 新功能
@@ -40,7 +42,7 @@
 - `generator/typeref.go` — 新文件，核心类型解析引擎：
   - `resolveRPCTypeRef()` — 将 proto RPC 类型（简单类型、同包点号类型、跨包点号类型、Google WKT）解析为带正确导入路径的 Go 类型引用。
   - `resolveCallTypeRef()` — 客户端代码生成变体，支持类型别名。
-  - `googleWKTTable` — 全部 16 种 Google 知名类型到 Go 等价类型的映射表。
+  - `googleWKTTable` — 支持的 Google 知名类型到 Go 等价类型的映射表。
 - `generator/genserver.go` — `genFunctions()` 调用 `resolveRPCTypeRef()` 解析请求/响应类型并收集额外导入路径。
 - `generator/genlogic.go` — `genLogicFunction()` 使用 `resolveRPCTypeRef()`；新增 `addLogicImports()` 按需添加主 pb 导入和跨包导入。
 - `generator/gencall.go` — `genFunction()` 和 `getInterfaceFuncs()` 使用 `resolveCallTypeRef()` 处理类型别名和额外导入；新增 `buildExtraImportLines()` 辅助函数。
@@ -67,7 +69,7 @@
 Google protobuf 知名类型现在可以直接用作 RPC 的请求/响应类型（而不仅仅是消息字段）。
 
 **涉及文件：**
-- `generator/typeref.go` — `resolveGoogleWKT()` + `googleWKTTable` 处理所有标准类型。
+- `generator/typeref.go` — `resolveGoogleWKT()` + `googleWKTTable` 处理支持的标准类型。
 
 **前后对比：**
 

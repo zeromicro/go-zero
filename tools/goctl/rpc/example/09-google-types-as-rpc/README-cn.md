@@ -1,4 +1,6 @@
-# 示例 09：Google 类型作为 RPC 参数
+# 示例 09：Google 知名类型作为 RPC 参数
+
+[English](README.md) | 中文 | [한국어](README-ko.md)
 
 本示例演示将 Google protobuf 知名类型**直接**用作 RPC 请求或响应类型（而不仅仅是消息字段）。
 

@@ -1,5 +1,7 @@
 # Example 05: Multiple Services (`--multiple`)
 
+English | [中文](README-cn.md) | [한국어](README-ko.md)
+
 This example demonstrates generating multiple RPC services from a single proto file.
 
 ## Proto Definition

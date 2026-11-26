@@ -33,7 +33,7 @@ func (scanner *TextLineScanner) Scan() bool {
 	scanner.line = strings.TrimRight(line, "\n")
 	if errors.Is(err, io.EOF) {
 		scanner.hasNext = false
-		return true
+		return len(line) > 0
 	} else if err != nil {
 		scanner.err = err
 		return false

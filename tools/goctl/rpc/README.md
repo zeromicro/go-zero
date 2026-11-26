@@ -1,6 +1,6 @@
 # goctl rpc — RPC Code Generation
 
-English | [中文](README-cn.md)
+English | [中文](README-cn.md) | [한국어](README-ko.md)
 
 goctl rpc is the RPC service code generation module of the `goctl` scaffold. It generates a complete zRPC service from `.proto` files. You only need to write the proto definition and business logic — all boilerplate code is generated automatically.
 
@@ -10,7 +10,7 @@ goctl rpc is the RPC service code generation module of the `goctl` scaffold. It 
 - **External proto imports**: Cross-directory and cross-package proto imports with automatic transitive dependency resolution
 - **Multiple services**: Define multiple services in a single proto file, auto-grouped by service name
 - **Streaming support**: Server streaming, client streaming, and bidirectional streaming
-- **Google well-known types**: Automatic recognition of `google.protobuf.*` types with correct Go imports
+- **Google well-known types**: Automatic recognition of supported `google.protobuf.*` types with correct Go imports
 - **Client generation**: Auto-generated RPC client wrapper code
 
 ## Prerequisites
@@ -73,6 +73,21 @@ goctl rpc protoc user.proto \
 
 ---
 
+### Generate only the RPC client
+
+For an API gateway or another project that only calls an RPC service, use `--client-only`:
+
+```bash
+goctl rpc protoc user.proto \
+  --go_out=output --go-grpc_out=output --zrpc_out=output \
+  --go_opt=module=example.com/demo --go-grpc_opt=module=example.com/demo \
+  --module=example.com/demo --client-only -I .
+```
+
+This keeps the protoc-generated `.pb.go` and `_grpc.pb.go` files and the go-zero client wrapper, without creating the server skeleton's `etc`, `internal`, service entry point, or server implementation files. Existing server files are left untouched. An existing Go module is reused; standalone output still creates `go.mod` as usual.
+
+`--multiple`, external proto imports, and protoc output options remain available. Omitting `--client-only` keeps full-service generation unchanged, while `--client=false` still disables the client wrapper. Combining `--client-only` with `--client=false` fails before output files are created. This option is only available for `goctl rpc protoc`.
+
 ## Command Reference
 
 ### `goctl rpc protoc`
@@ -123,6 +138,7 @@ goctl rpc protoc service.proto \
 | `--proto_path` | `-I` | string[] | | Proto import search directories (repeatable) |
 | `--multiple` | `-m` | bool | `false` | Multiple services mode |
 | `--client` | `-c` | bool | `true` | Generate RPC client code |
+| `--client-only` | | bool | `false` | Generate protobuf files and the RPC client, without a server skeleton |
 | `--style` | | string | `gozero` | File naming style |
 | `--module` | | string | | Custom Go module name |
 | `--name-from-filename` | | bool | `false` | Use filename instead of package name for service naming |
@@ -311,5 +327,5 @@ See the [example/](example/) directory for 10 complete examples covering all gen
 | 06 | [Well-known types](example/06-wellknown-types/) | Timestamp etc. in messages |
 | 07 | [External proto (same pkg)](example/07-external-proto-same-pkg/) | External proto, same go_package |
 | 08 | [External proto (diff pkg)](example/08-external-proto-diff-pkg/) | External proto, different go_package |
-| 09 | [Google types as params](example/09-google-types-as-rpc/) | Empty/Timestamp as RPC parameters |
+| 09 | [Google well-known types as params](example/09-google-types-as-rpc/) | Empty/Timestamp as RPC parameters |
 | 10 | [Streaming](example/10-streaming/) | Server/client/bidirectional streaming |

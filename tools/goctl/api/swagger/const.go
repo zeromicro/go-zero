@@ -54,6 +54,8 @@ const (
 	propertyKeyDeprecated              = "deprecated"
 	propertyKeyPrefix                  = "prefix"
 	propertyKeyAuthType                = "authType"
+	propertyKeyRespCode                = "respCode"
+	propertyKeyResponses               = "responses"
 	propertyKeyHost                    = "host"
 	propertyKeyBasePath                = "basePath"
 	propertyKeyWrapCodeMsg             = "wrapCodeMsg"

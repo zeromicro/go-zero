@@ -1,6 +1,6 @@
 # goctl rpc — RPC 代码生成
 
-[English](README.md) | 中文
+[English](README.md) | 中文 | [한국어](README-ko.md)
 
 goctl rpc 是 `goctl` 脚手架下的 RPC 服务代码生成模块，基于 `.proto` 文件生成完整的 zRPC 服务代码。你只需编写 proto 定义和业务逻辑，其余代码均由工具自动生成。
 
@@ -10,7 +10,7 @@ goctl rpc 是 `goctl` 脚手架下的 RPC 服务代码生成模块，基于 `.pr
 - **外部 Proto 导入**：支持跨目录、跨包的 proto 导入，自动解析传递性依赖
 - **多服务模式**：单个 proto 文件中定义多个 service，按服务名自动分组
 - **流式支持**：支持服务端流、客户端流和双向流
-- **Google 标准类型**：自动识别 `google.protobuf.*` 类型并生成正确的 Go 导入
+- **Google 标准类型**：自动识别支持的 `google.protobuf.*` 类型并生成正确的 Go 导入
 - **客户端生成**：自动生成封装好的 RPC 客户端代码
 
 ## 前置条件
@@ -73,6 +73,21 @@ goctl rpc protoc user.proto \
 
 ---
 
+### 只生成 RPC 客户端
+
+API 网关等项目只需要调用 RPC 服务时，可以使用 `--client-only`：
+
+```bash
+goctl rpc protoc user.proto \
+  --go_out=output --go-grpc_out=output --zrpc_out=output \
+  --go_opt=module=example.com/demo --go-grpc_opt=module=example.com/demo \
+  --module=example.com/demo --client-only -I .
+```
+
+该模式保留 protoc 生成的 `.pb.go`、`_grpc.pb.go` 和 go-zero 客户端封装，但不创建服务器骨架中的 `etc`、`internal`、服务入口或服务器实现文件。它不会删除或修改已有的服务器文件。已有 Go module 会被复用；没有 module 时仍按原规则创建 `go.mod`。
+
+`--multiple`、外部 proto 导入和 protoc 输出选项仍然有效。不传 `--client-only` 时保持完整服务生成行为；`--client=false` 仍表示不生成客户端封装。`--client-only` 与 `--client=false` 同时使用会在创建输出文件前报错。此选项仅适用于 `goctl rpc protoc`。
+
 ## 命令参考
 
 ### `goctl rpc protoc`
@@ -123,6 +138,7 @@ goctl rpc protoc service.proto \
 | `--proto_path` | `-I` | string[] | | proto 导入搜索目录（可多次指定） |
 | `--multiple` | `-m` | bool | `false` | 多服务模式 |
 | `--client` | `-c` | bool | `true` | 是否生成 RPC 客户端代码 |
+| `--client-only` | | bool | `false` | 只生成 protobuf 文件和 RPC 客户端，跳过服务器骨架 |
 | `--style` | | string | `gozero` | 文件命名风格 |
 | `--module` | | string | | 自定义 Go module 名称 |
 | `--name-from-filename` | | bool | `false` | 使用文件名而非 package 名命名服务 |
@@ -311,5 +327,5 @@ goctl 自动识别并正确处理 Google protobuf 标准类型：
 | 06 | [标准类型](example/06-wellknown-types/) | 消息中使用 Timestamp 等 |
 | 07 | [外部 Proto（同包）](example/07-external-proto-same-pkg/) | 外部 proto，相同 go_package |
 | 08 | [外部 Proto（跨包）](example/08-external-proto-diff-pkg/) | 外部 proto，不同 go_package |
-| 09 | [标准类型作参数](example/09-google-types-as-rpc/) | Empty/Timestamp 作为 RPC 参数 |
+| 09 | [Google 标准类型作参数](example/09-google-types-as-rpc/) | Empty/Timestamp 作为 RPC 参数 |
 | 10 | [流式通信](example/10-streaming/) | 服务端/客户端/双向流 |

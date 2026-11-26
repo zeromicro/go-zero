@@ -477,8 +477,6 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 		pool := make(chan lang.PlaceholderType, option.workers)
 
 		for item := range s.source {
-			// important, used in another goroutine
-			val := item
 			pool <- lang.Placeholder
 			wg.Add(1)
 
@@ -489,7 +487,7 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 					<-pool
 				}()
 
-				fn(val, pipe)
+				fn(item, pipe)
 			})
 		}
 
@@ -507,13 +505,11 @@ func (s Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
 		var wg sync.WaitGroup
 
 		for item := range s.source {
-			// important, used in another goroutine
-			val := item
 			wg.Add(1)
 			// better to safely run caller defined method
 			threading.GoSafe(func() {
 				defer wg.Done()
-				fn(val, pipe)
+				fn(item, pipe)
 			})
 		}
 

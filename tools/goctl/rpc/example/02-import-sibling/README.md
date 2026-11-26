@@ -1,5 +1,7 @@
 # Example 02: Importing a Sibling Proto File
 
+English | [中文](README-cn.md) | [한국어](README-ko.md)
+
 This example demonstrates importing a proto file from the same directory.
 
 ## Proto Definition

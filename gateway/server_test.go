@@ -210,6 +210,57 @@ func TestHttpToHttp(t *testing.T) {
 	})
 }
 
+func TestHttpToHttpContentType(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		body        string
+	}{
+		{
+			name:        "csv",
+			contentType: "text/csv; charset=utf-8",
+			body:        "id,amount\n1,100\n",
+		},
+		{
+			name:        "html",
+			contentType: "text/html; charset=utf-8",
+			body:        "<html><body>Login</body></html>",
+		},
+		{
+			name:        "json",
+			contentType: "application/json; charset=utf-8",
+			body:        `{"code":0}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			upstream := httptest.NewServer(http.HandlerFunc(
+				func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", test.contentType)
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write([]byte(test.body))
+				}))
+			defer upstream.Close()
+
+			handler := new(Server).buildHttpHandler(&HttpClientConf{
+				Target: upstream.Listener.Addr().String(),
+			})
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/test", nil)
+			handler.ServeHTTP(w, r)
+
+			resp := w.Result()
+			defer resp.Body.Close()
+
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			assert.Equal(t, []string{test.contentType}, resp.Header.Values("Content-Type"))
+			assert.Equal(t, test.body, w.Body.String())
+		})
+	}
+}
+
 func TestHttpToHttpBadUpstream(t *testing.T) {
 	var c GatewayConf
 	assert.NoError(t, conf.FillDefault(&c))

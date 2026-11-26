@@ -83,7 +83,7 @@ func lastLine(filename string, file *os.File) (string, error) {
 			break
 		}
 
-		if buf[n-1] == '\n' {
+		if offset+int64(n) == info.Size() && buf[n-1] == '\n' {
 			buf = buf[:n-1]
 			n--
 		} else {

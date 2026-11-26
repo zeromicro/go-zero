@@ -59,6 +59,35 @@ func TestTimingWheel_Drain(t *testing.T) {
 	assert.Equal(t, ErrClosed, tw.Drain(func(key, value any) {}))
 }
 
+func TestTimingWheel_SetTimerAfterDrain(t *testing.T) {
+	ticker := timex.NewFakeTicker()
+	var count int32
+	tw, _ := NewTimingWheelWithTicker(testStep, 10, func(key, value any) {
+		assert.Equal(t, "foo", key)
+		assert.Equal(t, 2, value)
+		atomic.AddInt32(&count, 1)
+		ticker.Done()
+	}, ticker)
+	defer tw.Stop()
+
+	tw.SetTimer("foo", 1, testStep*4)
+	drained := make(chan lang.PlaceholderType)
+	tw.Drain(func(key, value any) {
+		assert.Equal(t, "foo", key)
+		assert.Equal(t, 1, value)
+		close(drained)
+	})
+	<-drained
+
+	tw.SetTimer("foo", 2, testStep*4)
+	for i := 0; i < 4; i++ {
+		ticker.Tick()
+	}
+
+	assert.Nil(t, ticker.Wait(waitTime))
+	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
+}
+
 func TestTimingWheel_SetTimerSoon(t *testing.T) {
 	run := syncx.NewAtomicBool()
 	ticker := timex.NewFakeTicker()
