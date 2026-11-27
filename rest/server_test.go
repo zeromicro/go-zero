@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -123,6 +124,24 @@ Port: 0
 			svr.StartWithOpts(func(svr *http.Server) {
 				svr.RegisterOnShutdown(func() {})
 			})
+			svr.Stop()
+		}()
+
+		func() {
+			defer func() {
+				p := recover()
+				switch v := p.(type) {
+				case error:
+					assert.Equal(t, "foo", v.Error())
+				default:
+					t.Fail()
+				}
+			}()
+
+			address := fmt.Sprintf("%s:%d", cnf.Host, cnf.Port)
+			listener, err := net.Listen("tcp", address)
+			assert.Nil(t, err)
+			svr.StartWithListener(listener)
 			svr.Stop()
 		}()
 	}
