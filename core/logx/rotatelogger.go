@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -24,13 +25,38 @@ const (
 	defaultFileMode = 0o600
 	gzipExt         = ".gz"
 	megaBytes       = 1 << 20
+
+	// defaultCreateMode is the mode used when the log file or a backup is
+	// created, the same as os.Create does.
+	defaultCreateMode = 0o666
+
+	// The log file can be written by multiple processes, the in-memory size
+	// counter only knows the bytes written by this process. The real size is
+	// refreshed from the file system, but at most once per sizeCheckInterval:
+	// one stat per entry would be too costly, especially on a network
+	// filesystem.
+	sizeCheckInterval = time.Second
+
+	// A rotation that keeps failing, for instance with no space left or on a
+	// read-only backup directory, copies the whole log file on every attempt.
+	// Retry at most once per rotateRetryInterval.
+	rotateRetryInterval = time.Minute
+
+	// defaultFileTimeFormat is the default time layout used in backup file
+	// names. It used to be time.RFC3339, whose colons are not valid in file
+	// names on Windows. The layout is colon-free now, and the nanoseconds
+	// keep the backups of multiple processes rotating at the same moment
+	// apart.
+	defaultFileTimeFormat = "2006-01-02T15-04-05.000000000"
 )
 
 var (
 	// ErrLogFileClosed is an error that indicates the log file is already closed.
 	ErrLogFileClosed = errors.New("error: log file closed")
 
-	fileTimeFormat = time.RFC3339
+	// fileTimeFormat is the time layout used in backup file names, it can be
+	// overridden with the FileTimeFormat config option.
+	fileTimeFormat = defaultFileTimeFormat
 )
 
 type (
@@ -52,9 +78,11 @@ type (
 		rule     RotateRule
 		compress bool
 		// can't use threading.RoutineGroup because of cycle import
-		waitGroup   sync.WaitGroup
-		closeOnce   sync.Once
-		currentSize int64
+		waitGroup         sync.WaitGroup
+		closeOnce         sync.Once
+		currentSize       int64
+		lastSizeCheckTime time.Time
+		lastRotateFail    time.Time
 	}
 
 	// A DailyRotateRule is a rule to daily rotate the log files.
@@ -143,7 +171,7 @@ func (r *DailyRotateRule) ShallRotate(_ int64) bool {
 func NewSizeLimitRotateRule(filename, delimiter string, days, maxSize, maxBackups int, gzip bool) RotateRule {
 	return &SizeLimitRotateRule{
 		DailyRotateRule: DailyRotateRule{
-			rotatedTime: getNowDateInRFC3339Format(),
+			rotatedTime: getNowDateInFileTimeFormat(),
 			filename:    filename,
 			delimiter:   delimiter,
 			days:        days,
@@ -157,12 +185,12 @@ func NewSizeLimitRotateRule(filename, delimiter string, days, maxSize, maxBackup
 func (r *SizeLimitRotateRule) BackupFileName() string {
 	dir := filepath.Dir(r.filename)
 	prefix, ext := r.parseFilename()
-	timestamp := getNowDateInRFC3339Format()
+	timestamp := getNowDateInFileTimeFormat()
 	return filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, timestamp, ext))
 }
 
 func (r *SizeLimitRotateRule) MarkRotated() {
-	r.rotatedTime = getNowDateInRFC3339Format()
+	r.rotatedTime = getNowDateInFileTimeFormat()
 }
 
 func (r *SizeLimitRotateRule) OutdatedFiles() []string {
@@ -184,7 +212,16 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 		return nil
 	}
 
-	sort.Strings(files)
+	// The backups are ordered by the time in their names. The time layout used
+	// to be time.RFC3339, whose colons sort after the dash of the current
+	// layout, so the names of both layouts don't order by time when compared
+	// raw. backupNameOrderKey folds the colons into dashes, so that both
+	// layouts order by time, and the order of the names without colons keeps
+	// unchanged.
+	orderKey := backupNameOrderKey
+	sort.Slice(files, func(i, j int) bool {
+		return orderKey(files[i]) < orderKey(files[j])
+	})
 
 	outdated := make(map[string]lang.PlaceholderType)
 
@@ -203,8 +240,9 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 		if r.gzip {
 			boundaryFile += gzipExt
 		}
+		boundaryKey := orderKey(boundaryFile)
 		for _, f := range files {
-			if f >= boundaryFile {
+			if orderKey(f) >= boundaryKey {
 				break
 			}
 			outdated[f] = lang.Placeholder
@@ -220,6 +258,12 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 
 func (r *SizeLimitRotateRule) ShallRotate(size int64) bool {
 	return r.maxSize > 0 && r.maxSize < size
+}
+
+// backupNameOrderKey converts a backup filename into a form that orders by the
+// time in the name when compared as a string, see SizeLimitRotateRule.OutdatedFiles.
+func backupNameOrderKey(name string) string {
+	return strings.ReplaceAll(name, ":", "-")
 }
 
 func (r *SizeLimitRotateRule) parseFilename() (prefix, ext string) {
@@ -293,7 +337,7 @@ func (l *RotateLogger) initialize() error {
 			}
 		}
 
-		if l.fp, err = os.Create(l.filename); err != nil {
+		if l.fp, err = os.OpenFile(l.filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, defaultCreateMode); err != nil {
 			return err
 		}
 	} else {
@@ -346,31 +390,124 @@ func (l *RotateLogger) postRotate(file string) {
 }
 
 func (l *RotateLogger) rotate() error {
-	if l.fp != nil {
-		err := l.fp.Close()
-		l.fp = nil
-		if err != nil {
+	backupFilename := l.getBackupFilename()
+	if len(backupFilename) > 0 {
+		if err := l.backupAndTruncate(backupFilename); err != nil {
 			return err
 		}
-	}
-
-	_, err := os.Stat(l.filename)
-	if err == nil && len(l.backup) > 0 {
-		backupFilename := l.getBackupFilename()
-		err = os.Rename(l.filename, backupFilename)
-		if err != nil {
-			return err
-		}
-
-		l.postRotate(backupFilename)
 	}
 
 	l.backup = l.rule.BackupFileName()
-	if l.fp, err = os.Create(l.filename); err == nil {
-		fs.CloseOnExec(l.fp)
+	return nil
+}
+
+// backupAndTruncate backs the log file up and truncates it in place. It used
+// to be a rename: with multiple processes sharing the log file, the file
+// descriptors opened by the other processes keep pointing to the renamed file,
+// so their logs get lost into the backup and the log file starts from scratch
+// for this process only. Truncating keeps the inode of the log file, so the
+// descriptors of all the processes stay valid and keep appending to the file
+// that is actually active.
+func (l *RotateLogger) backupAndTruncate(backupFilename string) error {
+	fileInfo, err := os.Stat(l.filename)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// the file is gone, recreate it, otherwise the logs written
+			// by this process would go to the unlinked file.
+			return l.reopenFile()
+		}
+		// The file cannot be stated, so the rotation cannot be performed.
+		// Report the error instead of reporting a fake success: the caller
+		// must not mark the rotation done, otherwise the file grows
+		// without end and nothing retries.
+		return err
+	}
+	if fileInfo.Size() == 0 {
+		// nothing to back up, another process may have rotated the file
+		// at the same moment.
+		return nil
 	}
 
-	return err
+	// O_EXCL: two processes can rotate the file at the same moment, the one
+	// that comes second must not overwrite the backup of the first one.
+	dst, err := os.OpenFile(backupFilename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, fileInfo.Mode().Perm())
+	if err != nil {
+		if errors.Is(err, os.ErrExist) {
+			// another process rotated the file at the same moment, it has
+			// already backed up and truncated the content.
+			return nil
+		}
+		return err
+	}
+
+	src, err := os.Open(l.filename)
+	if err != nil {
+		_ = dst.Close()
+		_ = os.Remove(backupFilename)
+		return err
+	}
+	// Copy the snapshot size only: on a shared volume the file keeps
+	// growing while copying, an unbounded copy could run for a long time.
+	// The entries appended after the snapshot get truncated anyway, this is
+	// the copytruncate trade-off.
+	written, err := io.CopyN(dst, src, fileInfo.Size())
+	_ = src.Close()
+	if errors.Is(err, io.EOF) {
+		// The file was truncated by another process while copying, the
+		// partial backup is kept when it is not empty.
+		err = nil
+	}
+	// Close the backup unconditionally, a file left open cannot be removed
+	// on Windows, and a stale backup would block the next attempt with
+	// O_EXCL. Keep the first error.
+	if closeErr := dst.Close(); err == nil && closeErr != nil {
+		err = closeErr
+	}
+	if err != nil {
+		_ = os.Remove(backupFilename)
+		return err
+	}
+	if written == 0 {
+		// an empty backup would take one of the slots kept by the
+		// maxBackups rule.
+		_ = os.Remove(backupFilename)
+		return nil
+	}
+
+	if err = os.Truncate(l.filename, 0); err != nil {
+		// The truncation may or may not have landed. The file being still
+		// non-empty means it didn't: the backup is a copy of a file that
+		// is going to be copied again, remove it, so the next attempt is
+		// not blocked by the O_EXCL above and reports a fake success.
+		if fi, statErr := os.Stat(l.filename); statErr == nil && fi.Size() > 0 {
+			_ = os.Remove(backupFilename)
+			return err
+		}
+		// The file is empty, the backup holds the logs, the rotation is
+		// done despite the error.
+		l.postRotate(backupFilename)
+		return nil
+	}
+
+	l.postRotate(backupFilename)
+	return nil
+}
+
+func (l *RotateLogger) reopenFile() error {
+	fp, err := os.OpenFile(l.filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, defaultCreateMode)
+	if err != nil {
+		return err
+	}
+	// Close the descriptor of the removed file only after the new one is
+	// open, a failure keeps the logger usable with the old descriptor
+	// instead of leaving a nil one behind.
+	if l.fp != nil {
+		_ = l.fp.Close()
+	}
+	fs.CloseOnExec(fp)
+	l.fp = fp
+	l.currentSize = 0
+	return nil
 }
 
 func (l *RotateLogger) startWorker() {
@@ -399,12 +536,25 @@ func (l *RotateLogger) startWorker() {
 }
 
 func (l *RotateLogger) write(v []byte) {
+	if time.Since(l.lastSizeCheckTime) >= sizeCheckInterval {
+		l.lastSizeCheckTime = time.Now()
+		// the file can be written by multiple processes, the in-memory
+		// counter only knows the bytes written by this process, refresh
+		// the real size from the file system.
+		if fileInfo, err := os.Stat(l.filename); err == nil {
+			l.currentSize = fileInfo.Size()
+		}
+	}
+
 	if l.rule.ShallRotate(l.currentSize + int64(len(v))) {
-		if err := l.rotate(); err != nil {
-			log.Println(err)
-		} else {
-			l.rule.MarkRotated()
-			l.currentSize = 0
+		if time.Since(l.lastRotateFail) >= rotateRetryInterval {
+			if err := l.rotate(); err != nil {
+				log.Println(err)
+				l.lastRotateFail = time.Now()
+			} else {
+				l.rule.MarkRotated()
+				l.currentSize = 0
+			}
 		}
 	}
 	if l.fp != nil {
@@ -427,7 +577,7 @@ func getNowDate() string {
 	return time.Now().Format(time.DateOnly)
 }
 
-func getNowDateInRFC3339Format() string {
+func getNowDateInFileTimeFormat() string {
 	return time.Now().Format(fileTimeFormat)
 }
 
