@@ -47,6 +47,11 @@ func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
 	return c.getClient()
 }
 
+// InvalidateConn removes the cached etcd client associated with given endpoints.
+func (r *Registry) InvalidateConn(endpoints []string) error {
+	return connManager.RemoveResource(getClusterKey(endpoints))
+}
+
 // Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
 func (r *Registry) Monitor(endpoints []string, key string, exactMatch bool, l UpdateListener) error {
 	wkey := watchKey{
