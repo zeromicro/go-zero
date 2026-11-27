@@ -81,7 +81,8 @@ func (b *googleBreaker) accept() error {
 
 func (b *googleBreaker) allow() (internalPromise, error) {
 	if err := b.accept(); err != nil {
-		b.markDrop()
+		// rejected by the breaker itself, not a backend outcome,
+		// so it's not counted in the statistics.
 		return nil, err
 	}
 
@@ -92,7 +93,8 @@ func (b *googleBreaker) allow() (internalPromise, error) {
 
 func (b *googleBreaker) doReq(req func() error, fallback Fallback, acceptable Acceptable) error {
 	if err := b.accept(); err != nil {
-		b.markDrop()
+		// rejected by the breaker itself, not a backend outcome,
+		// so it's not counted in the statistics.
 		if fallback != nil {
 			return fallback(err)
 		}
@@ -116,10 +118,6 @@ func (b *googleBreaker) doReq(req func() error, fallback Fallback, acceptable Ac
 	}
 
 	return err
-}
-
-func (b *googleBreaker) markDrop() {
-	b.stat.Add(drop)
 }
 
 func (b *googleBreaker) markFailure() {
