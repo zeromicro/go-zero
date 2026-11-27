@@ -307,42 +307,6 @@ func TestCluster_handleWatchEvents(t *testing.T) {
 	})
 }
 
-func TestCluster_addListener(t *testing.T) {
-	t.Run("has listener", func(t *testing.T) {
-		c := &cluster{
-			watchers: map[watchKey]*watchValue{
-				{
-					key: "any",
-				}: {
-					listeners: make([]UpdateListener, 0),
-				},
-			},
-		}
-		assert.NotPanics(t, func() {
-			c.addListener(watchKey{
-				key: "any",
-			}, nil)
-		})
-	})
-
-	t.Run("no listener", func(t *testing.T) {
-		c := &cluster{
-			watchers: map[watchKey]*watchValue{
-				{
-					key: "any",
-				}: {
-					listeners: make([]UpdateListener, 0),
-				},
-			},
-		}
-		assert.NotPanics(t, func() {
-			c.addListener(watchKey{
-				key: "another",
-			}, nil)
-		})
-	})
-}
-
 func TestCluster_reload(t *testing.T) {
 	c := &cluster{
 		watchers:   map[watchKey]*watchValue{},
@@ -520,7 +484,15 @@ func TestCluster_ConcurrentMonitor(t *testing.T) {
 
 			if idx%2 == 0 {
 				// Half the goroutines add listeners (write operation)
-				c.addListener(key, &mockListener{})
+				c.lock.Lock()
+				if watcher, ok := c.watchers[key]; ok {
+					watcher.listeners = append(watcher.listeners, &mockListener{})
+				} else {
+					val := newWatchValue()
+					val.listeners = []UpdateListener{&mockListener{}}
+					c.watchers[key] = val
+				}
+				c.lock.Unlock()
 			} else {
 				// Half the goroutines setup watches (read operation)
 				_, _ = c.setupWatch(cli, key, 0)
@@ -541,6 +513,65 @@ func TestCluster_ConcurrentMonitor(t *testing.T) {
 
 	// Clean up
 	close(c.done)
+}
+
+// TestCluster_monitor_Idempotent verifies that calling c.monitor() twice for the
+// same key registers both listeners but spawns only ONE watch goroutine and issues
+// only ONE initial etcd Get. The second call must find the watcher already created
+// by the first call and replay the already-loaded values to the new listener.
+//
+// This guards against the TOCTOU race in Registry.Monitor(): two concurrent callers
+// can both observe ok==false before the watcher entry is created, and both fall
+// through to c.monitor(). The fix pre-creates the watcher entry under lock inside
+// c.monitor() so the second caller finds it and returns without launching another
+// goroutine.
+func TestCluster_monitor_Idempotent(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	l1 := NewMockUpdateListener(ctrl)
+	l2 := NewMockUpdateListener(ctrl)
+	// l1 receives the KV from the initial load (via handleChanges).
+	l1.EXPECT().OnAdd(KV{Key: "hello", Val: "world"}).Times(1)
+	// l2 receives the KV replayed from watcher.values in the second monitor call.
+	l2.EXPECT().OnAdd(KV{Key: "hello", Val: "world"}).Times(1)
+
+	cli := NewMockEtcdClient(ctrl)
+	// Times(1) assertions prove only one goroutine was spawned: a duplicate
+	// goroutine would issue a second Get and open a second Watch stream.
+	cli.EXPECT().Get(gomock.Any(), "any/", gomock.Any()).Return(&clientv3.GetResponse{
+		Header: &etcdserverpb.ResponseHeader{},
+		Kvs: []*mvccpb.KeyValue{
+			{Key: []byte("hello"), Value: []byte("world")},
+		},
+	}, nil).Times(1)
+	cli.EXPECT().Watch(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(make(chan clientv3.WatchResponse)).Times(1)
+	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
+
+	c := newCluster([]string{"any"})
+	// Pre-inject the mock into connManager so getClient() returns cli directly
+	// without calling newClient() — which would spawn the watchConnState goroutine
+	// and require a real *grpc.ClientConn from ActiveConnection().
+	connManager.Inject(c.key, cli)
+	t.Cleanup(func() { connManager.Inject(c.key, nopCloser{}) })
+
+	key := watchKey{key: "any"}
+
+	// First call: creates watcher, loads KVs (OnAdd → l1), spawns watch goroutine.
+	assert.NoError(t, c.monitor(key, l1))
+	// Second call: finds existing watcher — must NOT spawn another goroutine.
+	// l2 receives its OnAdd from the replay of watcher.values.
+	assert.NoError(t, c.monitor(key, l2))
+
+	c.lock.RLock()
+	watcher := c.watchers[key]
+	c.lock.RUnlock()
+	assert.Len(t, watcher.listeners, 2, "both listeners must be registered")
+
+	// Shut down; only one goroutine was started so Wait returns promptly.
+	close(c.done)
+	c.watchGroup.Wait()
 }
 
 func TestCluster_handleWatchEvents_DuplicatePut(t *testing.T) {
@@ -595,3 +626,8 @@ func (m *mockListener) OnAdd(_ KV) {
 
 func (m *mockListener) OnDelete(_ KV) {
 }
+
+// nopCloser is a no-op io.Closer used to clean up connManager entries after tests.
+type nopCloser struct{}
+
+func (nopCloser) Close() error { return nil }
