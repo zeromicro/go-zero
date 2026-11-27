@@ -81,6 +81,17 @@ func TestConvertStringDataType(t *testing.T) {
 				strict:        false,
 			},
 			want: result{
+				goType: "int64",
+			},
+		},
+		{
+			input: input{
+				dataType:      "bigint",
+				isDefaultNull: false,
+				unsigned:      true,
+				strict:        true,
+			},
+			want: result{
 				goType: "uint64",
 			},
 		},
