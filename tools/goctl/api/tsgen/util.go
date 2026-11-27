@@ -164,13 +164,13 @@ func writeType(writer io.Writer, tp spec.Type) error {
 }
 
 func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
-	definedType, ok := tp.(spec.DefineStruct)
+	_, ok := tp.(spec.DefineStruct)
 	if !ok {
 		return errors.New("no members of type " + tp.Name())
 	}
 
-	members := definedType.GetNonBodyMembers()
-	if len(members) == 0 {
+	// Check if there are actual non-body members (recursively through inline structs)
+	if !hasActualNonBodyMembers(tp) {
 		return nil
 	}
 
@@ -180,7 +180,7 @@ func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 	}
 	fmt.Fprintf(writer, "}\n")
 
-	if len(definedType.GetTagMembers(headerTagKey)) > 0 {
+	if hasActualTagMembers(tp, headerTagKey) {
 		fmt.Fprintf(writer, "export interface %sHeaders {\n", util.Title(tp.Name()))
 		if err := writeTagMembers(writer, tp, headerTagKey); err != nil {
 			return err
@@ -246,4 +246,88 @@ func writeTagMembers(writer io.Writer, tp spec.Type, tagKey string) error {
 		}
 	}
 	return nil
+}
+
+// hasActualTagMembers checks if a type has actual members with the given tag,
+// recursively checking inline/embedded structs
+func hasActualTagMembers(tp spec.Type, tagKey string) bool {
+	definedType, ok := tp.(spec.DefineStruct)
+	if !ok {
+		pointType, ok := tp.(spec.PointerType)
+		if ok {
+			return hasActualTagMembers(pointType.Type, tagKey)
+		}
+		return false
+	}
+
+	for _, m := range definedType.Members {
+		if m.IsInline {
+			// Recursively check inline members
+			if hasActualTagMembers(m.Type, tagKey) {
+				return true
+			}
+		} else {
+			// Check non-inline members for the tag
+			if m.IsTagMember(tagKey) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// hasActualBodyMembers checks if a type has actual body members (json tags),
+// recursively checking inline/embedded structs
+func hasActualBodyMembers(tp spec.Type) bool {
+	definedType, ok := tp.(spec.DefineStruct)
+	if !ok {
+		pointType, ok := tp.(spec.PointerType)
+		if ok {
+			return hasActualBodyMembers(pointType.Type)
+		}
+		return false
+	}
+
+	for _, m := range definedType.Members {
+		if m.IsInline {
+			// Recursively check inline members
+			if hasActualBodyMembers(m.Type) {
+				return true
+			}
+		} else {
+			// Check non-inline members for json tag
+			if m.IsBodyMember() {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// hasActualNonBodyMembers checks if a type has actual non-body members (form, path, header tags),
+// recursively checking inline/embedded structs
+func hasActualNonBodyMembers(tp spec.Type) bool {
+	definedType, ok := tp.(spec.DefineStruct)
+	if !ok {
+		pointType, ok := tp.(spec.PointerType)
+		if ok {
+			return hasActualNonBodyMembers(pointType.Type)
+		}
+		return false
+	}
+
+	for _, m := range definedType.Members {
+		if m.IsInline {
+			// Recursively check inline members
+			if hasActualNonBodyMembers(m.Type) {
+				return true
+			}
+		} else {
+			// Check non-inline members for non-body tags
+			if !m.IsBodyMember() {
+				return true
+			}
+		}
+	}
+	return false
 }
