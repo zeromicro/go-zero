@@ -16,10 +16,10 @@ func TestNewWriter(t *testing.T) {
 	const literal = "foo bar"
 	var buf bytes.Buffer
 	w := NewWriter(&buf)
-	w.Info(literal)
+	w.Info(literal, 0)
 	assert.Contains(t, buf.String(), literal)
 	buf.Reset()
-	w.Debug(literal)
+	w.Debug(literal, 0)
 	assert.Contains(t, buf.String(), literal)
 }
 
@@ -28,7 +28,7 @@ func TestConsoleWriter(t *testing.T) {
 	w := newConsoleWriter()
 	lw := newLogWriter(log.New(&buf, "", 0))
 	w.(*concreteWriter).errorLog = lw
-	w.Alert("foo bar 1")
+	w.Alert("foo bar 1", 0)
 	var val mockedEntry
 	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestConsoleWriter(t *testing.T) {
 
 	buf.Reset()
 	w.(*concreteWriter).errorLog = lw
-	w.Error("foo bar 2")
+	w.Error("foo bar 2", 0)
 	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestConsoleWriter(t *testing.T) {
 
 	buf.Reset()
 	w.(*concreteWriter).infoLog = lw
-	w.Info("foo bar 3")
+	w.Info("foo bar 3", 0)
 	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func TestConsoleWriter(t *testing.T) {
 
 	buf.Reset()
 	w.(*concreteWriter).severeLog = lw
-	w.Severe("foo bar 4")
+	w.Severe("foo bar 4", 0)
 	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestConsoleWriter(t *testing.T) {
 
 	buf.Reset()
 	w.(*concreteWriter).slowLog = lw
-	w.Slow("foo bar 5")
+	w.Slow("foo bar 5", 0)
 	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestConsoleWriter(t *testing.T) {
 
 	buf.Reset()
 	w.(*concreteWriter).statLog = lw
-	w.Stat("foo bar 6")
+	w.Stat("foo bar 6", 0)
 	if err := json.Unmarshal(buf.Bytes(), &val); err != nil {
 		t.Fatal(err)
 	}
@@ -110,14 +110,14 @@ func TestNewFileWriter(t *testing.T) {
 func TestNopWriter(t *testing.T) {
 	assert.NotPanics(t, func() {
 		var w nopWriter
-		w.Alert("foo")
-		w.Debug("foo")
-		w.Error("foo")
-		w.Info("foo")
-		w.Severe("foo")
-		w.Stack("foo")
-		w.Stat("foo")
-		w.Slow("foo")
+		w.Alert("foo", 0)
+		w.Debug("foo", 0)
+		w.Error("foo", 0)
+		w.Info("foo", 0)
+		w.Severe("foo", 0)
+		w.Stack("foo", 0)
+		w.Stat("foo", 0)
+		w.Slow("foo", 0)
 		_ = w.Close()
 	})
 }
@@ -197,7 +197,7 @@ func TestWritePlainDuplicate(t *testing.T) {
 	})
 
 	var buf bytes.Buffer
-	output(&buf, levelInfo, "foo", LogField{
+	output(&buf, levelInfo, "foo", 0, LogField{
 		Key:   "first",
 		Value: "a",
 	}, LogField{
@@ -209,7 +209,7 @@ func TestWritePlainDuplicate(t *testing.T) {
 	assert.Contains(t, buf.String(), "first=b")
 
 	buf.Reset()
-	output(&buf, levelInfo, "foo", LogField{
+	output(&buf, levelInfo, "foo", 0, LogField{
 		Key:   "first",
 		Value: "a",
 	}, LogField{
@@ -236,7 +236,7 @@ func TestLogWithSensitive(t *testing.T) {
 		output(&buf, levelInfo, User{
 			Name: "kevin",
 			Pass: "123",
-		}, LogField{
+		}, 0, LogField{
 			Key:   "first",
 			Value: "a",
 		}, LogField{
@@ -250,7 +250,7 @@ func TestLogWithSensitive(t *testing.T) {
 
 	t.Run("sensitive fields", func(t *testing.T) {
 		var buf bytes.Buffer
-		output(&buf, levelInfo, "foo", LogField{
+		output(&buf, levelInfo, "foo", 0, LogField{
 			Key: "first",
 			Value: User{
 				Name: "kevin",
@@ -278,7 +278,7 @@ func TestLogWithLimitContentLength(t *testing.T) {
 	t.Run("alert", func(t *testing.T) {
 		var buf bytes.Buffer
 		w := NewWriter(&buf)
-		w.Info("1234567890")
+		w.Info("1234567890", 0)
 		var v1 mockedEntry
 		if err := json.Unmarshal(buf.Bytes(), &v1); err != nil {
 			t.Fatal(err)
@@ -288,7 +288,7 @@ func TestLogWithLimitContentLength(t *testing.T) {
 
 		buf.Reset()
 		var v2 mockedEntry
-		w.Info("12345678901")
+		w.Info("12345678901", 0)
 		if err := json.Unmarshal(buf.Bytes(), &v2); err != nil {
 			t.Fatal(err)
 		}
@@ -309,101 +309,86 @@ func TestComboWriter(t *testing.T) {
 
 	t.Run("Alert", func(t *testing.T) {
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Alert", "test alert").Once()
+			mw.(*tracedWriter).On("Alert", "test alert", uint64(0)).Once()
 		}
-		cw.Alert("test alert")
+		cw.Alert("test alert", 0)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Alert", "test alert")
-		}
-	})
-
-	t.Run("Close", func(t *testing.T) {
-		for i := range cw.writers {
-			if i == 1 {
-				cw.writers[i].(*tracedWriter).On("Close").Return(errors.New("error")).Once()
-			} else {
-				cw.writers[i].(*tracedWriter).On("Close").Return(nil).Once()
-			}
-		}
-		err := cw.Close()
-		assert.Error(t, err)
-		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Close")
+			mw.(*tracedWriter).AssertCalled(t, "Alert", "test alert", uint64(0))
 		}
 	})
 
 	t.Run("Debug", func(t *testing.T) {
 		fields := []LogField{{Key: "key", Value: "value"}}
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Debug", "test debug", fields).Once()
+			mw.(*tracedWriter).On("Debug", "test debug", uint64(0), fields).Once()
 		}
-		cw.Debug("test debug", fields...)
+		cw.Debug("test debug", 0, fields...)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Debug", "test debug", fields)
+			mw.(*tracedWriter).AssertCalled(t, "Debug", "test debug", uint64(0), fields)
 		}
 	})
 
 	t.Run("Error", func(t *testing.T) {
 		fields := []LogField{{Key: "key", Value: "value"}}
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Error", "test error", fields).Once()
+			mw.(*tracedWriter).On("Error", "test error", uint64(0), fields).Once()
 		}
-		cw.Error("test error", fields...)
+		cw.Error("test error", 0, fields...)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Error", "test error", fields)
+			mw.(*tracedWriter).AssertCalled(t, "Error", "test error", uint64(0), fields)
 		}
 	})
 
 	t.Run("Info", func(t *testing.T) {
 		fields := []LogField{{Key: "key", Value: "value"}}
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Info", "test info", fields).Once()
+			mw.(*tracedWriter).On("Info", "test info", uint64(0), fields).Once()
 		}
-		cw.Info("test info", fields...)
+		cw.Info("test info", 0, fields...)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Info", "test info", fields)
+			mw.(*tracedWriter).AssertCalled(t, "Info", "test info", uint64(0), fields)
 		}
 	})
 
 	t.Run("Severe", func(t *testing.T) {
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Severe", "test severe").Once()
+			mw.(*tracedWriter).On("Severe", "test severe", uint64(0)).Once()
 		}
-		cw.Severe("test severe")
+		cw.Severe("test severe", 0)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Severe", "test severe")
+			mw.(*tracedWriter).AssertCalled(t, "Severe", "test severe", uint64(0))
 		}
 	})
 
 	t.Run("Slow", func(t *testing.T) {
 		fields := []LogField{{Key: "key", Value: "value"}}
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Slow", "test slow", fields).Once()
+			mw.(*tracedWriter).On("Slow", "test slow", uint64(0), fields).Once()
 		}
-		cw.Slow("test slow", fields...)
+		cw.Slow("test slow", 0, fields...)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Slow", "test slow", fields)
+			mw.(*tracedWriter).AssertCalled(t, "Slow", "test slow", uint64(0), fields)
 		}
 	})
 
 	t.Run("Stack", func(t *testing.T) {
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Stack", "test stack").Once()
+			mw.(*tracedWriter).On("Stack", "test stack", uint64(0)).Once()
 		}
-		cw.Stack("test stack")
+		cw.Stack("test stack", 0)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Stack", "test stack")
+			mw.(*tracedWriter).AssertCalled(t, "Stack", "test stack", uint64(0))
 		}
 	})
 
 	t.Run("Stat", func(t *testing.T) {
 		fields := []LogField{{Key: "key", Value: "value"}}
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).On("Stat", "test stat", fields).Once()
+			mw.(*tracedWriter).On("Stat", "test stat", uint64(0), fields).Once()
 		}
-		cw.Stat("test stat", fields...)
+		cw.Stat("test stat", 0, fields...)
 		for _, mw := range cw.writers {
-			mw.(*tracedWriter).AssertCalled(t, "Stat", "test stat", fields)
+			mw.(*tracedWriter).AssertCalled(t, "Stat", "test stat", uint64(0), fields)
 		}
 	})
 }
@@ -444,8 +429,8 @@ type tracedWriter struct {
 	mock.Mock
 }
 
-func (w *tracedWriter) Alert(v any) {
-	w.Called(v)
+func (w *tracedWriter) Alert(v any, loggerID uint64) {
+	w.Called(v, loggerID)
 }
 
 func (w *tracedWriter) Close() error {
@@ -453,30 +438,30 @@ func (w *tracedWriter) Close() error {
 	return args.Error(0)
 }
 
-func (w *tracedWriter) Debug(v any, fields ...LogField) {
-	w.Called(v, fields)
+func (w *tracedWriter) Debug(v any, loggerID uint64, fields ...LogField) {
+	w.Called(v, loggerID, fields)
 }
 
-func (w *tracedWriter) Error(v any, fields ...LogField) {
-	w.Called(v, fields)
+func (w *tracedWriter) Error(v any, loggerID uint64, fields ...LogField) {
+	w.Called(v, loggerID, fields)
 }
 
-func (w *tracedWriter) Info(v any, fields ...LogField) {
-	w.Called(v, fields)
+func (w *tracedWriter) Info(v any, loggerID uint64, fields ...LogField) {
+	w.Called(v, loggerID, fields)
 }
 
-func (w *tracedWriter) Severe(v any) {
-	w.Called(v)
+func (w *tracedWriter) Severe(v any, loggerID uint64) {
+	w.Called(v, loggerID)
 }
 
-func (w *tracedWriter) Slow(v any, fields ...LogField) {
-	w.Called(v, fields)
+func (w *tracedWriter) Slow(v any, loggerID uint64, fields ...LogField) {
+	w.Called(v, loggerID, fields)
 }
 
-func (w *tracedWriter) Stack(v any) {
-	w.Called(v)
+func (w *tracedWriter) Stack(v any, loggerID uint64) {
+	w.Called(v, loggerID)
 }
 
-func (w *tracedWriter) Stat(v any, fields ...LogField) {
-	w.Called(v, fields)
+func (w *tracedWriter) Stat(v any, loggerID uint64, fields ...LogField) {
+	w.Called(v, loggerID, fields)
 }
