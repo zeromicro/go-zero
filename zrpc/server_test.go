@@ -56,6 +56,30 @@ func TestServer(t *testing.T) {
 	svr.Stop()
 }
 
+func TestRpcServerPauseResumeEtcdRegisterNoop(t *testing.T) {
+	rs := &RpcServer{
+		server: &mockedServer{},
+	}
+
+	assert.NotPanics(t, func() {
+		rs.PauseEtcdRegister()
+		rs.ResumeEtcdRegister()
+	})
+}
+
+func TestRpcServerPauseResumeEtcdRegister(t *testing.T) {
+	s := &mockedEtcdControllerServer{}
+	rs := &RpcServer{
+		server: s,
+	}
+
+	rs.PauseEtcdRegister()
+	rs.ResumeEtcdRegister()
+
+	assert.Equal(t, 1, s.pauseCalls)
+	assert.Equal(t, 1, s.resumeCalls)
+}
+
 func TestServerError(t *testing.T) {
 	_, err := NewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
@@ -157,6 +181,20 @@ func (m *mockedServer) SetName(_ string) {
 
 func (m *mockedServer) Start(_ internal.RegisterFn) error {
 	return nil
+}
+
+type mockedEtcdControllerServer struct {
+	mockedServer
+	pauseCalls  int
+	resumeCalls int
+}
+
+func (m *mockedEtcdControllerServer) PauseEtcdRegister() {
+	m.pauseCalls++
+}
+
+func (m *mockedEtcdControllerServer) ResumeEtcdRegister() {
+	m.resumeCalls++
 }
 
 func Test_setupUnaryInterceptors(t *testing.T) {

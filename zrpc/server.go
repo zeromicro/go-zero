@@ -19,6 +19,11 @@ type RpcServer struct {
 	register internal.RegisterFn
 }
 
+type etcdRegisterController interface {
+	PauseEtcdRegister()
+	ResumeEtcdRegister()
+}
+
 // MustNewServer returns a RpcSever, exits on any error.
 func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	server, err := NewServer(c, register)
@@ -95,6 +100,20 @@ func (rs *RpcServer) Start() {
 // Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
 	logx.Close()
+}
+
+// PauseEtcdRegister pauses etcd lease renewal if etcd publishing is enabled.
+func (rs *RpcServer) PauseEtcdRegister() {
+	if ctl, ok := rs.server.(etcdRegisterController); ok {
+		ctl.PauseEtcdRegister()
+	}
+}
+
+// ResumeEtcdRegister resumes etcd lease renewal if etcd publishing is enabled.
+func (rs *RpcServer) ResumeEtcdRegister() {
+	if ctl, ok := rs.server.(etcdRegisterController); ok {
+		ctl.ResumeEtcdRegister()
+	}
 }
 
 // DontLogContentForMethod disable logging content for given method.
