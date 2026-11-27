@@ -16,6 +16,47 @@ import (
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
+func TestParseJsonContentTypeCase(t *testing.T) {
+	for _, contentType := range []string{
+		"application/json",
+		"APPLICATION/JSON",
+		"Application/Json",
+		"application/JSON; charset=utf-8",
+		"Application/Json; Charset=UTF-8",
+	} {
+		t.Run(contentType, func(t *testing.T) {
+			type payload struct {
+				Name string `json:"name"`
+				Age  int    `json:"age"`
+			}
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var v payload
+				if err := Parse(r, &v); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+				if err := json.NewEncoder(w).Encode(v); err != nil {
+					t.Error(err)
+				}
+			}))
+			defer server.Close()
+
+			resp, err := server.Client().Post(server.URL, contentType,
+				strings.NewReader(`{"name":"hello","age":18}`))
+			if !assert.NoError(t, err) {
+				return
+			}
+			defer resp.Body.Close()
+			if !assert.Equal(t, http.StatusOK, resp.StatusCode) {
+				return
+			}
+			var got payload
+			assert.NoError(t, json.NewDecoder(resp.Body).Decode(&got))
+			assert.Equal(t, payload{Name: "hello", Age: 18}, got)
+		})
+	}
+}
+
 func TestParseForm(t *testing.T) {
 	t.Run("slice", func(t *testing.T) {
 		var v struct {
