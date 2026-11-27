@@ -142,6 +142,10 @@ func getMiddleware(api *spec.ApiSpec) []string {
 		middleware := g.GetAnnotation("middleware")
 		if len(middleware) > 0 {
 			for item := range strings.SplitSeq(middleware, ",") {
+				if strings.Contains(item, ".") {
+					continue
+				}
+
 				result.Add(strings.TrimSpace(item))
 			}
 		}

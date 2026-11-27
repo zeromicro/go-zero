@@ -1235,9 +1235,13 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 
 		valueTok = p.curTok
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
-		if p.peekTokenIs(token.COMMA) {
+		separators := []interface{}{token.COMMA}
+		if expr.Key.Token.Text == "middleware" {
+			separators = append(separators, token.DOT)
+		}
+		if p.peekTokenIs(separators...) {
 			for {
-				if p.peekTokenIs(token.COMMA) {
+				if p.peekTokenIs(separators...) {
 					if !p.nextToken() {
 						return nil
 					}
