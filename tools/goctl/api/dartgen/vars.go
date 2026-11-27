@@ -8,6 +8,7 @@ var funcMap = template.FuncMap{
 	"extractPositionalParamsFromPath": extractPositionalParamsFromPath,
 	"getBaseName":                     getBaseName,
 	"getCoreType":                     getCoreType,
+	"getMembers":                      getMembers,
 	"getPropertyFromMember":           getPropertyFromMember,
 	"hasUrlPathParams":                hasUrlPathParams,
 	"isAtomicListType":                isAtomicListType,
