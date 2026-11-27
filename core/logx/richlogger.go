@@ -181,12 +181,10 @@ func (l *richLogger) WithContext(ctx context.Context) Logger {
 }
 
 func (l *richLogger) WithDuration(duration time.Duration) Logger {
-	fields := append(l.fields, Field(durationKey, timex.ReprOfDuration(duration)))
-
 	return &richLogger{
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
-		fields:     fields,
+		fields:     appendFields(l.fields, Field(durationKey, timex.ReprOfDuration(duration))),
 	}
 }
 
@@ -195,17 +193,24 @@ func (l *richLogger) WithFields(fields ...LogField) Logger {
 		return l
 	}
 
-	f := append(l.fields, fields...)
-
 	return &richLogger{
 		ctx:        l.ctx,
 		callerSkip: l.callerSkip,
-		fields:     f,
+		fields:     appendFields(l.fields, fields...),
 	}
 }
 
+// appendFields returns a new slice. append may write into base's spare
+// capacity and overwrite fields belonging to another logger.
+func appendFields(base []LogField, extra ...LogField) []LogField {
+	fields := make([]LogField, len(base)+len(extra))
+	copy(fields, base)
+	copy(fields[len(base):], extra)
+	return fields
+}
+
 func (l *richLogger) buildFields(fields ...LogField) []LogField {
-	fields = append(l.fields, fields...)
+	fields = appendFields(l.fields, fields...)
 	// caller field should always appear together with global fields
 	fields = append(fields, Field(callerKey, getCaller(callerDepth+l.callerSkip)))
 	fields = mergeGlobalFields(fields)
