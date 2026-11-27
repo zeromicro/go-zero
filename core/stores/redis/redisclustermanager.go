@@ -19,11 +19,11 @@ var (
 )
 
 func getCluster(r *Redis) (*red.ClusterClient, error) {
-	val, err := clusterManager.GetResource(r.Addr, func() (io.Closer, error) {
+	val, err := clusterManager.GetResource(r.cacheKey(), func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {
 			tlsConfig = &tls.Config{
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: r.tlsSkipVerify,
 			}
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
