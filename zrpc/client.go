@@ -9,10 +9,13 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/breaker"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/consistenthash"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer"
+	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -131,6 +134,13 @@ func SetHashKey(ctx context.Context, key string) context.Context {
 // WithCallTimeout return a call option with given timeout to make a method call.
 func WithCallTimeout(timeout time.Duration) grpc.CallOption {
 	return clientinterceptors.WithCallTimeout(timeout)
+}
+
+// WrapPicker wraps the given picker with circuit breaker.
+// Use this for custom load balancers to enable instance-level circuit breaker.
+// retryable indicates whether to retry on another node when circuit breaker is open.
+func WrapPicker(info base.PickerBuildInfo, picker balancer.Picker, retryable bool) balancer.Picker {
+	return breaker.WrapPicker(info, picker, retryable)
 }
 
 func makeLBServiceConfig(balancerName string) string {
