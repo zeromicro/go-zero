@@ -11,9 +11,9 @@ type (
 	// A ChunkExecutor is an executor to execute tasks when either requirement meets:
 	// 1. up to given chunk size
 	// 2. flush interval elapsed
-	ChunkExecutor struct {
-		executor  *PeriodicalExecutor
-		container *chunkContainer
+	ChunkExecutor[T any] struct {
+		executor  *PeriodicalExecutor[chunk[T]]
+		container *chunkContainer[T]
 	}
 
 	chunkOptions struct {
@@ -23,18 +23,18 @@ type (
 )
 
 // NewChunkExecutor returns a ChunkExecutor.
-func NewChunkExecutor(execute Execute, opts ...ChunkOption) *ChunkExecutor {
+func NewChunkExecutor[T any](execute Execute[T], opts ...ChunkOption) *ChunkExecutor[T] {
 	options := newChunkOptions()
 	for _, opt := range opts {
 		opt(&options)
 	}
 
-	container := &chunkContainer{
+	container := &chunkContainer[T]{
 		execute:      execute,
 		maxChunkSize: options.chunkSize,
 	}
-	executor := &ChunkExecutor{
-		executor:  NewPeriodicalExecutor(options.flushInterval, container),
+	executor := &ChunkExecutor[T]{
+		executor:  NewPeriodicalExecutor[chunk[T]](options.flushInterval, container),
 		container: container,
 	}
 
@@ -42,8 +42,8 @@ func NewChunkExecutor(execute Execute, opts ...ChunkOption) *ChunkExecutor {
 }
 
 // Add adds task with given chunk size into ce.
-func (ce *ChunkExecutor) Add(task any, size int) error {
-	ce.executor.Add(chunk{
+func (ce *ChunkExecutor[T]) Add(task T, size int) error {
+	ce.executor.Add(chunk[T]{
 		val:  task,
 		size: size,
 	})
@@ -51,12 +51,12 @@ func (ce *ChunkExecutor) Add(task any, size int) error {
 }
 
 // Flush forces ce to flush and execute tasks.
-func (ce *ChunkExecutor) Flush() {
+func (ce *ChunkExecutor[T]) Flush() {
 	ce.executor.Flush()
 }
 
 // Wait waits the execution to be done.
-func (ce *ChunkExecutor) Wait() {
+func (ce *ChunkExecutor[T]) Wait() {
 	ce.executor.Wait()
 }
 
@@ -81,33 +81,35 @@ func newChunkOptions() chunkOptions {
 	}
 }
 
-type chunkContainer struct {
-	tasks        []any
-	execute      Execute
+type chunkContainer[T any] struct {
+	tasks        []chunk[T]
+	execute      Execute[T]
 	size         int
 	maxChunkSize int
 }
 
-func (bc *chunkContainer) AddTask(task any) bool {
-	ck := task.(chunk)
-	bc.tasks = append(bc.tasks, ck.val)
-	bc.size += ck.size
+func (bc *chunkContainer[T]) AddTask(task chunk[T]) bool {
+	bc.tasks = append(bc.tasks, task)
+	bc.size += task.size
 	return bc.size >= bc.maxChunkSize
 }
 
-func (bc *chunkContainer) Execute(tasks any) {
-	vals := tasks.([]any)
+func (bc *chunkContainer[T]) Execute(tasks []chunk[T]) {
+	vals := make([]T, 0, len(tasks))
+	for _, elem := range tasks {
+		vals = append(vals, elem.val)
+	}
 	bc.execute(vals)
 }
 
-func (bc *chunkContainer) RemoveAll() any {
+func (bc *chunkContainer[T]) RemoveAll() []chunk[T] {
 	tasks := bc.tasks
 	bc.tasks = nil
 	bc.size = 0
 	return tasks
 }
 
-type chunk struct {
-	val  any
+type chunk[T any] struct {
+	val  T
 	size int
 }
